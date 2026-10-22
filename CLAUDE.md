@@ -71,6 +71,7 @@ Usar Node 24 (arquivo `.nvmrc`; `engines.node` = `>=22 <25`). Node 25.3 quebra o
 - Build/preview para Cloudflare Workers (OpenNext): `pnpm build:cf` e `pnpm preview`. Não funciona no Windows nativo (erro de leitura de symlinks do pnpm); rode em WSL, Linux ou no CI.
 - Supabase local: `pnpm supabase start`, `pnpm supabase migration new <nome>`, `pnpm supabase db reset` (precisam de Docker).
 - Tipos do Supabase: `pnpm db:types` (gera `src/shared/db/database.types.ts` a partir do projeto de desenvolvimento linkado, sem Docker; exige `pnpm supabase login` e `pnpm supabase link --project-ref qheleouixleltfjtccji`, D-005).
+- Checar conexão com o Supabase de dev: `pnpm check:supabase` (script manual `scripts/checar-supabase.mjs`, lê `.env.local`, imprime só status; fora do app e do CI; IM-085, IM-086).
 - Tipos de bindings Cloudflare: `pnpm cf-typegen`
 - Publicar: ainda não há script de deploy. O deploy de desenvolvimento será criado quando houver conta Cloudflare de dev. Deploy e `supabase db push` em produção só com aprovação do Emerson (D-003).
 - Variáveis: copie `.env.example` para `.env.local` e `.dev.vars.example` para `.dev.vars`; nunca comite valores.
