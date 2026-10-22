@@ -59,7 +59,7 @@ Quem implementa não verifica a própria entrega.
 Desenvolvimento e produção separados. Nada é testado em produção. Migração vai primeiro para dev. Deploy em produção e `supabase db push` em produção só com aprovação do Emerson naquele momento.
 
 ## Comandos
-Versões escolhidas (conferidas em 22/10/2026): Node 25.3 local (CI usa 24 LTS), pnpm 12.15.0, Next.js 16.4.2, React 19.3.0, TypeScript 5.x, ESLint 9, Vitest 5.0.5, Prettier 3.9.10, Zod 4.6.7, @opennextjs/cloudflare 1.20.13, Wrangler 4.151.3, Supabase CLI 2.121.0.
+Usar Node 24 (arquivo `.nvmrc`; `engines.node` = `>=22 <25`). Node 25.3 quebra o Vitest 5/Vite 8 com ERR_PACKAGE_IMPORT_NOT_DEFINED (#module-sync-enabled), então não usar Node 25. Versões escolhidas (conferidas em 22/10/2026): Node 24 LTS (local e CI), pnpm 12.15.0, Next.js 16.4.2, React 19.3.0, TypeScript 5.x, ESLint 9, Vitest 5.0.5, Prettier 3.9.10, Zod 4.6.7, @opennextjs/cloudflare 1.20.13, Wrangler 4.151.3, Supabase CLI 2.121.0.
 
 - Instalar: `pnpm install` (pnpm instalado com `npm i -g pnpm`; a versão fica fixa em `packageManager`).
 - Rodar em desenvolvimento: `pnpm dev` (http://localhost:3000).
