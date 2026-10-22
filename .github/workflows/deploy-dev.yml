@@ -42,18 +42,56 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
 
-      - name: Publicar em desenvolvimento (indicamais-dev)
+      - name: Verificar credenciais da Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm deploy:dev 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+        shell: bash
+        run: |
+          set -euo pipefail
+          faltando=0
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::Falta o secret CLOUDFLARE_API_TOKEN. Crie em Settings > Secrets and variables > Actions > Repository secrets."
+            faltando=1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::Falta o secret CLOUDFLARE_ACCOUNT_ID. Crie em Settings > Secrets and variables > Actions > Repository secrets."
+            faltando=1
+          fi
+          if [ "$faltando" -ne 0 ]; then
+            exit 1
+          fi
+          echo "Credenciais da Cloudflare presentes (valores nao exibidos)."
+
+      - name: Publicar em desenvolvimento (indicamais-dev)
+        id: publicar
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Sem pipe: a saida vai para arquivo e o status do comando e preservado.
+          status=0
+          pnpm deploy:dev > "$RUNNER_TEMP/deploy.log" 2>&1 || status=$?
+          cat "$RUNNER_TEMP/deploy.log"
+          if [ "$status" -ne 0 ]; then
+            echo "::error::pnpm deploy:dev falhou com codigo $status."
+            exit "$status"
+          fi
 
       - name: URL publicada
+        if: ${{ success() && steps.publicar.outcome == 'success' }}
+        shell: bash
         run: |
-          url=$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | tail -n 1 || true)
-          if [ -n "$url" ]; then
-            echo "URL publicada: $url"
-            echo "URL publicada: $url" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "O comando nao informou a URL (ver o log do passo anterior)."
+          set -euo pipefail
+          padrao='https://[A-Za-z0-9.-]+\.workers\.dev'
+          if ! url=$(grep -Eo "$padrao" "$RUNNER_TEMP/deploy.log" | tail -n 1) || [ -z "$url" ]; then
+            echo "::error::Nenhuma URL workers.dev encontrada na saida do deploy."
+            echo "Procurado (regex ERE): $padrao"
+            echo "Arquivo: $RUNNER_TEMP/deploy.log. Ultimas 30 linhas:"
+            tail -n 30 "$RUNNER_TEMP/deploy.log"
+            exit 1
           fi
+          echo "URL publicada: $url"
+          echo "URL publicada: $url" >> "$GITHUB_STEP_SUMMARY"
