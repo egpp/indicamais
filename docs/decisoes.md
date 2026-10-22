@@ -32,6 +32,13 @@ Critério do Emerson: suportar crescimento, desempenho e segurança.
 - Estrutura de 5 agentes: sessão principal como gestor e quatro agentes técnicos (`banco-seguranca`, `regras-negocio`, `interface`, `verificador`).
 - Comandos destrutivos são bloqueados por regra técnica em `.claude/settings.json`, não só por instrução.
 
+## D-005 · 22/10/2026 · Projeto Supabase de desenvolvimento
+**IDs:** IM-087, IM-085, IM-086
+- O projeto Supabase `qheleouixleltfjtccji` (região São Paulo) é o ambiente de **desenvolvimento** (D-003). O Supabase não tem campo de ambiente; a designação é desta decisão.
+- O projeto de produção ainda não existe. Quando for criado, será outro projeto, com aprovação do Emerson.
+- A integração GitHub e o Branching do Supabase ficam desligados (risco de aplicar migração em produção sem aprovação e custo). A ligação com o código é só pela CLI (`supabase link`) e pelo `.env.local`.
+- Custo do projeto: a confirmar com o Emerson (plano gratuito?).
+
 ---
 
 ## Pendências que afetam as primeiras fases
