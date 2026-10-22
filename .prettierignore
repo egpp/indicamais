@@ -9,3 +9,4 @@ CLAUDE.md
 supabase
 tests/fixtures
 cloudflare-env.d.ts
+src/shared/db/database.types.ts
