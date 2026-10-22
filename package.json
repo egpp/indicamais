@@ -1,0 +1,45 @@
+{
+  "name": "indicamais",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "build:cf": "opennextjs-cloudflare build",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db:types": "supabase gen types typescript --local > src/shared/db/database.types.ts",
+    "supabase": "supabase"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.13",
+    "next": "16.4.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.10",
+    "supabase": "^2.121.0",
+    "typescript": "^5",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.3"
+  },
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=22"
+  }
+}
