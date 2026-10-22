@@ -1,0 +1,59 @@
+name: Deploy dev
+
+# Publica SOMENTE o Worker de desenvolvimento (indicamais-dev). D-003, IM-085.
+# Disparo manual: GitHub > Actions > Deploy dev > Run workflow.
+# Este workflow nao tem nenhum passo de producao.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Garantir que o alvo e o Worker de dev
+        run: |
+          set -eu
+          if ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"indicamais-dev"' wrangler.jsonc; then
+            echo "wrangler.jsonc nao aponta para indicamais-dev. Abortando." >&2
+            exit 1
+          fi
+          if grep -Eq '"(name|service)"[[:space:]]*:[[:space:]]*"indicamais"' wrangler.jsonc; then
+            echo "Referencia ao Worker de producao encontrada. Abortando." >&2
+            exit 1
+          fi
+
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      - name: Publicar em desenvolvimento (indicamais-dev)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm deploy:dev 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+
+      - name: URL publicada
+        run: |
+          url=$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | tail -n 1 || true)
+          if [ -n "$url" ]; then
+            echo "URL publicada: $url"
+            echo "URL publicada: $url" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "O comando nao informou a URL (ver o log do passo anterior)."
+          fi
