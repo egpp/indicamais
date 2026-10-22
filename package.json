@@ -14,6 +14,7 @@
     "format:check": "prettier --check .",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "build:cf": "opennextjs-cloudflare build",
+    "deploy:dev": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "db:types": "supabase gen types typescript --linked --schema public > src/shared/db/database.types.ts",
     "supabase": "supabase",
