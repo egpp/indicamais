@@ -9,11 +9,11 @@ Regras:
 
 | ID | Tipo | Requisito | Execução | Próxima ação | Dependência/decisão | Evidência | Verificado em |
 |---|---|---|---|---|---|---|---|
-| IM-001 | D | Arquitetura modular | A fazer | — | — | — | — |
-| IM-002 | D | Integração entre módulos | A fazer | — | — | — | — |
-| IM-003 | D | Referência central | A fazer | — | — | — | — |
+| IM-001 | D | Arquitetura modular | Verificado (base Fase 0) | Módulos funcionais virão nas fases seguintes; repetir o teste de fronteira a cada módulo novo. | — | 10 módulos ativos em src/modules/<x>/index.ts (vazios), nenhum futuro (planos, social, remarketing, pagamentos). pnpm install --frozen-lockfile, lint, typecheck, format:check, build: exit 0; pnpm test: 10/10. Arquivo violador temporário em src/modules/indicacoes importando @/modules/pontos/interno e ../pontos/interno: eslint deu 3 erros no-restricted-imports; removido. | 22/10/2026 |
+| IM-002 | D | Integração entre módulos | Verificado (base Fase 0) | Parte "saldos e regras separados" só pode ser verificada quando pontos/comissões/relacionamento existirem. | — | tests/fronteiras-modulos.test.ts: 4 casos permitidos passam, 4 proibidos falham, shared->módulos bloqueado, módulo real indicacoes->pontos/interno bloqueado (10/10 passaram). Violador temporário confirmado via pnpm exec eslint. | 22/10/2026 |
+| IM-003 | D | Referência central | Verificado (base Fase 0) | Manter IDs ao incluir requisitos novos. | — | docs/ versionado no Git (git ls-files docs); 7 commits na branch fase-0/fundacoes citam IDs; CLAUDE.md com seção Comandos preenchida e coerente com package.json. | 22/10/2026 |
 | IM-004 | D | Continuidade | A fazer | — | — | — | — |
-| IM-005 | D | Experiência brasileira | A fazer | — | — | — | — |
+| IM-005 | D | Experiência brasileira | Implementado | Verificar em tela no celular (Playwright, viewport móvel) quando houver telas reais; hoje só há <html lang="pt-BR"> e página inicial. | — | pnpm build ok (rotas / e /_not-found estáticas). Sem teste de responsividade, moeda ou telefone ainda. | — |
 | IM-006 | D | Conta multifunção | A fazer | — | — | — | — |
 | IM-007 | D | Login | A fazer | — | — | — | — |
 | IM-008 | D | Confirmação e recuperação | A fazer | — | — | — | — |
@@ -93,9 +93,9 @@ Regras:
 | IM-082 | P | Políticas | Aguardando decisão | — | — | — | — |
 | IM-083 | D | Destinos e acessos | A fazer | — | — | — | — |
 | IM-084 | D | Proteção do trabalho | A fazer | — | — | — | — |
-| IM-085 | D | Versionamento e recuperação | A fazer | — | — | — | — |
-| IM-086 | D | Segurança | A fazer | — | — | — | — |
+| IM-085 | D | Versionamento e recuperação | Implementado | Verificar: (1) CI verde no GitHub após push (ci.yml coerente com scripts: install --frozen-lockfile, lint, typecheck, test; falta format:check e build no CI, sugestão ao gestor); (2) deploy de dev na Cloudflare acessível; (3) pnpm build:cf em WSL/Linux/CI (não validado: falha no Windows nativo, limitação do OpenNext); (4) Supabase dev ligado e geração de tipos (não testado, exige Docker/projeto). | — | Repositório Git com migrações em supabase/ (init, sem link), .env.example e .dev.vars.example versionados. CI ainda não executado no GitHub; deploy de dev inexistente. | — |
+| IM-086 | D | Segurança | Implementado | Base de segredos verificada; RLS/auditoria/isolamento só quando houver tabelas (Fase 1+). Reavaliar quando a primeira migração com tabelas existir. | — | git ls-files: só .env.example e .dev.vars.example; .gitignore cobre .env* e .dev.vars*; git log -p --all sem chaves/tokens/JWT/URLs Supabase (única ocorrência é "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)" do config.toml, referência e não valor); .env.example só com nomes, sem valores. Nenhuma tabela ainda. | — |
 | IM-087 | P | Ambientes | Aguardando decisão | — | — | — | — |
-| IM-088 | D | Validação e continuidade | A fazer | — | — | — | — |
+| IM-088 | D | Validação e continuidade | Implementado | Fechar quando o CI estiver verde e houver testes de fluxos reais nas fases seguintes. | — | Teste de risco concreto (fronteira) passa; lint/tipos/testes/format/build locais verdes. CI no GitHub não rodou. | — |
 | IM-089 | D | Limites | A fazer | — | — | — | — |
 | IM-090 | D | Fora do escopo inicial | A fazer | — | — | — | — |
