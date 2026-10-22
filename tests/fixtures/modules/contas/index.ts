@@ -1,0 +1,1 @@
+export { segredo } from "./interno";
