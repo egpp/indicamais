@@ -202,3 +202,49 @@ describe("categorias (IM-016)", () => {
     });
   });
 });
+
+describe("categorias: listarTodasCategorias (administrador)", () => {
+  const todas = [
+    cat({ id: ID1, nome: "Padarias", ordem: 2 }),
+    cat({ id: ID2, nome: "Antigas", ativa: false, ordem: 1 }),
+  ];
+
+  it("administrador vê todas, inclusive inativas, ordenadas e com o estado", async () => {
+    const listarTodasCategorias = vi.fn(async () => ({ dados: todas, erro: null }));
+    const svc = criarServicoCategorias(
+      fake({ ehAdministrador: async () => true, listarTodasCategorias }),
+    );
+    const r = await svc.listarTodasCategorias();
+    expect(r.ok && r.valor.map((c) => [c.nome, c.ativa])).toEqual([
+      ["Antigas", false],
+      ["Padarias", true],
+    ]);
+  });
+
+  it("não administrador recebe SEM_PERMISSAO e as inativas não são lidas", async () => {
+    const listarTodasCategorias = vi.fn(async () => ({ dados: todas, erro: null }));
+    const svc = criarServicoCategorias(
+      fake({ ehAdministrador: async () => false, listarTodasCategorias }, todas),
+    );
+    const r = await svc.listarTodasCategorias();
+    expect(!r.ok && r.erro.codigo).toBe("SEM_PERMISSAO");
+    expect(listarTodasCategorias).not.toHaveBeenCalled();
+    // listarAtivas continua sem inativas para qualquer um.
+    const ativas = await svc.listarAtivas();
+    expect(ativas.ok && ativas.valor.map((c) => c.nome)).toEqual(["Padarias"]);
+  });
+
+  it("falha fechado sem a checagem ou se ela lançar erro", async () => {
+    const sem = await criarServicoCategorias(fake({}, todas)).listarTodasCategorias();
+    expect(!sem.ok && sem.erro.codigo).toBe("SEM_PERMISSAO");
+    const lanca = await criarServicoCategorias(
+      fake({
+        ehAdministrador: async () => {
+          throw new Error("rede");
+        },
+        listarTodasCategorias: async () => ({ dados: todas, erro: null }),
+      }),
+    ).listarTodasCategorias();
+    expect(!lanca.ok && lanca.erro.codigo).toBe("SEM_PERMISSAO");
+  });
+});

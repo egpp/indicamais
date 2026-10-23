@@ -786,3 +786,89 @@ describe("perfis: privacidade dos modelos públicos (IM-029)", () => {
     expect(m).not.toHaveProperty("whatsappComercialE164");
   });
 });
+
+describe("perfis: obterVersaoParaRevisao (IM-021, IM-023, IM-029)", () => {
+  const ADMIN = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+  /** Banco do administrador: lê qualquer versão; o WhatsApp e um dono "vazam" na linha de propósito. */
+  async function cenario(admin: boolean) {
+    const ctx = await criarPronto();
+    await ctx.svc.enviarParaAprovacao(ctx.perfil.id);
+    const versao = [...ctx.versoes.values()][0]!;
+    const lerAlheia = vi.fn(async (vid: string) => {
+      const v = ctx.versoes.get(vid);
+      const p = v ? ctx.perfis.get(v.perfil_id) : undefined;
+      if (!v || !p) return { dados: null, erro: null };
+      return {
+        dados: {
+          perfil: { id: p.id, slug: p.slug, responsavel_id: DONO, email: "dono@exemplo.com" },
+          versao: {
+            ...v,
+            whatsapp_comercial_e164: WHATS_E164,
+            responsavel_id: DONO,
+            email: "dono@exemplo.com",
+          },
+        },
+        erro: null,
+      };
+    });
+    const banco: ClienteBancoPerfis = {
+      ...fakeBanco(ADMIN).banco,
+      ehAdministrador: vi.fn(async () => admin),
+      buscarVersaoParaRevisao: lerAlheia,
+    };
+    return { versao, perfil: ctx.perfil, lerAlheia, svc: criarServicoPerfis(banco) };
+  }
+
+  it("administrador obtém a versão alheia no formato de exibição", async () => {
+    const { svc, versao, perfil } = await cenario(true);
+    const r = await svc.obterVersaoParaRevisao(versao.id);
+    if (!r.ok) throw new Error(JSON.stringify(r.erro));
+    expect(r.valor.versaoId).toBe(versao.id);
+    expect(r.valor.situacao).toBe("pendente");
+    expect(r.valor.perfil.id).toBe(perfil.id);
+    expect(r.valor.perfil.nome).toBe("Padaria Pão Quente");
+    expect(r.valor.perfil.slug).toBe(perfil.slug);
+  });
+
+  it("o modelo nunca contém WhatsApp, e-mail, responsável nem id de conta", async () => {
+    const { svc, versao } = await cenario(true);
+    const r = await svc.obterVersaoParaRevisao(versao.id);
+    const json = JSON.stringify(r);
+    expect(json).not.toContain("5519999990001");
+    expect(json).not.toContain("dono@exemplo.com");
+    expect(json).not.toContain(DONO);
+    expect(json).not.toMatch(/responsavel|email|whatsapp/i);
+  });
+
+  it("não administrador não obtém versão alheia e o banco nem é lido", async () => {
+    const { svc, versao, lerAlheia } = await cenario(false);
+    const r = await svc.obterVersaoParaRevisao(versao.id);
+    expect(!r.ok && r.erro.codigo).toBe("SEM_PERMISSAO");
+    expect(lerAlheia).not.toHaveBeenCalled();
+  });
+
+  it("falha fechado: sem a checagem de admin, ou se ela lançar erro, nega", async () => {
+    const { versao } = await cenario(true);
+    const sem = criarServicoPerfis(fakeBanco(ADMIN).banco);
+    const r1 = await sem.obterVersaoParaRevisao(versao.id);
+    expect(!r1.ok && r1.erro.codigo).toBe("SEM_PERMISSAO");
+    const lanca = criarServicoPerfis({
+      ...fakeBanco(ADMIN).banco,
+      ehAdministrador: async () => {
+        throw new Error("rede");
+      },
+      buscarVersaoParaRevisao: async () => ({ dados: null, erro: null }),
+    });
+    const r2 = await lanca.obterVersaoParaRevisao(versao.id);
+    expect(!r2.ok && r2.erro.codigo).toBe("SEM_PERMISSAO");
+  });
+
+  it("id inválido ou inexistente = NAO_ENCONTRADO", async () => {
+    const { svc } = await cenario(true);
+    const a = await svc.obterVersaoParaRevisao("nao-e-uuid");
+    expect(!a.ok && a.erro.codigo).toBe("NAO_ENCONTRADO");
+    const b = await svc.obterVersaoParaRevisao("00000000-0000-4000-8000-0000000000ff");
+    expect(!b.ok && b.erro.codigo).toBe("NAO_ENCONTRADO");
+  });
+});

@@ -51,6 +51,11 @@ export interface ClienteBancoAdministracao {
    * itens da própria conta. A visão filtra por auth.uid(); o responsável nunca lê as tabelas de revisão.
    */
   listarMinhasRevisoes(): Promise<RespostaBanco<LinhaResultadoRevisao[]>>;
+  /**
+   * rpc administracao_eh_admin (sem parâmetros; usa auth.uid()): boolean. OPCIONAL por compatibilidade;
+   * sem ela, `ehAdministrador()` devolve false (falha fechado).
+   */
+  ehAdministrador?(): Promise<boolean>;
 }
 
 /** Fato ocorrido: o que o ponto de extensão recebe. Sem e-mail, telefone ou nome de visitante. */
@@ -107,6 +112,19 @@ export function criarServicoAdministracao(
   }
 
   return {
+    /**
+     * A conta logada é administradora? Só decide navegação/exibição; o banco confere de novo em toda ação.
+     * Qualquer falha ou ausência da checagem = false (nunca concede por erro).
+     */
+    ehAdministrador: async (): Promise<boolean> => {
+      if (!banco.ehAdministrador) return false;
+      try {
+        return (await banco.ehAdministrador()) === true;
+      } catch {
+        return false;
+      }
+    },
+
     /** Fila de revisão (perfis e itens pendentes), mais antigos primeiro. `proprio` esconde o botão de decidir. */
     listarFila: () => seguro(filaCompleta),
 

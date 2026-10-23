@@ -25,7 +25,18 @@ type Resultado<T> = ResultadoBase<T, ErroCatalogo>;
 /** Banco injetado para categorias. Sessão do usuário; as funções administrativas checam o papel no banco. */
 export interface ClienteBancoCategorias {
   readonly contaId: string;
+  /** select em catalogo_categoria. Para o usuário comum a RLS devolve só as ativas. */
   listarCategorias(): Promise<RespostaBanco<LinhaCategoria[]>>;
+  /**
+   * rpc administracao_eh_admin (sem parâmetros; usa auth.uid()). OPCIONAL por compatibilidade; sem ela,
+   * `listarTodas` falha fechado (SEM_PERMISSAO).
+   */
+  ehAdministrador?(): Promise<boolean>;
+  /**
+   * Administrador: TODAS as categorias, inclusive inativas (select sem filtro de `ativa`, liberado só ao
+   * admin pela RLS). O serviço confere `ehAdministrador` antes de chamar.
+   */
+  listarTodasCategorias?(): Promise<RespostaBanco<LinhaCategoria[]>>;
   inserirSolicitacao(c: {
     solicitante_id: string;
     nome_sugerido: string;
@@ -58,6 +69,9 @@ export interface ClienteBancoCategorias {
 }
 
 export type Categoria = { id: string; nome: string; slug: string; ordem: number };
+
+/** Categoria na visão do administrador: inclui o estado (ativa/inativa). */
+export type CategoriaAdmin = Categoria & { ativa: boolean };
 
 export type Solicitacao = {
   id: string;
@@ -120,6 +134,30 @@ export function criarServicoCategorias(banco: ClienteBancoCategorias) {
   return {
     /** Categorias ativas, na ordem de exibição (IM-016). Inativas nunca aparecem aqui. */
     listarAtivas: () => seguro(ativas),
+
+    /**
+     * Administrador: todas as categorias, inclusive inativas (para reativar). Não administrador recebe
+     * SEM_PERMISSAO e o banco nem é consultado. Ordem: ativas primeiro? Não: ordem de exibição, depois nome.
+     */
+    listarTodasCategorias: (): Promise<Resultado<CategoriaAdmin[]>> =>
+      seguro(async () => {
+        if (!banco.ehAdministrador || !banco.listarTodasCategorias) {
+          return falha(erroCatalogo("SEM_PERMISSAO", M.semPermissao));
+        }
+        let admin = false;
+        try {
+          admin = (await banco.ehAdministrador()) === true;
+        } catch {
+          admin = false;
+        }
+        if (!admin) return falha(erroCatalogo("SEM_PERMISSAO", M.semPermissao));
+        const r = await banco.listarTodasCategorias();
+        if (r.erro) return falha(mapearErroBancoCatalogo(r.erro));
+        const lista = [...(r.dados ?? [])]
+          .sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"))
+          .map((c) => ({ ...paraCategoria(c), ativa: c.ativa }));
+        return { ok: true, valor: lista };
+      }),
 
     /** O responsável pede uma categoria nova (IM-016). Não cria nada na lista. */
     solicitar: (entrada: unknown): Promise<Resultado<Solicitacao>> =>

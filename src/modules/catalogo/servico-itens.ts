@@ -60,7 +60,31 @@ export interface ClienteBancoItens {
   enviarVersao(versaoId: string): Promise<{ erro: ErroBanco | null }>;
   /** update catalogo_item set publicado. */
   definirPublicado(itemId: string, publicado: boolean): Promise<RespostaBanco<LinhaItem>>;
+  /**
+   * rpc administracao_eh_admin (sem parâmetros; usa auth.uid()). OPCIONAL por compatibilidade; sem ela,
+   * `obterVersaoParaRevisao` falha fechado (SEM_PERMISSAO).
+   */
+  ehAdministrador?(): Promise<boolean>;
+  /**
+   * Leitura de UMA versão de item por id, de qualquer conta, só para administrador (RLS + conferência no
+   * serviço). `dados: null` sem erro = não existe. Devolve a versão e o item (id, perfil_id, tipo). Nunca
+   * ler `conta_id`.
+   */
+  buscarVersaoParaRevisao?(versaoId: string): Promise<
+    RespostaBanco<{
+      item: { id: string; perfil_id: string | null; tipo: TipoItem };
+      versao: LinhaItemVersao;
+    }>
+  >;
 }
+
+/** Versão alheia como o administrador a revisa: formato de exibição público, sem conta/dono (IM-029). */
+export type VersaoParaRevisaoItem = {
+  versaoId: string;
+  situacao: LinhaItemVersao["situacao"];
+  enviadaEm: string | null;
+  item: ItemExibicao;
+};
 
 export type MeuItem = {
   id: string;
@@ -148,6 +172,37 @@ export function criarServicoItens(banco: ClienteBancoItens) {
   }
 
   return {
+    /** IM-021/IM-023: leitura da versão para decidir. Só administrador; modelo de exibição público. */
+    obterVersaoParaRevisao: (versaoId: string): Promise<Resultado<VersaoParaRevisaoItem>> =>
+      seguro(async () => {
+        if (!banco.ehAdministrador || !banco.buscarVersaoParaRevisao) {
+          return falha(erroCatalogo("SEM_PERMISSAO", M.semPermissao));
+        }
+        let admin = false;
+        try {
+          admin = (await banco.ehAdministrador()) === true;
+        } catch {
+          admin = false;
+        }
+        if (!admin) return falha(erroCatalogo("SEM_PERMISSAO", M.semPermissao));
+        if (!uuidSchema.safeParse(versaoId).success) {
+          return falha(erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado));
+        }
+        const r = await banco.buscarVersaoParaRevisao(versaoId);
+        if (r.erro) return falha(mapearErroBancoCatalogo(r.erro));
+        if (!r.dados) return falha(erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado));
+        const { item, versao } = r.dados;
+        return {
+          ok: true,
+          valor: {
+            versaoId: versao.id,
+            situacao: versao.situacao,
+            enviadaEm: versao.enviada_em,
+            item: paraItemExibicao(item, conteudoDeVersao(versao)),
+          },
+        };
+      }),
+
     /** Cria o item e o primeiro rascunho. Sem `perfilId` = anúncio particular (IM-015). */
     criarRascunho: (entrada: unknown): Promise<Resultado<MeuItem>> =>
       seguro(async () => {

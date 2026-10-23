@@ -560,3 +560,60 @@ describe("itens: erros do banco e privacidade (IM-029, IM-086)", () => {
     );
   });
 });
+
+describe("itens: obterVersaoParaRevisao (IM-021, IM-023, IM-029)", () => {
+  const ADMIN = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+  async function cenario(admin: boolean) {
+    const ctx = await criarPronto();
+    await ctx.svc.enviarParaAprovacao(ctx.item.id);
+    const versao = [...ctx.versoes.values()][0]!;
+    const lerAlheia = vi.fn(async (vid: string) => {
+      const v = ctx.versoes.get(vid);
+      const i = v ? ctx.itens.get(v.item_id) : undefined;
+      if (!v || !i) return { dados: null, erro: null };
+      return {
+        dados: {
+          item: { id: i.id, perfil_id: i.perfil_id, tipo: i.tipo, conta_id: DONO },
+          versao: { ...v, conta_id: DONO, email: "dono@exemplo.com" },
+        },
+        erro: null,
+      };
+    });
+    const banco: ClienteBancoItens = {
+      ...fakeBanco(ADMIN).banco,
+      ehAdministrador: vi.fn(async () => admin),
+      buscarVersaoParaRevisao: lerAlheia,
+    };
+    return { versao, item: ctx.item, lerAlheia, svc: criarServicoItens(banco) };
+  }
+
+  it("administrador obtém a versão alheia no formato de exibição, sem dono", async () => {
+    const { svc, versao, item } = await cenario(true);
+    const r = await svc.obterVersaoParaRevisao(versao.id);
+    if (!r.ok) throw new Error(JSON.stringify(r.erro));
+    expect(r.valor.versaoId).toBe(versao.id);
+    expect(r.valor.situacao).toBe("pendente");
+    expect(r.valor.item.id).toBe(item.id);
+    const json = JSON.stringify(r);
+    expect(json).not.toContain(DONO);
+    expect(json).not.toMatch(/conta_id|email/i);
+  });
+
+  it("não administrador não obtém versão alheia e o banco nem é lido", async () => {
+    const { svc, versao, lerAlheia } = await cenario(false);
+    const r = await svc.obterVersaoParaRevisao(versao.id);
+    expect(!r.ok && r.erro.codigo).toBe("SEM_PERMISSAO");
+    expect(lerAlheia).not.toHaveBeenCalled();
+  });
+
+  it("falha fechado sem a checagem; id inválido ou inexistente = NAO_ENCONTRADO", async () => {
+    const { versao, svc } = await cenario(true);
+    const sem = await criarServicoItens(fakeBanco(ADMIN).banco).obterVersaoParaRevisao(versao.id);
+    expect(!sem.ok && sem.erro.codigo).toBe("SEM_PERMISSAO");
+    const a = await svc.obterVersaoParaRevisao("nao-e-uuid");
+    expect(!a.ok && a.erro.codigo).toBe("NAO_ENCONTRADO");
+    const b = await svc.obterVersaoParaRevisao("00000000-0000-4000-8000-0000000000ff");
+    expect(!b.ok && b.erro.codigo).toBe("NAO_ENCONTRADO");
+  });
+});

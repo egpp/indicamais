@@ -25,4 +25,10 @@ export type {
 export { MENSAGENS_PERFIS, mapearErroBancoPerfis } from "./erros";
 export type { ErroPerfis, CodigoErroPerfis } from "./erros";
 export { criarServicoPerfis, montarMeuPerfil } from "./servico";
-export type { ServicoPerfis, ClienteBancoPerfis, MeuPerfil, PreviaPerfil } from "./servico";
+export type {
+  ServicoPerfis,
+  ClienteBancoPerfis,
+  MeuPerfil,
+  PreviaPerfil,
+  VersaoParaRevisaoPerfil,
+} from "./servico";

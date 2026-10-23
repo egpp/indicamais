@@ -60,7 +60,33 @@ export interface ClienteBancoPerfis {
     perfilId: string,
     c: { publicado?: boolean; slug?: string },
   ): Promise<RespostaBanco<LinhaPerfil>>;
+  /**
+   * rpc administracao_eh_admin (sem parâmetros; usa auth.uid()): a conta logada é administradora?
+   * OPCIONAL por compatibilidade; sem ela, `obterVersaoParaRevisao` falha fechado (SEM_PERMISSAO).
+   */
+  ehAdministrador?(): Promise<boolean>;
+  /**
+   * Leitura de UMA versão por id, de qualquer conta, só para administrador (a RLS entrega só a ele; o
+   * serviço confere `ehAdministrador` antes). `dados: null` sem erro = não existe. Devolve a versão e o
+   * perfil (id, slug). NÃO juntar a tabela de contato: o WhatsApp comercial não é necessário na revisão
+   * (se vier preenchido, o serviço o descarta). Nunca ler `responsavel_id`.
+   */
+  buscarVersaoParaRevisao?(
+    versaoId: string,
+  ): Promise<RespostaBanco<{ perfil: { id: string; slug: string }; versao: LinhaVersaoPerfil }>>;
 }
+
+/**
+ * Versão alheia como o administrador a revisa: o MESMO formato da página pública (o que irá ao ar).
+ * Sem WhatsApp comercial, responsável, id de conta ou e-mail (IM-029). O WhatsApp é dado de contato do
+ * dono e não é critério de aprovação do conteúdo: decisão do mínimo necessário.
+ */
+export type VersaoParaRevisaoPerfil = {
+  versaoId: string;
+  situacao: LinhaVersaoPerfil["situacao"];
+  enviadaEm: string | null;
+  perfil: PerfilExibicao;
+};
 
 export type MeuPerfil = {
   id: string;
@@ -308,6 +334,44 @@ export function criarServicoPerfis(banco: ClienteBancoPerfis) {
               todas.filter((x) => x.perfil_id === p.id),
             ),
           ),
+        };
+      }),
+
+    /**
+     * IM-021/IM-023: o administrador lê o conteúdo de uma versão (de qualquer conta) para decidir.
+     * Não administrador recebe SEM_PERMISSAO e nada é lido. Modelo de exibição público: sem WhatsApp,
+     * sem responsável, sem e-mail.
+     */
+    obterVersaoParaRevisao: (versaoId: string): Promise<Resultado<VersaoParaRevisaoPerfil>> =>
+      seguro(async () => {
+        if (!banco.ehAdministrador || !banco.buscarVersaoParaRevisao) {
+          return falha(erroPerfis("SEM_PERMISSAO", M.semPermissao));
+        }
+        let admin = false;
+        try {
+          admin = (await banco.ehAdministrador()) === true;
+        } catch {
+          admin = false;
+        }
+        if (!admin) return falha(erroPerfis("SEM_PERMISSAO", M.semPermissao));
+        if (!uuidSchema.safeParse(versaoId).success) {
+          return falha(erroPerfis("NAO_ENCONTRADO", M.naoEncontrado));
+        }
+        const r = await banco.buscarVersaoParaRevisao(versaoId);
+        if (r.erro) return falha(mapearErroBancoPerfis(r.erro));
+        if (!r.dados) return falha(erroPerfis("NAO_ENCONTRADO", M.naoEncontrado));
+        const { perfil, versao } = r.dados;
+        return {
+          ok: true,
+          valor: {
+            versaoId: versao.id,
+            situacao: versao.situacao,
+            enviadaEm: versao.enviada_em,
+            perfil: paraPerfilExibicao(
+              { id: perfil.id, slug: perfil.slug },
+              conteudoDeVersao(versao),
+            ),
+          },
         };
       }),
 

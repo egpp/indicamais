@@ -35,11 +35,18 @@ export type {
 export { MENSAGENS_CATALOGO, mapearErroBancoCatalogo } from "./erros";
 export type { ErroCatalogo, CodigoErroCatalogo } from "./erros";
 export { criarServicoItens, montarMeuItem } from "./servico-itens";
-export type { ServicoItens, ClienteBancoItens, MeuItem, PreviaItem } from "./servico-itens";
+export type {
+  ServicoItens,
+  ClienteBancoItens,
+  MeuItem,
+  PreviaItem,
+  VersaoParaRevisaoItem,
+} from "./servico-itens";
 export { criarServicoCategorias, paraCategoria, paraSolicitacao } from "./servico-categorias";
 export type {
   ServicoCategorias,
   ClienteBancoCategorias,
   Categoria,
+  CategoriaAdmin,
   Solicitacao,
 } from "./servico-categorias";

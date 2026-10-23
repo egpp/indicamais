@@ -440,3 +440,24 @@ describe("resultado da revisão para o responsável (IM-023)", () => {
     expect(!r.ok && r.erro.mensagem).not.toContain("SEGREDO");
   });
 });
+
+describe("ehAdministrador", () => {
+  it("devolve o que o banco responde", async () => {
+    const sim = criarServicoAdministracao(fake({ ehAdministrador: async () => true }));
+    const nao = criarServicoAdministracao(fake({ ehAdministrador: async () => false }));
+    expect(await sim.ehAdministrador()).toBe(true);
+    expect(await nao.ehAdministrador()).toBe(false);
+  });
+
+  it("falha fechado: sem a checagem, erro ou resposta não booleana = false", async () => {
+    expect(await criarServicoAdministracao(fake()).ehAdministrador()).toBe(false);
+    const lanca = fake({
+      ehAdministrador: async () => {
+        throw new Error("rede");
+      },
+    });
+    expect(await criarServicoAdministracao(lanca).ehAdministrador()).toBe(false);
+    const estranho = fake({ ehAdministrador: (async () => "true") as never });
+    expect(await criarServicoAdministracao(estranho).ehAdministrador()).toBe(false);
+  });
+});
