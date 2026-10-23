@@ -14,13 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contas_conta: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          id: string
+          nome_exibicao: string | null
+          whatsapp_e164: string | null
+          whatsapp_verificado: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          id: string
+          nome_exibicao?: string | null
+          whatsapp_e164?: string | null
+          whatsapp_verificado?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          nome_exibicao?: string | null
+          whatsapp_e164?: string | null
+          whatsapp_verificado?: boolean
+        }
+        Relationships: []
+      }
+      contas_whatsapp_historico: {
+        Row: {
+          alterado_em: string
+          autor_id: string | null
+          conta_id: string
+          id: number
+          whatsapp_anterior_e164: string | null
+          whatsapp_novo_e164: string | null
+        }
+        Insert: {
+          alterado_em?: string
+          autor_id?: string | null
+          conta_id: string
+          id?: never
+          whatsapp_anterior_e164?: string | null
+          whatsapp_novo_e164?: string | null
+        }
+        Update: {
+          alterado_em?: string
+          autor_id?: string | null
+          conta_id?: string
+          id?: never
+          whatsapp_anterior_e164?: string | null
+          whatsapp_novo_e164?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      contas_pode_indicar: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
