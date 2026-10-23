@@ -22,8 +22,10 @@ import {
   colunasDeConteudo,
   conteudoDeVersao,
   paraItemExibicao,
+  dadosDeCriacao,
   type ColunasVersaoItem,
   type ConteudoItem,
+  type DadosCriarItem,
   type ItemExibicao,
   type LinhaItem,
   type LinhaItemVersao,
@@ -35,18 +37,15 @@ export type Resultado<T> = ResultadoBase<T, ErroCatalogo>;
 
 /**
  * Banco injetado para itens. A implementação usa a SESSÃO DO USUÁRIO (supabase-js com RLS), nunca
- * service_role. `contaId` é o id da conta autenticada (auth.uid()).
- * Convenção: `dados: null` sem erro = nenhuma linha (RLS escondeu ou não existe).
+ * service_role. Ninguém lê `conta_id`: a posse é dada por a linha estar em `catalogo_meus_itens`.
+ * O item nasce por RPC (sem INSERT direto). Convenção: `dados: null` sem erro = nenhuma linha.
  */
 export interface ClienteBancoItens {
-  readonly contaId: string;
-  inserirItem(c: {
-    conta_id: string;
-    perfil_id: string | null;
-    tipo: TipoItem;
-  }): Promise<RespostaBanco<LinhaItem>>;
-  buscarItem(itemId: string): Promise<RespostaBanco<LinhaItem>>;
-  /** Itens da própria conta, mais recentes primeiro. */
+  /** rpc catalogo_criar_item: item + 1ª versão (rascunho, sem foto) numa transação; dono = auth.uid(). */
+  criarItem(c: DadosCriarItem): Promise<RespostaBanco<{ item_id: string; versao_id: string }>>;
+  /** select em catalogo_meus_itens filtrado por id. `dados: null` = não é meu (ou não existe). */
+  buscarMeuItem(itemId: string): Promise<RespostaBanco<LinhaItem>>;
+  /** select em catalogo_meus_itens, mais recentes primeiro. */
   listarMeusItens(): Promise<RespostaBanco<LinhaItem[]>>;
   /** Versões dos itens informados (todas as situações), qualquer ordem. */
   listarVersoes(itemIds: string[]): Promise<RespostaBanco<LinhaItemVersao[]>>;
@@ -131,16 +130,16 @@ export function criarServicoItens(banco: ClienteBancoItens) {
     }
   }
 
-  /** Carrega item e versões. Item de outra conta é tratado como inexistente. */
+  /** Carrega item e versões. Item fora da lista "meus" é tratado como inexistente. */
   async function carregar(
     itemId: string,
   ): Promise<Resultado<{ item: LinhaItem; versoes: LinhaItemVersao[] }>> {
     if (!uuidSchema.safeParse(itemId).success) {
       return falha(erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado));
     }
-    const it = await banco.buscarItem(itemId);
+    const it = await banco.buscarMeuItem(itemId);
     if (it.erro) return falha(mapearErroBancoCatalogo(it.erro));
-    if (!it.dados || it.dados.conta_id !== banco.contaId) {
+    if (!it.dados || it.dados.id.toLowerCase() !== itemId.toLowerCase()) {
       return falha(erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado));
     }
     const v = await banco.listarVersoes([itemId]);
@@ -161,26 +160,18 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         }
         const { tipo, perfilId, ...campos } = p.data;
         const conteudo = aplicarCamposItem(CONTEUDO_ITEM_VAZIO, campos);
-        const incoerencias = validarConteudoItem(conteudo, banco.contaId);
+        const incoerencias = validarConteudoItem(conteudo, null);
         if (Object.keys(incoerencias).length > 0) {
           return falha(
             erroCatalogo("VALIDACAO", Object.values(incoerencias)[0]!, { campos: incoerencias }),
           );
         }
-        const item = await banco.inserirItem({
-          conta_id: banco.contaId,
-          perfil_id: perfilId ?? null,
-          tipo,
-        });
-        if (item.erro) return falha(mapearErroBancoCatalogo(item.erro));
-        if (!item.dados) return falha(interno());
-        const ver = await banco.inserirVersao({
-          item_id: item.dados.id,
-          ...colunasDeConteudo(conteudo),
-        });
-        if (ver.erro) return falha(mapearErroBancoCatalogo(ver.erro));
-        if (!ver.dados) return falha(interno());
-        return { ok: true, valor: montarMeuItem(item.dados, [ver.dados]) };
+        const criado = await banco.criarItem(dadosDeCriacao(conteudo, tipo, perfilId ?? null));
+        if (criado.erro) return falha(mapearErroBancoCatalogo(criado.erro));
+        if (!criado.dados) return falha(interno());
+        const c = await carregar(criado.dados.item_id);
+        if (!c.ok) return c;
+        return { ok: true, valor: montarMeuItem(c.valor.item, c.valor.versoes) };
       }),
 
     /**
@@ -215,7 +206,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
               : undefined;
         const base = baseLinha ? conteudoDeVersao(baseLinha) : CONTEUDO_ITEM_VAZIO;
         const novo = aplicarCamposItem(base, p.data);
-        const incoerencias = validarConteudoItem(novo, banco.contaId);
+        const incoerencias = validarConteudoItem(novo, itemId);
         if (Object.keys(incoerencias).length > 0) {
           return falha(
             erroCatalogo("VALIDACAO", Object.values(incoerencias)[0]!, { campos: incoerencias }),
@@ -254,7 +245,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
       seguro(async () => {
         const it = await banco.listarMeusItens();
         if (it.erro) return falha(mapearErroBancoCatalogo(it.erro));
-        const itens = (it.dados ?? []).filter((i) => i.conta_id === banco.contaId);
+        const itens = it.dados ?? [];
         if (itens.length === 0) return { ok: true, valor: [] };
         const v = await banco.listarVersoes(itens.map((i) => i.id));
         if (v.erro) return falha(mapearErroBancoCatalogo(v.erro));

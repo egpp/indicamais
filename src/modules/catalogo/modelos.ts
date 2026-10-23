@@ -6,7 +6,6 @@ import type { TipoItem } from "./schemas";
 /** Linhas como o banco devolve (colunas de catalogo_item, catalogo_item_versao e catalogo_categoria*). */
 export type LinhaItem = {
   id: string;
-  conta_id: string;
   perfil_id: string | null;
   tipo: TipoItem;
   publicado: boolean;
@@ -171,4 +170,29 @@ export function paraItemPublico(l: LinhaItemPublico): ItemExibicao {
       enviada_em: null,
     }),
   );
+}
+
+/** Parâmetros de `catalogo_criar_item`: sem foto (o item precisa existir antes do upload). */
+export type DadosCriarItem = Omit<ColunasVersaoItem, "foto_path"> & {
+  tipo: TipoItem;
+  perfil_id: string | null;
+};
+
+export function dadosDeCriacao(
+  c: ConteudoItem,
+  tipo: TipoItem,
+  perfilId: string | null,
+): DadosCriarItem {
+  const cols = colunasDeConteudo(c);
+  return {
+    nome: cols.nome,
+    descricao: cols.descricao,
+    categoria_principal_id: cols.categoria_principal_id,
+    categoria_secundaria_1_id: cols.categoria_secundaria_1_id,
+    categoria_secundaria_2_id: cols.categoria_secundaria_2_id,
+    preco_modo: cols.preco_modo,
+    preco_centavos: cols.preco_centavos,
+    tipo,
+    perfil_id: perfilId,
+  };
 }

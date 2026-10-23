@@ -30,6 +30,7 @@ export type {
   LinhaCategoria,
   LinhaSolicitacao,
   ColunasVersaoItem,
+  DadosCriarItem,
 } from "./modelos";
 export { MENSAGENS_CATALOGO, mapearErroBancoCatalogo } from "./erros";
 export type { ErroCatalogo, CodigoErroCatalogo } from "./erros";

@@ -14,7 +14,7 @@ const fotoPathSchema = z
     (v) => (typeof v === "string" && v.trim() === "" ? null : v),
     z
       .string({ error: "Imagem inválida." })
-      .refine(formatoDeCaminhoValido, { error: "Imagem inválida." })
+      .refine((c) => formatoDeCaminhoValido(c, "item"), { error: "Imagem inválida." })
       .nullable(),
   )
   .optional();
@@ -45,8 +45,8 @@ export const camposItemSchema = z.object({
 });
 export type CamposItem = z.infer<typeof camposItemSchema>;
 
-/** Novo item: tipo obrigatório; `perfilId` ausente = anúncio particular da conta (IM-015). */
-export const novoItemSchema = camposItemSchema.extend({
+/** Novo item (sem foto: o item precisa existir antes do upload): tipo obrigatório; `perfilId` ausente = anúncio particular da conta (IM-015). */
+export const novoItemSchema = camposItemSchema.omit({ fotoPath: true }).extend({
   tipo: z.enum(TIPOS_ITEM, { error: "Escolha produto ou serviço." }),
   perfilId: uuidSchema.nullable().optional(),
 });

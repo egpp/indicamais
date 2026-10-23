@@ -84,6 +84,7 @@ export function mapearErroBancoCatalogo(e: ErroBanco): ErroCatalogo {
     if (/imut|enviada|hist[óo]rico|identidade/i.test(alvo)) {
       return erroCatalogo("EM_ANALISE", M.emAnalise);
     }
+    if (/n[ãa]o encontrad/i.test(alvo)) return erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado);
     return erroCatalogo("SEM_PERMISSAO", M.semPermissao);
   }
   if (classe === "NAO_ENCONTRADO") return erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado);

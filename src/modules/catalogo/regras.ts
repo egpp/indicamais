@@ -1,5 +1,5 @@
 import { validarCategorias } from "@/shared/conteudo/categorias";
-import { caminhoDaConta } from "@/shared/conteudo/imagens";
+import { caminhoDaPasta } from "@/shared/conteudo/imagens";
 import type { CamposItem } from "./schemas";
 import type { ConteudoItem } from "./modelos";
 
@@ -16,15 +16,21 @@ export function aplicarCamposItem(base: ConteudoItem, c: CamposItem): ConteudoIt
   };
 }
 
-/** Coerência do conteúdo inteiro depois do patch. Devolve mensagens por campo. */
-export function validarConteudoItem(c: ConteudoItem, contaId: string): Record<string, string> {
+/**
+ * Coerência do conteúdo inteiro depois do patch. `itemId: null` = item ainda não existe (criação): nenhuma
+ * foto é aceita, porque o upload (`item/<itemId>/`) só acontece depois de criar o item.
+ */
+export function validarConteudoItem(
+  c: ConteudoItem,
+  itemId: string | null,
+): Record<string, string> {
   const erros: Record<string, string> = {};
   const cat = validarCategorias({
     principalId: c.categoriaPrincipalId,
     secundariasIds: c.categoriasSecundariasIds,
   });
   if (cat) erros.categoriasSecundariasIds = cat;
-  if (c.fotoPath !== null && !caminhoDaConta(contaId, c.fotoPath)) {
+  if (c.fotoPath !== null && !(itemId !== null && caminhoDaPasta("item", itemId, c.fotoPath))) {
     erros.fotoPath = "Imagem inválida. Envie novamente.";
   }
   return erros;

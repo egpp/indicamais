@@ -15,41 +15,59 @@ const CAT_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const CAT_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const CAT_C = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const CAT_D = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
-const FOTO = `${DONO}/foto-1.jpg`;
+const FOTO = "item/00000000-0000-4000-8000-0000000000aa/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.jpg";
 const PERFIL = "99999999-9999-4999-8999-999999999999";
 
-/** Banco em memória que imita as regras do contrato (uma versão aberta, pendente imutável). */
+/**
+ * Banco em memória que imita o contrato novo: item nasce por RPC (sem INSERT direto), a posse é dada só por
+ * estar na lista "meus" (o dono fica num mapa interno nunca exposto), uma versão aberta, pendente imutável.
+ */
 function fakeBanco(contaId = DONO) {
   const itens = new Map<string, LinhaItem>();
+  const donos = new Map<string, string>();
   const versoes = new Map<string, LinhaItemVersao>();
   let seq = 0;
   let relogio = 0;
   const id = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, "0")}`;
   const t = () => new Date(Date.UTC(2026, 9, 1, 0, 0, ++relogio)).toISOString();
+  const meu = (iid: string) => donos.get(iid) === contaId;
 
   const banco: ClienteBancoItens = {
-    contaId,
-    inserirItem: vi.fn(async (c) => {
-      const l: LinhaItem = {
+    criarItem: vi.fn(async (c) => {
+      const { tipo, perfil_id, ...cols } = c;
+      const i: LinhaItem = {
         id: id(),
-        conta_id: c.conta_id,
-        perfil_id: c.perfil_id,
-        tipo: c.tipo,
+        perfil_id,
+        tipo,
         publicado: false,
         versao_aprovada_id: null,
         criado_em: t(),
         atualizado_em: t(),
       };
-      itens.set(l.id, l);
-      return { dados: l, erro: null };
+      itens.set(i.id, i);
+      donos.set(i.id, contaId);
+      const v: LinhaItemVersao = {
+        id: id(),
+        item_id: i.id,
+        situacao: "rascunho",
+        foto_path: null,
+        criado_em: t(),
+        enviada_em: null,
+        ...cols,
+      };
+      versoes.set(v.id, v);
+      return { dados: { item_id: i.id, versao_id: v.id }, erro: null };
     }),
-    buscarItem: vi.fn(async (itemId) => ({ dados: itens.get(itemId) ?? null, erro: null })),
+    buscarMeuItem: vi.fn(async (itemId) => ({
+      dados: meu(itemId) ? (itens.get(itemId) ?? null) : null,
+      erro: null,
+    })),
     listarMeusItens: vi.fn(async () => ({
-      dados: [...itens.values()].filter((i) => i.conta_id === contaId),
+      dados: [...itens.values()].filter((i) => meu(i.id)),
       erro: null,
     })),
     listarVersoes: vi.fn(async (ids) => ({
-      dados: [...versoes.values()].filter((v) => ids.includes(v.item_id)),
+      dados: [...versoes.values()].filter((v) => ids.includes(v.item_id) && meu(v.item_id)),
       erro: null,
     })),
     inserirVersao: vi.fn(async (c) => {
@@ -90,7 +108,7 @@ function fakeBanco(contaId = DONO) {
     }),
     definirPublicado: vi.fn(async (itemId, publicado) => {
       const i = itens.get(itemId);
-      if (!i) return { dados: null, erro: null };
+      if (!i || !meu(itemId)) return { dados: null, erro: null };
       if (publicado && !i.versao_aprovada_id) {
         return {
           dados: null,
@@ -114,23 +132,29 @@ function fakeBanco(contaId = DONO) {
     const v = versoes.get(versaoId)!;
     versoes.set(versaoId, { ...v, situacao: "rejeitada" });
   }
-  return { banco, itens, versoes, aprovar, rejeitar };
+  return { banco, itens, donos, versoes, aprovar, rejeitar };
 }
+
+/** Caminho opaco válido na pasta do item (o upload acontece depois de criar o item). */
+const foto = (itemId: string, n = 1, ext = "jpg") =>
+  `item/${itemId}/aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, "0")}.${ext}`;
 
 const valido = {
   tipo: "produto" as const,
   nome: "Bolo de cenoura",
   descricao: "Bolo caseiro com cobertura de chocolate.",
-  fotoPath: FOTO,
   categoriaPrincipalId: CAT_A,
   preco: { modo: "fixo" as const, centavos: 4500 },
 };
 
+/** Fluxo na ordem certa: criar item -> enviar foto -> gravar a foto na versão (editar). */
 async function criarPronto(f = fakeBanco()) {
   const svc = criarServicoItens(f.banco);
-  const r = await svc.criarRascunho(valido);
-  if (!r.ok) throw new Error("falha ao criar");
-  return { ...f, svc, item: r.valor };
+  const c = await svc.criarRascunho(valido);
+  if (!c.ok) throw new Error("falha ao criar");
+  const e = await svc.editar(c.valor.id, { fotoPath: foto(c.valor.id) });
+  if (!e.ok) throw new Error("falha ao gravar a foto");
+  return { ...f, svc, item: e.valor.item };
 }
 
 describe("itens: criação (IM-014, IM-015)", () => {
@@ -149,17 +173,41 @@ describe("itens: criação (IM-014, IM-015)", () => {
     const f = fakeBanco();
     const r = await criarServicoItens(f.banco).criarRascunho(valido);
     expect(r.ok && r.valor.anuncioParticular).toBe(true);
-    expect(f.banco.inserirItem).toHaveBeenCalledWith({
-      conta_id: DONO,
+    expect(vi.mocked(f.banco.criarItem).mock.calls[0]![0]).toMatchObject({
       perfil_id: null,
       tipo: "produto",
+      nome: "Bolo de cenoura",
     });
+    expect(f.donos.get(r.ok ? r.valor.id : "")).toBe(DONO);
+  });
+
+  it("cria por RPC única, sem parâmetro de dono e sem foto (o item precisa existir antes do upload)", async () => {
+    const f = fakeBanco();
+    await criarServicoItens(f.banco).criarRascunho({ ...valido, fotoPath: FOTO });
+    expect(f.banco.criarItem).toHaveBeenCalledTimes(1);
+    const chamada = vi.mocked(f.banco.criarItem).mock.calls[0]![0];
+    expect(Object.keys(chamada)).not.toContain("foto_path");
+    expect(Object.keys(chamada)).not.toContain("conta_id");
+    expect(JSON.stringify(chamada)).not.toMatch(/conta|dono|item\//);
+    expect([...f.versoes.values()][0]!.foto_path).toBeNull();
+  });
+
+  it("o contrato do dono não lê conta_id: só a lista 'meus' prova a posse", async () => {
+    const f = fakeBanco();
+    const svc = criarServicoItens(f.banco);
+    await svc.criarRascunho(valido);
+    for (const velho of ["contaId", "buscarItem", "inserirItem"]) {
+      expect(f.banco).not.toHaveProperty(velho);
+    }
+    const lista = await svc.listarMeus();
+    expect(JSON.stringify(lista)).not.toContain(DONO);
+    expect(JSON.stringify(lista)).not.toMatch(/conta_id/i);
   });
 
   it("serviço não tem estoque: campo de estoque na entrada é descartado", async () => {
     const f = fakeBanco();
     await criarServicoItens(f.banco).criarRascunho({ tipo: "servico", nome: "X", estoque: 5 });
-    expect(JSON.stringify(vi.mocked(f.banco.inserirVersao).mock.calls)).not.toMatch(/estoque/);
+    expect(JSON.stringify(vi.mocked(f.banco.criarItem).mock.calls)).not.toMatch(/estoque/);
   });
 
   it("descarta campos que o cliente não pode definir (situação, aprovada, dono)", async () => {
@@ -171,12 +219,9 @@ describe("itens: criação (IM-014, IM-015)", () => {
       publicado: true,
       conta_id: OUTRO,
     });
-    const chamada = JSON.stringify([
-      vi.mocked(f.banco.inserirItem).mock.calls,
-      vi.mocked(f.banco.inserirVersao).mock.calls,
-    ]);
-    expect(chamada).not.toMatch(/aprovada|publicado|x"/);
-    expect(vi.mocked(f.banco.inserirItem).mock.calls[0]![0].conta_id).toBe(DONO);
+    const chamada = JSON.stringify(vi.mocked(f.banco.criarItem).mock.calls);
+    expect(chamada).not.toMatch(/aprovada|publicado|x"|conta/);
+    expect(f.donos.get([...f.itens.keys()][0]!)).toBe(DONO);
   });
 
   it.each([
@@ -186,8 +231,6 @@ describe("itens: criação (IM-014, IM-015)", () => {
     ["secundária sem principal", { tipo: "produto", categoriasSecundariasIds: [CAT_B] }],
     ["preço zero", { ...valido, preco: { modo: "fixo", centavos: 0 } }],
     ["fixo sem valor", { ...valido, preco: { modo: "fixo" } }],
-    ["foto de outra conta", { ...valido, fotoPath: `${OUTRO}/foto.jpg` }],
-    ["foto com caminho relativo", { ...valido, fotoPath: `${DONO}/../x.jpg` }],
     ["nome muito longo", { ...valido, nome: "a".repeat(101) }],
     ["descrição muito longa", { ...valido, descricao: "a".repeat(1501) }],
     ["perfil não é uuid", { ...valido, perfilId: "abc" }],
@@ -196,7 +239,7 @@ describe("itens: criação (IM-014, IM-015)", () => {
     const r = await criarServicoItens(f.banco).criarRascunho(entrada);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.erro.codigo).toBe("VALIDACAO");
-    expect(f.banco.inserirItem).not.toHaveBeenCalled();
+    expect(f.banco.criarItem).not.toHaveBeenCalled();
   });
 });
 
@@ -209,10 +252,8 @@ describe("itens: prévia e envio (IM-017, IM-021)", () => {
     expect(r.valor.item.precoTexto).toBe("R$ 45,00");
     expect(r.valor.item.nome).toBe("Bolo de cenoura");
     expect(r.valor.podeEnviar).toBe(true);
-    // O caminho da imagem leva o id da conta como pasta (achado registrado ao gestor); fora dele, nada do dono.
-    expect(JSON.stringify({ ...r.valor, item: { ...r.valor.item, fotoPath: null } })).not.toContain(
-      DONO,
-    );
+    // O caminho da imagem é opaco (item/<item_id>/<uuid>.<ext>): nada do dono em lugar nenhum.
+    expect(JSON.stringify(r.valor)).not.toContain(DONO);
     expect(Object.keys(r.valor.item)).not.toContain("conta_id");
   });
 
@@ -331,6 +372,27 @@ describe("itens: edição e versões (IM-022)", () => {
     expect(versoes.size).toBe(antes);
   });
 
+  it("foto: só caminho opaco da pasta do PRÓPRIO item, com uuid e extensão permitida", async () => {
+    const { svc, item, versoes } = await criarPronto();
+    const id = item.id;
+    const outroItem = "99999999-9999-4999-8999-999999999998";
+    for (const fotoPath of [
+      foto(outroItem),
+      `perfil/${id}/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.jpg`,
+      `${DONO}/foto-1.jpg`, // caminho antigo, por conta
+      `item/${DONO}/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.jpg`,
+      `item/${id}/foto.jpg`, // nome não é uuid
+      `item/${id}/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.svg`,
+      `item/${id}/../x.jpg`,
+    ]) {
+      const r = await svc.editar(id, { fotoPath });
+      expect(!r.ok && r.erro.codigo, fotoPath).toBe("VALIDACAO");
+    }
+    const ok = await svc.editar(id, { fotoPath: foto(id, 2, "webp") });
+    expect(ok.ok && ok.valor.item.conteudoEdicao.fotoPath).toBe(foto(id, 2, "webp"));
+    expect(versoes.size).toBe(1);
+  });
+
   it("secundária igual à principal que já existe na base é recusada depois do patch", async () => {
     const { svc, item } = await criarPronto();
     const r = await svc.editar(item.id, { categoriasSecundariasIds: [CAT_A] });
@@ -353,7 +415,7 @@ describe("itens: edição e versões (IM-022)", () => {
     const svc = criarServicoItens(f.banco);
     const r = await svc.criarRascunho(valido);
     if (!r.ok) throw new Error();
-    f.itens.set(r.valor.id, { ...f.itens.get(r.valor.id)!, conta_id: OUTRO });
+    f.donos.set(r.valor.id, OUTRO); // a linha sai da lista "meus"; o contrato não tem coluna de dono
     for (const res of [
       await svc.editar(r.valor.id, { nome: "x" }),
       await svc.obter(r.valor.id),
@@ -369,7 +431,7 @@ describe("itens: edição e versões (IM-022)", () => {
     const f = fakeBanco();
     const r = await criarServicoItens(f.banco).obter("1; drop table");
     expect(!r.ok && r.erro.codigo).toBe("NAO_ENCONTRADO");
-    expect(f.banco.buscarItem).not.toHaveBeenCalled();
+    expect(f.banco.buscarMeuItem).not.toHaveBeenCalled();
   });
 });
 
@@ -425,6 +487,7 @@ describe("itens: erros do banco e privacidade (IM-029, IM-086)", () => {
       { code: "P0001", message: `limite de 5 pedidos pendentes ${segredo}` },
       { code: "P0002", message: segredo },
       { code: "XX000", message: segredo },
+      { code: "42501", message: `item não encontrado ${segredo}` },
     ];
     for (const c of casos) {
       const e = mapearErroBancoCatalogo(c);
@@ -441,11 +504,12 @@ describe("itens: erros do banco e privacidade (IM-029, IM-086)", () => {
     expect(mapearErroBancoCatalogo(casos[6]!).codigo).toBe("SEM_PERMISSAO");
     expect(mapearErroBancoCatalogo(casos[7]!).codigo).toBe("LIMITE_SOLICITACOES");
     expect(mapearErroBancoCatalogo(casos[9]!).codigo).toBe("ERRO_INTERNO");
+    expect(mapearErroBancoCatalogo(casos[10]!).codigo).toBe("NAO_ENCONTRADO");
   });
 
   it("exceção do banco injetado vira erro genérico, sem vazar a mensagem", async () => {
     const f = fakeBanco();
-    f.banco.inserirItem = async () => {
+    f.banco.criarItem = async () => {
       throw new Error("connection string postgres://segredo");
     };
     const r = await criarServicoItens(f.banco).criarRascunho(valido);
