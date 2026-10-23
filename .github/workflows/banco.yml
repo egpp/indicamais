@@ -2,9 +2,9 @@ name: Banco (pgTAP)
 
 on:
   pull_request:
-    paths: ['supabase/**', '.github/workflows/banco.yml']
+    paths: ["supabase/**", ".github/workflows/banco.yml"]
   push:
-    paths: ['supabase/**', '.github/workflows/banco.yml']
+    paths: ["supabase/**", ".github/workflows/banco.yml"]
 
 permissions:
   contents: read
