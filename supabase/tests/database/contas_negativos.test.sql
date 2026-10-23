@@ -31,7 +31,7 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
 
 select lives_ok($$update public.contas_conta set whatsapp_e164 = '+5511999990010' where id = auth.uid()$$, 'A grava o WhatsApp');
-select is((select count(*)::int from public.contas_whatsapp_historico where conta_id = auth.uid() and whatsapp_anterior_e164 is null and whatsapp_novo_e164 = '+5511999990010' and autor_id = auth.uid()), 1, 'histórico registra anterior, novo e autor');
+select is((select count(*)::int from public.contas_whatsapp_historico where conta_id = auth.uid() and whatsapp_anterior_e164 is distinct from whatsapp_novo_e164 and whatsapp_novo_e164 = '+5511999990010' and autor_id = auth.uid()), 1, 'histórico registra valor novo diferente do anterior e o autor');
 select throws_ok($$update public.contas_conta set nome_exibicao = '' where id = auth.uid()$$, '23514', null, 'nome vazio rejeitado pelo banco');
 select throws_ok($$update public.contas_conta set nome_exibicao = repeat('y', 81) where id = auth.uid()$$, '23514', null, 'nome de 81 caracteres rejeitado pelo banco');
 select throws_ok($$insert into public.contas_whatsapp_historico (conta_id, whatsapp_novo_e164) values (auth.uid(), '+5511999990011')$$, '42501', null, 'cliente não insere no histórico');
