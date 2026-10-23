@@ -55,7 +55,7 @@ create table public.catalogo_item_versao (
   constraint catalogo_item_versao_preco check (
     (preco_modo is null and preco_centavos is null)
     or (preco_modo = 'sob_consulta' and preco_centavos is null)
-    or (preco_modo in ('fixo', 'a_partir_de') and preco_centavos between 1 and 100000000)),
+    or (preco_modo in ('fixo', 'a_partir_de') and preco_centavos is not null and preco_centavos between 1 and 100000000)),
   constraint catalogo_item_versao_completa check (
     situacao = 'rascunho'
     or (nome is not null and descricao is not null and foto_path is not null and categoria_principal_id is not null))
