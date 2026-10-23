@@ -5,8 +5,17 @@ import { LIMITES, type TipoImagem } from "../config/limites";
 export type ResultadoImagem = { ok: true } | { ok: false; mensagem: string };
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-/** <conta_id>/<arquivo>, igual à política do bucket. */
-const CAMINHO = new RegExp(`^(${UUID})/([A-Za-z0-9._-]{1,100})$`);
+const UUID_EXATO = new RegExp(`^${UUID}$`);
+const EXTENSOES = Object.values(LIMITES.imagem.extensaoPorTipo).join("|");
+
+/**
+ * Caminhos OPACOS no bucket (IM-029, IM-086): `perfil/<perfil_id>/<uuid>.<jpg|png|webp>` e
+ * `item/<item_id>/<uuid>.<ext>`. Nunca contêm o id da conta. Quem prova que a pasta é do dono é o banco
+ * (política do Storage); o perfil/item precisa existir antes do upload.
+ */
+export type PastaImagem = "perfil" | "item";
+
+const CAMINHO = new RegExp(`^(perfil|item)/(${UUID})/(${UUID})\\.(${EXTENSOES})$`);
 
 export function validarImagem(entrada: {
   tipoMime: string;
@@ -26,25 +35,31 @@ export function validarImagem(entrada: {
   return { ok: true };
 }
 
-/** Caminho no bucket: sempre dentro da pasta da conta. `idUnico` vem de fora (uuid). */
-export function gerarCaminhoImagem(contaId: string, tipoMime: TipoImagem, idUnico: string): string {
+/**
+ * Caminho no bucket: `<pasta>/<donoId>/<uuid>.<ext>`. `idUnico` é injetável (teste); por padrão é um uuid
+ * aleatório. Lança se `donoId`/`idUnico` não forem uuid ou o tipo não for permitido.
+ */
+export function gerarCaminhoImagem(
+  pasta: PastaImagem,
+  donoId: string,
+  tipoMime: TipoImagem,
+  idUnico: string = crypto.randomUUID(),
+): string {
   const ext = LIMITES.imagem.extensaoPorTipo[tipoMime];
   if (!ext) throw new Error("tipo de imagem não permitido");
-  const caminho = `${contaId.toLowerCase()}/${idUnico}.${ext}`;
-  if (!caminhoDaConta(contaId, caminho)) throw new Error("caminho de imagem inválido");
-  return caminho;
+  if (!UUID_EXATO.test(donoId.toLowerCase())) throw new Error("identificador inválido");
+  if (!UUID_EXATO.test(idUnico.toLowerCase())) throw new Error("identificador de imagem inválido");
+  return `${pasta}/${donoId.toLowerCase()}/${idUnico.toLowerCase()}.${ext}`;
 }
 
-/** O caminho tem o formato certo e está na pasta desta conta? Impede usar imagem de outra conta. */
-export function caminhoDaConta(contaId: string, caminho: string): boolean {
+/** O caminho tem o formato certo e está na pasta deste perfil/item? Impede usar imagem de outro. */
+export function caminhoDaPasta(pasta: PastaImagem, donoId: string, caminho: string): boolean {
   const m = CAMINHO.exec(caminho);
-  if (!m) return false;
-  if (m[1] !== contaId.toLowerCase()) return false;
-  // Sem nomes começando por ponto (".", "..", ".env").
-  return !m[2]!.startsWith(".");
+  return !!m && m[1] === pasta && m[2] === donoId.toLowerCase();
 }
 
-export function formatoDeCaminhoValido(caminho: string): boolean {
+/** Só o formato (sem conferir a pasta): valida a entrada antes de saber a quem pertence. */
+export function formatoDeCaminhoValido(caminho: string, pasta?: PastaImagem): boolean {
   const m = CAMINHO.exec(caminho);
-  return !!m && !m[2]!.startsWith(".");
+  return !!m && (pasta === undefined || m[1] === pasta);
 }

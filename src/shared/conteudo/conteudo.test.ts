@@ -9,7 +9,12 @@ import {
   type VersaoBasica,
 } from "./ciclo-versao";
 import { alvoDoErro, classificarErroBanco } from "./erros-banco";
-import { caminhoDaConta, gerarCaminhoImagem, validarImagem } from "./imagens";
+import {
+  caminhoDaPasta,
+  formatoDeCaminhoValido,
+  gerarCaminhoImagem,
+  validarImagem,
+} from "./imagens";
 
 const CONTA = "11111111-1111-4111-8111-111111111111";
 const OUTRA = "22222222-2222-4222-8222-222222222222";
@@ -61,20 +66,36 @@ describe("imagens (D-006, IM-011, IM-014)", () => {
   it.each([0, -5, Number.NaN, Number.POSITIVE_INFINITY])("recusa tamanho %s", (t) => {
     expect(validarImagem({ tipoMime: "image/png", tamanhoBytes: t }).ok).toBe(false);
   });
-  it("caminho precisa estar na pasta da própria conta", () => {
-    expect(caminhoDaConta(CONTA, `${CONTA}/foto-1.jpg`)).toBe(true);
-    expect(caminhoDaConta(CONTA, `${OUTRA}/foto-1.jpg`)).toBe(false);
-    expect(caminhoDaConta(CONTA, `${CONTA}/../${OUTRA}/x.jpg`)).toBe(false);
-    expect(caminhoDaConta(CONTA, `${CONTA}/..`)).toBe(false);
-    expect(caminhoDaConta(CONTA, `${CONTA}/.env`)).toBe(false);
-    expect(caminhoDaConta(CONTA, `${CONTA}/a/b.jpg`)).toBe(false);
-    expect(caminhoDaConta(CONTA, `foto.jpg`)).toBe(false);
+  it("caminho precisa estar na pasta do próprio perfil/item, com uuid e extensão permitida", () => {
+    const U = "33333333-3333-4333-8333-333333333333";
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/${U}.jpg`)).toBe(true);
+    expect(caminhoDaPasta("item", CONTA, `item/${CONTA}/${U}.webp`)).toBe(true);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${OUTRA}/${U}.jpg`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `item/${CONTA}/${U}.jpg`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `${CONTA}/${U}.jpg`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/../${OUTRA}/${U}.jpg`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/..`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/.env`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/foto-1.jpg`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/${U}.gif`)).toBe(false);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/a/${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/${U}.png`)).toBe(true);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/${U}.png`, "item")).toBe(false);
+    expect(formatoDeCaminhoValido(`${CONTA}/${U}.png`)).toBe(false);
   });
-  it("gera caminho dentro da pasta da conta com extensão do tipo", () => {
-    const c = gerarCaminhoImagem(CONTA, "image/webp", "abc-123");
-    expect(c).toBe(`${CONTA}/abc-123.webp`);
-    expect(caminhoDaConta(CONTA, c)).toBe(true);
-    expect(() => gerarCaminhoImagem(CONTA, "image/webp", "../x")).toThrow();
+  it("gera caminho opaco com uuid injetável e extensão do tipo", () => {
+    const U = "44444444-4444-4444-8444-444444444444";
+    const c = gerarCaminhoImagem("perfil", CONTA, "image/webp", U);
+    expect(c).toBe(`perfil/${CONTA}/${U}.webp`);
+    expect(caminhoDaPasta("perfil", CONTA, c)).toBe(true);
+    expect(gerarCaminhoImagem("item", CONTA, "image/jpeg", U)).toBe(`item/${CONTA}/${U}.jpg`);
+    // sem uuid injetado, gera um válido e diferente a cada chamada
+    const a = gerarCaminhoImagem("item", CONTA, "image/png");
+    expect(caminhoDaPasta("item", CONTA, a)).toBe(true);
+    expect(a).not.toBe(gerarCaminhoImagem("item", CONTA, "image/png"));
+    expect(() => gerarCaminhoImagem("perfil", CONTA, "image/webp", "../x")).toThrow();
+    expect(() => gerarCaminhoImagem("perfil", "../x", "image/webp", U)).toThrow();
+    expect(() => gerarCaminhoImagem("perfil", CONTA, "image/gif" as never, U)).toThrow();
   });
 });
 
