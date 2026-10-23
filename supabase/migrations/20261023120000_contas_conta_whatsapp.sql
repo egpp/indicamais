@@ -9,7 +9,7 @@ create table public.contas_conta (
   whatsapp_verificado boolean not null default false,
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now(),
-  constraint contas_conta_whatsapp_formato check (whatsapp_e164 is null or whatsapp_e164 ~ '^\+55\d{10,11}$'),
+  constraint contas_conta_whatsapp_formato check (whatsapp_e164 is null or whatsapp_e164 ~ '^\+55[0-9]{10,11}$'),
   constraint contas_conta_whatsapp_unico unique (whatsapp_e164),
   -- IM-009/IM-010: nenhum número é apresentado como verificado nesta fase.
   constraint contas_conta_whatsapp_nao_verificado_nesta_fase check (whatsapp_verificado = false),

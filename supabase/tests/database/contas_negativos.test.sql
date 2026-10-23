@@ -1,6 +1,6 @@
 -- pgTAP · módulo contas · testes negativos do verificador · IM-006, IM-009, IM-086
 begin;
-select plan(21);
+select plan(25);
 
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
 values
@@ -25,6 +25,10 @@ select throws_ok($$update public.contas_conta set whatsapp_e164 = E'+55119999900
 select throws_ok($$update public.contas_conta set whatsapp_e164 = '+5511999990001 ' where id = 'aaaaaaaa-0000-0000-0000-0000000000a1'$$, '23514', null, 'espaço no fim do número é rejeitado');
 select throws_ok($$update public.contas_conta set whatsapp_e164 = '+55١١٩٩٩٩٩٠٠٠١' where id = 'aaaaaaaa-0000-0000-0000-0000000000a1'$$, '23514', null, 'dígitos não ASCII são rejeitados');
 select throws_ok($$update public.contas_conta set whatsapp_e164 = '+55119999900012345' where id = 'aaaaaaaa-0000-0000-0000-0000000000a1'$$, '23514', null, 'número longo demais é rejeitado');
+select throws_ok($$update public.contas_conta set whatsapp_e164 = E'+55 11999990001' where id = 'aaaaaaaa-0000-0000-0000-0000000000a1'$$, '23514', null, 'espaço sem quebra no meio é rejeitado');
+select throws_ok($$update public.contas_conta set whatsapp_e164 = E'+55​11999990001' where id = 'aaaaaaaa-0000-0000-0000-0000000000a1'$$, '23514', null, 'caractere invisível (largura zero) é rejeitado');
+select throws_ok($$update public.contas_conta set whatsapp_e164 = E'+55１１999990001' where id = 'aaaaaaaa-0000-0000-0000-0000000000a1'$$, '23514', null, 'dígitos de largura total (NFKC) são rejeitados');
+select throws_ok($$update public.contas_conta set whatsapp_e164 = E'+5511999990001​' where id = 'aaaaaaaa-0000-0000-0000-0000000000a1'$$, '23514', null, 'caractere invisível no fim é rejeitado');
 
 -- Como A
 set local role authenticated;
