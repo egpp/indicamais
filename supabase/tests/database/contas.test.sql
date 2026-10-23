@@ -29,7 +29,7 @@ update public.contas_conta set nome_exibicao = 'invadido' where id = 'bbbbbbbb-0
 select throws_ok($$update public.contas_conta set whatsapp_verificado = true where id = auth.uid()$$, '42501', null, 'cliente não marca whatsapp_verificado');
 select throws_ok($$update public.contas_conta set id = gen_random_uuid() where id = auth.uid()$$, '42501', null, 'cliente não altera id');
 select throws_ok($$insert into public.contas_conta (id) values (gen_random_uuid())$$, null, null, 'cliente não insere conta');
-select is((with d as (delete from public.contas_conta returning 1) select count(*)::int from d), 0, 'cliente não apaga conta');
+select throws_ok($$delete from public.contas_conta$$, '42501', null, 'cliente não apaga conta');
 select throws_ok($$update public.contas_whatsapp_historico set whatsapp_novo_e164 = null$$, '42501', null, 'cliente não altera histórico');
 
 -- Como usuário B
