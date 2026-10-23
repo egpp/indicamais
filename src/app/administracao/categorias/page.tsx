@@ -18,14 +18,12 @@ export const dynamic = "force-dynamic";
 /** Categorias (criar, ativar e desativar com motivo) e pedidos dos responsáveis (IM-016). */
 export default async function PaginaCategoriasAdmin() {
   const ctx = await obterContexto("/administracao/categorias");
-  if (!(await ctx.ehAdministrador())) notFound();
+  if (!(await ctx.administracao.ehAdministrador())) notFound();
   const [todas, pendentes] = await Promise.all([
-    ctx.revisao.listarTodasCategorias(),
+    ctx.categorias.listarTodasCategorias(),
     ctx.categorias.listarSolicitacoesPendentes(),
   ]);
-  const categorias = [...(todas.dados ?? [])].sort(
-    (a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"),
-  );
+  const categorias = todas.ok ? todas.valor : [];
   const ativas = categorias.filter((c) => c.ativa).map((c) => ({ id: c.id, nome: c.nome }));
 
   return (
@@ -70,7 +68,7 @@ export default async function PaginaCategoriasAdmin() {
 
       <section aria-labelledby="titulo-lista">
         <h2 id="titulo-lista">Categorias existentes</h2>
-        {!todas.dados && todas.erro ? (
+        {!todas.ok ? (
           <Aviso tipo="erro">Não foi possível carregar as categorias.</Aviso>
         ) : (
           <ul className="lista-cartoes">

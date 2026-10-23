@@ -12,7 +12,10 @@ export const dynamic = "force-dynamic";
 /** Anúncios particulares: produtos sem perfil comercial (IM-015). */
 export default async function PaginaMeusAnuncios() {
   const ctx = await obterContexto("/meus-anuncios");
-  const [admin, itens] = await Promise.all([ctx.ehAdministrador(), ctx.itens.listarMeus()]);
+  const [admin, itens] = await Promise.all([
+    ctx.administracao.ehAdministrador(),
+    ctx.itens.listarMeus(),
+  ]);
   const anuncios = itens.ok ? itens.valor.filter((i) => i.anuncioParticular) : [];
   return (
     <PainelPagina

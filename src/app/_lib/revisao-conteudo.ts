@@ -1,13 +1,5 @@
-import {
-  conteudoDeVersao as conteudoDeItem,
-  paraItemExibicao,
-  type ItemExibicao,
-} from "@/modules/catalogo";
-import {
-  conteudoDeVersao as conteudoDePerfil,
-  paraPerfilExibicao,
-  type PerfilExibicao,
-} from "@/modules/perfis";
+import type { ItemExibicao } from "@/modules/catalogo";
+import type { PerfilExibicao } from "@/modules/perfis";
 import type { AlvoRevisao } from "@/modules/administracao";
 import type { Contexto } from "./contexto";
 import { caminhosDoPerfil } from "./pagina";
@@ -17,7 +9,7 @@ export type ConteudoParaRevisao =
   | { tipo: "item"; item: ItemExibicao; caminhos: string[] };
 
 /**
- * Conteúdo de uma versão pendente para o administrador conferir. Passa pelos modelos de exibição dos módulos,
+ * Conteúdo de uma versão pendente para o administrador conferir. Vem dos serviços dos módulos (só administrador), em formato de exibição,
  * que por construção não têm WhatsApp, responsável nem e-mail (IM-029). `null` = não encontrado ou falha.
  */
 export async function carregarConteudoRevisao(
@@ -27,14 +19,13 @@ export async function carregarConteudoRevisao(
 ): Promise<ConteudoParaRevisao | null> {
   try {
     if (alvo === "perfil") {
-      const r = await ctx.revisao.buscarVersaoPerfil(versaoId);
-      if (r.erro || !r.dados) return null;
-      const perfil = paraPerfilExibicao(r.dados.perfil, conteudoDePerfil(r.dados.versao));
-      return { tipo: "perfil", perfil, caminhos: caminhosDoPerfil(perfil) };
+      const r = await ctx.perfis.obterVersaoParaRevisao(versaoId);
+      if (!r.ok) return null;
+      return { tipo: "perfil", perfil: r.valor.perfil, caminhos: caminhosDoPerfil(r.valor.perfil) };
     }
-    const r = await ctx.revisao.buscarVersaoItem(versaoId);
-    if (r.erro || !r.dados) return null;
-    const item = paraItemExibicao(r.dados.item, conteudoDeItem(r.dados.versao));
+    const r = await ctx.itens.obterVersaoParaRevisao(versaoId);
+    if (!r.ok) return null;
+    const item = r.valor.item;
     return { tipo: "item", item, caminhos: item.fotoPath ? [item.fotoPath] : [] };
   } catch {
     return null;

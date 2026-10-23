@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function PaginaMeusItens() {
   const ctx = await obterContexto("/meus-itens");
   const [admin, itens, perfis] = await Promise.all([
-    ctx.ehAdministrador(),
+    ctx.administracao.ehAdministrador(),
     ctx.itens.listarMeus(),
     ctx.perfis.listarMeus(),
   ]);

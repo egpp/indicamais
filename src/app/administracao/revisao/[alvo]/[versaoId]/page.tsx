@@ -21,7 +21,7 @@ export default async function PaginaRevisar({
 }: PageProps<"/administracao/revisao/[alvo]/[versaoId]">) {
   const { alvo, versaoId } = await params;
   const ctx = await obterContexto(`/administracao/revisao/${alvo}/${versaoId}`);
-  if (!ehAlvo(alvo) || !(await ctx.ehAdministrador())) notFound();
+  if (!ehAlvo(alvo) || !(await ctx.administracao.ehAdministrador())) notFound();
 
   const fila = await ctx.administracao.listarFila();
   const naFila = fila.ok
@@ -53,9 +53,9 @@ export default async function PaginaRevisar({
 
   const [conteudo, todas] = await Promise.all([
     carregarConteudoRevisao(ctx, alvo, versaoId),
-    ctx.revisao.listarTodasCategorias(),
+    ctx.categorias.listarTodasCategorias(),
   ]);
-  const categorias = (todas.dados ?? []).map((c) => ({ id: c.id, nome: c.nome }));
+  const categorias = (todas.ok ? todas.valor : []).map((c) => ({ id: c.id, nome: c.nome }));
   const urls = conteudo ? await ctx.assinarImagens(conteudo.caminhos) : {};
 
   return (

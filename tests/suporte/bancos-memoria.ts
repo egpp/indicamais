@@ -13,7 +13,7 @@ import type {
   LinhaSolicitacao,
 } from "@/modules/catalogo";
 import type { ClienteBancoPerfis, LinhaPerfil, LinhaVersaoPerfil } from "@/modules/perfis";
-import { criarContexto, type BancoRevisaoConteudo, type Contexto } from "@/app/_lib/contexto";
+import { criarContexto, type Contexto } from "@/app/_lib/contexto";
 
 /**
  * Banco em memória para testar telas e Server Actions sobre os MÓDULOS REAIS (só o banco é falso).
@@ -61,6 +61,15 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
 
   function bancoPerfis(contaId: string): ClienteBancoPerfis {
     return {
+      async ehAdministrador() {
+        return ehAdmin(contaId);
+      },
+      async buscarVersaoParaRevisao(versaoId) {
+        const v = versaoPerfil(versaoId);
+        if (!ehAdmin(contaId) || !v) return { dados: null, erro: null };
+        const p = perfis.get(v.perfil_id)!;
+        return { dados: { perfil: { id: p.id, slug: p.slug }, versao: v }, erro: null };
+      },
       async criarRascunho(c) {
         if ([...perfis.values()].some((p) => p.slug === c.slug)) {
           return erro("23505", "duplicate key", "perfis_perfil_slug_unico");
@@ -163,6 +172,18 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
 
   function bancoItens(contaId: string): ClienteBancoItens {
     return {
+      async ehAdministrador() {
+        return ehAdmin(contaId);
+      },
+      async buscarVersaoParaRevisao(versaoId) {
+        const v = versaoItem(versaoId);
+        if (!ehAdmin(contaId) || !v) return { dados: null, erro: null };
+        const i = itens.get(v.item_id)!;
+        return {
+          dados: { item: { id: i.id, perfil_id: i.perfil_id, tipo: i.tipo }, versao: v },
+          erro: null,
+        };
+      },
       async criarItem(c) {
         if (c.perfil_id && perfis.get(c.perfil_id)?.dono !== contaId) {
           return erro("23503", "fk", "catalogo_item_perfil_fk");
@@ -266,6 +287,12 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
     const admin = () => ehAdmin(contaId);
     const negado = () => ({ erro: { code: "42501", message: "apenas administradores" } });
     return {
+      async ehAdministrador() {
+        return ehAdmin(contaId);
+      },
+      async listarTodasCategorias() {
+        return { dados: admin() ? [...categorias] : [], erro: null };
+      },
       contaId,
       async listarCategorias() {
         return { dados: categorias.filter((c) => c.ativa || admin()), erro: null };
@@ -365,6 +392,9 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
   function bancoAdministracao(contaId: string): ClienteBancoAdministracao {
     return {
       contaId,
+      async ehAdministrador() {
+        return ehAdmin(contaId);
+      },
       async listarFila() {
         if (!ehAdmin(contaId)) return { dados: [], erro: null };
         const fila: LinhaFila[] = [
@@ -455,29 +485,6 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
     };
   }
 
-  function revisao(contaId: string): BancoRevisaoConteudo {
-    return {
-      async buscarVersaoPerfil(versaoId) {
-        const v = versaoPerfil(versaoId);
-        if (!ehAdmin(contaId) || !v) return { dados: null, erro: null };
-        const p = perfis.get(v.perfil_id)!;
-        return { dados: { perfil: { id: p.id, slug: p.slug }, versao: v }, erro: null };
-      },
-      async buscarVersaoItem(versaoId) {
-        const v = versaoItem(versaoId);
-        if (!ehAdmin(contaId) || !v) return { dados: null, erro: null };
-        const i = itens.get(v.item_id)!;
-        return {
-          dados: { item: { id: i.id, perfil_id: i.perfil_id, tipo: i.tipo }, versao: v },
-          erro: null,
-        };
-      },
-      async listarTodasCategorias() {
-        return { dados: ehAdmin(contaId) ? [...categorias] : [], erro: null };
-      },
-    };
-  }
-
   /** Contexto de uma conta, com os serviços REAIS dos módulos sobre este banco em memória. */
   function contexto(contaId: string): Contexto {
     return criarContexto({
@@ -486,8 +493,6 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
       bancoItens: bancoItens(contaId),
       bancoCategorias: bancoCategorias(contaId),
       bancoAdministracao: bancoAdministracao(contaId),
-      revisao: revisao(contaId),
-      ehAdministrador: async () => ehAdmin(contaId),
       assinarImagens: async (caminhos) =>
         Object.fromEntries(caminhos.map((c) => [c, `https://storage.exemplo/assinada/${c}`])),
     });

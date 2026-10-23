@@ -19,7 +19,9 @@ export const MENSAGENS_TELA_ADM = {
 } as const;
 
 async function soAdministrador(ctx: Contexto): Promise<Resposta | null> {
-  return (await ctx.ehAdministrador()) ? null : { erro: MENSAGENS_ADMINISTRACAO.semPermissao };
+  return (await ctx.administracao.ehAdministrador())
+    ? null
+    : { erro: MENSAGENS_ADMINISTRACAO.semPermissao };
 }
 
 export async function decidirRevisao(ctx: Contexto, f: FormData): Promise<Resposta> {

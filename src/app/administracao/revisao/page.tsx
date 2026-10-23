@@ -15,7 +15,7 @@ export default async function PaginaFilaRevisao({
   searchParams,
 }: PageProps<"/administracao/revisao">) {
   const ctx = await obterContexto("/administracao/revisao");
-  if (!(await ctx.ehAdministrador())) notFound();
+  if (!(await ctx.administracao.ehAdministrador())) notFound();
   const decidido = um((await searchParams).decidido);
   const fila = await ctx.administracao.listarFila();
   return (

@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 
 export default async function PaginaMeusPerfis() {
   const ctx = await obterContexto("/meus-perfis");
-  const [admin, r] = await Promise.all([ctx.ehAdministrador(), ctx.perfis.listarMeus()]);
+  const [admin, r] = await Promise.all([
+    ctx.administracao.ehAdministrador(),
+    ctx.perfis.listarMeus(),
+  ]);
   return (
     <PainelPagina
       titulo="Meus perfis"

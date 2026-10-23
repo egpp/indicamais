@@ -19,7 +19,7 @@ const ROTULO_SITUACAO = {
 export default async function PaginaMinhasRevisoes() {
   const ctx = await obterContexto("/minhas-revisoes");
   const [admin, r] = await Promise.all([
-    ctx.ehAdministrador(),
+    ctx.administracao.ehAdministrador(),
     ctx.administracao.listarMeusResultados(),
   ]);
   return (
