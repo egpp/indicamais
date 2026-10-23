@@ -9,11 +9,11 @@ Regras:
 
 | ID | Tipo | Requisito | Execução | Próxima ação | Dependência/decisão | Evidência | Verificado em |
 |---|---|---|---|---|---|---|---|
-| IM-001 | D | Arquitetura modular | A fazer | — | — | — | — |
-| IM-002 | D | Integração entre módulos | A fazer | — | — | — | — |
-| IM-003 | D | Referência central | A fazer | — | — | — | — |
+| IM-001 | D | Arquitetura modular | Verificado (base Fase 0) | Módulos funcionais virão nas fases seguintes; repetir o teste de fronteira a cada módulo novo. | — | 10 módulos ativos em src/modules/<x>/index.ts (vazios), nenhum futuro (planos, social, remarketing, pagamentos). pnpm install --frozen-lockfile, lint, typecheck, format:check, build: exit 0; pnpm test: 10/10. Arquivo violador temporário em src/modules/indicacoes importando @/modules/pontos/interno e ../pontos/interno: eslint deu 3 erros no-restricted-imports; removido. | 22/10/2026 |
+| IM-002 | D | Integração entre módulos | Verificado (base Fase 0) | Parte "saldos e regras separados" só pode ser verificada quando pontos/comissões/relacionamento existirem. | — | tests/fronteiras-modulos.test.ts: 4 casos permitidos passam, 4 proibidos falham, shared->módulos bloqueado, módulo real indicacoes->pontos/interno bloqueado (10/10 passaram). Violador temporário confirmado via pnpm exec eslint. | 22/10/2026 |
+| IM-003 | D | Referência central | Verificado (base Fase 0) | Manter IDs ao incluir requisitos novos. | — | docs/ versionado no Git (git ls-files docs); 7 commits na branch fase-0/fundacoes citam IDs; CLAUDE.md com seção Comandos preenchida e coerente com package.json. | 22/10/2026 |
 | IM-004 | D | Continuidade | A fazer | — | — | — | — |
-| IM-005 | D | Experiência brasileira | A fazer | — | — | — | — |
+| IM-005 | D | Experiência brasileira | Verificado (base Fase 0) | Verificar em tela no celular (Playwright, viewport móvel), moeda e telefone quando houver telas reais. | — | curl -sI/curl em https://indicamais-dev.egpp1234.workers.dev/ (22/10/2026): HTTP 200, text/html, <html lang="pt-BR">, meta viewport width=device-width, initial-scale=1, texto "Olá! Ambiente em construção."; nenhuma ocorrência de sb_secret/eyJ/service_role/supabase.co no HTML nem de sb_/eyJ/token nos cabeçalhos. Base verificada: idioma pt-BR e viewport mobile no ar. | 22/10/2026 |
 | IM-006 | D | Conta multifunção | A fazer | — | — | — | — |
 | IM-007 | D | Login | A fazer | — | — | — | — |
 | IM-008 | D | Confirmação e recuperação | A fazer | — | — | — | — |
@@ -91,11 +91,11 @@ Regras:
 | IM-080 | D | Suspensão e reativação | A fazer | — | — | — | — |
 | IM-081 | D | Encerramento | A fazer | — | — | — | — |
 | IM-082 | P | Políticas | Aguardando decisão | — | — | — | — |
-| IM-083 | D | Destinos e acessos | A fazer | — | — | — | — |
+| IM-083 | D | Destinos e acessos | Verificado (base Fase 0) | Na Fase 0 só o destino de dev. Pendente para depois: destinos de produção (Worker indicamais, Supabase de produção) com aprovação do Emerson (D-003); reutilização de acessos nas fases seguintes. | D-003, D-005 | wrangler.jsonc: name e service = indicamais-dev; deploy-dev.yml aborta se wrangler.jsonc referenciar "indicamais" (grep em .github, wrangler.jsonc: nenhuma referência ao Worker de produção); deploy-dev é só workflow_dispatch e sem passo de produção; URL de dev responde 200 (curl). RELATO DO EMERSON (não verificado por mim): pnpm check:supabase ok, ref do projeto dev confere. | 22/10/2026 |
 | IM-084 | D | Proteção do trabalho | A fazer | — | — | — | — |
-| IM-085 | D | Versionamento e recuperação | A fazer | — | — | — | — |
-| IM-086 | D | Segurança | A fazer | — | — | — | — |
+| IM-085 | D | Versionamento e recuperação | Verificado (base Fase 0) | Migrações reais só nas fases com tabelas; rodar Playwright/db no CI depois. Confirmar pnpm build:cf no CI quando houver acesso ao resultado. | D-003, D-005 | Git: branch fase-0/fundacoes limpa, 17 commits, migrações em supabase/migrations/ (vazia, ok na Fase 0), .env.example e .dev.vars.example versionados; src/shared/db/database.types.ts gerado (public sem tabelas, PostgrestVersion 14.18). curl -sI/curl em https://indicamais-dev.egpp1234.workers.dev/ (22/10/2026): HTTP 200, text/html, <html lang="pt-BR">, meta viewport width=device-width, initial-scale=1, texto "Olá! Ambiente em construção."; nenhuma ocorrência de sb_secret/eyJ/service_role/supabase.co no HTML nem de sb_/eyJ/token nos cabeçalhos. ci.yml cobre install --frozen-lockfile, lint, typecheck, test, format:check, build e build:cf (Node 24). EVIDÊNCIA DE TERCEIROS (relato do Emerson/gestor): CI verde; Deploy dev #2 verde; pnpm check:supabase ok nas 3 variáveis, publishable e secret key com conexão ok. | 22/10/2026 |
+| IM-086 | D | Segurança | Verificado (base Fase 0) | Base de segredos verificada; RLS/auditoria/isolamento só quando houver tabelas (Fase 1+). Reavaliar na primeira migração com tabelas. | — | git log -p --all e git grep na árvore atual (22/10/2026): sem sb_secret_, sb_publishable_, eyJ..., ghp_, URLs de projeto Supabase; únicas ocorrências de CLOUDFLARE_API_TOKEN são referências a secrets.CLOUDFLARE_API_TOKEN do GitHub Actions; ".supabase.co" só em checagem de sufixo do scripts/checar-supabase.mjs. Portanto a secret key revogada nunca entrou no Git. Só .env.example rastreado de .env*. HTML e cabeçalhos do deploy de dev sem chaves. .env.local não foi lido. Nenhuma tabela ainda. | 22/10/2026 |
 | IM-087 | P | Ambientes | Aguardando decisão | — | — | — | — |
-| IM-088 | D | Validação e continuidade | A fazer | — | — | — | — |
+| IM-088 | D | Validação e continuidade | Verificado (base Fase 0) | Testes de fluxos reais (Playwright) a partir da Fase 1. | — | Teste de fronteira (tests/fronteiras-modulos.test.ts, 10/10) verificado em 22/10/2026 com violador temporário; nesta data pnpm lint e pnpm typecheck: exit 0 (Node local 25.3, fora do Node 24; pnpm test local NÃO contado como evidência agora). EVIDÊNCIA DE TERCEIROS: CI verde e Deploy dev #2 (10 testes passando) relatados pelo Emerson/gestor; repositório privado, não consegui consultar. | 22/10/2026 |
 | IM-089 | D | Limites | A fazer | — | — | — | — |
 | IM-090 | D | Fora do escopo inicial | A fazer | — | — | — | — |

@@ -1,0 +1,12 @@
+node_modules
+.next
+.open-next
+.wrangler
+pnpm-lock.yaml
+docs
+.claude
+CLAUDE.md
+supabase
+tests/fixtures
+cloudflare-env.d.ts
+src/shared/db/database.types.ts

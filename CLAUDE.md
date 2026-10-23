@@ -59,4 +59,20 @@ Quem implementa não verifica a própria entrega.
 Desenvolvimento e produção separados. Nada é testado em produção. Migração vai primeiro para dev. Deploy em produção e `supabase db push` em produção só com aprovação do Emerson naquele momento.
 
 ## Comandos
-(Preencher na Fase 0 com os comandos reais de instalar, rodar, testar, lint, gerar tipos do Supabase e publicar.)
+Usar Node 24 (arquivo `.nvmrc`; `engines.node` = `>=22 <25`). Node 25.3 quebra o Vitest 5/Vite 8 com ERR_PACKAGE_IMPORT_NOT_DEFINED (#module-sync-enabled), então não usar Node 25. Versões escolhidas (conferidas em 22/10/2026): Node 24 LTS (local e CI), pnpm 12.15.0, Next.js 16.4.2, React 19.3.0, TypeScript 5.x, ESLint 9, Vitest 5.0.5, Prettier 3.9.10, Zod 4.6.7, @opennextjs/cloudflare 1.20.13, Wrangler 4.151.3, Supabase CLI 2.121.0.
+
+- Instalar: `pnpm install` (pnpm instalado com `npm i -g pnpm`; a versão fica fixa em `packageManager`).
+- Rodar em desenvolvimento: `pnpm dev` (http://localhost:3000).
+- Lint (inclui regra de fronteira entre módulos): `pnpm lint`
+- Tipos: `pnpm typecheck`
+- Testes: `pnpm test` (modo observação: `pnpm test:watch`). Teste da fronteira: `tests/fronteiras-modulos.test.ts`.
+- Formatação: `pnpm format` / `pnpm format:check`
+- Build Next: `pnpm build`
+- Build/preview para Cloudflare Workers (OpenNext): `pnpm build:cf` e `pnpm preview`. Não funciona no Windows nativo (erro de leitura de symlinks do pnpm); rode em WSL, Linux ou no CI.
+- Supabase local: `pnpm supabase start`, `pnpm supabase migration new <nome>`, `pnpm supabase db reset` (precisam de Docker).
+- Tipos do Supabase: `pnpm db:types` (gera `src/shared/db/database.types.ts` a partir do projeto de desenvolvimento linkado, sem Docker; exige `pnpm supabase login` e `pnpm supabase link --project-ref qheleouixleltfjtccji`, D-005).
+- Checar conexão com o Supabase de dev: `pnpm check:supabase` (script manual `scripts/checar-supabase.mjs`, lê `.env.local`, imprime só status; fora do app e do CI; IM-085, IM-086).
+- Tipos de bindings Cloudflare: `pnpm cf-typegen`
+- Publicar em DESENVOLVIMENTO (Worker `indicamais-dev`): `pnpm deploy:dev` (= `opennextjs-cloudflare build && opennextjs-cloudflare deploy`). Exige login `pnpm wrangler login` (confira com `pnpm wrangler whoami`). No Windows nativo o build falha (esbuild "Access is denied" nos symlinks do pnpm) e não há WSL nesta máquina: rode em Linux/WSL ou por GitHub Actions: GitHub > Actions > Deploy dev > Run workflow (`.github/workflows/deploy-dev.yml`, só `workflow_dispatch`; usa os secrets de repositório CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID; roda lint, tipos e testes antes; só publica `indicamais-dev`). Primeiro deploy: se a conta Cloudflare ainda não tiver subdomínio workers.dev registrado, o Wrangler pede esse registro; o nome do subdomínio é decisão do Emerson (não escolher por ele) e se registra uma vez no painel Cloudflare em Workers & Pages > Subdomain, ou respondendo ao prompt do `pnpm wrangler deploy` rodado por ele. Produção (Worker `indicamais`) nunca sem aprovação do Emerson (D-003); `supabase db push` em produção idem.
+- Variáveis: copie `.env.example` para `.env.local` e `.dev.vars.example` para `.dev.vars`; nunca comite valores.
+- Regra de módulos: de fora de um módulo importe só `@/modules/<modulo>` (o index). Dentro do módulo use caminhos relativos; não saia da pasta do módulo por caminho relativo.
