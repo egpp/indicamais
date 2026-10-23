@@ -29,6 +29,7 @@ import {
   MENSAGEM_SESSAO_EXPIRADA,
   MENSAGEM_WHATSAPP_SALVO,
 } from "./_lib/mensagens-auth";
+import { registrarFalhaAuth } from "./_lib/log-auth";
 import { origemDoApp } from "./_lib/origem";
 
 /** Server Actions da conta. Sem regra de negócio: validam com os schemas do módulo e chamam Auth/serviço. */
@@ -59,6 +60,7 @@ export async function cadastrar(_: EstadoFormulario, f: FormData): Promise<Estad
     },
   });
   if (error) {
+    registrarFalhaAuth("cadastrar", error);
     const tipo = classificarErroAuth(error);
     if (tipo === "SENHA_FRACA") return { erros: { senha: MENSAGEM_SENHA_FRACA }, valores };
     if (tipo === "LIMITE") return { erro: MENSAGEM_LIMITE_TENTATIVAS, valores };
@@ -125,11 +127,13 @@ export async function solicitarRecuperacao(
   try {
     const supabase = await criarClienteServidor();
     const origem = await origemDoApp();
-    await supabase.auth.resetPasswordForEmail(p.data.email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(p.data.email, {
       redirectTo: `${origem}/auth/callback?proximo=${encodeURIComponent("/redefinir-senha")}`,
     });
+    registrarFalhaAuth("recuperar_senha", error);
   } catch {
     // Ignora de propósito: a resposta é sempre a mesma (IM-008).
+    registrarFalhaAuth("recuperar_senha", { code: "excecao" });
   }
   return { sucesso: MENSAGEM_RECUPERACAO_SOLICITADA };
 }
@@ -145,13 +149,15 @@ export async function reenviarConfirmacao(
   try {
     const supabase = await criarClienteServidor();
     const origem = await origemDoApp();
-    await supabase.auth.resend({
+    const { error } = await supabase.auth.resend({
       type: "signup",
       email: p.data.email,
       options: { emailRedirectTo: `${origem}/auth/callback` },
     });
+    registrarFalhaAuth("reenviar_confirmacao", error);
   } catch {
     // Resposta neutra sempre (IM-008).
+    registrarFalhaAuth("reenviar_confirmacao", { code: "excecao" });
   }
   return { sucesso: MENSAGEM_CONFIRMACAO_REENVIADA };
 }

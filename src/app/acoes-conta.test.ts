@@ -92,6 +92,46 @@ describe("IM-008 mensagens neutras", () => {
     );
   });
 
+  it("recuperação: resposta idêntica com e sem erro e log sem e-mail (IM-008, IM-086)", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const email = "emerson.privado@exemplo.com";
+    auth.resetPasswordForEmail.mockResolvedValue({ error: null });
+    const ok = await solicitarRecuperacao({}, form({ email }));
+    expect(aviso).not.toHaveBeenCalled();
+    auth.resetPasswordForEmail.mockResolvedValue({
+      error: {
+        code: "over_email_send_rate_limit",
+        status: 429,
+        message: `rate limit para ${email}`,
+      },
+    });
+    const falha = await solicitarRecuperacao({}, form({ email }));
+    expect(falha).toEqual(ok);
+    expect(aviso).toHaveBeenCalledTimes(1);
+    expect(aviso.mock.calls[0][1]).toEqual({
+      acao: "recuperar_senha",
+      codigo: "over_email_send_rate_limit",
+      status: 429,
+    });
+    expect(JSON.stringify(aviso.mock.calls)).not.toContain("emerson");
+    aviso.mockRestore();
+  });
+
+  it("reenvio: registra só ação, código e status", async () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    auth.resend.mockResolvedValue({
+      error: { code: "over_email_send_rate_limit", status: 429, message: "a@b.com" },
+    });
+    await reenviarConfirmacao({}, form({ email: "a@b.com" }));
+    expect(aviso.mock.calls[0][1]).toEqual({
+      acao: "reenviar_confirmacao",
+      codigo: "over_email_send_rate_limit",
+      status: 429,
+    });
+    expect(JSON.stringify(aviso.mock.calls)).not.toContain("a@b.com");
+    aviso.mockRestore();
+  });
+
   it("recuperação com e-mail inválido mostra erro de campo, sem chamar o Auth", async () => {
     const r = await solicitarRecuperacao({}, form({ email: "x" }));
     expect(r.erros?.email).toBe("E-mail inválido.");
