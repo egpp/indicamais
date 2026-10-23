@@ -47,8 +47,8 @@ export interface ClienteBancoAdministracao {
     motivo: string | null;
   }): Promise<{ erro: ErroBanco | null }>;
   /**
-   * Versões enviadas (pendente/aprovada/rejeitada) dos perfis e itens da própria conta, já juntadas com
-   * a revisão e os ponteiros do pai. RLS limita ao dono.
+   * select em administracao_meus_resultados: versões enviadas (pendente/aprovada/rejeitada) dos perfis e
+   * itens da própria conta. A visão filtra por auth.uid(); o responsável nunca lê as tabelas de revisão.
    */
   listarMinhasRevisoes(): Promise<RespostaBanco<LinhaResultadoRevisao[]>>;
 }

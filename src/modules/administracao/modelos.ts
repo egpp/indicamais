@@ -49,25 +49,26 @@ export function ordenarFila(itens: ItemFila[]): ItemFila[] {
 }
 
 /**
- * Uma versão enviada, com a decisão (se houver), como o responsável a enxerga.
- * O adaptador junta versão + revisão + ponteiros do pai (perfil ou item).
+ * Linha da visão administracao_meus_resultados: uma versão enviada, com a decisão (se houver), como o
+ * RESPONSÁVEL a enxerga. O responsável nunca lê as tabelas de revisão; o autor é opaco (`autor_ref`).
  */
 export type LinhaResultadoRevisao = {
-  alvo_tipo: AlvoRevisao;
+  tipo: AlvoRevisao;
   alvo_id: string;
   versao_id: string;
-  nome: string | null;
-  /** Só para perfil. */
-  slug: string | null;
-  enviada_em: string;
   /** 'pendente' | 'aprovada' | 'rejeitada' (situação da versão). */
   situacao: "pendente" | "aprovada" | "rejeitada";
+  nome: string | null;
   motivo: string | null;
-  autor_id: string | null;
   decidida_em: string | null;
-  /** Ponteiros do pai, para saber se esta versão é a que está no ar. */
+  enviada_em: string;
+  /** Referência OPACA de quem decidiu (hash); nula enquanto pendente. Nunca é id, nome ou e-mail. */
+  autor_ref: string | null;
+  /** Só para perfil. */
+  slug: string | null;
   publicado: boolean;
-  versao_aprovada_id: string | null;
+  /** Esta é a versão aprovada que o perfil/item aponta (a que está no ar quando publicado). */
+  versao_vigente: boolean | null;
 };
 
 export type ResultadoRevisao = {
@@ -82,8 +83,8 @@ export type ResultadoRevisao = {
   motivo: string | null;
   /** Só quando esta versão está no ar agora (aprovada, publicada e vigente). */
   linkPublicado: string | null;
-  /** Quem decidiu e quando (IM-023, IM-086). */
-  autorId: string | null;
+  /** Quem decidiu (referência opaca) e quando (IM-023, IM-086). */
+  autorRef: string | null;
   decididaEm: string | null;
   enviadaEm: string;
 };
@@ -91,11 +92,11 @@ export type ResultadoRevisao = {
 /** IM-023: situação, motivo da rejeição ou link publicado, autor e data. Função pura. */
 export function resultadoDaRevisao(l: LinhaResultadoRevisao): ResultadoRevisao {
   const base = {
-    alvo: l.alvo_tipo,
+    alvo: l.tipo,
     alvoId: l.alvo_id,
     versaoId: l.versao_id,
     nome: l.nome,
-    autorId: l.autor_id,
+    autorRef: l.autor_ref,
     decididaEm: l.decidida_em,
     enviadaEm: l.enviada_em,
   };
@@ -106,7 +107,7 @@ export function resultadoDaRevisao(l: LinhaResultadoRevisao): ResultadoRevisao {
       mensagem: "Em análise. Avisaremos aqui quando houver decisão.",
       motivo: null,
       linkPublicado: null,
-      autorId: null,
+      autorRef: null,
       decididaEm: null,
     };
   }
@@ -119,11 +120,11 @@ export function resultadoDaRevisao(l: LinhaResultadoRevisao): ResultadoRevisao {
       linkPublicado: null,
     };
   }
-  const vigente = l.versao_aprovada_id === l.versao_id;
+  const vigente = l.versao_vigente === true;
   const noAr = vigente && l.publicado;
   let link: string | null = null;
   if (noAr) {
-    if (l.alvo_tipo === "perfil") link = l.slug ? ROTAS_PUBLICAS.perfil(l.slug) : null;
+    if (l.tipo === "perfil") link = l.slug ? ROTAS_PUBLICAS.perfil(l.slug) : null;
     else link = ROTAS_PUBLICAS.item(l.alvo_id);
   }
   return {

@@ -310,32 +310,33 @@ describe("ponto de extensão do e-mail do resultado (D-006)", () => {
 });
 
 describe("resultado da revisão para o responsável (IM-023)", () => {
+  const AUTOR_REF = "9f2b".repeat(16);
   const base: LinhaResultadoRevisao = {
-    alvo_tipo: "perfil",
+    tipo: "perfil",
     alvo_id: P1,
     versao_id: V1,
-    nome: "Padaria",
-    slug: "padaria",
-    enviada_em: "2026-10-23T10:00:00Z",
     situacao: "aprovada",
+    nome: "Padaria",
     motivo: null,
-    autor_id: ADMIN,
     decidida_em: "2026-10-23T11:00:00Z",
+    enviada_em: "2026-10-23T10:00:00Z",
+    autor_ref: AUTOR_REF,
+    slug: "padaria",
     publicado: true,
-    versao_aprovada_id: V1,
+    versao_vigente: true,
   };
 
   it("aprovado e publicado: situação, link, autor e data", () => {
     const r = resultadoDaRevisao(base);
     expect(r.situacao).toBe("aprovado");
     expect(r.linkPublicado).toBe("/perfil/padaria");
-    expect(r.autorId).toBe(ADMIN);
+    expect(r.autorRef).toBe(AUTOR_REF);
     expect(r.decididaEm).toBe("2026-10-23T11:00:00Z");
     expect(r.motivo).toBeNull();
   });
 
   it("item aprovado tem link do item", () => {
-    const r = resultadoDaRevisao({ ...base, alvo_tipo: "item", alvo_id: V2, slug: null });
+    const r = resultadoDaRevisao({ ...base, tipo: "item", alvo_id: V2, slug: null });
     expect(r.linkPublicado).toBe(`/item/${V2}`);
   });
 
@@ -347,7 +348,7 @@ describe("resultado da revisão para o responsável (IM-023)", () => {
   });
 
   it("aprovação substituída por versão mais nova: sem link", () => {
-    const r = resultadoDaRevisao({ ...base, versao_aprovada_id: V2 });
+    const r = resultadoDaRevisao({ ...base, versao_vigente: false });
     expect(r.linkPublicado).toBeNull();
     expect(r.mensagem).toMatch(/substituído/);
   });
@@ -358,12 +359,12 @@ describe("resultado da revisão para o responsável (IM-023)", () => {
       situacao: "rejeitada",
       motivo: "Descrição com termos proibidos",
       publicado: false,
-      versao_aprovada_id: null,
+      versao_vigente: null,
     });
     expect(r.situacao).toBe("rejeitado");
     expect(r.motivo).toBe("Descrição com termos proibidos");
     expect(r.linkPublicado).toBeNull();
-    expect(r.autorId).toBe(ADMIN);
+    expect(r.autorRef).toBe(AUTOR_REF);
     expect(r.decididaEm).not.toBeNull();
   });
 
@@ -371,15 +372,15 @@ describe("resultado da revisão para o responsável (IM-023)", () => {
     const r = resultadoDaRevisao({
       ...base,
       situacao: "pendente",
-      autor_id: null,
+      autor_ref: null,
       decidida_em: null,
       publicado: false,
-      versao_aprovada_id: null,
+      versao_vigente: null,
     });
     expect(r.situacao).toBe("em_analise");
     expect(r.linkPublicado).toBeNull();
     expect(r.motivo).toBeNull();
-    expect(r.autorId).toBeNull();
+    expect(r.autorRef).toBeNull();
     expect(r.decididaEm).toBeNull();
   });
 
@@ -387,6 +388,31 @@ describe("resultado da revisão para o responsável (IM-023)", () => {
     const r = resultadoDaRevisao({ ...base, motivo: "nota interna", slug: "a/b?c" });
     expect(r.motivo).toBeNull();
     expect(r.linkPublicado).toBe("/perfil/a%2Fb%3Fc");
+  });
+
+  it("o autor é só a referência opaca: nenhum id, nome ou e-mail do administrador sai", () => {
+    for (const l of [
+      base,
+      { ...base, situacao: "rejeitada" as const, motivo: "Foto ruim" },
+      { ...base, situacao: "pendente" as const, autor_ref: null, decidida_em: null },
+    ]) {
+      const json = JSON.stringify(resultadoDaRevisao(l));
+      expect(json).not.toContain(ADMIN);
+      expect(json).not.toMatch(/autor_id|autorId|@/);
+    }
+    // o contrato de leitura do responsável não tem coluna de dono nem de autor real
+    expect(Object.keys(base)).not.toEqual(expect.arrayContaining(["autor_id"]));
+    expect(Object.keys(base).sort()).toEqual(
+      [
+        "tipo", "alvo_id", "versao_id", "situacao", "nome", "motivo", "decidida_em",
+        "enviada_em", "autor_ref", "slug", "publicado", "versao_vigente",
+      ].sort(),
+    ); // prettier-ignore
+  });
+
+  it("versao_vigente nula (perfil sem aprovação) nunca gera link", () => {
+    const r = resultadoDaRevisao({ ...base, versao_vigente: null });
+    expect(r.linkPublicado).toBeNull();
   });
 
   it("lista meus resultados, mais recentes primeiro", async () => {
