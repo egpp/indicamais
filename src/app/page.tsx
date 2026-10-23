@@ -1,8 +1,19 @@
+import Link from "next/link";
+import { CartaoPagina } from "./_componentes/ui";
+
 export default function Home() {
   return (
-    <main style={{ padding: "2rem", fontFamily: "system-ui, sans-serif" }}>
-      <h1>IndicaMais</h1>
-      <p>Olá! Ambiente em construção.</p>
-    </main>
+    <CartaoPagina titulo="IndicaMais" subtitulo="Ambiente em construção.">
+      <p>
+        <Link className="botao" href="/entrar">
+          Entrar
+        </Link>
+      </p>
+      <p>
+        <Link className="botao botao-secundario" href="/cadastro">
+          Criar conta
+        </Link>
+      </p>
+    </CartaoPagina>
   );
 }
