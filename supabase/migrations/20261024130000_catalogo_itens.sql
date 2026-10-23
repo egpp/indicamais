@@ -9,6 +9,13 @@
 -- Anúncio particular (IM-015): perfil_id nulo, vinculado só à conta.
 -- Item público = item.publicado E versão aprovada E (anúncio particular OU perfil disponível, IM-079).
 -- Serviço não tem estoque: não existe coluna de estoque. Preço opcional em centavos de BRL.
+--
+-- PRIVACIDADE DO RESPONSÁVEL (IM-029, IM-086)
+--   * Ninguém além do dono lê conta_id: o SELECT dessa coluna não é concedido a anon nem a authenticated.
+--     Políticas usam catalogo_eh_dono*() (SECURITY DEFINER). O dono lista os itens por catalogo_meus_itens.
+--   * foto_path é OPACO: item/<item_id>/<arquivo> (o item_id já é público). Nunca contém conta_id.
+--   * Itens NÃO nascem por INSERT direto: catalogo_criar_item() (20261024150000) cria item + 1ª versão
+--     numa transação, com conta_id = auth.uid().
 
 create table public.catalogo_item (
   id uuid primary key default gen_random_uuid(),
@@ -93,10 +100,9 @@ revoke all on public.catalogo_item from anon, authenticated;
 revoke all on public.catalogo_item_versao from anon, authenticated;
 revoke all on public.catalogo_item_revisao from anon, authenticated;
 
--- Anônimo não lê conta_id.
-grant select (id, perfil_id, tipo, publicado, versao_aprovada_id, criado_em) on public.catalogo_item to anon;
-grant select on public.catalogo_item to authenticated;
-grant insert (conta_id, perfil_id, tipo) on public.catalogo_item to authenticated;
+-- Nem anon nem authenticated leem conta_id. Sem INSERT direto (ver catalogo_criar_item).
+grant select (id, perfil_id, tipo, publicado, versao_aprovada_id, criado_em, atualizado_em)
+  on public.catalogo_item to anon, authenticated;
 grant update (publicado) on public.catalogo_item to authenticated;
 
 grant select on public.catalogo_item_versao to anon, authenticated;
@@ -115,6 +121,22 @@ alter table public.catalogo_item_versao force row level security;
 alter table public.catalogo_item_revisao enable row level security;
 alter table public.catalogo_item_revisao force row level security;
 
+create function public.catalogo_eh_dono(p_item_id uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.catalogo_item i where i.id = p_item_id and i.conta_id = (select auth.uid()));
+$$;
+create function public.catalogo_eh_dono_da_versao(p_versao_id uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.catalogo_item_versao v join public.catalogo_item i on i.id = v.item_id
+    where v.id = p_versao_id and i.conta_id = (select auth.uid()));
+$$;
+revoke all on function public.catalogo_eh_dono(uuid) from public, anon;
+revoke all on function public.catalogo_eh_dono_da_versao(uuid) from public, anon;
+grant execute on function public.catalogo_eh_dono(uuid) to authenticated;
+grant execute on function public.catalogo_eh_dono_da_versao(uuid) to authenticated;
+
 -- Políticas: catalogo_item ---------------------------------------------------------------------------------
 create policy catalogo_item_select_publico on public.catalogo_item
   for select to anon, authenticated using (
@@ -124,8 +146,8 @@ create policy catalogo_item_select_proprio on public.catalogo_item
   for select to authenticated using (conta_id = (select auth.uid()));
 create policy catalogo_item_select_admin on public.catalogo_item
   for select to authenticated using ((select public.administracao_eh_admin()));
-create policy catalogo_item_insert_proprio on public.catalogo_item
-  for insert to authenticated with check (conta_id = (select auth.uid()));
+create policy catalogo_item_insert_negado on public.catalogo_item
+  for insert to authenticated with check (false);
 create policy catalogo_item_update_proprio on public.catalogo_item
   for update to authenticated
   using (conta_id = (select auth.uid())) with check (conta_id = (select auth.uid()));
@@ -140,27 +162,21 @@ create policy catalogo_item_versao_select_publica on public.catalogo_item_versao
       where i.id = item_id and i.versao_aprovada_id = catalogo_item_versao.id and i.publicado
         and (i.perfil_id is null or public.perfis_perfil_disponivel(i.perfil_id))));
 create policy catalogo_item_versao_select_propria on public.catalogo_item_versao
-  for select to authenticated using (exists (
-    select 1 from public.catalogo_item i where i.id = item_id and i.conta_id = (select auth.uid())));
+  for select to authenticated using ((select public.catalogo_eh_dono(item_id)));
 create policy catalogo_item_versao_select_admin on public.catalogo_item_versao
   for select to authenticated using ((select public.administracao_eh_admin()));
 create policy catalogo_item_versao_insert_propria on public.catalogo_item_versao
-  for insert to authenticated with check (exists (
-    select 1 from public.catalogo_item i where i.id = item_id and i.conta_id = (select auth.uid())));
+  for insert to authenticated with check ((select public.catalogo_eh_dono(item_id)));
 create policy catalogo_item_versao_update_propria on public.catalogo_item_versao
   for update to authenticated
-  using (situacao = 'rascunho' and exists (
-    select 1 from public.catalogo_item i where i.id = item_id and i.conta_id = (select auth.uid())))
-  with check (exists (
-    select 1 from public.catalogo_item i where i.id = item_id and i.conta_id = (select auth.uid())));
+  using (situacao = 'rascunho' and (select public.catalogo_eh_dono(item_id)))
+  with check ((select public.catalogo_eh_dono(item_id)));
 create policy catalogo_item_versao_delete_propria on public.catalogo_item_versao
-  for delete to authenticated using (situacao = 'rascunho' and exists (
-    select 1 from public.catalogo_item i where i.id = item_id and i.conta_id = (select auth.uid())));
+  for delete to authenticated using (situacao = 'rascunho' and (select public.catalogo_eh_dono(item_id)));
 
 -- Políticas: catalogo_item_revisao -------------------------------------------------------------------------
 create policy catalogo_item_revisao_select_propria on public.catalogo_item_revisao
-  for select to authenticated using (exists (
-    select 1 from public.catalogo_item i where i.id = item_id and i.conta_id = (select auth.uid())));
+  for select to authenticated using ((select public.catalogo_eh_dono(item_id)));
 create policy catalogo_item_revisao_select_admin on public.catalogo_item_revisao
   for select to authenticated using ((select public.administracao_eh_admin()));
 create policy catalogo_item_revisao_insert_negado on public.catalogo_item_revisao
@@ -193,20 +209,18 @@ create trigger catalogo_item_versao_proteger before update or delete on public.c
 create function public.catalogo_item_versao_validar() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare
-  v_dono uuid;
   v_cat uuid;
 begin
   if new.situacao not in ('rascunho', 'pendente') then
     return new;
   end if;
-  select conta_id into v_dono from public.catalogo_item where id = new.item_id;
   foreach v_cat in array array[new.categoria_principal_id, new.categoria_secundaria_1_id, new.categoria_secundaria_2_id] loop
     if v_cat is not null and not exists (select 1 from public.catalogo_categoria where id = v_cat and ativa) then
       raise exception 'categoria inexistente ou inativa' using errcode = '23514';
     end if;
   end loop;
-  if new.foto_path is not null and new.foto_path !~ ('^' || v_dono::text || '/[A-Za-z0-9._-]{1,100}$') then
-    raise exception 'caminho de imagem fora da pasta do responsável' using errcode = '23514';
+  if new.foto_path is not null and new.foto_path !~ ('^item/' || new.item_id::text || '/[A-Za-z0-9._-]{1,100}$') then
+    raise exception 'caminho de imagem fora da pasta do item' using errcode = '23514';
   end if;
   return new;
 end $$;
@@ -283,6 +297,7 @@ grant execute on function public.catalogo_enviar_item_versao(uuid) to authentica
 grant execute on function public.catalogo_decidir_item_versao(uuid, boolean, text) to authenticated;
 
 -- Visão pública: aprovado E publicado E (particular ou perfil disponível). Sem conta_id.
+-- foto_path tem o formato opaco item/<item_id>/<arquivo>.
 create view public.catalogo_item_publico with (security_invoker = true) as
 select i.id, i.perfil_id, i.tipo, v.nome, v.descricao, v.foto_path,
        v.categoria_principal_id, v.categoria_secundaria_1_id, v.categoria_secundaria_2_id,
@@ -294,7 +309,9 @@ revoke all on public.catalogo_item_publico from anon, authenticated;
 grant select on public.catalogo_item_publico to anon, authenticated;
 
 -- Fila de pendências do administrador (IM-023). Só retorna linhas para administradores.
-create view public.administracao_fila_pendencias with (security_invoker = true) as
+-- Não é security_invoker: o administrador (papel authenticated) não tem SELECT em responsavel_id/conta_id. O filtro
+-- administracao_eh_admin() dentro da visão devolve zero linhas para quem não é administrador.
+create view public.administracao_fila_pendencias as
 select 'perfil'::text as alvo_tipo, v.id as versao_id, v.perfil_id as alvo_id, v.nome, v.enviada_em,
        p.responsavel_id as dono_id, (p.versao_aprovada_id is not null) as eh_edicao
 from public.perfis_perfil_versao v join public.perfis_perfil p on p.id = v.perfil_id
@@ -305,3 +322,12 @@ from public.catalogo_item_versao v join public.catalogo_item i on i.id = v.item_
 where v.situacao = 'pendente' and public.administracao_eh_admin();
 revoke all on public.administracao_fila_pendencias from anon, authenticated;
 grant select on public.administracao_fila_pendencias to authenticated;
+
+-- O dono lista os próprios itens (conta_id não é legível). Visão com os direitos do dono da visão e filtro fixo
+-- por auth.uid(): nunca devolve linha de outra conta.
+create view public.catalogo_meus_itens as
+select i.id, i.perfil_id, i.tipo, i.publicado, i.versao_aprovada_id, i.criado_em, i.atualizado_em
+from public.catalogo_item i
+where i.conta_id = (select auth.uid());
+revoke all on public.catalogo_meus_itens from anon, authenticated;
+grant select on public.catalogo_meus_itens to authenticated;

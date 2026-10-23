@@ -1,5 +1,6 @@
 -- pgTAP · módulo catalogo · produtos, serviços, anúncios particulares, versões e publicação
--- IM-014, IM-015, IM-016, IM-017, IM-021, IM-022, IM-023, IM-079, IM-086
+-- IM-014, IM-015, IM-016, IM-017, IM-021, IM-022, IM-023, IM-029, IM-079, IM-086
+-- Itens nascem por catalogo_criar_item (atômico). Foto é opaca: item/<item_id>/<arquivo>.
 begin;
 select * from no_plan();
 
@@ -18,7 +19,7 @@ insert into public.perfis_perfil (id, responsavel_id, slug) values
   ('a0000000-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-00000000000a', 'loja-ana');
 insert into public.perfis_perfil_versao (id, perfil_id, situacao, enviada_em, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf) values
   ('a1000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'aprovada', now(), 'Loja da Ana', 'Doces',
-   'aaaaaaaa-0000-0000-0000-00000000000a/capa.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS');
+   'perfil/a0000000-0000-0000-0000-000000000001/capa.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS');
 update public.perfis_perfil set versao_aprovada_id = 'a1000000-0000-0000-0000-000000000001', publicado = true
  where id = 'a0000000-0000-0000-0000-000000000001';
 
@@ -34,16 +35,24 @@ create function t.iv(p_item uuid, s text) returns uuid language sql stable secur
 
 select hasnt_column('public', 'catalogo_item_versao', 'estoque', 'serviço/produto sem estoque obrigatório (não há coluna de estoque)');
 select is(has_column_privilege('anon', 'public.catalogo_item', 'conta_id', 'select'), false, 'anon não lê conta_id do item');
+select is(has_column_privilege('authenticated', 'public.catalogo_item', 'conta_id', 'select'), false, 'usuário logado também não lê conta_id do item');
 
 -- ===== A cria itens =====
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 
-select throws_ok($$insert into public.catalogo_item (conta_id, perfil_id, tipo) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'a0000000-0000-0000-0000-000000000001', 'outro')$$, '23514', null, 'tipo inválido é rejeitado');
-select lives_ok($$insert into public.catalogo_item (conta_id, perfil_id, tipo) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'a0000000-0000-0000-0000-000000000001', 'servico')$$, 'A cria serviço no próprio perfil');
-select lives_ok($$insert into public.catalogo_item (conta_id, perfil_id, tipo) values ('aaaaaaaa-0000-0000-0000-00000000000a', null, 'produto')$$, 'A cria anúncio particular (sem perfil comercial, IM-015)');
+select throws_ok($$select public.catalogo_criar_item('outro', 'a0000000-0000-0000-0000-000000000001')$$, '23514', null, 'tipo inválido é rejeitado');
+select lives_ok($$select public.catalogo_criar_item('servico', 'a0000000-0000-0000-0000-000000000001')$$, 'A cria serviço no próprio perfil (item + 1ª versão)');
+select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Bicicleta')$$, 'A cria anúncio particular (sem perfil comercial, IM-015)');
+select is((select count(*)::int from public.catalogo_meus_itens), 2, 'catalogo_meus_itens lista os 2 itens de A');
+select is((select count(*)::int from public.catalogo_item_versao where situacao = 'rascunho'), 2, 'cada item nasce com a primeira versão (rascunho)');
+select throws_ok($$insert into public.catalogo_item (conta_id, tipo) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'produto')$$, '42501', null, 'item não nasce por INSERT direto');
 select throws_ok($$insert into public.catalogo_item (conta_id, tipo) values ('bbbbbbbb-0000-0000-0000-00000000000b', 'produto')$$, '42501', null, 'A não cria item em nome de B');
+-- Atomicidade: versão inválida derruba o item
+select throws_ok($$select public.catalogo_criar_item('produto', null, p_preco_modo => 'fixo')$$, '23514', null, 'versão inválida derruba a criação do item');
+select is((select count(*)::int from public.catalogo_meus_itens), 2, 'nenhum item órfão (sem versão) após a falha');
+select throws_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-0000000000ff')$$, '23503', null, 'perfil inexistente é recusado');
 select throws_ok($$update public.catalogo_item set tipo = 'produto' where tipo = 'servico'$$, '42501', null, 'tipo do item não é alterável pelo cliente');
 select throws_ok($$update public.catalogo_item set publicado = true where tipo = 'servico'$$, '23514', null, 'item nunca aprovado não pode ser publicado');
 
@@ -59,12 +68,15 @@ select throws_ok($$insert into public.catalogo_item_versao (item_id, preco_modo,
 select throws_ok($$insert into public.catalogo_item_versao (item_id, categoria_principal_id) values (t.serv(), '11111111-0000-0000-0000-000000000002')$$, '23514', null, 'categoria inativa é rejeitada no item');
 select throws_ok($$insert into public.catalogo_item_versao (item_id, categoria_secundaria_1_id) values (t.serv(), '11111111-0000-0000-0000-000000000001')$$, '23514', null, 'secundária sem principal é rejeitada');
 select throws_ok($$insert into public.catalogo_item_versao (item_id, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id) values (t.serv(), '11111111-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000003', '11111111-0000-0000-0000-000000000003')$$, '23514', null, 'secundárias repetidas são rejeitadas');
-select throws_ok($$insert into public.catalogo_item_versao (item_id, foto_path) values (t.serv(), 'bbbbbbbb-0000-0000-0000-00000000000b/foto.jpg')$$, '23514', null, 'foto na pasta de outra conta é rejeitada');
+select throws_ok($$insert into public.catalogo_item_versao (item_id, foto_path) values (t.serv(), 'item/' || t.part()::text || '/foto.jpg')$$, '23514', null, 'foto na pasta de outro item é rejeitada');
+select throws_ok($$insert into public.catalogo_item_versao (item_id, foto_path) values (t.serv(), 'aaaaaaaa-0000-0000-0000-00000000000a/foto.jpg')$$, '23514', null, 'caminho com o id da conta (formato antigo) é rejeitado');
 
 -- Rascunho válido: principal + 2 secundárias é o máximo (IM-016)
-select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id, categoria_secundaria_1_id, preco_modo, preco_centavos)
-  values (t.serv(), 'Consultoria', 'Atendimento de consultoria', 'aaaaaaaa-0000-0000-0000-00000000000a/serv.jpg', '11111111-0000-0000-0000-000000000003', '11111111-0000-0000-0000-000000000001', 'a_partir_de', 5000)$$, 'A salva rascunho do serviço');
-select is((select count(*)::int from public.catalogo_item_versao where situacao = 'rascunho'), 1, 'A lê o rascunho (prévia, IM-017)');
+select lives_ok($$update public.catalogo_item_versao set nome = 'Consultoria', descricao = 'Atendimento de consultoria', foto_path = 'item/' || t.serv()::text || '/serv.jpg',
+  categoria_principal_id = '11111111-0000-0000-0000-000000000003', categoria_secundaria_1_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'a_partir_de', preco_centavos = 5000
+  where item_id = t.serv() and situacao = 'rascunho'$$, 'A salva rascunho do serviço');
+select is((select count(*)::int from public.catalogo_item_versao where situacao = 'rascunho'), 2, 'A lê os rascunhos (prévia, IM-017)');
+select is((select foto_path from public.catalogo_item_versao where item_id = t.serv() and situacao = 'rascunho'), 'item/' || t.serv()::text || '/serv.jpg', 'foto_path no formato opaco item/<item_id>/<arquivo>');
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.serv(), 'rascunho'))$$, 'A envia o serviço');
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.serv(), 'pendente'))$$, 'P0001', null, 'enviar duas vezes é recusado');
 select throws_ok($$select public.catalogo_decidir_item_versao(t.iv(t.serv(), 'pendente'), true, null)$$, '42501', null, 'dono não aprova o próprio item');
@@ -72,9 +84,9 @@ select throws_ok($$update public.catalogo_item_versao set situacao = 'aprovada'$
 select throws_ok($$update public.catalogo_item set versao_aprovada_id = t.iv(t.serv(), 'pendente')$$, '42501', null, 'cliente não define a versão aprovada do item');
 
 -- Anúncio particular: rascunho incompleto não pode ser enviado
-select lives_ok($$insert into public.catalogo_item_versao (item_id, nome) values (t.part(), 'Bicicleta')$$, 'rascunho incompleto é permitido');
+select is((select nome from public.catalogo_item_versao where item_id = t.part() and situacao = 'rascunho'), 'Bicicleta', 'rascunho incompleto é permitido');
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, '23514', null, 'enviar anúncio incompleto é recusado');
-update public.catalogo_item_versao set descricao = 'Bicicleta aro 29 seminova', foto_path = 'aaaaaaaa-0000-0000-0000-00000000000a/bike.jpg', categoria_principal_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'fixo', preco_centavos = 120000 where situacao = 'rascunho' and nome = 'Bicicleta';
+update public.catalogo_item_versao set descricao = 'Bicicleta aro 29 seminova', foto_path = 'item/' || t.part()::text || '/bike.jpg', categoria_principal_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'fixo', preco_centavos = 120000 where situacao = 'rascunho' and nome = 'Bicicleta';
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, 'anúncio completo é enviado');
 
 -- ===== Anon e B: nada de pendente/rascunho =====
@@ -91,7 +103,9 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
 select is((select count(*)::int from public.catalogo_item) + (select count(*)::int from public.catalogo_item_versao) + (select count(*)::int from public.catalogo_item_revisao), 0, 'B não vê itens, versões nem revisões de A');
-select throws_ok($$insert into public.catalogo_item (conta_id, perfil_id, tipo) values ('bbbbbbbb-0000-0000-0000-00000000000b', 'a0000000-0000-0000-0000-000000000001', 'produto')$$, '23503', null, 'B não cria item no perfil comercial de A');
+select throws_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001')$$, '23503', null, 'B não cria item no perfil comercial de A');
+select is((select count(*)::int from public.catalogo_meus_itens), 0, 'B não lista itens de A em catalogo_meus_itens');
+select is((select count(*)::int from public.administracao_meus_resultados), 0, 'B não lê resultados de A');
 select throws_ok($$insert into public.catalogo_item_versao (item_id, nome) values (t.serv(), 'invasão')$$, '42501', null, 'B não cria versão no item de A');
 update public.catalogo_item set publicado = false;
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.serv(), 'pendente'))$$, '42501', null, 'B não envia versão de A');
@@ -117,6 +131,9 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select is((select motivo from public.catalogo_item_revisao where decisao = 'rejeitada'), 'Foto não mostra o produto', 'A lê o motivo da rejeição do anúncio');
+select is((select situacao from public.administracao_meus_resultados where tipo = 'item' and alvo_id = t.part()), 'rejeitada', 'A vê a rejeição do anúncio em administracao_meus_resultados (IM-023)');
+select is((select motivo from public.administracao_meus_resultados where tipo = 'item' and alvo_id = t.part()), 'Foto não mostra o produto', 'com o motivo');
+select is((select versao_vigente from public.administracao_meus_resultados where tipo = 'item' and alvo_id = t.serv()), true, 'serviço aprovado: versão vigente');
 select lives_ok($$update public.catalogo_item set publicado = true where id = t.serv()$$, 'A publica o serviço');
 
 reset role;
@@ -152,7 +169,7 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id, preco_modo)
-  values (t.serv(), 'Consultoria Premium', 'Atendimento completo', 'aaaaaaaa-0000-0000-0000-00000000000a/serv2.jpg', '11111111-0000-0000-0000-000000000003', 'sob_consulta')$$, 'A edita o serviço público');
+  values (t.serv(), 'Consultoria Premium', 'Atendimento completo', 'item/' || t.serv()::text || '/serv2.jpg', '11111111-0000-0000-0000-000000000003', 'sob_consulta')$$, 'A edita o serviço público');
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.serv(), 'rascunho'))$$, 'A envia a edição');
 reset role;
 set local role anon;
@@ -192,7 +209,7 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id, preco_modo, preco_centavos)
-  values (t.part(), 'Bicicleta', 'Bicicleta aro 29 com foto nova', 'aaaaaaaa-0000-0000-0000-00000000000a/bike2.jpg', '11111111-0000-0000-0000-000000000001', 'fixo', 120000)$$, 'A refaz o anúncio');
+  values (t.part(), 'Bicicleta', 'Bicicleta aro 29 com foto nova', 'item/' || t.part()::text || '/bike2.jpg', '11111111-0000-0000-0000-000000000001', 'fixo', 120000)$$, 'A refaz o anúncio');
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, 'A reenvia o anúncio');
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
 select lives_ok($$select public.catalogo_decidir_item_versao(t.iv(t.part(), 'pendente'), true, null)$$, 'administrador aprova o anúncio');
@@ -217,9 +234,8 @@ select is((select count(*)::int from public.catalogo_item_revisao), 0, 'B não l
 
 -- Administrador não aprova o próprio anúncio
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
-select lives_ok($$insert into public.catalogo_item (conta_id, tipo) values ('dddddddd-0000-0000-0000-00000000000d', 'produto')$$, 'administrador cria anúncio próprio');
-select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id)
-  select id, 'Meu produto', 'Descrição', 'dddddddd-0000-0000-0000-00000000000d/p.jpg', '11111111-0000-0000-0000-000000000001' from public.catalogo_item where conta_id = 'dddddddd-0000-0000-0000-00000000000d'$$, 'rascunho do administrador');
+select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Meu produto', p_descricao => 'Descrição', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001')$$, 'administrador cria anúncio próprio');
+select lives_ok($$update public.catalogo_item_versao set foto_path = 'item/' || (select id from public.catalogo_meus_itens)::text || '/p.jpg' where nome = 'Meu produto' and situacao = 'rascunho'$$, 'rascunho do administrador');
 select lives_ok($$select public.catalogo_enviar_item_versao((select id from public.catalogo_item_versao where situacao = 'rascunho'))$$, 'administrador envia');
 select throws_ok($$select public.catalogo_decidir_item_versao((select id from public.catalogo_item_versao where situacao = 'pendente' and nome = 'Meu produto'), true, null)$$, '42501', null, 'administrador não aprova o próprio item');
 

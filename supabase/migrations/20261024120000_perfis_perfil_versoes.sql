@@ -21,6 +21,16 @@
 --   não altera `publicado`: se o dono despublicou, aprovar a edição NÃO republica.
 --   O dono não tem privilégio de coluna para situacao, versao_aprovada_id nem nada de revisão.
 --   Aprovar/rejeitar: perfis_decidir_versao(), só administrador, nunca o próprio dono (mesmo sendo admin).
+--
+-- PRIVACIDADE DO RESPONSÁVEL (IM-029, IM-086)
+--   * Nenhuma leitura pública (anon ou outro usuário logado) alcança responsavel_id: o privilégio de SELECT dessa
+--     coluna não é concedido a anon nem a authenticated. As políticas que precisam do dono usam funções
+--     SECURITY DEFINER (perfis_eh_dono*). O dono lista os próprios perfis pela visão perfis_meus_perfis.
+--   * Caminhos de imagem são OPACOS: perfil/<perfil_id>/<arquivo>. Nunca contêm conta_id/responsavel_id.
+--     O perfil_id já é público (aparece na visão pública); quem prova que a pasta é do dono é o banco
+--     (ver 20261024140000). Nome do arquivo: o app gera <uuid-aleatório>.<jpg|png|webp>.
+--   * Perfis NÃO nascem por INSERT direto: perfis_criar_rascunho() (migração 20261024150000) cria perfil +
+--     primeira versão + WhatsApp numa transação, sempre com responsável = auth.uid().
 
 -- Base compartilhada com catalogo (itens): proteção de versões enviadas.
 -- TG_ARGV[0] = nome da coluna que aponta para o pai (perfil_id ou item_id).
@@ -102,9 +112,9 @@ create table public.perfis_perfil_versao (
     'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO')),
   constraint perfis_versao_endereco check (endereco is null or char_length(endereco) <= 200),
   constraint perfis_versao_areas check (cardinality(areas_atendidas) <= 20 and char_length(array_to_string(areas_atendidas, ',')) <= 600),
-  -- Imagens: 1 imagem principal + até 3 banners + até 8 fotos (limite de imagens por perfil).
+  -- Imagens (D-006): 1 imagem principal + até 3 banners + até 6 fotos.
   constraint perfis_versao_banners check (cardinality(banners_paths) <= 3),
-  constraint perfis_versao_fotos check (cardinality(fotos_paths) <= 8),
+  constraint perfis_versao_fotos check (cardinality(fotos_paths) <= 6),
   constraint perfis_versao_site check (site is null or site ~ '^https?://[^[:space:]]{4,200}$'),
   -- IM-012: informações sociais só como texto; nada que pareça link ou domínio.
   constraint perfis_versao_sociais check (
@@ -169,10 +179,9 @@ revoke all on public.perfis_perfil_versao from anon, authenticated;
 revoke all on public.perfis_perfil_versao_contato from anon, authenticated;
 revoke all on public.perfis_revisao from anon, authenticated;
 
--- Anônimo: só as colunas públicas do perfil (sem responsavel_id).
-grant select (id, slug, publicado, versao_aprovada_id, criado_em) on public.perfis_perfil to anon;
-grant select on public.perfis_perfil to authenticated;
-grant insert (responsavel_id, slug) on public.perfis_perfil to authenticated;
+-- Anônimo e autenticado: só as colunas públicas do perfil (sem responsavel_id). Sem INSERT direto: ver
+-- perfis_criar_rascunho(). O dono lista os próprios perfis por perfis_meus_perfis.
+grant select (id, slug, publicado, versao_aprovada_id, criado_em, atualizado_em) on public.perfis_perfil to anon, authenticated;
 -- O dono liga/desliga publicado e ajusta o slug (congelado após a 1ª aprovação, por gatilho).
 grant update (publicado, slug) on public.perfis_perfil to authenticated;
 
@@ -216,6 +225,24 @@ $$;
 revoke all on function public.perfis_perfil_disponivel(uuid) from public;
 grant execute on function public.perfis_perfil_disponivel(uuid) to anon, authenticated;
 
+-- Quem é o dono? Funções SECURITY DEFINER para que as políticas não precisem de SELECT em responsavel_id.
+create function public.perfis_eh_dono(p_perfil_id uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.perfis_perfil p
+    where p.id = p_perfil_id and p.responsavel_id = (select auth.uid()));
+$$;
+create function public.perfis_eh_dono_da_versao(p_versao_id uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.perfis_perfil_versao v join public.perfis_perfil p on p.id = v.perfil_id
+    where v.id = p_versao_id and p.responsavel_id = (select auth.uid()));
+$$;
+revoke all on function public.perfis_eh_dono(uuid) from public, anon;
+revoke all on function public.perfis_eh_dono_da_versao(uuid) from public, anon;
+grant execute on function public.perfis_eh_dono(uuid) to authenticated;
+grant execute on function public.perfis_eh_dono_da_versao(uuid) to authenticated;
+
 -- Políticas: perfis_perfil ---------------------------------------------------------------------------------
 create policy perfis_perfil_select_publico on public.perfis_perfil
   for select to anon, authenticated using (publicado and versao_aprovada_id is not null);
@@ -223,8 +250,9 @@ create policy perfis_perfil_select_proprio on public.perfis_perfil
   for select to authenticated using (responsavel_id = (select auth.uid()));
 create policy perfis_perfil_select_admin on public.perfis_perfil
   for select to authenticated using ((select public.administracao_eh_admin()));
-create policy perfis_perfil_insert_proprio on public.perfis_perfil
-  for insert to authenticated with check (responsavel_id = (select auth.uid()));
+-- Criação só por perfis_criar_rascunho() (atômica). Sem INSERT direto.
+create policy perfis_perfil_insert_negado on public.perfis_perfil
+  for insert to authenticated with check (false);
 create policy perfis_perfil_update_proprio on public.perfis_perfil
   for update to authenticated
   using (responsavel_id = (select auth.uid())) with check (responsavel_id = (select auth.uid()));
@@ -239,52 +267,36 @@ create policy perfis_versao_select_publica on public.perfis_perfil_versao
       select 1 from public.perfis_perfil p
       where p.id = perfil_id and p.versao_aprovada_id = perfis_perfil_versao.id and p.publicado));
 create policy perfis_versao_select_propria on public.perfis_perfil_versao
-  for select to authenticated using (exists (
-    select 1 from public.perfis_perfil p where p.id = perfil_id and p.responsavel_id = (select auth.uid())));
+  for select to authenticated using ((select public.perfis_eh_dono(perfil_id)));
 create policy perfis_versao_select_admin on public.perfis_perfil_versao
   for select to authenticated using ((select public.administracao_eh_admin()));
 -- Nova versão sempre nasce rascunho (situacao não é gravável pelo cliente).
 create policy perfis_versao_insert_propria on public.perfis_perfil_versao
-  for insert to authenticated with check (exists (
-    select 1 from public.perfis_perfil p where p.id = perfil_id and p.responsavel_id = (select auth.uid())));
+  for insert to authenticated with check ((select public.perfis_eh_dono(perfil_id)));
 create policy perfis_versao_update_propria on public.perfis_perfil_versao
   for update to authenticated
-  using (situacao = 'rascunho' and exists (
-    select 1 from public.perfis_perfil p where p.id = perfil_id and p.responsavel_id = (select auth.uid())))
-  with check (exists (
-    select 1 from public.perfis_perfil p where p.id = perfil_id and p.responsavel_id = (select auth.uid())));
+  using (situacao = 'rascunho' and (select public.perfis_eh_dono(perfil_id)))
+  with check ((select public.perfis_eh_dono(perfil_id)));
 create policy perfis_versao_delete_propria on public.perfis_perfil_versao
-  for delete to authenticated using (situacao = 'rascunho' and exists (
-    select 1 from public.perfis_perfil p where p.id = perfil_id and p.responsavel_id = (select auth.uid())));
+  for delete to authenticated using (situacao = 'rascunho' and (select public.perfis_eh_dono(perfil_id)));
 
 -- Políticas: perfis_perfil_versao_contato ------------------------------------------------------------------
 create policy perfis_contato_select_proprio on public.perfis_perfil_versao_contato
-  for select to authenticated using (exists (
-    select 1 from public.perfis_perfil_versao v join public.perfis_perfil p on p.id = v.perfil_id
-    where v.id = versao_id and p.responsavel_id = (select auth.uid())));
+  for select to authenticated using ((select public.perfis_eh_dono_da_versao(versao_id)));
 create policy perfis_contato_select_admin on public.perfis_perfil_versao_contato
   for select to authenticated using ((select public.administracao_eh_admin()));
 create policy perfis_contato_insert_proprio on public.perfis_perfil_versao_contato
-  for insert to authenticated with check (exists (
-    select 1 from public.perfis_perfil_versao v join public.perfis_perfil p on p.id = v.perfil_id
-    where v.id = versao_id and p.responsavel_id = (select auth.uid())));
+  for insert to authenticated with check ((select public.perfis_eh_dono_da_versao(versao_id)));
 create policy perfis_contato_update_proprio on public.perfis_perfil_versao_contato
   for update to authenticated
-  using (exists (
-    select 1 from public.perfis_perfil_versao v join public.perfis_perfil p on p.id = v.perfil_id
-    where v.id = versao_id and p.responsavel_id = (select auth.uid())))
-  with check (exists (
-    select 1 from public.perfis_perfil_versao v join public.perfis_perfil p on p.id = v.perfil_id
-    where v.id = versao_id and p.responsavel_id = (select auth.uid())));
+  using ((select public.perfis_eh_dono_da_versao(versao_id)))
+  with check ((select public.perfis_eh_dono_da_versao(versao_id)));
 create policy perfis_contato_delete_proprio on public.perfis_perfil_versao_contato
-  for delete to authenticated using (exists (
-    select 1 from public.perfis_perfil_versao v join public.perfis_perfil p on p.id = v.perfil_id
-    where v.id = versao_id and p.responsavel_id = (select auth.uid())));
+  for delete to authenticated using ((select public.perfis_eh_dono_da_versao(versao_id)));
 
 -- Políticas: perfis_revisao --------------------------------------------------------------------------------
 create policy perfis_revisao_select_propria on public.perfis_revisao
-  for select to authenticated using (exists (
-    select 1 from public.perfis_perfil p where p.id = perfil_id and p.responsavel_id = (select auth.uid())));
+  for select to authenticated using ((select public.perfis_eh_dono(perfil_id)));
 create policy perfis_revisao_select_admin on public.perfis_revisao
   for select to authenticated using ((select public.administracao_eh_admin()));
 create policy perfis_revisao_insert_negado on public.perfis_revisao
@@ -317,26 +329,24 @@ create trigger perfis_perfil_proteger before update on public.perfis_perfil
 create trigger perfis_versao_proteger before update or delete on public.perfis_perfil_versao
   for each row execute function public.catalogo_versao_proteger('perfil_id');
 
--- Categorias ativas e caminhos de imagem dentro da pasta do dono (rascunho/pendente).
+-- Categorias ativas e caminhos de imagem dentro da pasta OPACA do próprio perfil: perfil/<perfil_id>/<arquivo>.
 create function public.perfis_versao_validar() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare
-  v_dono uuid;
   v_cat uuid;
   v_path text;
 begin
   if new.situacao not in ('rascunho', 'pendente') then
     return new;
   end if;
-  select responsavel_id into v_dono from public.perfis_perfil where id = new.perfil_id;
   foreach v_cat in array array[new.categoria_principal_id, new.categoria_secundaria_1_id, new.categoria_secundaria_2_id] loop
     if v_cat is not null and not exists (select 1 from public.catalogo_categoria where id = v_cat and ativa) then
       raise exception 'categoria inexistente ou inativa' using errcode = '23514';
     end if;
   end loop;
   foreach v_path in array (array[new.imagem_path] || new.banners_paths || new.fotos_paths) loop
-    if v_path is not null and v_path !~ ('^' || v_dono::text || '/[A-Za-z0-9._-]{1,100}$') then
-      raise exception 'caminho de imagem fora da pasta do responsável' using errcode = '23514';
+    if v_path is not null and v_path !~ ('^perfil/' || new.perfil_id::text || '/[A-Za-z0-9._-]{1,100}$') then
+      raise exception 'caminho de imagem fora da pasta do perfil' using errcode = '23514';
     end if;
   end loop;
   return new;
@@ -438,6 +448,7 @@ grant execute on function public.perfis_enviar_versao(uuid) to authenticated;
 grant execute on function public.perfis_decidir_versao(uuid, boolean, text) to authenticated;
 
 -- Visão pública: só aprovado E publicado, só colunas públicas (sem responsável, sem WhatsApp, sem e-mail).
+-- imagem_path, banners_paths e fotos_paths têm o formato opaco perfil/<perfil_id>/<arquivo>.
 create view public.perfis_perfil_publico with (security_invoker = true) as
 select p.id, p.slug, v.nome, v.descricao_breve, v.imagem_path,
        v.categoria_principal_id, v.categoria_secundaria_1_id, v.categoria_secundaria_2_id,
@@ -448,3 +459,12 @@ join public.perfis_perfil_versao v on v.id = p.versao_aprovada_id and v.situacao
 where p.publicado;
 revoke all on public.perfis_perfil_publico from anon, authenticated;
 grant select on public.perfis_perfil_publico to anon, authenticated;
+
+-- O dono lista os próprios perfis (a tabela não entrega responsavel_id a ninguém). Visão com os direitos do
+-- dono da visão (NÃO é security_invoker) e filtro fixo por auth.uid(): nunca devolve linha de outra conta.
+create view public.perfis_meus_perfis as
+select p.id, p.slug, p.publicado, p.versao_aprovada_id, p.criado_em, p.atualizado_em
+from public.perfis_perfil p
+where p.responsavel_id = (select auth.uid());
+revoke all on public.perfis_meus_perfis from anon, authenticated;
+grant select on public.perfis_meus_perfis to authenticated;

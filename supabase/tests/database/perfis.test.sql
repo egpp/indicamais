@@ -1,5 +1,6 @@
 -- pgTAP · módulo perfis · perfis comerciais, versões, revisão e publicação
--- IM-006, IM-011, IM-012, IM-016, IM-017, IM-021, IM-022, IM-023, IM-079, IM-086
+-- IM-006, IM-011, IM-012, IM-016, IM-017, IM-021, IM-022, IM-023, IM-029, IM-079, IM-086
+-- Perfis nascem por perfis_criar_rascunho (atômico). Caminhos de imagem são opacos: perfil/<perfil_id>/<arquivo>.
 begin;
 select * from no_plan();
 
@@ -18,6 +19,9 @@ create schema t;
 grant usage on schema t to anon, authenticated;
 create function t.perfil(p text) returns uuid language sql stable as $$ select id from public.perfis_perfil where slug = p $$;
 create function t.pid(p text) returns uuid language sql stable security definer as $$ select id from public.perfis_perfil where slug = p $$;
+-- Prefixo opaco da pasta do perfil (perfil/<perfil_id>), lido com os direitos de quem chama.
+create function t.pf(p text) returns text language sql stable as $$
+  select 'perfil/' || (select id from public.perfis_perfil where slug = p)::text $$;
 create function t.versao(p text, s text) returns uuid language sql stable as $$
   select id from public.perfis_perfil_versao where perfil_id = (select id from public.perfis_perfil where slug = p) and situacao = s $$;
 
@@ -26,11 +30,22 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 
-select lives_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'loja-ana')$$, 'A cria o perfil');
-select throws_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'Loja Ana')$$, '23514', null, 'slug com maiúscula/espaço é rejeitado');
-select throws_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'ab')$$, '23514', null, 'slug curto é rejeitado');
-select lives_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'padaria-ana')$$, 'uma conta pode ter vários perfis (IM-006)');
+select lives_ok($$select public.perfis_criar_rascunho('loja-ana', '+5551999990001')$$, 'A cria o perfil com rascunho e WhatsApp numa transação');
+select is((select count(*)::int from public.perfis_perfil_versao where perfil_id = t.perfil('loja-ana') and situacao = 'rascunho'), 1, 'o perfil nasce com a primeira versão (rascunho)');
+select is((select count(*)::int from public.perfis_perfil_versao_contato where versao_id = t.versao('loja-ana', 'rascunho')), 1, 'e com o WhatsApp comercial');
+select throws_ok($$select public.perfis_criar_rascunho('Loja Ana', '+5551999990001')$$, '23514', null, 'slug com maiúscula/espaço é rejeitado');
+select throws_ok($$select public.perfis_criar_rascunho('ab', '+5551999990001')$$, '23514', null, 'slug curto é rejeitado');
+select lives_ok($$select public.perfis_criar_rascunho('padaria-ana', '+5551999990004')$$, 'uma conta pode ter vários perfis (IM-006)');
 select is((select count(*)::int from public.perfis_perfil), 2, 'A vê seus 2 perfis');
+select is((select count(*)::int from public.perfis_meus_perfis), 2, 'perfis_meus_perfis lista os 2 perfis de A');
+select throws_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'direto-na-tabela')$$, '42501', null, 'perfil não nasce por INSERT direto');
+
+-- Atomicidade: falha parcial não deixa perfil sem versão
+select throws_ok($$select public.perfis_criar_rascunho('falha-uf', '+5551999990001', p_uf => 'XX')$$, '23514', null, 'versão inválida derruba a criação');
+select is((select count(*)::int from public.perfis_perfil where slug = 'falha-uf'), 0, 'nenhum perfil órfão após falha na versão');
+select throws_ok($$select public.perfis_criar_rascunho('falha-zap', '5551')$$, '23514', null, 'WhatsApp inválido derruba a criação');
+select is((select count(*)::int from public.perfis_perfil where slug = 'falha-zap'), 0, 'nenhum perfil sem contato após falha no WhatsApp');
+select throws_ok($$select public.perfis_criar_rascunho('falha-nulo', null)$$, '23514', null, 'WhatsApp nulo é recusado');
 
 -- Conteúdo inválido (IM-011, IM-012, IM-016)
 select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, categoria_secundaria_2_id) values (t.perfil('loja-ana'), '11111111-0000-0000-0000-000000000003')$$, '23514', null, 'secundária 2 sem secundária 1 é rejeitada');
@@ -40,17 +55,29 @@ select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, uf) value
 select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, site) values (t.perfil('loja-ana'), 'javascript:alert(1)')$$, '23514', null, 'site que não é http(s) é rejeitado');
 select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, informacoes_sociais) values (t.perfil('loja-ana'), 'https://instagram.com/lojadaana')$$, '23514', null, 'informação social com URL é rejeitada');
 select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, informacoes_sociais) values (t.perfil('loja-ana'), 'instagram.com/lojadaana')$$, '23514', null, 'informação social com domínio é rejeitada');
-select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, imagem_path) values (t.perfil('loja-ana'), 'bbbbbbbb-0000-0000-0000-00000000000b/capa.jpg')$$, '23514', null, 'imagem na pasta de outra conta é rejeitada');
-select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, banners_paths) values (t.perfil('loja-ana'), array['aaaaaaaa-0000-0000-0000-00000000000a/1.jpg','aaaaaaaa-0000-0000-0000-00000000000a/2.jpg','aaaaaaaa-0000-0000-0000-00000000000a/3.jpg','aaaaaaaa-0000-0000-0000-00000000000a/4.jpg'])$$, '23514', null, 'mais de 3 banners é rejeitado');
+select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, imagem_path) values (t.perfil('loja-ana'), t.pf('padaria-ana') || '/capa.jpg')$$, '23514', null, 'imagem na pasta de outro perfil é rejeitada');
+select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, imagem_path) values (t.perfil('loja-ana'), 'aaaaaaaa-0000-0000-0000-00000000000a/capa.jpg')$$, '23514', null, 'caminho com o id da conta (formato antigo) é rejeitado');
+select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, imagem_path) values (t.perfil('loja-ana'), t.pf('loja-ana') || '/sub/pasta.jpg')$$, '23514', null, 'subpasta no caminho é rejeitada');
+select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, banners_paths) values (t.perfil('loja-ana'), array[t.pf('loja-ana') || '/1.jpg', t.pf('loja-ana') || '/2.jpg', t.pf('loja-ana') || '/3.jpg', t.pf('loja-ana') || '/4.jpg'])$$, '23514', null, 'mais de 3 banners é rejeitado');
+select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, fotos_paths) values (t.perfil('loja-ana'), array(select t.pf('loja-ana') || '/f' || g || '.jpg' from generate_series(1, 7) g))$$, '23514', null, 'mais de 6 fotos é rejeitado (D-006)');
 
 -- Rascunho válido (prévia, IM-017)
-select lives_ok($$insert into public.perfis_perfil_versao (perfil_id, nome, descricao_breve, imagem_path, categoria_principal_id, categoria_secundaria_1_id, cidade, uf, informacoes_sociais)
-  values (t.perfil('loja-ana'), 'Loja da Ana', 'Doces caseiros', 'aaaaaaaa-0000-0000-0000-00000000000a/capa.jpg', '11111111-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000003', 'Porto Alegre', 'RS', 'Instagram: @lojadaana')$$, 'A salva o rascunho (informação social só como texto)');
+select lives_ok($$select public.perfis_gravar_versao(
+  p_perfil_id => t.perfil('loja-ana'), p_whatsapp_comercial => '+5551999990001', p_nome => 'Loja da Ana',
+  p_descricao_breve => 'Doces caseiros', p_imagem_path => t.pf('loja-ana') || '/capa.jpg',
+  p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_categoria_secundaria_1_id => '11111111-0000-0000-0000-000000000003',
+  p_cidade => 'Porto Alegre', p_uf => 'RS',
+  p_fotos_paths => array(select t.pf('loja-ana') || '/f' || g || '.jpg' from generate_series(1, 6) g),
+  p_informacoes_sociais => 'Instagram: @lojadaana')$$, 'A salva o rascunho com 6 fotos (informação social só como texto)');
+select is((select count(*)::int from public.perfis_perfil_versao where perfil_id = t.perfil('loja-ana')), 1, 'gravar reaproveita o rascunho aberto (não cria segundo)');
+select is((select imagem_path from public.perfis_perfil_versao where perfil_id = t.perfil('loja-ana')), t.pf('loja-ana') || '/capa.jpg', 'imagem_path gravado no formato opaco perfil/<perfil_id>/<arquivo>');
+select throws_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('loja-ana'), p_whatsapp_comercial => '5551', p_nome => 'Muda')$$, '23514', null, 'WhatsApp inválido desfaz a gravação da versão inteira');
+select is((select nome from public.perfis_perfil_versao where perfil_id = t.perfil('loja-ana')), 'Loja da Ana', 'a versão não ficou meio gravada');
 select throws_ok($$insert into public.perfis_perfil_versao (perfil_id, nome) values (t.perfil('loja-ana'), 'Segundo rascunho')$$, '23505', null, 'só uma versão aberta por perfil');
 select throws_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '5551999990001')$$, '23514', null, 'WhatsApp comercial sem +55 é rejeitado');
 select throws_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '+5551')$$, '23514', null, 'WhatsApp comercial curto é rejeitado');
-select lives_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '+5551999990001')$$, 'A grava o WhatsApp comercial');
-select is((select count(*)::int from public.perfis_perfil_versao where situacao = 'rascunho'), 1, 'A lê o próprio rascunho (prévia)');
+select lives_ok($$update public.perfis_perfil_versao_contato set whatsapp_comercial_e164 = '+5551999990001' where versao_id = t.versao('loja-ana', 'rascunho')$$, 'A atualiza o WhatsApp comercial do rascunho');
+select is((select count(*)::int from public.perfis_perfil_versao where situacao = 'rascunho'), 2, 'A lê os próprios rascunhos (prévia)');
 
 -- A não toca em situação nem aprovação
 select throws_ok($$update public.perfis_perfil_versao set situacao = 'aprovada'$$, '42501', null, 'A não altera a situação da versão');
@@ -87,7 +114,7 @@ select is((select count(*)::int from public.perfis_perfil), 0, 'B não vê perfi
 select is((select count(*)::int from public.perfis_perfil_versao) + (select count(*)::int from public.perfis_perfil_versao_contato) + (select count(*)::int from public.perfis_revisao), 0, 'B não vê versões, contato nem revisões de A');
 update public.perfis_perfil set publicado = false;
 select throws_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'em-nome-de-a')$$, '42501', null, 'B não cria perfil em nome de A');
-select throws_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('bbbbbbbb-0000-0000-0000-00000000000b', 'loja-ana')$$, '23505', null, 'slug duplicado é rejeitado');
+select throws_ok($$select public.perfis_criar_rascunho('loja-ana', '+5551999990005')$$, '23505', null, 'slug duplicado é rejeitado (e nada fica criado)');
 select throws_ok($$delete from public.perfis_perfil$$, '42501', null, 'B não apaga perfil');
 select throws_ok($$select public.perfis_enviar_versao((select id from public.perfis_perfil_versao limit 1))$$, '42501', null, 'B não envia versão alheia');
 
@@ -113,9 +140,10 @@ select is((select motivo from public.perfis_revisao where decisao = 'rejeitada')
 select is((select autor_id from public.perfis_revisao where decisao = 'rejeitada'), 'dddddddd-0000-0000-0000-00000000000d'::uuid, 'revisão registra o autor');
 select isnt((select decidida_em from public.perfis_revisao where decisao = 'rejeitada'), null, 'revisão registra a data');
 select throws_ok($$insert into public.perfis_revisao (perfil_id, versao_id, decisao, autor_id) values (t.perfil('loja-ana'), t.versao('loja-ana', 'rejeitada'), 'aprovada', 'aaaaaaaa-0000-0000-0000-00000000000a')$$, '42501', null, 'A não forja revisão');
-select lives_ok($$insert into public.perfis_perfil_versao (perfil_id, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf)
-  values (t.perfil('loja-ana'), 'Loja da Ana', 'Doces caseiros', 'aaaaaaaa-0000-0000-0000-00000000000a/capa2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'rejeitada libera nova versão');
-select lives_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '+5551999990001')$$, 'WhatsApp da nova versão');
+select lives_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('loja-ana'), p_whatsapp_comercial => '+5551999990001', p_nome => 'Loja da Ana', p_descricao_breve => 'Doces caseiros',
+  p_imagem_path => t.pf('loja-ana') || '/capa2.jpg', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_cidade => 'Porto Alegre', p_uf => 'RS')$$, 'rejeitada libera nova versão (gravada com o WhatsApp)');
+select is((select count(*)::int from public.perfis_perfil_versao_contato where versao_id = t.versao('loja-ana', 'rascunho')), 1, 'WhatsApp da nova versão gravado junto');
+select is((select count(*)::int from public.administracao_meus_resultados where tipo = 'perfil' and situacao = 'rejeitada' and motivo = 'Imagem fora do padrão'), 1, 'A vê a rejeição e o motivo em administracao_meus_resultados (IM-023)');
 select lives_ok($$select public.perfis_enviar_versao(t.versao('loja-ana', 'rascunho'))$$, 'A reenvia');
 
 reset role;
@@ -150,7 +178,7 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select throws_ok($$update public.perfis_perfil set slug = 'novo-slug' where slug = 'loja-ana'$$, '42501', null, 'slug não muda depois da aprovação');
 select lives_ok($$insert into public.perfis_perfil_versao (perfil_id, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf)
-  values (t.perfil('loja-ana'), 'Loja da Ana Nova', 'Doces e salgados', 'aaaaaaaa-0000-0000-0000-00000000000a/capa2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'A edita: nova versão em rascunho');
+  values (t.perfil('loja-ana'), 'Loja da Ana Nova', 'Doces e salgados', t.pf('loja-ana') || '/capa2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'A edita: nova versão em rascunho');
 select lives_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '+5551999990002')$$, 'WhatsApp da edição');
 select lives_ok($$select public.perfis_enviar_versao(t.versao('loja-ana', 'rascunho'))$$, 'A envia a edição');
 select is((select count(*)::int from public.perfis_perfil_versao), 3, 'A tem 3 versões (rejeitada, aprovada, pendente)');
@@ -174,7 +202,7 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select lives_ok($$insert into public.perfis_perfil_versao (perfil_id, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf)
-  values (t.perfil('loja-ana'), 'Loja da Ana Nova', 'Doces e salgados completos', 'aaaaaaaa-0000-0000-0000-00000000000a/capa2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'A refaz a edição');
+  values (t.perfil('loja-ana'), 'Loja da Ana Nova', 'Doces e salgados completos', t.pf('loja-ana') || '/capa2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'A refaz a edição');
 select lives_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '+5551999990002')$$, 'WhatsApp da edição refeita');
 select lives_ok($$select public.perfis_enviar_versao(t.versao('loja-ana', 'rascunho'))$$, 'A reenvia a edição');
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
@@ -201,7 +229,7 @@ select is(public.perfis_perfil_disponivel((select id from public.perfis_perfil w
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select lives_ok($$insert into public.perfis_perfil_versao (perfil_id, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf)
-  values (t.perfil('loja-ana'), 'Loja da Ana 3', 'Mais uma edição', 'aaaaaaaa-0000-0000-0000-00000000000a/capa3.jpg', '11111111-0000-0000-0000-000000000001', 'Canoas', 'RS')$$, 'A edita o despublicado');
+  values (t.perfil('loja-ana'), 'Loja da Ana 3', 'Mais uma edição', t.pf('loja-ana') || '/capa3.jpg', '11111111-0000-0000-0000-000000000001', 'Canoas', 'RS')$$, 'A edita o despublicado');
 select lives_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '+5551999990002')$$, 'WhatsApp');
 select lives_ok($$select public.perfis_enviar_versao(t.versao('loja-ana', 'rascunho'))$$, 'A envia');
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
@@ -232,11 +260,13 @@ select is((select count(*)::int from public.perfis_revisao), 0, 'B não lê revi
 
 -- ===== Administrador não aprova o próprio conteúdo =====
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
-select lives_ok($$insert into public.perfis_perfil (responsavel_id, slug) values ('dddddddd-0000-0000-0000-00000000000d', 'loja-admin')$$, 'administrador cria o próprio perfil');
-select lives_ok($$insert into public.perfis_perfil_versao (perfil_id, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf)
-  values (t.perfil('loja-admin'), 'Loja Admin', 'Teste', 'dddddddd-0000-0000-0000-00000000000d/capa.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'rascunho do administrador');
+select lives_ok($$select public.perfis_criar_rascunho('loja-admin', '+5551999990003')$$, 'administrador cria o próprio perfil');
+select lives_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('loja-admin'), p_whatsapp_comercial => '+5551999990003', p_nome => 'Loja Admin', p_descricao_breve => 'Teste',
+  p_imagem_path => t.pf('loja-admin') || '/capa.jpg', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_cidade => 'Porto Alegre', p_uf => 'RS')$$, 'rascunho do administrador');
+delete from public.perfis_perfil_versao_contato where versao_id = t.versao('loja-admin', 'rascunho');
 select throws_ok($$select public.perfis_enviar_versao(t.versao('loja-admin', 'rascunho'))$$, '23514', null, 'enviar sem WhatsApp comercial é recusado');
-select lives_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-admin', 'rascunho'), '+5551999990003')$$, 'WhatsApp do administrador');
+select lives_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('loja-admin'), p_whatsapp_comercial => '+5551999990003', p_nome => 'Loja Admin', p_descricao_breve => 'Teste',
+  p_imagem_path => t.pf('loja-admin') || '/capa.jpg', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_cidade => 'Porto Alegre', p_uf => 'RS')$$, 'WhatsApp do administrador regravado');
 select lives_ok($$select public.perfis_enviar_versao(t.versao('loja-admin', 'rascunho'))$$, 'administrador envia');
 select throws_ok($$select public.perfis_decidir_versao(t.versao('loja-admin', 'pendente'), true, null)$$, '42501', null, 'administrador não aprova o próprio perfil');
 
