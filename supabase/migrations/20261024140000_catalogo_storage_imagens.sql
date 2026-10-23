@@ -19,9 +19,12 @@
 --   * o dono só escreve na pasta do próprio perfil/item;
 --   * no máximo 100 objetos por conta (somando todas as pastas dos seus perfis e itens);
 --   * máx. de imagens por versão: perfil 1 + 3 banners + 6 fotos (D-006); item 1 foto (CHECKs nas versões).
--- Atenção ao adaptador: o Storage pode devolver o metadado `owner`/`owner_id` (conta que enviou) em listagens e
--- info de objeto. Para não expor a conta em leitura pública, o envio deve ser feito no servidor, com a chave de
--- serviço (owner nulo), depois de checar o dono; ou o app nunca deve repassar esse metadado ao cliente.
+-- RISCO CONHECIDO: o Storage devolve o metadado `owner`/`owner_id` (conta que enviou) em listagem e info de objeto,
+-- o que revelaria a conta de quem enviou a imagem pública. MITIGAÇÃO DECIDIDA (gestor): o cliente envia com a sessão
+-- do próprio usuário (as políticas abaixo valem); a LEITURA é sempre pelo servidor, que gera URL assinada e NUNCA
+-- repassa metadado de objeto (owner, owner_id, user_metadata) ao navegador. O bucket é privado e não há listagem
+-- pelo cliente: as políticas de SELECT abaixo só deixam anon/outros verem objetos de imagem pública ou da própria
+-- pasta (testado em pgTAP: ninguém lista objetos da pasta de outro perfil).
 -- Plano gratuito do Supabase: 1 GB de Storage no total. Pior caso: 100 objetos x 2 MiB x contas; na prática
 -- imagens comprimidas (~300 KB) cabem em torno de 3.000 imagens. Acompanhar o uso; se aproximar de 1 GB,
 -- reduzir o limite por arquivo/por conta ou subir de plano (custo: decisão do Emerson, IM-089).

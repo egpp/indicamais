@@ -175,8 +175,8 @@ create policy catalogo_item_versao_delete_propria on public.catalogo_item_versao
   for delete to authenticated using (situacao = 'rascunho' and (select public.catalogo_eh_dono(item_id)));
 
 -- Políticas: catalogo_item_revisao -------------------------------------------------------------------------
-create policy catalogo_item_revisao_select_propria on public.catalogo_item_revisao
-  for select to authenticated using ((select public.catalogo_eh_dono(item_id)));
+-- Sem SELECT do dono: autor_id é o id real do administrador. O responsável lê o resultado só pela visão
+-- administracao_meus_resultados (autor_ref opaco).
 create policy catalogo_item_revisao_select_admin on public.catalogo_item_revisao
   for select to authenticated using ((select public.administracao_eh_admin()));
 create policy catalogo_item_revisao_insert_negado on public.catalogo_item_revisao

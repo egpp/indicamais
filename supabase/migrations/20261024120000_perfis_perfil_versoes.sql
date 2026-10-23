@@ -295,8 +295,8 @@ create policy perfis_contato_delete_proprio on public.perfis_perfil_versao_conta
   for delete to authenticated using ((select public.perfis_eh_dono_da_versao(versao_id)));
 
 -- Políticas: perfis_revisao --------------------------------------------------------------------------------
-create policy perfis_revisao_select_propria on public.perfis_revisao
-  for select to authenticated using ((select public.perfis_eh_dono(perfil_id)));
+-- Sem SELECT do dono: autor_id é o id real do administrador. O responsável lê o resultado só pela visão
+-- administracao_meus_resultados (autor_ref opaco).
 create policy perfis_revisao_select_admin on public.perfis_revisao
   for select to authenticated using ((select public.administracao_eh_admin()));
 create policy perfis_revisao_insert_negado on public.perfis_revisao

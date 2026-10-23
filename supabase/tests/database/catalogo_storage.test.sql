@@ -49,6 +49,7 @@ select is((select name from storage.objects where bucket_id = 'indicamais-imagen
 select is((select count(*)::int from storage.objects where name like '%aaaaaaaa%'), 0, 'o nome do objeto público não revela o id da conta (IM-029)');
 select is((select count(*)::int from public.perfis_perfil_publico where imagem_path like '%aaaaaaaa%'), 0, 'a visão pública não devolve caminho com o id da conta');
 select throws_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/anon.jpg')$$, '42501', null, 'anon não envia imagem');
+select is((select count(*)::int from storage.objects where name in ('perfil/a0000000-0000-0000-0000-000000000002/rascunho.jpg', 'perfil/a0000000-0000-0000-0000-000000000001/solta.jpg', 'perfil/b0000000-0000-0000-0000-000000000001/dele.jpg')), 0, 'anon não lista objetos de rascunho, soltos nem de perfil não publicado');
 
 -- Perfil despublicado retira a imagem
 reset role;
@@ -64,6 +65,8 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
 select is((select count(*)::int from storage.objects where bucket_id = 'indicamais-imagens'), 2, 'B vê a própria imagem e a pública de A, nada mais');
 select is((select count(*)::int from storage.objects where name like 'perfil/a0000000%rascunho.jpg' or name like 'perfil/a0000000%solta.jpg'), 0, 'B não vê rascunho nem imagem solta de A');
+select is((select count(*)::int from storage.objects where name like 'perfil/a0000000%' and name <> 'perfil/a0000000-0000-0000-0000-000000000001/capa.jpg'), 0, 'B não lista objetos da pasta de A além da imagem pública');
+select is((select count(*)::int from storage.objects where name like 'item/c0000000%'), 0, 'B não lista objetos da pasta de item de A');
 select throws_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/b-invadiu.jpg')$$, '42501', null, 'B não escreve na pasta de A');
 select is(public.catalogo_pasta_do_dono('perfil/b0000000-0000-0000-0000-000000000001/dele.jpg'), true, 'B é dono da própria pasta');
 select is(public.catalogo_pasta_do_dono('perfil/a0000000-0000-0000-0000-000000000001/capa.jpg'), false, 'B não é dono da pasta de A');

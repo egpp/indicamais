@@ -1,6 +1,13 @@
 -- Fase 2A (correções) · criação atômica de perfil/item, gravação de versão e resultado da revisão ao responsável
 -- IM-006, IM-011, IM-014, IM-015, IM-016, IM-021, IM-022, IM-023, IM-029, IM-086
 --
+-- VISÕES SECURITY DEFINER (perfis_meus_perfis, catalogo_meus_itens, administracao_meus_resultados), sem security_invoker
+-- de propósito. O Security Advisor do Supabase (lint 0010 "Security Definer View") vai alertar; o alerta é esperado.
+-- Justificativa: o responsável não tem SELECT em responsavel_id/conta_id nem nas tabelas de revisão (autor_id é o id
+-- real do administrador). Cada visão roda com os direitos do dono e tem filtro FIXO por auth.uid(), sem parâmetro,
+-- sem acesso a anon (revoke all) e só com colunas seguras. O responsável lê resultado de revisão SOMENTE por
+-- administracao_meus_resultados (autor_ref opaco). Decisão do gestor.
+--
 -- Por que RPC e não INSERT direto: perfil sem versão, item sem versão e versão sem WhatsApp comercial seriam estados
 -- parciais. Cada função abaixo roda numa única transação: qualquer falha desfaz tudo.
 -- Todas: SECURITY DEFINER, search_path vazio, usam auth.uid() como único responsável (não há parâmetro de dono,

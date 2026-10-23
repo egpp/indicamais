@@ -130,7 +130,9 @@ select is((select count(*)::int from public.catalogo_item_publico), 0, 'item apr
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
-select is((select motivo from public.catalogo_item_revisao where decisao = 'rejeitada'), 'Foto não mostra o produto', 'A lê o motivo da rejeição do anúncio');
+select throws_ok($$select autor_id from public.catalogo_item_revisao$$, '42501', null, 'A não lê autor_id direto da revisão de item');
+select is((select count(*)::int from public.catalogo_item_revisao), 0, 'A não lê a tabela de revisão de item (RLS)');
+select is((select motivo from public.administracao_meus_resultados where tipo = 'item' and situacao = 'rejeitada'), 'Foto não mostra o produto', 'A lê o motivo da rejeição do anúncio pela visão');
 select is((select situacao from public.administracao_meus_resultados where tipo = 'item' and alvo_id = t.part()), 'rejeitada', 'A vê a rejeição do anúncio em administracao_meus_resultados (IM-023)');
 select is((select motivo from public.administracao_meus_resultados where tipo = 'item' and alvo_id = t.part()), 'Foto não mostra o produto', 'com o motivo');
 select is((select versao_vigente from public.administracao_meus_resultados where tipo = 'item' and alvo_id = t.serv()), true, 'serviço aprovado: versão vigente');

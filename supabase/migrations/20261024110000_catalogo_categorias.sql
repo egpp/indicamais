@@ -47,7 +47,10 @@ create index catalogo_solicitacao_pendentes_idx on public.catalogo_categoria_sol
 revoke all on public.catalogo_categoria from anon, authenticated;
 revoke all on public.catalogo_categoria_solicitacao from anon, authenticated;
 grant select on public.catalogo_categoria to anon, authenticated;
-grant select on public.catalogo_categoria_solicitacao to authenticated;
+-- decidida_por (id real do administrador) fica fora do SELECT do solicitante (e do administrador via tabela;
+-- o administrador também lê por aqui, as funções de decisão gravam auditoria com o autor).
+grant select (id, solicitante_id, nome_sugerido, justificativa, situacao, categoria_id, motivo_resposta, decidida_em, criado_em)
+  on public.catalogo_categoria_solicitacao to authenticated;
 -- O responsável só informa o pedido; situação e resposta ficam fora.
 grant insert (solicitante_id, nome_sugerido, justificativa) on public.catalogo_categoria_solicitacao to authenticated;
 

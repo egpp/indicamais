@@ -136,9 +136,15 @@ select throws_ok($$select public.perfis_decidir_versao(gen_random_uuid(), true, 
 
 -- ===== A vê o resultado (IM-023) e reenvia =====
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
-select is((select motivo from public.perfis_revisao where decisao = 'rejeitada'), 'Imagem fora do padrão', 'A lê o motivo da rejeição');
-select is((select autor_id from public.perfis_revisao where decisao = 'rejeitada'), 'dddddddd-0000-0000-0000-00000000000d'::uuid, 'revisão registra o autor');
-select isnt((select decidida_em from public.perfis_revisao where decisao = 'rejeitada'), null, 'revisão registra a data');
+select throws_ok($$select autor_id from public.perfis_revisao$$, '42501', null, 'A não lê autor_id direto da revisão (id real do administrador)');
+select is((select count(*)::int from public.perfis_revisao), 0, 'A não lê a tabela de revisão (RLS)');
+select is((select motivo from public.administracao_meus_resultados where tipo = 'perfil' and situacao = 'rejeitada'), 'Imagem fora do padrão', 'A lê o motivo da rejeição pela visão administracao_meus_resultados');
+select isnt((select decidida_em from public.administracao_meus_resultados where tipo = 'perfil' and situacao = 'rejeitada'), null, 'a visão traz a data da decisão');
+select is((select count(*)::int from public.administracao_meus_resultados where to_jsonb(administracao_meus_resultados)::text like '%dddddddd%'), 0, 'a visão não devolve o id real do administrador');
+reset role;
+select is((select autor_id from public.perfis_revisao where decisao = 'rejeitada'), 'dddddddd-0000-0000-0000-00000000000d'::uuid, 'revisão registra o autor (lido como superusuário)');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select throws_ok($$insert into public.perfis_revisao (perfil_id, versao_id, decisao, autor_id) values (t.perfil('loja-ana'), t.versao('loja-ana', 'rejeitada'), 'aprovada', 'aaaaaaaa-0000-0000-0000-00000000000a')$$, '42501', null, 'A não forja revisão');
 select lives_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('loja-ana'), p_whatsapp_comercial => '+5551999990001', p_nome => 'Loja da Ana', p_descricao_breve => 'Doces caseiros',
   p_imagem_path => t.pf('loja-ana') || '/capa2.jpg', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_cidade => 'Porto Alegre', p_uf => 'RS')$$, 'rejeitada libera nova versão (gravada com o WhatsApp)');

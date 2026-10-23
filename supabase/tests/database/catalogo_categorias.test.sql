@@ -59,6 +59,7 @@ select throws_ok($$update public.catalogo_categoria_solicitacao set situacao = '
 select lives_ok($$insert into public.catalogo_categoria_solicitacao (solicitante_id, nome_sugerido) select 'aaaaaaaa-0000-0000-0000-00000000000a'::uuid, 'Pedido ' || g from generate_series(2, 5) g$$, 'A chega a 5 pedidos pendentes');
 select throws_ok($$insert into public.catalogo_categoria_solicitacao (solicitante_id, nome_sugerido) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'Pedido 6')$$, 'P0001', null, 'o 6º pedido pendente é recusado');
 select throws_ok($$select public.catalogo_decidir_solicitacao((select id from public.catalogo_categoria_solicitacao limit 1), false, 'não', null)$$, '42501', null, 'A não decide pedidos');
+select throws_ok($$select decidida_por from public.catalogo_categoria_solicitacao$$, '42501', null, 'A não lê decidida_por (id real do administrador)');
 
 select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
 select is((select count(*)::int from public.catalogo_categoria_solicitacao), 0, 'B não vê pedidos de A');
