@@ -17,9 +17,11 @@ import {
   CONTEUDO_PERFIL_VAZIO,
   colunasDeConteudo,
   conteudoDeVersao,
+  dadosDeCriacao,
   paraPerfilExibicao,
-  type ColunasVersaoPerfil,
   type ConteudoPerfil,
+  type DadosCriarPerfil,
+  type DadosGravarVersaoPerfil,
   type LinhaPerfil,
   type LinhaVersaoPerfil,
   type PerfilExibicao,
@@ -32,26 +34,25 @@ export type Resultado<T> = ResultadoBase<T, ErroPerfis>;
 
 /**
  * Banco injetado para perfis. A implementação usa a SESSÃO DO USUÁRIO (supabase-js com RLS), nunca
- * service_role. `contaId` é a conta autenticada (auth.uid()). `dados: null` sem erro = nenhuma linha.
+ * service_role. Ninguém lê `responsavel_id`: a posse é dada por a linha estar em `perfis_meus_perfis`.
+ * Criação e gravação de versão são RPCs atômicas (sem INSERT direto). `dados: null` sem erro = nenhuma linha.
  */
 export interface ClienteBancoPerfis {
-  readonly contaId: string;
-  inserirPerfil(c: { responsavel_id: string; slug: string }): Promise<RespostaBanco<LinhaPerfil>>;
-  buscarPerfil(perfilId: string): Promise<RespostaBanco<LinhaPerfil>>;
-  /** Perfis da própria conta, mais recentes primeiro. */
+  /** rpc perfis_criar_rascunho: perfil + 1ª versão + WhatsApp comercial (E.164) numa transação. */
+  criarRascunho(
+    c: DadosCriarPerfil,
+  ): Promise<RespostaBanco<{ perfil_id: string; versao_id: string }>>;
+  /** select em perfis_meus_perfis filtrado por id. `dados: null` = não é meu (ou não existe). */
+  buscarMeuPerfil(perfilId: string): Promise<RespostaBanco<LinhaPerfil>>;
+  /** select em perfis_meus_perfis, mais recentes primeiro. */
   listarMeusPerfis(): Promise<RespostaBanco<LinhaPerfil[]>>;
   /** Versões dos perfis informados, com `whatsapp_comercial_e164` já juntado (tabela de contato). */
   listarVersoes(perfilIds: string[]): Promise<RespostaBanco<LinhaVersaoPerfil[]>>;
-  /** Insere a versão (rascunho) em perfis_perfil_versao. O WhatsApp vai em `gravarContato`. */
-  inserirVersao(
-    c: ColunasVersaoPerfil & { perfil_id: string },
-  ): Promise<RespostaBanco<LinhaVersaoPerfil>>;
-  atualizarVersao(
-    versaoId: string,
-    c: Partial<ColunasVersaoPerfil>,
-  ): Promise<RespostaBanco<LinhaVersaoPerfil>>;
-  /** upsert em perfis_perfil_versao_contato; `null` apaga a linha. Só rascunho (gatilho do banco). */
-  gravarContato(versaoId: string, whatsappE164: string | null): Promise<{ erro: ErroBanco | null }>;
+  /**
+   * rpc perfis_gravar_versao: substitui o conteúdo completo do rascunho (cria se não houver) + WhatsApp,
+   * atomicamente. Recusa (P0001) se há versão pendente. Devolve o id da versão gravada.
+   */
+  gravarVersao(perfilId: string, c: DadosGravarVersaoPerfil): Promise<RespostaBanco<string>>;
   /** rpc perfis_enviar_versao. */
   enviarVersao(versaoId: string): Promise<{ erro: ErroBanco | null }>;
   /** update em perfis_perfil (só publicado e slug são graváveis pelo dono). */
@@ -136,16 +137,16 @@ export function criarServicoPerfis(banco: ClienteBancoPerfis) {
     return falha(erroPerfis("VALIDACAO", Object.values(campos)[0] ?? M.textoInvalido, { campos }));
   }
 
-  /** Perfil de outra conta é tratado como inexistente. */
+  /** Perfil fora da lista "meus" (de outra conta ou inexistente) é tratado como inexistente. */
   async function carregar(
     perfilId: string,
   ): Promise<Resultado<{ perfil: LinhaPerfil; versoes: LinhaVersaoPerfil[] }>> {
     if (!uuidSchema.safeParse(perfilId).success) {
       return falha(erroPerfis("NAO_ENCONTRADO", M.naoEncontrado));
     }
-    const p = await banco.buscarPerfil(perfilId);
+    const p = await banco.buscarMeuPerfil(perfilId);
     if (p.erro) return falha(mapearErroBancoPerfis(p.erro));
-    if (!p.dados || p.dados.responsavel_id !== banco.contaId) {
+    if (!p.dados || p.dados.id.toLowerCase() !== perfilId.toLowerCase()) {
       return falha(erroPerfis("NAO_ENCONTRADO", M.naoEncontrado));
     }
     const v = await banco.listarVersoes([perfilId]);
@@ -164,7 +165,7 @@ export function criarServicoPerfis(banco: ClienteBancoPerfis) {
         if (!p.success) return falhaCampos(errosPorCampo(p.error));
         const { slug: slugInformado, ...campos } = p.data;
         const conteudo = aplicarCamposPerfil(CONTEUDO_PERFIL_VAZIO, campos);
-        const incoerencias = validarConteudoPerfil(conteudo, banco.contaId);
+        const incoerencias = validarConteudoPerfil(conteudo, null);
         if (Object.keys(incoerencias).length > 0) return falhaCampos(incoerencias);
 
         let candidatos: string[];
@@ -191,35 +192,28 @@ export function criarServicoPerfis(banco: ClienteBancoPerfis) {
           candidatos = candidatosDeSlug(base);
         }
 
-        let perfil: LinhaPerfil | null = null;
+        const whatsapp = conteudo.whatsappComercialE164;
+        if (!whatsapp) return falhaCampos({ whatsappComercial: M.whatsappInvalido });
+
+        let criado: { perfil_id: string; versao_id: string } | null = null;
         for (const slug of candidatos) {
-          const r = await banco.inserirPerfil({ responsavel_id: banco.contaId, slug });
+          const dados: DadosCriarPerfil = dadosDeCriacao(conteudo, slug, whatsapp);
+          const r = await banco.criarRascunho(dados);
           if (r.erro) {
             if (ehSlugDuplicado(r.erro)) continue;
             return falha(mapearErroBancoPerfis(r.erro));
           }
           if (!r.dados) return falha(interno());
-          perfil = r.dados;
+          criado = r.dados;
           break;
         }
-        if (!perfil) {
+        if (!criado) {
           const m = M.slugIndisponivel;
           return falha(erroPerfis("SLUG_INDISPONIVEL", m, { campos: { slug: m } }));
         }
-
-        const ver = await banco.inserirVersao({
-          perfil_id: perfil.id,
-          ...colunasDeConteudo(conteudo),
-        });
-        if (ver.erro) return falha(mapearErroBancoPerfis(ver.erro));
-        if (!ver.dados) return falha(interno());
-        let linha = ver.dados;
-        if (conteudo.whatsappComercialE164) {
-          const c = await banco.gravarContato(linha.id, conteudo.whatsappComercialE164);
-          if (c.erro) return falha(mapearErroBancoPerfis(c.erro));
-          linha = { ...linha, whatsapp_comercial_e164: conteudo.whatsappComercialE164 };
-        }
-        return { ok: true, valor: montarMeuPerfil(perfil, [linha]) };
+        const c = await carregar(criado.perfil_id);
+        if (!c.ok) return c;
+        return { ok: true, valor: montarMeuPerfil(c.valor.perfil, c.valor.versoes) };
       }),
 
     /**
@@ -245,33 +239,25 @@ export function criarServicoPerfis(banco: ClienteBancoPerfis) {
         const baseLinha = baseId ? versoes.find((v) => v.id === baseId) : undefined;
         const base = baseLinha ? conteudoDeVersao(baseLinha) : CONTEUDO_PERFIL_VAZIO;
         const novo = aplicarCamposPerfil(base, p.data);
-        const incoerencias = validarConteudoPerfil(novo, banco.contaId);
+        const incoerencias = validarConteudoPerfil(novo, perfilId);
         if (Object.keys(incoerencias).length > 0) return falhaCampos(incoerencias);
+        const whatsapp = novo.whatsappComercialE164;
+        if (!whatsapp) return falhaCampos({ whatsappComercial: M.whatsappInvalido });
 
-        let atual: LinhaVersaoPerfil;
-        if (acao.tipo === "atualizar_rascunho") {
-          const r = await banco.atualizarVersao(acao.versaoId, colunasDeConteudo(novo));
-          if (r.erro) return falha(mapearErroBancoPerfis(r.erro));
-          if (!r.dados) return falha(erroPerfis("NAO_ENCONTRADO", M.naoEncontrado));
-          atual = r.dados;
-        } else {
-          const r = await banco.inserirVersao({ perfil_id: perfil.id, ...colunasDeConteudo(novo) });
-          if (r.erro) return falha(mapearErroBancoPerfis(r.erro));
-          if (!r.dados) return falha(interno());
-          atual = r.dados;
-        }
-        // O contato é por versão: grava quando mudou ou quando a versão é nova (copia o da base).
-        const contatoMudou = novo.whatsappComercialE164 !== base.whatsappComercialE164;
-        if (acao.tipo === "nova_versao" ? novo.whatsappComercialE164 !== null : contatoMudou) {
-          const g = await banco.gravarContato(atual.id, novo.whatsappComercialE164);
-          if (g.erro) return falha(mapearErroBancoPerfis(g.erro));
-        }
-        atual = { ...atual, whatsapp_comercial_e164: novo.whatsappComercialE164 };
-        const demais = versoes.filter((v) => v.id !== atual.id);
+        // Substitui o conteúdo completo (e o WhatsApp) de uma vez: sem estado parcial.
+        const dados: DadosGravarVersaoPerfil = {
+          ...colunasDeConteudo(novo),
+          whatsapp_comercial_e164: whatsapp,
+        };
+        const g = await banco.gravarVersao(perfil.id, dados);
+        if (g.erro) return falha(mapearErroBancoPerfis(g.erro));
+        if (!g.dados) return falha(interno());
+        const depois = await carregar(perfilId);
+        if (!depois.ok) return depois;
         return {
           ok: true,
           valor: {
-            perfil: montarMeuPerfil(perfil, [atual, ...demais]),
+            perfil: montarMeuPerfil(depois.valor.perfil, depois.valor.versoes),
             criouNovaVersao: acao.tipo === "nova_versao",
           },
         };
@@ -309,7 +295,7 @@ export function criarServicoPerfis(banco: ClienteBancoPerfis) {
       seguro(async () => {
         const r = await banco.listarMeusPerfis();
         if (r.erro) return falha(mapearErroBancoPerfis(r.erro));
-        const perfis = (r.dados ?? []).filter((p) => p.responsavel_id === banco.contaId);
+        const perfis = r.dados ?? [];
         if (perfis.length === 0) return { ok: true, valor: [] };
         const v = await banco.listarVersoes(perfis.map((p) => p.id));
         if (v.erro) return falha(mapearErroBancoPerfis(v.erro));

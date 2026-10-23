@@ -84,9 +84,14 @@ export function mapearErroBancoPerfis(e: ErroBanco): ErroPerfis {
     if (/imut|enviada|hist[óo]rico|identidade/i.test(alvo)) {
       return erroPerfis("EM_ANALISE", M.emAnalise);
     }
+    if (/n[ãa]o encontrad/i.test(alvo)) return erroPerfis("NAO_ENCONTRADO", M.naoEncontrado);
     return erroPerfis("SEM_PERMISSAO", M.semPermissao);
   }
   if (classe === "NAO_ENCONTRADO") return erroPerfis("NAO_ENCONTRADO", M.naoEncontrado);
-  if (classe === "ESTADO_INVALIDO") return erroPerfis("ESTADO_INVALIDO", M.conflito);
+  if (classe === "ESTADO_INVALIDO") {
+    // perfis_gravar_versao recusa quando há versão pendente.
+    if (/pendente/i.test(alvo)) return erroPerfis("EM_ANALISE", M.emAnalise);
+    return erroPerfis("ESTADO_INVALIDO", M.conflito);
+  }
   return erroPerfis("ERRO_INTERNO", M.generica);
 }

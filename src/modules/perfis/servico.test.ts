@@ -5,6 +5,8 @@ import {
   paraPerfilExibicao,
   paraPerfilPublico,
   type ClienteBancoPerfis,
+  type DadosCriarPerfil,
+  type DadosGravarVersaoPerfil,
   type LinhaPerfil,
   type LinhaPerfilPublico,
   type LinhaVersaoPerfil,
@@ -17,9 +19,14 @@ const CAT_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const WHATS = "(19) 99999-0001";
 const WHATS_E164 = "+5519999990001";
 
-/** Banco em memória que imita o contrato (slug único, uma versão aberta, enviada é imutável). */
+/**
+ * Banco em memória que imita o contrato novo: criação e gravação por RPC atômica, posse dada só por estar na
+ * lista "meus" (o dono fica num mapa interno que o contrato nunca expõe), slug único, uma versão aberta,
+ * versão pendente imutável.
+ */
 function fakeBanco(contaId = DONO, slugsOcupados: string[] = []) {
   const perfis = new Map<string, LinhaPerfil>();
+  const donos = new Map<string, string>();
   const versoes = new Map<string, LinhaVersaoPerfil>();
   const contatos = new Map<string, string>();
   const slugs = new Set(slugsOcupados);
@@ -27,14 +34,23 @@ function fakeBanco(contaId = DONO, slugsOcupados: string[] = []) {
   let relogio = 0;
   const id = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, "0")}`;
   const t = () => new Date(Date.UTC(2026, 9, 1, 0, 0, ++relogio)).toISOString();
+  const meu = (pid: string) => donos.get(pid) === contaId;
   const comContato = (v: LinhaVersaoPerfil): LinhaVersaoPerfil => ({
     ...v,
     whatsapp_comercial_e164: contatos.get(v.id) ?? null,
   });
+  const colunas = (c: DadosGravarVersaoPerfil) => {
+    return { ...c, whatsapp_comercial_e164: null }; // o contato vive em tabela à parte (contatos)
+  };
 
   const banco: ClienteBancoPerfis = {
-    contaId,
-    inserirPerfil: vi.fn(async (c) => {
+    criarRascunho: vi.fn(async (c) => {
+      if (!c.whatsapp_comercial_e164) {
+        return {
+          dados: null,
+          erro: { code: "23514", message: "WhatsApp comercial é obrigatório" },
+        };
+      }
       if (slugs.has(c.slug)) {
         return {
           dados: null,
@@ -46,68 +62,90 @@ function fakeBanco(contaId = DONO, slugsOcupados: string[] = []) {
         };
       }
       slugs.add(c.slug);
-      const l: LinhaPerfil = {
+      const p: LinhaPerfil = {
         id: id(),
-        responsavel_id: c.responsavel_id,
         slug: c.slug,
         publicado: false,
         versao_aprovada_id: null,
         criado_em: t(),
         atualizado_em: t(),
       };
-      perfis.set(l.id, l);
-      return { dados: l, erro: null };
-    }),
-    buscarPerfil: vi.fn(async (pid) => ({ dados: perfis.get(pid) ?? null, erro: null })),
-    listarMeusPerfis: vi.fn(async () => ({
-      dados: [...perfis.values()].filter((p) => p.responsavel_id === contaId),
-      erro: null,
-    })),
-    listarVersoes: vi.fn(async (ids) => ({
-      dados: [...versoes.values()].filter((v) => ids.includes(v.perfil_id)).map(comContato),
-      erro: null,
-    })),
-    inserirVersao: vi.fn(async (c) => {
-      const aberta = [...versoes.values()].find(
-        (v) => v.perfil_id === c.perfil_id && ["rascunho", "pendente"].includes(v.situacao),
-      );
-      if (aberta) {
-        return { dados: null, erro: { code: "23505", constraint: "perfis_versao_uma_aberta" } };
-      }
-      const l: LinhaVersaoPerfil = {
+      perfis.set(p.id, p);
+      donos.set(p.id, contaId);
+      const whats = c.whatsapp_comercial_e164;
+      const cols: Omit<DadosCriarPerfil, "slug" | "whatsapp_comercial_e164"> = { ...c };
+      const v: LinhaVersaoPerfil = {
         id: id(),
+        perfil_id: p.id,
         situacao: "rascunho",
+        imagem_path: null,
+        banners_paths: [],
+        fotos_paths: [],
         criado_em: t(),
         enviada_em: null,
         whatsapp_comercial_e164: null,
-        ...c,
+        ...cols,
       };
-      versoes.set(l.id, l);
-      return { dados: l, erro: null };
+      versoes.set(v.id, v);
+      contatos.set(v.id, whats);
+      return { dados: { perfil_id: p.id, versao_id: v.id }, erro: null };
     }),
-    atualizarVersao: vi.fn(async (vid, c) => {
-      const v = versoes.get(vid);
-      if (!v) return { dados: null, erro: null };
-      if (v.situacao !== "rascunho") {
-        return { dados: null, erro: { code: "42501", message: "versão enviada é imutável" } };
+    buscarMeuPerfil: vi.fn(async (pid) => ({
+      dados: meu(pid) ? (perfis.get(pid) ?? null) : null,
+      erro: null,
+    })),
+    listarMeusPerfis: vi.fn(async () => ({
+      dados: [...perfis.values()].filter((p) => meu(p.id)),
+      erro: null,
+    })),
+    listarVersoes: vi.fn(async (ids) => ({
+      dados: [...versoes.values()]
+        .filter((v) => ids.includes(v.perfil_id) && meu(v.perfil_id))
+        .map(comContato),
+      erro: null,
+    })),
+    gravarVersao: vi.fn(async (pid, c) => {
+      if (!meu(pid)) {
+        return { dados: null, erro: { code: "42501", message: "perfil não encontrado" } };
       }
-      const novo = { ...v, ...c };
-      versoes.set(vid, novo);
-      return { dados: comContato(novo), erro: null };
-    }),
-    gravarContato: vi.fn(async (vid, e164) => {
-      if (versoes.get(vid)?.situacao !== "rascunho") {
+      if (!c.whatsapp_comercial_e164) {
         return {
-          erro: { code: "42501", message: "WhatsApp comercial de versão enviada é imutável" },
+          dados: null,
+          erro: { code: "23514", message: "WhatsApp comercial é obrigatório" },
         };
       }
-      if (e164 === null) contatos.delete(vid);
-      else contatos.set(vid, e164);
-      return { erro: null };
+      const aberta = [...versoes.values()].find(
+        (v) => v.perfil_id === pid && ["rascunho", "pendente"].includes(v.situacao),
+      );
+      if (aberta?.situacao === "pendente") {
+        return {
+          dados: null,
+          erro: { code: "P0001", message: "versão pendente não pode ser editada" },
+        };
+      }
+      let vid: string;
+      if (aberta) {
+        vid = aberta.id;
+        versoes.set(vid, { ...aberta, ...colunas(c) });
+      } else {
+        vid = id();
+        versoes.set(vid, {
+          id: vid,
+          perfil_id: pid,
+          situacao: "rascunho",
+          criado_em: t(),
+          enviada_em: null,
+          ...colunas(c),
+        });
+      }
+      contatos.set(vid, c.whatsapp_comercial_e164);
+      return { dados: vid, erro: null };
     }),
     enviarVersao: vi.fn(async (vid) => {
       const v = versoes.get(vid);
-      if (!v) return { erro: { code: "42501", message: "versão não encontrada" } };
+      if (!v || !meu(v.perfil_id)) {
+        return { erro: { code: "42501", message: "versão não encontrada" } };
+      }
       if (!contatos.has(vid)) {
         return { erro: { code: "23514", message: "WhatsApp comercial é obrigatório" } };
       }
@@ -116,7 +154,7 @@ function fakeBanco(contaId = DONO, slugsOcupados: string[] = []) {
     }),
     atualizarPerfil: vi.fn(async (pid, c) => {
       const p = perfis.get(pid);
-      if (!p) return { dados: null, erro: null };
+      if (!p || !meu(pid)) return { dados: null, erro: null };
       if (c.publicado && !p.versao_aprovada_id) {
         return {
           dados: null,
@@ -146,24 +184,30 @@ function fakeBanco(contaId = DONO, slugsOcupados: string[] = []) {
   function rejeitar(vid: string) {
     versoes.set(vid, { ...versoes.get(vid)!, situacao: "rejeitada" });
   }
-  return { banco, perfis, versoes, contatos, slugs, aprovar, rejeitar };
+  return { banco, perfis, donos, versoes, contatos, slugs, aprovar, rejeitar };
 }
+
+/** Caminho opaco válido na pasta do perfil (o upload acontece depois de criar o rascunho). */
+const img = (perfilId: string, n = 1, ext = "png", prefixo = "aaaaaaaa-aaaa-4aaa-8aaa") =>
+  `perfil/${perfilId}/${prefixo}-${String(n).padStart(12, "0")}.${ext}`;
 
 const valido = {
   nome: "Padaria Pão Quente",
   descricaoBreve: "Pães e bolos fresquinhos.",
-  imagemPath: `${DONO}/logo.png`,
   categoriaPrincipalId: CAT_A,
   cidade: "Campinas",
   uf: "SP",
   whatsappComercial: WHATS,
 };
 
+/** Fluxo na ordem certa: criar rascunho -> enviar imagem -> gravar versão (editar). */
 async function criarPronto(f = fakeBanco()) {
   const svc = criarServicoPerfis(f.banco);
-  const r = await svc.criarRascunho(valido);
-  if (!r.ok) throw new Error(`falha ao criar: ${JSON.stringify(r.erro)}`);
-  return { ...f, svc, perfil: r.valor };
+  const c = await svc.criarRascunho(valido);
+  if (!c.ok) throw new Error(`falha ao criar: ${JSON.stringify(c.erro)}`);
+  const e = await svc.editar(c.valor.id, { imagemPath: img(c.valor.id) });
+  if (!e.ok) throw new Error(`falha ao gravar imagem: ${JSON.stringify(e.erro)}`);
+  return { ...f, svc, perfil: e.valor.perfil };
 }
 
 async function publicado() {
@@ -178,13 +222,20 @@ async function publicado() {
 
 describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
   it("cria perfil + rascunho com slug do nome e WhatsApp normalizado", async () => {
-    const { perfil, contatos, banco } = await criarPronto();
+    const f = fakeBanco();
+    const c = await criarServicoPerfis(f.banco).criarRascunho(valido);
+    if (!c.ok) throw new Error();
+    const perfil = c.valor;
+    const { contatos, banco } = f;
     expect(perfil.slug).toBe("padaria-pao-quente");
     expect(perfil.estado.rotulo).toBe("Rascunho");
     expect(perfil.publicado).toBe(false);
     expect(perfil.conteudoEdicao.whatsappComercialE164).toBe(WHATS_E164);
     expect([...contatos.values()]).toEqual([WHATS_E164]);
-    expect(vi.mocked(banco.inserirPerfil).mock.calls[0]![0].responsavel_id).toBe(DONO);
+    // RPC única: sem INSERT direto e sem parâmetro de dono (o banco usa auth.uid()).
+    expect(banco.criarRascunho).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(vi.mocked(banco.criarRascunho).mock.calls)).not.toMatch(/responsavel/);
+    expect(f.donos.get(perfil.id)).toBe(DONO);
   });
 
   it("uma conta pode ter vários perfis; slug gerado ganha sufixo se já existir", async () => {
@@ -203,7 +254,7 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
     const r = await criarServicoPerfis(f.banco).criarRascunho({ ...valido, slug: "minha-loja" });
     expect(!r.ok && r.erro.codigo).toBe("SLUG_INDISPONIVEL");
     expect(!r.ok && r.erro.mensagem).toBe("Este endereço já está em uso. Escolha outro.");
-    expect(f.banco.inserirVersao).not.toHaveBeenCalled();
+    expect(f.perfis.size).toBe(0);
   });
 
   it.each(["entrar", "admin", "api", "minha-conta", "categorias", "perfil", "anuncio"])(
@@ -212,7 +263,7 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
       const f = fakeBanco();
       const r = await criarServicoPerfis(f.banco).criarRascunho({ ...valido, slug });
       expect(!r.ok && r.erro.codigo).toBe("SLUG_RESERVADO");
-      expect(f.banco.inserirPerfil).not.toHaveBeenCalled();
+      expect(f.banco.criarRascunho).not.toHaveBeenCalled();
     },
   );
 
@@ -228,14 +279,14 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
       const r = await criarServicoPerfis(f.banco).criarRascunho({ ...valido, slug });
       expect(!r.ok && r.erro.codigo, slug).toBe("SLUG_INVALIDO");
     }
-    expect(f.banco.inserirPerfil).not.toHaveBeenCalled();
+    expect(f.banco.criarRascunho).not.toHaveBeenCalled();
   });
 
   it("sem nome e sem slug: validação por campo", async () => {
     const f = fakeBanco();
     const r = await criarServicoPerfis(f.banco).criarRascunho({ cidade: "Campinas" });
     expect(!r.ok && r.erro.campos).toHaveProperty("nome");
-    expect(f.banco.inserirPerfil).not.toHaveBeenCalled();
+    expect(f.banco.criarRascunho).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -254,14 +305,39 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
     ["categoria secundária repetida da principal", { categoriasSecundariasIds: [CAT_A] }],
     ["UF inválida", { uf: "ZZ" }],
     ["WhatsApp inválido", { whatsappComercial: "12345" }],
-    ["imagem de outra conta", { imagemPath: `${OUTRO}/logo.png` }],
-    ["foto de outra conta", { fotosPaths: [`${OUTRO}/f.jpg`] }],
-    ["banner de outra conta", { bannersPaths: [`${OUTRO}/b.jpg`] }],
+    ["WhatsApp ausente", { whatsappComercial: undefined }],
+    ["WhatsApp vazio", { whatsappComercial: "" }],
+    ["WhatsApp nulo", { whatsappComercial: null }],
   ])("recusa %s sem tocar no banco", async (_n, extra) => {
     const f = fakeBanco();
     const r = await criarServicoPerfis(f.banco).criarRascunho({ ...valido, ...extra });
     expect(!r.ok && r.erro.codigo).toBe("VALIDACAO");
-    expect(f.banco.inserirPerfil).not.toHaveBeenCalled();
+    expect(f.banco.criarRascunho).not.toHaveBeenCalled();
+  });
+
+  it("o WhatsApp é obrigatório no primeiro rascunho: sem ele, nada é criado", async () => {
+    const f = fakeBanco();
+    const semWhats = { ...valido, whatsappComercial: undefined };
+    const r = await criarServicoPerfis(f.banco).criarRascunho(semWhats);
+    expect(!r.ok && r.erro.campos).toHaveProperty("whatsappComercial");
+    expect(f.banco.criarRascunho).not.toHaveBeenCalled();
+    expect(f.perfis.size).toBe(0);
+  });
+
+  it("imagens não entram na criação (o perfil precisa existir antes do upload)", async () => {
+    const f = fakeBanco();
+    await criarServicoPerfis(f.banco).criarRascunho({
+      ...valido,
+      imagemPath: `${OUTRO}/logo.png`,
+      fotosPaths: [img(OUTRO)],
+      bannersPaths: [img(OUTRO)],
+    });
+    const chamada = vi.mocked(f.banco.criarRascunho).mock.calls[0]![0];
+    expect(Object.keys(chamada)).not.toEqual(
+      expect.arrayContaining(["imagem_path", "fotos_paths", "banners_paths"]),
+    );
+    expect(JSON.stringify(chamada)).not.toContain(OUTRO);
+    expect([...f.versoes.values()][0]!.imagem_path).toBeNull();
   });
 
   it("descarta campos que o cliente não pode definir (situação, publicado, responsável)", async () => {
@@ -273,20 +349,18 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
       responsavel_id: OUTRO,
       versao_aprovada_id: CAT_A,
     });
-    expect(vi.mocked(f.banco.inserirPerfil).mock.calls[0]![0]).toEqual({
-      responsavel_id: DONO,
-      slug: "padaria-pao-quente",
-    });
-    const cols = JSON.stringify(vi.mocked(f.banco.inserirVersao).mock.calls);
-    expect(cols).not.toMatch(/situacao|publicado|responsavel|aprovada/);
+    const chamada = vi.mocked(f.banco.criarRascunho).mock.calls[0]![0];
+    expect(chamada.slug).toBe("padaria-pao-quente");
+    expect(JSON.stringify(chamada)).not.toMatch(/situacao|publicado|responsavel|aprovada/);
+    expect(f.perfis.get([...f.perfis.keys()][0]!)!.publicado).toBe(false);
   });
 
-  it("o WhatsApp comercial não entra nas colunas da versão (tabela à parte)", async () => {
+  it("o banco recebe o WhatsApp já normalizado em E.164, nunca o texto digitado", async () => {
     const f = fakeBanco();
     await criarServicoPerfis(f.banco).criarRascunho(valido);
-    const cols = JSON.stringify(vi.mocked(f.banco.inserirVersao).mock.calls);
-    expect(cols).not.toMatch(/whatsapp|5519999990001/i);
-    expect(f.banco.gravarContato).toHaveBeenCalledTimes(1);
+    const chamada = vi.mocked(f.banco.criarRascunho).mock.calls[0]![0];
+    expect(chamada.whatsapp_comercial_e164).toBe(WHATS_E164);
+    expect(JSON.stringify(chamada)).not.toContain("99999-0001");
   });
 });
 
@@ -307,7 +381,7 @@ describe("perfis: prévia e envio (IM-017, IM-021)", () => {
   it("não envia incompleto e lista o que falta", async () => {
     const f = fakeBanco();
     const svc = criarServicoPerfis(f.banco);
-    const c = await svc.criarRascunho({ nome: "Só o nome" });
+    const c = await svc.criarRascunho({ nome: "Só o nome", whatsappComercial: WHATS });
     if (!c.ok) throw new Error();
     const r = await svc.enviarParaAprovacao(c.valor.id);
     expect(!r.ok && r.erro.codigo).toBe("INCOMPLETO");
@@ -317,7 +391,6 @@ describe("perfis: prévia e envio (IM-017, IM-021)", () => {
       "Escolha a categoria principal.",
       "Informe a cidade.",
       "Escolha a UF.",
-      "Informe o WhatsApp comercial.",
     ]);
     expect(f.banco.enviarVersao).not.toHaveBeenCalled();
   });
@@ -351,10 +424,83 @@ describe("perfis: edição e versões (IM-022)", () => {
     expect(r.ok && r.valor.perfil.conteudoEdicao.nome).toBe("Padaria Pão Quente");
   });
 
-  it("trocar o WhatsApp do rascunho regrava o contato", async () => {
-    const { svc, perfil, contatos } = await criarPronto();
+  it("trocar o WhatsApp do rascunho regrava o contato (E.164) na mesma gravação", async () => {
+    const { svc, perfil, contatos, banco } = await criarPronto();
     await svc.editar(perfil.id, { whatsappComercial: "(11) 98888-7777" });
     expect([...contatos.values()]).toEqual(["+5511988887777"]);
+    const dados = vi.mocked(banco.gravarVersao).mock.calls.at(-1)![1];
+    expect(dados.whatsapp_comercial_e164).toBe("+5511988887777");
+  });
+
+  it("grava o conteúdo COMPLETO de uma vez (substitui), não só o que mudou", async () => {
+    const { svc, perfil, banco } = await criarPronto();
+    await svc.editar(perfil.id, { descricaoBreve: "Outra" });
+    const [pid, dados] = vi.mocked(banco.gravarVersao).mock.calls.at(-1)!;
+    expect(pid).toBe(perfil.id);
+    expect(dados).toMatchObject({
+      nome: "Padaria Pão Quente",
+      descricao_breve: "Outra",
+      imagem_path: img(perfil.id),
+      cidade: "Campinas",
+      uf: "SP",
+      whatsapp_comercial_e164: WHATS_E164,
+    });
+  });
+
+  it("não deixa apagar o WhatsApp comercial (obrigatório)", async () => {
+    const { svc, perfil, banco } = await criarPronto();
+    const antes = vi.mocked(banco.gravarVersao).mock.calls.length;
+    for (const w of [null, ""]) {
+      const r = await svc.editar(perfil.id, { whatsappComercial: w });
+      expect(!r.ok && r.erro.campos).toHaveProperty("whatsappComercial");
+    }
+    expect(vi.mocked(banco.gravarVersao).mock.calls.length).toBe(antes);
+  });
+
+  it("versão pendente: recusada antes do banco e também se o banco recusar (P0001)", async () => {
+    const { svc, perfil, banco } = await criarPronto();
+    await svc.enviarParaAprovacao(perfil.id);
+    const antes = vi.mocked(banco.gravarVersao).mock.calls.length;
+    const r = await svc.editar(perfil.id, { nome: "Outro" });
+    expect(!r.ok && r.erro.codigo).toBe("EM_ANALISE");
+    expect(vi.mocked(banco.gravarVersao).mock.calls.length).toBe(antes);
+    // estado velho no cliente (versão ainda como rascunho): o banco é a última palavra
+    const velho = await banco.listarVersoes([perfil.id]);
+    banco.listarVersoes = async () => ({
+      dados: (velho.dados ?? []).map((v) => ({ ...v, situacao: "rascunho" as const })),
+      erro: null,
+    });
+    const r2 = await svc.editar(perfil.id, { nome: "Outro" });
+    expect(!r2.ok && r2.erro.codigo).toBe("EM_ANALISE");
+  });
+
+  it("imagens: só caminhos opacos da pasta do PRÓPRIO perfil; limites 6 fotos e 3 banners", async () => {
+    const { svc, perfil } = await criarPronto();
+    const id = perfil.id;
+    const fotos = (n: number) => Array.from({ length: n }, (_, i) => img(id, 10 + i, "webp"));
+    const banners = (n: number) =>
+      Array.from({ length: n }, (_, i) => img(id, 20 + i, "jpg", "bbbbbbbb-bbbb-4bbb-8bbb"));
+    const ok = await svc.editar(id, { fotosPaths: fotos(6), bannersPaths: banners(3) });
+    expect(ok.ok).toBe(true);
+    const muitas = await svc.editar(id, { fotosPaths: fotos(7) });
+    expect(!muitas.ok && muitas.erro.campos).toHaveProperty("fotosPaths");
+    const muitosBanners = await svc.editar(id, { bannersPaths: banners(4) });
+    expect(!muitosBanners.ok && muitosBanners.erro.campos).toHaveProperty("bannersPaths");
+    const outroPerfil = "99999999-9999-4999-8999-999999999999";
+    for (const campos of [
+      { imagemPath: img(outroPerfil) },
+      { fotosPaths: [img(outroPerfil)] },
+      { bannersPaths: [img(outroPerfil)] },
+      { imagemPath: `item/${id}/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.png` },
+      { imagemPath: `${DONO}/${id}.png` }, // caminho antigo, por conta
+      { imagemPath: `perfil/${DONO}/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.png` }, // pasta de conta
+      { imagemPath: `perfil/${id}/logo.png` }, // nome não é uuid
+      { imagemPath: `perfil/${id}/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.gif` },
+      { imagemPath: `perfil/${id}/../x.png` },
+    ]) {
+      const r = await svc.editar(id, campos);
+      expect(!r.ok && r.erro.codigo, JSON.stringify(campos)).toBe("VALIDACAO");
+    }
   });
 
   it("editar perfil público cria versão nova (copiando o contato) e mantém a aprovada no ar", async () => {
@@ -415,7 +561,7 @@ describe("perfis: edição e versões (IM-022)", () => {
     const antes = versoes.size;
     const r = await svc.editar(perfil.id, { informacoesSociais: "instagram.com/loja" });
     expect(!r.ok && r.erro.codigo).toBe("VALIDACAO");
-    const r2 = await svc.editar(perfil.id, { imagemPath: `${OUTRO}/x.png` });
+    const r2 = await svc.editar(perfil.id, { imagemPath: img(OUTRO) });
     expect(!r2.ok && r2.erro.campos).toHaveProperty("imagemPath");
     expect(versoes.size).toBe(antes);
   });
@@ -428,12 +574,35 @@ describe("perfis: edição e versões (IM-022)", () => {
     expect(r.ok && r.valor.perfil.conteudoEdicao.site).toBeNull();
   });
 
+  it("o contrato do dono não lê responsável: só a lista 'meus' prova a posse", async () => {
+    const f = fakeBanco();
+    const svc = criarServicoPerfis(f.banco);
+    const c = await svc.criarRascunho(valido);
+    if (!c.ok) throw new Error();
+    for (const velho of [
+      "contaId",
+      "buscarPerfil",
+      "inserirPerfil",
+      "inserirVersao",
+      "gravarContato",
+    ]) {
+      expect(f.banco).not.toHaveProperty(velho);
+    }
+    const lista = await svc.listarMeus();
+    expect(JSON.stringify(lista)).not.toContain(DONO);
+    expect(JSON.stringify(lista)).not.toMatch(/responsavel/i);
+    // quem não é dono tem a lista vazia (a visão filtra por auth.uid())
+    const outro = { ...f.banco, listarMeusPerfis: async () => ({ dados: [], erro: null }) };
+    const vazia = await criarServicoPerfis(outro).listarMeus();
+    expect(vazia.ok && vazia.valor).toEqual([]);
+  });
+
   it("perfil de outra conta é tratado como inexistente", async () => {
     const f = fakeBanco();
     const svc = criarServicoPerfis(f.banco);
     const c = await svc.criarRascunho(valido);
     if (!c.ok) throw new Error();
-    f.perfis.set(c.valor.id, { ...f.perfis.get(c.valor.id)!, responsavel_id: OUTRO });
+    f.donos.set(c.valor.id, OUTRO); // a linha sai da lista "meus"; o contrato não tem coluna de dono
     for (const r of [
       await svc.editar(c.valor.id, { nome: "x" }),
       await svc.obter(c.valor.id),
@@ -451,7 +620,7 @@ describe("perfis: edição e versões (IM-022)", () => {
     const f = fakeBanco();
     const r = await criarServicoPerfis(f.banco).obter("' or 1=1 --");
     expect(!r.ok && r.erro.codigo).toBe("NAO_ENCONTRADO");
-    expect(f.banco.buscarPerfil).not.toHaveBeenCalled();
+    expect(f.banco.buscarMeuPerfil).not.toHaveBeenCalled();
   });
 });
 
@@ -502,6 +671,8 @@ describe("perfis: erros do banco (23505, 23514, 42501) sem vazar texto", () => {
       { code: "42501", message: `versão enviada é imutável ${segredo}` },
       { code: "42501", message: segredo },
       { code: "XX000", message: segredo },
+      { code: "P0001", message: `versão pendente não pode ser editada ${segredo}` },
+      { code: "42501", message: `perfil não encontrado ${segredo}` },
     ];
     for (const c of casos) {
       const e = mapearErroBancoPerfis(c);
@@ -515,11 +686,13 @@ describe("perfis: erros do banco (23505, 23514, 42501) sem vazar texto", () => {
     expect(mapearErroBancoPerfis(casos[7]!).codigo).toBe("EM_ANALISE");
     expect(mapearErroBancoPerfis(casos[8]!).codigo).toBe("SEM_PERMISSAO");
     expect(mapearErroBancoPerfis(casos[9]!).codigo).toBe("ERRO_INTERNO");
+    expect(mapearErroBancoPerfis(casos[10]!).codigo).toBe("EM_ANALISE");
+    expect(mapearErroBancoPerfis(casos[11]!).codigo).toBe("NAO_ENCONTRADO");
   });
 
   it("23514 do banco numa operação vira mensagem sem vazar", async () => {
     const f = fakeBanco();
-    f.banco.inserirVersao = async () => ({
+    f.banco.criarRascunho = async () => ({
       dados: null,
       erro: { code: "23514", constraint: "perfis_versao_sociais", message: "SEGREDO" },
     });
@@ -529,7 +702,7 @@ describe("perfis: erros do banco (23505, 23514, 42501) sem vazar texto", () => {
 
   it("exceção do banco injetado vira erro genérico", async () => {
     const f = fakeBanco();
-    f.banco.inserirPerfil = async () => {
+    f.banco.criarRascunho = async () => {
       throw new Error("postgres://usuario:senha@host");
     };
     const r = await criarServicoPerfis(f.banco).criarRascunho(valido);
@@ -544,7 +717,7 @@ describe("perfis: privacidade dos modelos públicos (IM-029)", () => {
     slug: "padaria",
     nome: "Padaria",
     descricao_breve: "Pães",
-    imagem_path: `${DONO}/logo.png`,
+    imagem_path: `perfil/p1/aaaaaaaa-aaaa-4aaa-8aaa-000000000001.png`,
     categoria_principal_id: CAT_A,
     categoria_secundaria_1_id: null,
     categoria_secundaria_2_id: null,

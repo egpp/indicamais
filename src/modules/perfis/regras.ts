@@ -1,5 +1,5 @@
 import { validarCategorias } from "@/shared/conteudo/categorias";
-import { caminhoDaConta } from "@/shared/conteudo/imagens";
+import { caminhoDaPasta } from "@/shared/conteudo/imagens";
 import type { CamposPerfil } from "./schemas";
 import type { ConteudoPerfil } from "./modelos";
 
@@ -26,21 +26,30 @@ export function aplicarCamposPerfil(base: ConteudoPerfil, c: CamposPerfil): Cont
   };
 }
 
-/** Coerência do conteúdo inteiro depois do patch: categorias e imagens dentro da pasta da conta. */
-export function validarConteudoPerfil(c: ConteudoPerfil, contaId: string): Record<string, string> {
+/**
+ * Coerência do conteúdo inteiro depois do patch: categorias, WhatsApp comercial obrigatório e imagens dentro da
+ * pasta `perfil/<perfilId>/`. `perfilId: null` = perfil ainda não existe (criação): nenhuma imagem é aceita,
+ * porque o upload só acontece depois de criar o rascunho.
+ */
+export function validarConteudoPerfil(
+  c: ConteudoPerfil,
+  perfilId: string | null,
+): Record<string, string> {
   const erros: Record<string, string> = {};
   const cat = validarCategorias({
     principalId: c.categoriaPrincipalId,
     secundariasIds: c.categoriasSecundariasIds,
   });
   if (cat) erros.categoriasSecundariasIds = cat;
-  if (c.imagemPath !== null && !caminhoDaConta(contaId, c.imagemPath)) {
+  if (!c.whatsappComercialE164) erros.whatsappComercial = "Informe o WhatsApp comercial.";
+  const naPasta = (p: string) => perfilId !== null && caminhoDaPasta("perfil", perfilId, p);
+  if (c.imagemPath !== null && !naPasta(c.imagemPath)) {
     erros.imagemPath = "Imagem inválida. Envie novamente.";
   }
-  if (c.bannersPaths.some((p) => !caminhoDaConta(contaId, p))) {
+  if (c.bannersPaths.some((p) => !naPasta(p))) {
     erros.bannersPaths = "Imagem inválida. Envie novamente.";
   }
-  if (c.fotosPaths.some((p) => !caminhoDaConta(contaId, p))) {
+  if (c.fotosPaths.some((p) => !naPasta(p))) {
     erros.fotosPaths = "Imagem inválida. Envie novamente.";
   }
   return erros;

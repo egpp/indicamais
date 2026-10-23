@@ -2,6 +2,16 @@ import { describe, expect, it } from "vitest";
 import { camposPerfilSchema, novoPerfilSchema } from "./index";
 
 const CONTA = "11111111-1111-4111-8111-111111111111";
+/** Caminho opaco válido: perfil/<perfil_id>/<uuid>.<ext>; o uuid sai do rótulo (só para o teste). */
+const P = (r: string, ext = "png") =>
+  `perfil/${CONTA}/${
+    "aaaaaaaa-aaaa-4aaa-8aaa-" +
+    [...r]
+      .map((c) => c.charCodeAt(0).toString(16))
+      .join("")
+      .padEnd(12, "0")
+      .slice(0, 12)
+  }.${ext}`;
 const A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const C = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
@@ -10,7 +20,7 @@ const D = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const completo = {
   nome: "Padaria Pão Quente",
   descricaoBreve: "Pães e bolos fresquinhos todos os dias.",
-  imagemPath: `${CONTA}/logo.png`,
+  imagemPath: P("logo"),
   categoriaPrincipalId: A,
   categoriasSecundariasIds: [B, C],
   cidade: "Campinas",
@@ -18,8 +28,8 @@ const completo = {
   whatsappComercial: "(19) 99999-0001",
   endereco: "Rua das Flores, 100",
   areasAtendidas: ["Centro", "Cambuí", "centro"],
-  bannersPaths: [`${CONTA}/b1.jpg`],
-  fotosPaths: [`${CONTA}/f1.jpg`, `${CONTA}/f2.webp`],
+  bannersPaths: [P("b1", "jpg")],
+  fotosPaths: [P("f1", "jpg"), P("f2", "webp")],
   site: "meusite.com.br",
   informacoesSociais: "Atendemos também por encomenda.",
 };
@@ -97,11 +107,11 @@ describe("schema do perfil (IM-011, IM-012, IM-016)", () => {
     ["área muito longa", { areasAtendidas: ["a".repeat(61)] }],
     ["site de rede social", { site: "https://instagram.com/loja" }],
     ["site javascript", { site: "javascript:alert(1)" }],
-    ["7 fotos", { fotosPaths: Array.from({ length: 7 }, (_, i) => `${CONTA}/f${i}.jpg`) }],
-    ["4 banners", { bannersPaths: Array.from({ length: 4 }, (_, i) => `${CONTA}/b${i}.jpg`) }],
-    ["foto repetida", { fotosPaths: [`${CONTA}/f.jpg`, `${CONTA}/f.jpg`] }],
+    ["7 fotos", { fotosPaths: Array.from({ length: 7 }, (_, i) => P(`f${i}`, "jpg")) }],
+    ["4 banners", { bannersPaths: Array.from({ length: 4 }, (_, i) => P(`b${i}`, "jpg")) }],
+    ["foto repetida", { fotosPaths: [P("f", "jpg"), P("f", "jpg")] }],
     ["caminho de imagem solto", { imagemPath: "logo.png" }],
-    ["caminho com ..", { imagemPath: `${CONTA}/../x.png` }],
+    ["caminho com ..", { imagemPath: `perfil/${CONTA}/../x.png` }],
     ["byte nulo no nome", { nome: "Loja\u0000" }],
   ])("recusa %s", (_n, entrada) => {
     expect(camposPerfilSchema.safeParse(entrada).success).toBe(false);
@@ -110,8 +120,8 @@ describe("schema do perfil (IM-011, IM-012, IM-016)", () => {
   it("aceita até 6 fotos e 3 banners (D-006)", () => {
     expect(
       camposPerfilSchema.safeParse({
-        fotosPaths: Array.from({ length: 6 }, (_, i) => `${CONTA}/f${i}.jpg`),
-        bannersPaths: Array.from({ length: 3 }, (_, i) => `${CONTA}/b${i}.jpg`),
+        fotosPaths: Array.from({ length: 6 }, (_, i) => P(`f${i}`, "jpg")),
+        bannersPaths: Array.from({ length: 3 }, (_, i) => P(`b${i}`, "jpg")),
       }).success,
     ).toBe(true);
   });
@@ -119,7 +129,25 @@ describe("schema do perfil (IM-011, IM-012, IM-016)", () => {
   it("novo perfil exige nome ou slug", () => {
     expect(novoPerfilSchema.safeParse({}).success).toBe(false);
     expect(novoPerfilSchema.safeParse({ cidade: "Campinas" }).success).toBe(false);
-    expect(novoPerfilSchema.safeParse({ nome: "Loja" }).success).toBe(true);
-    expect(novoPerfilSchema.safeParse({ slug: "minha-loja" }).success).toBe(true);
+    expect(
+      novoPerfilSchema.safeParse({ nome: "Loja", whatsappComercial: "(19) 99999-0001" }).success,
+    ).toBe(true);
+    expect(
+      novoPerfilSchema.safeParse({ slug: "minha-loja", whatsappComercial: "(19) 99999-0001" })
+        .success,
+    ).toBe(true);
+    // WhatsApp comercial é obrigatório já no primeiro rascunho; imagens não entram na criação
+    expect(novoPerfilSchema.safeParse({ nome: "Loja" }).success).toBe(false);
+    expect(novoPerfilSchema.safeParse({ nome: "Loja", whatsappComercial: null }).success).toBe(
+      false,
+    );
+    const r = novoPerfilSchema.parse({
+      nome: "Loja",
+      whatsappComercial: "(19) 99999-0001",
+      imagemPath: P("x"),
+      fotosPaths: [P("y")],
+    });
+    expect(r).not.toHaveProperty("imagemPath");
+    expect(r).not.toHaveProperty("fotosPaths");
   });
 });

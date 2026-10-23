@@ -17,7 +17,7 @@ const vazioParaNull = (v: unknown) => (typeof v === "string" && v.trim() === "" 
 
 const caminhoImagem = z
   .string({ error: "Imagem inválida." })
-  .refine(formatoDeCaminhoValido, { error: "Imagem inválida." });
+  .refine((c) => formatoDeCaminhoValido(c, "perfil"), { error: "Imagem inválida." });
 
 const listaImagens = (max: number, msgMax: string) =>
   z
@@ -127,12 +127,24 @@ export const camposPerfilSchema = z.object({
 });
 export type CamposPerfil = z.infer<typeof camposPerfilSchema>;
 
-/** Novo perfil: `slug` opcional (gerado do nome); sem ele o `nome` é obrigatório. */
+/**
+ * Novo perfil: `slug` opcional (gerado do nome); sem ele o `nome` é obrigatório. O WhatsApp comercial é
+ * obrigatório já no primeiro rascunho. Sem imagens: o perfil precisa existir antes do upload (as imagens
+ * entram depois, em `editar`).
+ */
 export const novoPerfilSchema = camposPerfilSchema
+  .omit({ imagemPath: true, bannersPaths: true, fotosPaths: true })
   .extend({ slug: z.string({ error: "Endereço inválido." }).trim().optional() })
   .superRefine((d, ctx) => {
     if (!d.slug && !d.nome) {
       ctx.addIssue({ code: "custom", path: ["nome"], message: "Informe o nome do perfil." });
+    }
+    if (!d.whatsappComercial) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["whatsappComercial"],
+        message: "Informe o WhatsApp comercial.",
+      });
     }
   });
 export type NovoPerfil = z.infer<typeof novoPerfilSchema>;

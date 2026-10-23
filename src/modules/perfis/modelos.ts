@@ -1,10 +1,9 @@
 import { categoriasParaColunas, colunasParaCategorias } from "@/shared/conteudo/categorias";
 import type { SituacaoVersao } from "@/shared/conteudo/ciclo-versao";
 
-/** Linhas como o banco devolve. */
+/** Linhas como o banco devolve. Sem `responsavel_id`: ninguém lê o dono por coluna (a posse é estar em perfis_meus_perfis). */
 export type LinhaPerfil = {
   id: string;
-  responsavel_id: string;
   slug: string;
   publicado: boolean;
   versao_aprovada_id: string | null;
@@ -207,4 +206,38 @@ export function paraPerfilPublico(l: LinhaPerfilPublico): PerfilExibicao {
       whatsapp_comercial_e164: null,
     }),
   );
+}
+
+/** Parâmetros de `perfis_criar_rascunho`: conteúdo sem imagens (o perfil precisa existir antes do upload). */
+export type DadosCriarPerfil = Omit<
+  ColunasVersaoPerfil,
+  "imagem_path" | "banners_paths" | "fotos_paths"
+> & { slug: string; whatsapp_comercial_e164: string };
+
+/** Parâmetros de `perfis_gravar_versao`: conteúdo completo (substitui o rascunho) + WhatsApp comercial E.164. */
+export type DadosGravarVersaoPerfil = ColunasVersaoPerfil & { whatsapp_comercial_e164: string };
+
+export function dadosDeCriacao(
+  c: ConteudoPerfil,
+  slug: string,
+  whatsappE164: string,
+): DadosCriarPerfil {
+  const { nome, descricao_breve, categoria_principal_id, categoria_secundaria_1_id } =
+    colunasDeConteudo(c);
+  const cols = colunasDeConteudo(c);
+  return {
+    nome,
+    descricao_breve,
+    categoria_principal_id,
+    categoria_secundaria_1_id,
+    categoria_secundaria_2_id: cols.categoria_secundaria_2_id,
+    cidade: cols.cidade,
+    uf: cols.uf,
+    endereco: cols.endereco,
+    areas_atendidas: cols.areas_atendidas,
+    site: cols.site,
+    informacoes_sociais: cols.informacoes_sociais,
+    slug,
+    whatsapp_comercial_e164: whatsappE164,
+  };
 }

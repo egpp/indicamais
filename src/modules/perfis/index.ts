@@ -19,6 +19,8 @@ export type {
   LinhaVersaoPerfil,
   LinhaPerfilPublico,
   ColunasVersaoPerfil,
+  DadosCriarPerfil,
+  DadosGravarVersaoPerfil,
 } from "./modelos";
 export { MENSAGENS_PERFIS, mapearErroBancoPerfis } from "./erros";
 export type { ErroPerfis, CodigoErroPerfis } from "./erros";
