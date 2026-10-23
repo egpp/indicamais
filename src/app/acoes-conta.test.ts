@@ -46,6 +46,7 @@ import {
   reenviarConfirmacao,
   solicitarRecuperacao,
 } from "./acoes-conta";
+import { MENSAGEM_EMAIL_NAO_CONFIRMADO } from "./_lib/mensagens-auth";
 import { MENSAGEM_CADASTRO_ENVIADO, MENSAGEM_GOOGLE_INDISPONIVEL } from "./_lib/mensagens-auth";
 
 const form = (o: Record<string, string>) => {
@@ -65,6 +66,12 @@ describe("IM-008 mensagens neutras", () => {
     auth.signInWithPassword.mockResolvedValue({ error: { code: "invalid_credentials" } });
     const r = await entrar({}, form({ email: "a@b.com", senha: "x" }));
     expect(r.erro).toBe(MENSAGEM_LOGIN_INVALIDO);
+  });
+
+  it("login com e-mail não confirmado mostra o pedido de confirmação", async () => {
+    auth.signInWithPassword.mockResolvedValue({ error: { code: "email_not_confirmed" } });
+    const r = await entrar({}, form({ email: "a@b.com", senha: "x" }));
+    expect(r.erro).toBe(MENSAGEM_EMAIL_NAO_CONFIRMADO);
   });
 
   it("login válido redireciona só para caminho interno", async () => {

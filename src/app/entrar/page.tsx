@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BotaoGoogle, FormEntrar } from "../_componentes/formularios";
 import { Aviso, CartaoPagina } from "../_componentes/ui";
 import { caminhoSeguro } from "../_lib/destino";
-import { AVISOS_ENTRADA } from "../_lib/mensagens-auth";
+import { AVISOS_COM_NOVO_LINK, AVISOS_ENTRADA } from "../_lib/mensagens-auth";
 
 export const metadata: Metadata = { title: "Entrar | IndicaMais" };
 
@@ -17,7 +17,19 @@ export default async function PaginaEntrar({ searchParams }: PageProps<"/entrar"
 
   return (
     <CartaoPagina titulo="Entrar">
-      {aviso ? <Aviso tipo="info">{aviso}</Aviso> : null}
+      {aviso ? (
+        <Aviso tipo="info">
+          {aviso}
+          {chave && AVISOS_COM_NOVO_LINK.has(chave) ? (
+            <>
+              {" "}
+              <Link href="/reenviar-confirmacao">Reenviar confirmação</Link>
+              {" ou "}
+              <Link href="/recuperar-senha">recuperar senha</Link>.
+            </>
+          ) : null}
+        </Aviso>
+      ) : null}
       <FormEntrar proximo={proximo} />
       <p className="rodape-links">
         <Link href="/recuperar-senha">Esqueci minha senha</Link>

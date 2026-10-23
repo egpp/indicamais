@@ -26,8 +26,17 @@ export async function GET(request: NextRequest) {
 
   const falha = (aviso: string) => NextResponse.redirect(`${origin}/entrar?aviso=${aviso}`);
 
-  // Erro vindo do provedor (usuário cancelou, provedor desligado etc.).
-  if (searchParams.get("error") || searchParams.get("error_code")) return falha("oauth");
+  // Erro vindo do Supabase/provedor. Só chaves fixas; nada da URL vai para a tela.
+  const erroUrl = searchParams.get("error");
+  const codigoErro = searchParams.get("error_code");
+  if (erroUrl || codigoErro) {
+    // Link de e-mail expirado ou já usado (o Supabase manda access_denied + error_code).
+    if (codigoErro === "otp_expired" || (erroUrl === "access_denied" && codigoErro)) {
+      return falha("link_expirado");
+    }
+    // Sem error_code: falha ou cancelamento do login social.
+    return falha("oauth");
+  }
 
   const supabase = await criarClienteServidor();
   let recuperacao = tipo === "recovery";
@@ -37,10 +46,10 @@ export async function GET(request: NextRequest) {
       type: tipo as EmailOtpType,
       token_hash: tokenHash,
     });
-    if (error) return falha("link_invalido");
+    if (error) return falha(error.code === "otp_expired" ? "link_expirado" : "link_invalido");
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return falha("link_invalido");
+    if (error) return falha(error.code === "otp_expired" ? "link_expirado" : "link_invalido");
     // Recuperação por PKCE chega com o destino pedido na ida.
     recuperacao = recuperacao || destinoPedido === "/redefinir-senha";
   } else {

@@ -8,6 +8,7 @@ export const MENSAGEM_GOOGLE_INDISPONIVEL =
   "O login com Google não está disponível no momento. Entre com e-mail e senha.";
 export const MENSAGEM_LINK_INVALIDO =
   "Este link é inválido ou expirou. Peça um novo para continuar.";
+export const MENSAGEM_LINK_EXPIRADO = "Este link expirou ou já foi usado. Peça um novo link.";
 export const MENSAGEM_SENHA_IGUAL = "A nova senha deve ser diferente da atual.";
 export const MENSAGEM_SENHA_FRACA = "Esta senha é fraca ou muito comum. Escolha outra.";
 export const MENSAGEM_SESSAO_EXPIRADA = "Sua sessão expirou. Entre novamente.";
@@ -16,9 +17,16 @@ export const MENSAGEM_LIMITE_TENTATIVAS =
 export const MENSAGEM_NOME_SALVO = "Nome atualizado.";
 export const MENSAGEM_WHATSAPP_SALVO = "WhatsApp salvo. Ele ainda não foi verificado.";
 
+/** Avisos que pedem um novo link: a tela oferece reenvio e recuperação. */
+export const AVISOS_COM_NOVO_LINK: ReadonlySet<string> = new Set([
+  "link_invalido",
+  "link_expirado",
+]);
+
 /** Mensagens da página de entrada por chave na URL (nunca refletir texto da URL). */
 export const AVISOS_ENTRADA: Record<string, string> = {
   link_invalido: MENSAGEM_LINK_INVALIDO,
+  link_expirado: MENSAGEM_LINK_EXPIRADO,
   oauth: "Não foi possível entrar com Google. Tente novamente ou use e-mail e senha.",
   confirmado: "E-mail confirmado. Agora é só entrar.",
   sessao: MENSAGEM_SESSAO_EXPIRADA,
