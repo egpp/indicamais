@@ -181,7 +181,7 @@ select lives_ok($$insert into public.perfis_perfil_versao (perfil_id, nome, desc
   values (t.perfil('loja-ana'), 'Loja da Ana Nova', 'Doces e salgados', t.pf('loja-ana') || '/capa2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'A edita: nova versão em rascunho');
 select lives_ok($$insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values (t.versao('loja-ana', 'rascunho'), '+5551999990002')$$, 'WhatsApp da edição');
 select lives_ok($$select public.perfis_enviar_versao(t.versao('loja-ana', 'rascunho'))$$, 'A envia a edição');
-select is((select count(*)::int from public.perfis_perfil_versao), 3, 'A tem 3 versões (rejeitada, aprovada, pendente)');
+select is((select count(*)::int from public.perfis_perfil_versao where perfil_id = t.perfil('loja-ana')), 3, 'A tem 3 versões em loja-ana (rejeitada, aprovada, pendente)');
 
 reset role;
 set local role anon;
