@@ -200,7 +200,8 @@ grant insert (versao_id, whatsapp_comercial_e164) on public.perfis_perfil_versao
 grant update (whatsapp_comercial_e164) on public.perfis_perfil_versao_contato to authenticated;
 grant delete on public.perfis_perfil_versao_contato to authenticated;
 
-grant select on public.perfis_revisao to authenticated;
+-- autor_id (id real do administrador) fora do SELECT de qualquer cliente; a auditoria guarda o autor.
+grant select (id, perfil_id, versao_id, decisao, motivo, decidida_em, versao_aprovada_anterior_id) on public.perfis_revisao to authenticated;
 
 alter table public.perfis_perfil enable row level security;
 alter table public.perfis_perfil force row level security;

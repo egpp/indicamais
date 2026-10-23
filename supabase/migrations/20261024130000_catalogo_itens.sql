@@ -112,7 +112,8 @@ grant update (nome, descricao, foto_path, categoria_principal_id, categoria_secu
   categoria_secundaria_2_id, preco_modo, preco_centavos) on public.catalogo_item_versao to authenticated;
 grant delete on public.catalogo_item_versao to authenticated;
 
-grant select on public.catalogo_item_revisao to authenticated;
+-- autor_id (id real do administrador) fora do SELECT de qualquer cliente; a auditoria guarda o autor.
+grant select (id, item_id, versao_id, decisao, motivo, decidida_em, versao_aprovada_anterior_id) on public.catalogo_item_revisao to authenticated;
 
 alter table public.catalogo_item enable row level security;
 alter table public.catalogo_item force row level security;
