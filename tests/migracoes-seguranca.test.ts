@@ -58,12 +58,12 @@ describe("migrações: RLS", () => {
 });
 
 describe("migrações: funções", () => {
-  const funcoes = [...codigo.matchAll(/create function public\.(\w+)\(([\s\S]*?)\$\$;/gi)].map(
-    (m) => ({
-      nome: m[1]!,
-      corpo: m[0]!,
-    }),
-  );
+  const funcoes = [
+    ...codigo.matchAll(/create (?:or replace )?function public\.(\w+)\(([\s\S]*?)\$\$;/gi),
+  ].map((m) => ({
+    nome: m[1]!,
+    corpo: m[0]!,
+  }));
 
   it("encontra as funções", () => {
     expect(funcoes.length).toBeGreaterThan(20);
