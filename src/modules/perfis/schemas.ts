@@ -24,7 +24,6 @@ const listaImagens = (max: number, msgMax: string) =>
     .refine((a) => new Set(a).size === a.length, { error: "Não repita a mesma imagem." })
     .optional();
 
-
 export const siteSchema = z.preprocess(
   vazioParaNull,
   z
