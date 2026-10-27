@@ -6,7 +6,7 @@ import { formatarDataHora, motivoParaExibir } from "../_lib/apresentacao";
 import { obterContexto } from "../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../_lib/pagina";
 
-export const metadata: Metadata = { title: "Meus resultados | IndicaMais", ...SEM_INDEXACAO };
+export const metadata: Metadata = { title: "Minhas revisões | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 const ROTULO_SITUACAO = {
@@ -24,7 +24,7 @@ export default async function PaginaMinhasRevisoes() {
   ]);
   return (
     <PainelPagina
-      titulo="Meus resultados"
+      titulo="Minhas revisões"
       subtitulo="Resultado do que você enviou para aprovação."
       admin={admin}
       atual="revisoes"

@@ -17,7 +17,7 @@ export const MENSAGENS_TELA_ITEM = {
   novaVersao:
     "Edição salva como rascunho. Ela ainda NÃO foi enviada: clique em Enviar para aprovação. A versão aprovada continua no ar até a nova ser aprovada.",
   fotoSalva: "Foto salva.",
-  enviado: "Enviado para aprovação. O resultado aparece em Meus resultados.",
+  enviado: "Enviado para aprovação. O resultado aparece em Minhas revisões.",
   publicado: "Publicado.",
   despublicado: "Despublicado. Saiu do ar agora.",
 } as const;

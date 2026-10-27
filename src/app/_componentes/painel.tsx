@@ -21,7 +21,7 @@ export function PainelPagina({
     { chave: "perfis", href: "/meus-perfis", texto: "Meus perfis" },
     { chave: "itens", href: "/meus-itens", texto: "Meus itens" },
     { chave: "anuncios", href: "/meus-anuncios", texto: "Meus anúncios" },
-    { chave: "revisoes", href: "/minhas-revisoes", texto: "Meus resultados" },
+    { chave: "revisoes", href: "/minhas-revisoes", texto: "Revisões" },
     { chave: "conta", href: "/minha-conta", texto: "Minha conta" },
   ];
   if (admin) {
