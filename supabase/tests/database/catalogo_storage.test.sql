@@ -4,6 +4,8 @@
 -- aplicados pela API do Storage e só são conferidos aqui na configuração do bucket, não no upload.
 begin;
 select * from no_plan();
+-- A migração de seed cria as 8 categorias da D-006; este teste monta as suas.
+delete from public.catalogo_categoria;
 
 insert into auth.users (id, instance_id, aud, role, email) values
   ('aaaaaaaa-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'a@teste.local'),

@@ -98,7 +98,12 @@ describe("migrações: funções", () => {
       .filter(([, , para]) => /\banon\b/i.test(para!))
       .map(([, nome]) => nome!)
       .sort();
-    expect(concedidas).toEqual(["catalogo_imagem_publica", "perfis_perfil_disponivel"]);
+    expect(concedidas).toEqual([
+      "busca_normalizar",
+      "busca_publica",
+      "catalogo_imagem_publica",
+      "perfis_perfil_disponivel",
+    ]);
   });
 });
 
@@ -114,6 +119,7 @@ describe("migrações: visões", () => {
       expect.arrayContaining([
         "administracao_fila_pendencias",
         "administracao_meus_resultados",
+        "administracao_patrocinador_publico",
         "catalogo_item_publico",
         "catalogo_meus_itens",
         "perfis_meus_perfis",
@@ -123,7 +129,11 @@ describe("migrações: visões", () => {
   });
 
   it("visões públicas são security_invoker e não trazem colunas privadas", () => {
-    for (const nome of ["perfis_perfil_publico", "catalogo_item_publico"]) {
+    for (const nome of [
+      "perfis_perfil_publico",
+      "catalogo_item_publico",
+      "administracao_patrocinador_publico",
+    ]) {
       const v = visoes.find((x) => x.nome === nome)!;
       expect(v.invoker, `${nome} deve ser security_invoker`).toBe(true);
       expect(v.corpo).not.toMatch(/responsavel_id|conta_id|whatsapp|autor_id|\bemail\b/i);
@@ -180,6 +190,7 @@ describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
       .map(([, t]) => t!)
       .sort();
     expect(inteiras).toEqual([
+      "administracao_patrocinador_publico",
       "catalogo_categoria",
       "catalogo_item_publico",
       "catalogo_item_versao",
