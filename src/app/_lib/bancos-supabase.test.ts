@@ -190,10 +190,10 @@ describe("perfis", () => {
       nome: "Bike",
       descricao: null,
       categoria_principal_id: null,
-      categoria_secundaria_1_id: null,
-      categoria_secundaria_2_id: null,
-      preco_modo: null,
-      preco_centavos: null,
+      categoria_secundaria_1_id: "c1",
+      categoria_secundaria_2_id: "c1",
+      preco_modo: "fixo",
+      preco_centavos: 1000,
       cidade: "Canoas",
       uf: "RS",
     });
@@ -203,10 +203,10 @@ describe("perfis", () => {
       descricao: null,
       foto_path: null,
       categoria_principal_id: null,
-      categoria_secundaria_1_id: null,
-      categoria_secundaria_2_id: null,
-      preco_modo: null,
-      preco_centavos: null,
+      categoria_secundaria_1_id: "c1",
+      categoria_secundaria_2_id: "c1",
+      preco_modo: "fixo",
+      preco_centavos: 1000,
       cidade: "Canoas",
       uf: "RS",
     });
@@ -305,49 +305,6 @@ describe("itens", () => {
     // Item de perfil/sem localização: p_cidade e p_uf são omitidos.
     expect(rpcs[0]!.args).not.toHaveProperty("p_cidade");
     expect(rpcs[0]!.args).not.toHaveProperty("p_uf");
-  });
-
-  it("anúncio particular leva p_cidade e p_uf; versões gravam e leem cidade/UF (D-008)", async () => {
-    const { cliente, rpcs, consultas } = simular([
-      { data: [{ o_item_id: "i1", o_versao_id: "iv1" }], error: null },
-      {
-        data: { id: "iv2", item_id: "i1", situacao: "rascunho", cidade: "Canoas", uf: "RS" },
-        error: null,
-      },
-    ]);
-    const banco = criarBancoItens(cliente);
-    await banco.criarItem({
-      tipo: "produto",
-      perfil_id: null,
-      nome: "Bike",
-      descricao: null,
-      categoria_principal_id: null,
-      categoria_secundaria_1_id: null,
-      categoria_secundaria_2_id: null,
-      preco_modo: null,
-      preco_centavos: null,
-      cidade: "Canoas",
-      uf: "RS",
-    });
-    expect(rpcs[0]!.args).toMatchObject({ p_cidade: "Canoas", p_uf: "RS" });
-    const v = await banco.atualizarVersao("iv2", {
-      nome: "Bike",
-      descricao: null,
-      foto_path: null,
-      categoria_principal_id: null,
-      categoria_secundaria_1_id: null,
-      categoria_secundaria_2_id: null,
-      preco_modo: null,
-      preco_centavos: null,
-      cidade: "Canoas",
-      uf: "RS",
-    });
-    expect(v.dados).toMatchObject({ cidade: "Canoas", uf: "RS" });
-    expect(consultas[0]!.chamadas).toContainEqual({
-      metodo: "update",
-      args: [expect.objectContaining({ cidade: "Canoas", uf: "RS" })],
-    });
-    expect(COLUNAS.versaoItem).toMatch(/\bcidade, uf\b/);
   });
 
   it("lê pela visão catalogo_meus_itens e pelas versões com colunas nomeadas", async () => {
