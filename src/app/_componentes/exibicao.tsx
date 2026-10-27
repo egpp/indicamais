@@ -128,6 +128,7 @@ export function ItemVisao({
         secundarias={item.categoriasSecundariasIds}
         categorias={categorias}
       />
+      {item.cidade || item.uf ? <p>{[item.cidade, item.uf].filter(Boolean).join(" - ")}</p> : null}
       {item.descricao ? <p>{item.descricao}</p> : null}
     </article>
   );

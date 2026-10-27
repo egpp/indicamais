@@ -6,7 +6,13 @@ import type { CategoriaOpcao } from "../_lib/apresentacao";
 import { ESTADO_INICIAL } from "../_lib/estado-formulario";
 import { validarEdicaoItem, validarNovoItem } from "../_lib/validacao-conteudo";
 import { Campo } from "./campos";
-import { CampoSelect, CampoTextoLongo, CamposCategorias, CamposPreco } from "./campos-conteudo";
+import {
+  CampoSelect,
+  CampoTextoLongo,
+  CampoUF,
+  CamposCategorias,
+  CamposPreco,
+} from "./campos-conteudo";
 import { GerenciadorImagens, type ImagemDoCampo } from "./gerenciador-imagens";
 import { Aviso, BotaoEnviar } from "./ui";
 import { useFormulario } from "./use-formulario";
@@ -17,10 +23,13 @@ function CamposItem({
   valores,
   erros,
   categorias,
+  anuncio,
 }: {
   valores: Valores;
   erros: Record<string, string>;
   categorias: readonly CategoriaOpcao[];
+  /** Anúncio particular: cidade e UF obrigatórias (D-008). Item de perfil usa a localização do perfil. */
+  anuncio: boolean;
 }) {
   const v = (n: string) => valores[n] ?? "";
   return (
@@ -39,6 +48,19 @@ function CamposItem({
         secundarias={[v("categoriaSecundaria1"), v("categoriaSecundaria2")]}
         erros={erros}
       />
+      {anuncio ? (
+        <>
+          <Campo
+            nome="cidade"
+            rotulo="Cidade"
+            autoComplete="address-level2"
+            valorInicial={v("cidade")}
+            erro={erros.cidade}
+            ajuda="Onde o produto está. Aparece nos filtros por cidade e UF."
+          />
+          <CampoUF valorInicial={v("uf")} erro={erros.uf} />
+        </>
+      ) : null}
       <CamposPreco modoInicial={v("precoModo")} valorInicial={v("precoValor")} erros={erros} />
     </>
   );
@@ -93,7 +115,12 @@ export function FormNovoItem({
       ) : (
         <input type="hidden" name="tipo" value="produto" />
       )}
-      <CamposItem valores={v} erros={erros} categorias={categorias} />
+      <CamposItem
+        valores={v}
+        erros={erros}
+        categorias={categorias}
+        anuncio={origem === "anuncio"}
+      />
       <p className="ajuda">A foto é enviada na próxima tela, depois que o rascunho for criado.</p>
       <BotaoEnviar enviando={enviando} rotulo="Criar rascunho" rotuloEnviando="Criando..." />
     </form>
@@ -104,10 +131,12 @@ export function FormEditarItem({
   itemId,
   inicial,
   categorias,
+  anuncioParticular = false,
 }: {
   itemId: string;
   inicial: Valores;
   categorias: readonly CategoriaOpcao[];
+  anuncioParticular?: boolean;
 }) {
   const { estado, action, enviando, erros, registrarForm, aoEnviar } = useFormulario(
     acaoEditarItem,
@@ -118,10 +147,12 @@ export function FormEditarItem({
       {estado.erro ? <Aviso tipo="erro">{estado.erro}</Aviso> : null}
       {estado.sucesso ? <Aviso tipo="sucesso">{estado.sucesso}</Aviso> : null}
       <input type="hidden" name="id" value={itemId} />
+      <input type="hidden" name="origem" value={anuncioParticular ? "anuncio" : "perfil"} />
       <CamposItem
         valores={{ ...inicial, ...estado.valores }}
         erros={erros}
         categorias={categorias}
+        anuncio={anuncioParticular}
       />
       <BotaoEnviar enviando={enviando} rotulo="Salvar alterações" rotuloEnviando="Salvando..." />
     </form>

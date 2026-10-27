@@ -79,8 +79,27 @@ describe("validação no navegador com os schemas dos módulos", () => {
   });
 
   it("item: preço inválido aparece no campo de valor; item de perfil exige perfil", () => {
-    const base = { tipo: "produto", nome: "Bike", descricao: "Boa", categoriaPrincipalId: UUID };
+    const base = {
+      tipo: "produto",
+      nome: "Bike",
+      descricao: "Boa",
+      categoriaPrincipalId: UUID,
+      cidade: "Porto Alegre",
+      uf: "RS",
+    };
     expect(validarNovoItem({ ...base, origem: "anuncio" })).toBeNull();
+    // Anúncio particular exige cidade e UF (D-008); item de perfil não pede (herda do perfil).
+    expect(validarNovoItem({ ...base, origem: "anuncio", cidade: "" })?.cidade).toMatch(
+      /^Informe a cidade/,
+    );
+    expect(validarNovoItem({ ...base, origem: "anuncio", uf: "" })?.uf).toBe("Escolha a UF.");
+    expect(validarNovoItem({ ...base, origem: "anuncio", uf: "XX" })?.uf).toBeTruthy();
+    expect(
+      validarNovoItem({ ...base, origem: "perfil", perfilId: UUID, cidade: "", uf: "" }),
+    ).toBeNull();
+    expect(validarNovoItem({ ...base, origem: "perfil", perfilId: "", cidade: "" })).toEqual({
+      perfilId: "Escolha o perfil do item.",
+    });
     expect(
       validarNovoItem({ ...base, origem: "anuncio", precoModo: "fixo", precoValor: "x" })
         ?.precoValor,
