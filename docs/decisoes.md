@@ -49,6 +49,11 @@ Aprovadas pelo Emerson em 23/10/2026, sobre proposta do gestor:
 - **Categorias iniciais (IM-016), provisórias:** Alimentação, Beleza e estética, Casa e construção, Saúde e bem-estar, Serviços profissionais, Veículos, Tecnologia e Outros. O administrador gerencia a lista e o responsável pode solicitar novas.
 - **Fora da Fase 2:** ações da página (IM-013) são da Fase 3; "Curtir" segue pendente (IM-043); mapa e rota (IM-018) seguem pendentes; e-mail do resultado da revisão (IM-023) depende do SMTP próprio, então começa pelo aviso no painel.
 
+## D-007 · 27/10/2026 · Auditoria das decisões de revisão
+**IDs:** IM-021, IM-023, IM-086
+Aprovada pelo Emerson em 27/10/2026, sobre recomendação do gestor: aprovar ou rejeitar versão de perfil ou item grava, além das tabelas de revisão, uma linha em `administracao_auditoria` (autor, data, motivo, valor anterior e novo), para haver uma trilha única de ações administrativas (regra do CLAUDE.md). As tabelas de revisão continuam sendo a fonte do resultado mostrado ao responsável.
+Implementada em nova migração, aplicada primeiro no dev com aprovação do Emerson (D-003).
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)
