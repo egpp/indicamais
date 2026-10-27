@@ -13,9 +13,10 @@ insert into public.catalogo_categoria (id, nome, slug, ativa, ordem) values
 insert into public.perfis_perfil (id, responsavel_id, slug) values
   ('a0000000-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-00000000000a', 'padaria-sao-joao');
 insert into public.perfis_perfil_versao (id, perfil_id, situacao, enviada_em, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf)
-values ('a1000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'aprovada', now(), 'Padaria São João', 'Pães',
+values ('a1000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'pendente', now(), 'Padaria São João', 'Pães',
         'perfil/a0000000-0000-0000-0000-000000000001/capa.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS');
 insert into public.perfis_perfil_versao_contato (versao_id, whatsapp_comercial_e164) values ('a1000000-0000-0000-0000-000000000001', '+5551999990001');
+update public.perfis_perfil_versao set situacao = 'aprovada' where id = 'a1000000-0000-0000-0000-000000000001';
 update public.perfis_perfil set versao_aprovada_id = 'a1000000-0000-0000-0000-000000000001', publicado = true where id = 'a0000000-0000-0000-0000-000000000001';
 
 -- Legado: anúncio particular aprovado ANTES da D-008 (sem cidade/UF) continua válido e público.
