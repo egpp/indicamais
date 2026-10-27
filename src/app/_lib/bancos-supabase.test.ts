@@ -3,7 +3,9 @@ import {
   COLUNAS,
   criarBancoAdministracao,
   criarBancoCategorias,
+  criarBancoBusca,
   criarBancoItens,
+  criarBancoPatrocinadores,
   criarBancoPerfis,
   criarBancosSupabase,
   type ClienteSupabaseFase2,
@@ -173,6 +175,49 @@ describe("perfis", () => {
     expect(Object.values(rpcs[0]!.args as object)).not.toContain(null);
   });
 
+  it("anúncio particular leva p_cidade e p_uf; versões gravam e leem cidade/UF (D-008)", async () => {
+    const { cliente, rpcs, consultas } = simular([
+      { data: [{ o_item_id: "i1", o_versao_id: "iv1" }], error: null },
+      {
+        data: { id: "iv2", item_id: "i1", situacao: "rascunho", cidade: "Canoas", uf: "RS" },
+        error: null,
+      },
+    ]);
+    const banco = criarBancoItens(cliente);
+    await banco.criarItem({
+      tipo: "produto",
+      perfil_id: null,
+      nome: "Bike",
+      descricao: null,
+      categoria_principal_id: null,
+      categoria_secundaria_1_id: null,
+      categoria_secundaria_2_id: null,
+      preco_modo: null,
+      preco_centavos: null,
+      cidade: "Canoas",
+      uf: "RS",
+    });
+    expect(rpcs[0]!.args).toMatchObject({ p_cidade: "Canoas", p_uf: "RS" });
+    const v = await banco.atualizarVersao("iv2", {
+      nome: "Bike",
+      descricao: null,
+      foto_path: null,
+      categoria_principal_id: null,
+      categoria_secundaria_1_id: null,
+      categoria_secundaria_2_id: null,
+      preco_modo: null,
+      preco_centavos: null,
+      cidade: "Canoas",
+      uf: "RS",
+    });
+    expect(v.dados).toMatchObject({ cidade: "Canoas", uf: "RS" });
+    expect(consultas[0]!.chamadas).toContainEqual({
+      metodo: "update",
+      args: [expect.objectContaining({ cidade: "Canoas", uf: "RS" })],
+    });
+    expect(COLUNAS.versaoItem).toMatch(/\bcidade, uf\b/);
+  });
+
   it("gravarVersao, enviarVersao e atualizarPerfil", async () => {
     const { cliente, rpcs, consultas } = simular([
       { data: "v9", error: null },
@@ -257,6 +302,52 @@ describe("itens", () => {
       args: { p_tipo: "produto", p_nome: "Bolo", p_preco_modo: "fixo", p_preco_centavos: 1000 },
     });
     expect(Object.values(rpcs[0]!.args as object)).not.toContain(null);
+    // Item de perfil/sem localização: p_cidade e p_uf são omitidos.
+    expect(rpcs[0]!.args).not.toHaveProperty("p_cidade");
+    expect(rpcs[0]!.args).not.toHaveProperty("p_uf");
+  });
+
+  it("anúncio particular leva p_cidade e p_uf; versões gravam e leem cidade/UF (D-008)", async () => {
+    const { cliente, rpcs, consultas } = simular([
+      { data: [{ o_item_id: "i1", o_versao_id: "iv1" }], error: null },
+      {
+        data: { id: "iv2", item_id: "i1", situacao: "rascunho", cidade: "Canoas", uf: "RS" },
+        error: null,
+      },
+    ]);
+    const banco = criarBancoItens(cliente);
+    await banco.criarItem({
+      tipo: "produto",
+      perfil_id: null,
+      nome: "Bike",
+      descricao: null,
+      categoria_principal_id: null,
+      categoria_secundaria_1_id: null,
+      categoria_secundaria_2_id: null,
+      preco_modo: null,
+      preco_centavos: null,
+      cidade: "Canoas",
+      uf: "RS",
+    });
+    expect(rpcs[0]!.args).toMatchObject({ p_cidade: "Canoas", p_uf: "RS" });
+    const v = await banco.atualizarVersao("iv2", {
+      nome: "Bike",
+      descricao: null,
+      foto_path: null,
+      categoria_principal_id: null,
+      categoria_secundaria_1_id: null,
+      categoria_secundaria_2_id: null,
+      preco_modo: null,
+      preco_centavos: null,
+      cidade: "Canoas",
+      uf: "RS",
+    });
+    expect(v.dados).toMatchObject({ cidade: "Canoas", uf: "RS" });
+    expect(consultas[0]!.chamadas).toContainEqual({
+      metodo: "update",
+      args: [expect.objectContaining({ cidade: "Canoas", uf: "RS" })],
+    });
+    expect(COLUNAS.versaoItem).toMatch(/\bcidade, uf\b/);
   });
 
   it("lê pela visão catalogo_meus_itens e pelas versões com colunas nomeadas", async () => {
@@ -439,5 +530,118 @@ describe("criarBancosSupabase", () => {
     expect(createSignedUrls).toHaveBeenCalledWith([caminho], 3600);
     expect(r).toEqual({ [caminho]: "https://x/assinada" });
     expect(JSON.stringify(r)).not.toContain("dono-secreto");
+  });
+});
+
+describe("busca pública (IM-019)", () => {
+  it("rpc busca_publica omite filtros nulos e lê categorias com colunas nomeadas", async () => {
+    const { cliente, rpcs, consultas } = simular([
+      { data: [], error: null },
+      {
+        data: [{ id: "c1", nome: "Alimentação", slug: "alimentacao", ativa: true, ordem: 1 }],
+        error: null,
+      },
+    ]);
+    const banco = criarBancoBusca(cliente);
+    const r = await banco.buscar({
+      p_limite: 12,
+      p_pagina: 1,
+      p_termo: "bolo",
+      p_uf: undefined,
+      p_cidade: null as unknown as string,
+    });
+    expect(r.dados).toEqual([]);
+    expect(rpcs[0]).toEqual({
+      nome: "busca_publica",
+      args: { p_limite: 12, p_pagina: 1, p_termo: "bolo" },
+    });
+    const c = await banco.listarCategorias();
+    expect(c.dados?.[0]?.nome).toBe("Alimentação");
+    expect(consultas[0]!.tabela).toBe("catalogo_categoria");
+    expect(colunasUsadas(consultas)).toEqual([COLUNAS.categoria]);
+  });
+
+  it("erro do banco vira ErroBanco e exceção vira erro genérico (sem texto)", async () => {
+    const { cliente } = simular([{ data: null, error: { code: "22023", message: "uf inválida" } }]);
+    const r = await criarBancoBusca(cliente).buscar({ p_limite: 1, p_pagina: 1 });
+    expect(r.erro?.code).toBe("22023");
+    const quebrado = {
+      rpc: () => {
+        throw new Error("ECONNRESET postgres://segredo");
+      },
+    } as unknown as ClienteSupabaseFase2;
+    const falha = await criarBancoBusca(quebrado).buscar({ p_limite: 1, p_pagina: 1 });
+    expect(JSON.stringify(falha)).not.toContain("postgres://");
+    expect(falha.erro).toEqual({ code: "XX000" });
+  });
+});
+
+describe("patrocinadores (IM-020)", () => {
+  it("leitura pública pela visão com colunas nomeadas; administrador pela tabela", async () => {
+    const { cliente, consultas } = simular([
+      { data: [], error: null },
+      { data: [], error: null },
+    ]);
+    const banco = criarBancoPatrocinadores(cliente);
+    await banco.listarPublicos();
+    await banco.listarTodos!();
+    expect(consultas.map((c) => c.tabela)).toEqual([
+      "administracao_patrocinador_publico",
+      "administracao_patrocinador",
+    ]);
+    expect(colunasUsadas(consultas)).toEqual([
+      COLUNAS.patrocinadorPublico,
+      COLUNAS.patrocinadorAdmin,
+    ]);
+  });
+
+  it("criar omite parâmetros nulos e leva p_id; alterar e ativar levam o motivo", async () => {
+    const { cliente, rpcs } = simular([
+      { data: "11111111-1111-4111-8111-111111111111", error: null },
+      { data: null, error: null },
+      { data: null, error: null },
+    ]);
+    const banco = criarBancoPatrocinadores(cliente);
+    const criado = await banco.criar!({
+      p_titulo: "Padaria",
+      p_imagem_path: "patrocinador/x/y.webp",
+      p_perfil_destino_id: null,
+      p_texto_destino: "Pão quente",
+      p_ordem: 1,
+      p_ativo: false,
+      p_inicio_em: null,
+      p_fim_em: null,
+      p_motivo: null,
+      p_id: "11111111-1111-4111-8111-111111111111",
+    });
+    expect(criado.id).toBe("11111111-1111-4111-8111-111111111111");
+    expect(Object.keys(rpcs[0]!.args as object).sort()).toEqual(
+      ["p_ativo", "p_id", "p_imagem_path", "p_ordem", "p_texto_destino", "p_titulo"].sort(),
+    );
+    await banco.alterar!({
+      p_id: "i",
+      p_titulo: "Padaria",
+      p_imagem_path: "patrocinador/x/y.webp",
+      p_perfil_destino_id: null,
+      p_texto_destino: "Pão",
+      p_ordem: 0,
+      p_inicio_em: null,
+      p_fim_em: null,
+      p_motivo: "ajuste",
+    });
+    expect(rpcs[1]).toMatchObject({
+      nome: "administracao_alterar_patrocinador",
+      args: { p_motivo: "ajuste", p_perfil_destino_id: null, p_fim_em: null },
+    });
+    await banco.definirAtivo!({ p_id: "i", p_ativo: false, p_motivo: "pausa" });
+    expect(rpcs[2]).toEqual({
+      nome: "administracao_definir_patrocinador_ativo",
+      args: { p_id: "i", p_ativo: false, p_motivo: "pausa" },
+    });
+  });
+
+  it("administrador falha fechado quando a rpc dá erro", async () => {
+    const { cliente } = simular([{ data: null, error: { code: "42501" } }]);
+    expect(await criarBancoPatrocinadores(cliente).ehAdministrador!()).toBe(false);
   });
 });

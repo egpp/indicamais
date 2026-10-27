@@ -1,3 +1,4 @@
+import { indexacaoLigada } from "./site";
 import type { Contexto } from "./contexto";
 import type { CategoriaOpcao } from "./apresentacao";
 import type { ImagemDoCampo } from "../_componentes/gerenciador-imagens";
@@ -33,3 +34,11 @@ export function imagensDoCampo(
 }
 
 export const SEM_INDEXACAO = { robots: { index: false, follow: false } } as const;
+
+/**
+ * `robots` das páginas públicas. noindex/nofollow até o Emerson decidir abrir ao público (IM-089): só a
+ * variável de ambiente PUBLICO_INDEXAVEL=sim libera.
+ */
+export function robotsPublico() {
+  return indexacaoLigada() ? { robots: { index: true, follow: true } } : SEM_INDEXACAO;
+}
