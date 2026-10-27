@@ -384,3 +384,243 @@ fieldset.grupo-imagens {
 .aviso p {
   margin: 0 0 0.25rem;
 }
+
+/* Páginas públicas (home, perfil, item): 360px primeiro; toque mínimo de 44px. */
+.pagina-publica {
+  max-width: 64rem;
+}
+.cabecalho-publico {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.cabecalho-publico .marca {
+  margin: 0;
+}
+.cabecalho-publico nav ul {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cabecalho-publico nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.5rem;
+}
+.filtros-busca {
+  display: grid;
+  gap: 0.25rem;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+}
+.filtros-busca .acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.filtros-busca .acoes a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.grade-cards {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: 1fr;
+}
+.card-publico {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--fundo);
+}
+.card-imagem img,
+.card-imagem .imagem-indisponivel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+  background: #f2f2f2;
+  color: var(--texto-suave);
+}
+.card-corpo {
+  padding: 0.75rem;
+}
+.card-corpo h3 {
+  margin: 0.125rem 0 0.25rem;
+  font-size: 1.0625rem;
+}
+.card-corpo p {
+  margin: 0.25rem 0;
+}
+/* O link do título cobre o card inteiro: alvo de toque grande e um só foco por card. */
+.card-link {
+  color: inherit;
+  text-decoration: none;
+}
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.card-link:hover,
+.card-link:focus-visible {
+  text-decoration: underline;
+}
+.card-tipo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.card-meta {
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+.card-descricao {
+  overflow-wrap: anywhere;
+}
+.preco-card {
+  font-weight: 700;
+  color: var(--primaria);
+}
+.carrossel {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0 0 0.5rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+.carrossel-regiao {
+  margin: 0;
+}
+.carrossel > li {
+  flex: 0 0 85%;
+  max-width: 22rem;
+  scroll-snap-align: start;
+}
+.card-patrocinado {
+  position: relative;
+  height: 100%;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.card-patrocinado .card-imagem img,
+.card-patrocinado .card-imagem .imagem-indisponivel {
+  aspect-ratio: 16 / 9;
+}
+.selo-patrocinado {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  background: #fff4cc;
+  color: #5c4300;
+  border: 1px solid #8a6a00;
+}
+.paginacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.paginacao a,
+.paginacao .pagina-atual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.75rem;
+}
+.texto-corrido {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.lista-dados {
+  margin: 0.75rem 0;
+}
+.lista-dados dt {
+  font-weight: 700;
+}
+.lista-dados dd {
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+.visao-publica img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+.visao-publica .imagem-principal img {
+  width: 100%;
+  max-height: 24rem;
+  object-fit: cover;
+}
+
+@media (min-width: 640px) {
+  .grade-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .carrossel > li {
+    flex-basis: 45%;
+  }
+  .filtros-busca {
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 0.75rem;
+  }
+  .filtros-busca .acoes,
+  .filtros-busca .campo-largo {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 960px) {
+  .grade-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .carrossel > li {
+    flex-basis: 30%;
+  }
+}
+
+/* Administração de patrocinadores: caixa de marcar com alvo de toque de 44px. */
+.campo-marcar {
+  margin: 0 0 1rem;
+}
+.campo-marcar label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-weight: 600;
+}
+.campo-marcar input {
+  width: 1.5rem;
+  height: 1.5rem;
+}

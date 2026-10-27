@@ -5,6 +5,7 @@ import {
   criarBancoCategorias,
   criarBancoBusca,
   criarBancoItens,
+  criarBancoLeituraPublica,
   criarBancoPatrocinadores,
   criarBancoPerfis,
   criarBancosSupabase,
@@ -33,6 +34,7 @@ function simular(respostas: Resposta[] = [], storage?: unknown) {
         "eq",
         "in",
         "order",
+        "limit",
         "maybeSingle",
         "single",
       ]) {
@@ -600,5 +602,42 @@ describe("patrocinadores (IM-020)", () => {
   it("administrador falha fechado quando a rpc dá erro", async () => {
     const { cliente } = simular([{ data: null, error: { code: "42501" } }]);
     expect(await criarBancoPatrocinadores(cliente).ehAdministrador!()).toBe(false);
+  });
+});
+
+describe("leitura pública de perfil e item (IM-011, IM-014, IM-079)", () => {
+  it("lê só as visões públicas, com colunas nomeadas, sem responsável nem WhatsApp", async () => {
+    const { cliente, consultas } = simular([
+      {
+        data: { id: "p1", slug: "loja", nome: "Loja", whatsapp_comercial_e164: "+5511999990000" },
+        error: null,
+      },
+      { data: { id: "i1", nome: "Bolo", conta_id: "c1" }, error: null },
+      { data: [], error: null },
+      { data: null, error: null },
+    ]);
+    const banco = criarBancoLeituraPublica(cliente);
+    await banco.buscarPerfilPorSlug("loja");
+    await banco.buscarItemPorId("i1");
+    await banco.listarItensDoPerfil("p1");
+    const ausente = await banco.buscarPerfilPorId("p9");
+    expect(ausente).toEqual({ dados: null, erro: null });
+    expect(consultas.map((c) => c.tabela)).toEqual([
+      "perfis_perfil_publico",
+      "catalogo_item_publico",
+      "catalogo_item_publico",
+      "perfis_perfil_publico",
+    ]);
+    expect(colunasUsadas(consultas)).toEqual([
+      COLUNAS.perfilPublico,
+      COLUNAS.itemPublico,
+      COLUNAS.itemPublico,
+      COLUNAS.perfilPublico,
+    ]);
+    for (const lista of [COLUNAS.perfilPublico, COLUNAS.itemPublico]) {
+      expect(lista).not.toMatch(/whatsapp|responsavel|conta_id|email|owner/);
+    }
+    expect(consultas[0]!.chamadas).toContainEqual({ metodo: "eq", args: ["slug", "loja"] });
+    expect(consultas[2]!.chamadas).toContainEqual({ metodo: "limit", args: [50] });
   });
 });

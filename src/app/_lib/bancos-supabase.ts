@@ -17,12 +17,19 @@ import type {
   TipoItem,
 } from "@/modules/catalogo";
 import type { ClienteBancoBusca, LinhaBusca } from "@/modules/busca";
-import type { ClienteBancoPerfis, LinhaPerfil, LinhaVersaoPerfil } from "@/modules/perfis";
+import type { LinhaItemPublico } from "@/modules/catalogo";
+import type {
+  ClienteBancoPerfis,
+  LinhaPerfil,
+  LinhaPerfilPublico,
+  LinhaVersaoPerfil,
+} from "@/modules/perfis";
 import type { SituacaoVersao } from "@/shared/conteudo/ciclo-versao";
 import type { ErroBanco } from "@/shared/conteudo/resultado";
 import type { Database } from "@/shared/db/database.types";
 import type { DependenciasContexto } from "./contexto";
 import { criarAssinadorImagens } from "./imagens-servidor";
+import type { ClienteBancoLeituraPublica } from "./leitura-publica";
 
 /**
  * Adaptadores supabase-js dos contratos de banco da Fase 2. Sempre com a SESSÃO DO USUÁRIO (RLS decide);
@@ -46,6 +53,10 @@ export const COLUNAS = {
   fila: "alvo_tipo, versao_id, alvo_id, nome, enviada_em, dono_id, eh_edicao",
   resultado:
     "tipo, alvo_id, versao_id, situacao, nome, motivo, decidida_em, enviada_em, autor_ref, slug, publicado, versao_vigente",
+  perfilPublico:
+    "id, slug, nome, descricao_breve, imagem_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, cidade, uf, endereco, areas_atendidas, banners_paths, fotos_paths, site, informacoes_sociais",
+  itemPublico:
+    "id, perfil_id, tipo, nome, descricao, foto_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, preco_modo, preco_centavos, cidade, uf, criado_em",
   patrocinadorPublico:
     "id, identificacao, titulo, imagem_path, destino_tipo, destino_perfil_id, destino_perfil_slug, destino_texto, ordem",
   patrocinadorAdmin:
@@ -677,6 +688,47 @@ export function criarBancoBusca(supabase: ClienteSupabaseFase2): ClienteBancoBus
           .order("ordem", { ascending: true })
           .order("nome", { ascending: true });
         return { dados: (data ?? []) as LinhaCategoria[], erro: paraErro(error) };
+      }),
+  };
+}
+
+/**
+ * Leitura das páginas públicas de perfil e item: só as visões públicas, colunas nomeadas, sessão anônima.
+ * Linha inexistente (ou não liberada pela RLS/visão) = `dados: null` sem erro.
+ */
+export function criarBancoLeituraPublica(
+  supabase: ClienteSupabaseFase2,
+): ClienteBancoLeituraPublica {
+  const perfil = (coluna: "slug" | "id", valor: string) =>
+    protegido(async () => {
+      const { data, error } = await supabase
+        .from("perfis_perfil_publico")
+        .select(COLUNAS.perfilPublico)
+        .eq(coluna, valor)
+        .maybeSingle();
+      return { dados: (data ?? null) as LinhaPerfilPublico | null, erro: paraErro(error) };
+    });
+  return {
+    buscarPerfilPorSlug: (slug) => perfil("slug", slug),
+    buscarPerfilPorId: (id) => perfil("id", id),
+    buscarItemPorId: (id) =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("catalogo_item_publico")
+          .select(COLUNAS.itemPublico)
+          .eq("id", id)
+          .maybeSingle();
+        return { dados: (data ?? null) as LinhaItemPublico | null, erro: paraErro(error) };
+      }),
+    listarItensDoPerfil: (perfilId) =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("catalogo_item_publico")
+          .select(COLUNAS.itemPublico)
+          .eq("perfil_id", perfilId)
+          .order("criado_em", { ascending: false })
+          .limit(50);
+        return { dados: (data ?? []) as LinhaItemPublico[], erro: paraErro(error) };
       }),
   };
 }
