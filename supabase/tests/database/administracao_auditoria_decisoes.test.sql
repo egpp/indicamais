@@ -36,10 +36,10 @@ insert into public.catalogo_item_versao (id, item_id, situacao, enviada_em, nome
   ('e1000000-0000-0000-0000-000000000000', 'e0000000-0000-0000-0000-000000000001', 'aprovada', now(), 'Bolo', 'Bolo de cenoura', 'item/e0000000-0000-0000-0000-000000000001/bolo.jpg', '11111111-0000-0000-0000-000000000001');
 update public.catalogo_item set versao_aprovada_id = 'e1000000-0000-0000-0000-000000000000', publicado = true
  where id = 'e0000000-0000-0000-0000-000000000001';
-insert into public.catalogo_item_versao (id, item_id, situacao, enviada_em, nome, descricao, foto_path, categoria_principal_id) values
-  ('e1000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 'pendente', now(), 'Bolo 2', 'Bolo novo', 'item/e0000000-0000-0000-0000-000000000001/bolo2.jpg', '11111111-0000-0000-0000-000000000001'),
-  ('e1000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000002', 'pendente', now(), 'Pão', 'Pão caseiro', 'item/e0000000-0000-0000-0000-000000000002/pao.jpg', '11111111-0000-0000-0000-000000000001'),
-  ('e1000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000003', 'pendente', now(), 'Bike', 'Bicicleta', 'item/e0000000-0000-0000-0000-000000000003/bike.jpg', '11111111-0000-0000-0000-000000000001');
+insert into public.catalogo_item_versao (id, item_id, situacao, enviada_em, nome, descricao, foto_path, categoria_principal_id, cidade, uf) values
+  ('e1000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 'pendente', now(), 'Bolo 2', 'Bolo novo', 'item/e0000000-0000-0000-0000-000000000001/bolo2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS'),
+  ('e1000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000002', 'pendente', now(), 'Pão', 'Pão caseiro', 'item/e0000000-0000-0000-0000-000000000002/pao.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS'),
+  ('e1000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000003', 'pendente', now(), 'Bike', 'Bicicleta', 'item/e0000000-0000-0000-0000-000000000003/bike.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS');
 
 select is((select count(*)::int from public.administracao_auditoria), 0, 'começa sem auditoria');
 
