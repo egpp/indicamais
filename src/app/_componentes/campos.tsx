@@ -116,11 +116,13 @@ export function CampoSenha({
 /** WhatsApp com máscara brasileira (11) 99999-0001. A normalização para +55 é do módulo contas. */
 export function CampoWhatsapp({
   nome = "whatsapp",
+  rotulo = "WhatsApp",
   valorInicial = "",
   erro,
   ajuda,
 }: {
   nome?: string;
+  rotulo?: string;
   valorInicial?: string;
   erro?: string;
   ajuda?: ReactNode;
@@ -132,7 +134,7 @@ export function CampoWhatsapp({
   const descrito = [erro ? idErro : null, ajuda ? idAjuda : null].filter(Boolean).join(" ");
   return (
     <div className="campo">
-      <label htmlFor={id}>WhatsApp</label>
+      <label htmlFor={id}>{rotulo}</label>
       <input
         id={id}
         name={nome}

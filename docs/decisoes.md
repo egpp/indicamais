@@ -39,6 +39,27 @@ Critério do Emerson: suportar crescimento, desempenho e segurança.
 - A integração GitHub e o Branching do Supabase ficam desligados (risco de aplicar migração em produção sem aprovação e custo). A ligação com o código é só pela CLI (`supabase link`) e pelo `.env.local`.
 - Custo do projeto: a confirmar com o Emerson (plano gratuito?).
 
+## D-006 · 23/10/2026 · Decisões de partida da Fase 2 (perfis e catálogo)
+**IDs:** IM-012, IM-016, IM-021, IM-022, IM-023, IM-077 (parte), IM-014, IM-015
+Aprovadas pelo Emerson em 23/10/2026, sobre proposta do gestor:
+- **Administrador mínimo na Fase 2.** Para cumprir a aprovação do IM-021, a Fase 2 cria só o papel de administrador e a fila de revisão. O primeiro administrador é o Emerson, concedido direto no banco. A administração completa (IM-076, IM-077, IM-078, IM-080, IM-081) continua na Fase 6.
+- **Informações sociais (IM-012) só como texto**, sem link clicável de rede social nesta versão.
+- **Cidade como texto e UF validada.** Lista oficial de municípios (IBGE) fica para depois.
+- **Imagens:** até 2 MB por imagem e até 6 fotos por perfil ou item, em jpeg, png ou webp, no Storage do Supabase. O plano gratuito tem 1 GB; passar disso gera custo e exige nova decisão (IM-089).
+- **Categorias iniciais (IM-016), provisórias:** Alimentação, Beleza e estética, Casa e construção, Saúde e bem-estar, Serviços profissionais, Veículos, Tecnologia e Outros. O administrador gerencia a lista e o responsável pode solicitar novas.
+- **Fora da Fase 2:** ações da página (IM-013) são da Fase 3; "Curtir" segue pendente (IM-043); mapa e rota (IM-018) seguem pendentes; e-mail do resultado da revisão (IM-023) depende do SMTP próprio, então começa pelo aviso no painel.
+
+---
+
+## Pendências antes do lançamento (Fase 1)
+| Pendência | Situação |
+|---|---|
+| SMTP próprio | O envio embutido do Supabase tem limite baixo e atrasos; confirmação em outro aparelho depende de template próprio. Pode ter custo: decisão do Emerson. |
+| Login com Google (IM-007) | Falta criar credenciais no Google Cloud e configurar o provedor. |
+| Login com Apple (IM-007) | Bloqueado por custo (Apple Developer). |
+| Exclusão de conta (LGPD) | `on delete restrict` impede apagar usuário com conta; fluxo na Fase 6. |
+| IM-010 | Sem verificação por código, um número pode ser reservado por outra pessoa. Futuro. |
+
 ---
 
 ## Pendências que afetam as primeiras fases

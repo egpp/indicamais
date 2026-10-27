@@ -5,6 +5,7 @@ import { criarClienteServidor } from "@/shared/supabase/servidor";
 import { formatarE164BR } from "@/shared/formatacao/telefone";
 import { sair } from "../acoes-conta";
 import { FormNome, FormWhatsapp } from "../_componentes/formularios";
+import Link from "next/link";
 import { Aviso, CartaoPagina } from "../_componentes/ui";
 import { criarBancoContas } from "../_lib/banco-contas";
 
@@ -61,6 +62,24 @@ export default async function PaginaMinhaConta({ searchParams }: PageProps<"/min
       ) : (
         <Aviso tipo="erro">{resultado.erro.mensagem}</Aviso>
       )}
+
+      <section aria-labelledby="titulo-painel">
+        <h2 id="titulo-painel">Meu conteúdo</h2>
+        <ul className="nav-painel">
+          <li>
+            <Link href="/meus-perfis">Meus perfis</Link>
+          </li>
+          <li>
+            <Link href="/meus-itens">Meus itens</Link>
+          </li>
+          <li>
+            <Link href="/meus-anuncios">Meus anúncios</Link>
+          </li>
+          <li>
+            <Link href="/minhas-revisoes">Revisões</Link>
+          </li>
+        </ul>
+      </section>
 
       <form action={sair}>
         <button type="submit" className="botao botao-secundario">
