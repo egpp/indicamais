@@ -28,6 +28,9 @@ export default async function PaginaFilaRevisao({
       <p>
         <Link className="botao botao-secundario" href="/administracao/categorias">
           Categorias e pedidos
+        </Link>{" "}
+        <Link className="botao botao-secundario" href="/administracao/patrocinadores">
+          Patrocinadores
         </Link>
       </p>
       {decidido === "aprovada" ? <Aviso tipo="sucesso">Aprovado.</Aviso> : null}

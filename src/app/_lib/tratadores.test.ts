@@ -329,7 +329,7 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
       m.contexto(ANA),
       formulario(dadosItem(m, { origem: "perfil", perfilId, tipo: "servico" })),
     );
-    const id = /\/meus-itens\/([0-9a-f-]{36})/.exec(r.destino ?? "")?.[1]!;
+    const id = /\/meus-itens\/([0-9a-f-]{36})/.exec(r.destino ?? "")![1];
     const v = m.versoesItem.find((x) => x.item_id === id)!;
     expect([v.cidade, v.uf]).toEqual([null, null]);
   });

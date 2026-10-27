@@ -6,7 +6,7 @@ import { mascararTelefoneBR } from "@/shared/formatacao/telefone";
 type PropsCampo = {
   nome: string;
   rotulo: string;
-  tipo?: "text" | "email" | "password" | "tel";
+  tipo?: "text" | "email" | "password" | "tel" | "datetime-local";
   erro?: string;
   ajuda?: ReactNode;
   valorInicial?: string;
