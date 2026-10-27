@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatarPreco, type MeuItem } from "@/modules/catalogo";
 import { ROTULO_TIPO_ITEM } from "../_lib/apresentacao";
+import { EtiquetaRascunhoNaoEnviado } from "./aviso-rascunho";
 import { SeloEstado } from "./painel";
 
 /** Lista de itens do responsável (produtos, serviços ou anúncios particulares). */
@@ -22,6 +23,12 @@ export function ListaItens({
             </h2>
             <p>
               <SeloEstado rotulo={i.estado.rotulo} />
+              {i.estado.aberta === "rascunho" ? (
+                <>
+                  {" "}
+                  <EtiquetaRascunhoNaoEnviado />
+                </>
+              ) : null}
             </p>
             <p className="ajuda">
               {i.anuncioParticular ? "Anúncio particular" : ROTULO_TIPO_ITEM[i.tipo]}

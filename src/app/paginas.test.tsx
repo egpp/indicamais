@@ -46,6 +46,7 @@ import PaginaFilaRevisao from "./administracao/revisao/page";
 import PaginaRevisar from "./administracao/revisao/[alvo]/[versaoId]/page";
 import PaginaMeusAnuncios from "./meus-anuncios/page";
 import PaginaMeusItens from "./meus-itens/page";
+import PaginaMeusPerfis from "./meus-perfis/page";
 import PaginaPerfil from "./meus-perfis/[id]/page";
 import PaginaPreviaPerfil from "./meus-perfis/[id]/previa/page";
 import PaginaMinhasRevisoes from "./minhas-revisoes/page";
@@ -179,6 +180,19 @@ describe("responsável: prévia e perfil (IM-017, IM-022, IM-079)", () => {
     for (const privado of ["98123", "5551981", "WhatsApp", ANA]) {
       expect(html).not.toContain(privado);
     }
+  });
+
+  it("detalhe do perfil em rascunho avisa que não foi enviado e oferece o envio no topo; a lista traz a etiqueta", async () => {
+    const id = await perfilPronto(ANA, false);
+    como(ANA);
+    render(await PaginaPerfil(args({ id })));
+    expect(
+      screen.getByText(/alterações salvas que ainda não foram enviadas para aprovação/),
+    ).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Enviar para aprovação" })).toHaveLength(1);
+    cleanup();
+    render(await PaginaMeusPerfis());
+    expect(screen.getByText("Rascunho não enviado")).toBeTruthy();
   });
 
   it("prévia com pendências lista o que falta e não oferece envio", async () => {

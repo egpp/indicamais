@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Aviso } from "../_componentes/ui";
+import { EtiquetaRascunhoNaoEnviado } from "../_componentes/aviso-rascunho";
 import { PainelPagina, SeloEstado } from "../_componentes/painel";
 import { obterContexto } from "../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../_lib/pagina";
@@ -43,6 +44,12 @@ export default async function PaginaMeusPerfis() {
               </h2>
               <p>
                 <SeloEstado rotulo={p.estado.rotulo} />
+                {p.estado.aberta === "rascunho" ? (
+                  <>
+                    {" "}
+                    <EtiquetaRascunhoNaoEnviado />
+                  </>
+                ) : null}
               </p>
               {p.conteudoEdicao.cidade ? (
                 <p className="ajuda">

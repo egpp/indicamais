@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { acaoDespublicarItem, acaoEnviarItem, acaoPublicarItem } from "../../acoes-conteudo";
+import { AvisoRascunhoNaoEnviado } from "../../_componentes/aviso-rascunho";
 import { FormAcao } from "../../_componentes/form-acao";
 import { FormEditarItem, FormFotoItem } from "../../_componentes/form-item";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
@@ -66,6 +67,20 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
             : "A versão aprovada continua valendo, mas está despublicada. Aprovar a edição não a publica de novo."}
         </Aviso>
       ) : null}
+      {rascunho ? (
+        <AvisoRascunhoNaoEnviado>
+          {it.pendencias.length === 0 ? (
+            <FormAcao
+              acao={acaoEnviarItem}
+              campos={{ id: it.id }}
+              rotulo="Enviar para aprovação"
+              rotuloEnviando="Enviando..."
+            />
+          ) : (
+            <p>Veja abaixo o que falta para enviar.</p>
+          )}
+        </AvisoRascunhoNaoEnviado>
+      ) : null}
       {emAnalise ? (
         <Aviso tipo="info">Em análise. Você poderá editar depois da decisão.</Aviso>
       ) : null}
@@ -88,9 +103,6 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
             Ver prévia
           </Link>
         </p>
-        {rascunho && it.pendencias.length === 0 ? (
-          <FormAcao acao={acaoEnviarItem} campos={{ id: it.id }} rotulo="Enviar para aprovação" />
-        ) : null}
         {rascunho && it.pendencias.length > 0 ? (
           <Aviso tipo="info">
             Para enviar para aprovação, falta:
@@ -126,7 +138,8 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
             <h2 id="titulo-dados">Dados</h2>
             {it.versaoAprovadaId && !rascunho ? (
               <p className="ajuda">
-                Ao salvar, criamos uma nova versão para aprovação. A versão aprovada continua no ar.
+                Ao salvar, criamos um rascunho. Depois clique em Enviar para aprovação. A versão
+                aprovada continua no ar.
               </p>
             ) : null}
             <FormEditarItem

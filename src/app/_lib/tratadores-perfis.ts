@@ -14,9 +14,10 @@ import { deErro, valoresDe, type Resposta } from "./resposta";
  */
 
 export const MENSAGENS_TELA_PERFIL = {
-  salvo: "Alterações salvas no rascunho.",
+  salvo:
+    "Alterações salvas no rascunho. Elas ainda NÃO foram enviadas: clique em Enviar para aprovação.",
   novaVersao:
-    "Edição salva como nova versão. A versão aprovada continua no ar até esta ser aprovada.",
+    "Edição salva como rascunho. Ela ainda NÃO foi enviada: clique em Enviar para aprovação. A versão aprovada continua no ar até a nova ser aprovada.",
   imagensSalvas: "Imagens salvas.",
   enviado: "Enviado para aprovação. O resultado aparece em Minhas revisões.",
   publicado: "Perfil publicado.",

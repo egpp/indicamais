@@ -151,7 +151,7 @@ describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
       ana,
       formulario({ id, ...dadosPerfil(m, { nome: "Padaria Nova" }) }),
     );
-    expect(salvo.sucesso).toBe("Alterações salvas no rascunho.");
+    expect(salvo.sucesso).toMatch(/^Alterações salvas no rascunho. .*NÃO foram enviadas/);
     expect(m.versoesPerfil.find((v) => v.perfil_id === id)!.nome).toBe("Padaria Nova");
 
     const alheia = await salvarImagensPerfil(
@@ -219,7 +219,7 @@ describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
       ana,
       formulario({ id, ...dadosPerfil(m, { nome: "Padaria Premium" }) }),
     );
-    expect(edicao.sucesso).toMatch(/nova versão.*versão aprovada continua no ar/);
+    expect(edicao.sucesso).toMatch(/rascunho.*NÃO foi enviada.*versão aprovada continua no ar/);
     expect(m.perfis.get(id)!.versao_aprovada_id).toBe(aprovadaId);
     expect(m.versoesPerfil.find((v) => v.id === aprovadaId)!.nome).toBe("Padaria da Ana");
     expect(m.versoesPerfil.filter((v) => v.perfil_id === id)).toHaveLength(2);
@@ -373,7 +373,7 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
     );
     expect((await publicarItem(ana, formulario({ id }))).sucesso).toBe("Publicado.");
     const edit = await editarItem(ana, formulario({ id, ...dadosItem(m, { nome: "Bike nova" }) }));
-    expect(edit.sucesso).toMatch(/nova versão/);
+    expect(edit.sucesso).toMatch(/NÃO foi enviada/);
     expect(m.itens.get(id)!.publicado).toBe(true);
     expect((await despublicarItem(ana, formulario({ id }))).sucesso).toContain("Saiu do ar");
   });

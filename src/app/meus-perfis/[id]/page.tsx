@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { acaoDespublicarPerfil, acaoEnviarPerfil, acaoPublicarPerfil } from "../../acoes-conteudo";
+import { AvisoRascunhoNaoEnviado } from "../../_componentes/aviso-rascunho";
 import { FormAcao } from "../../_componentes/form-acao";
 import {
   FormEditarPerfil,
@@ -76,6 +77,20 @@ export default async function PaginaPerfil({
             : "A versão aprovada continua valendo, mas o perfil está despublicado. Aprovar a edição não o publica de novo."}
         </Aviso>
       ) : null}
+      {rascunho ? (
+        <AvisoRascunhoNaoEnviado>
+          {p.pendencias.length === 0 ? (
+            <FormAcao
+              acao={acaoEnviarPerfil}
+              campos={{ id: p.id }}
+              rotulo="Enviar para aprovação"
+              rotuloEnviando="Enviando..."
+            />
+          ) : (
+            <p>Veja abaixo o que falta para enviar.</p>
+          )}
+        </AvisoRascunhoNaoEnviado>
+      ) : null}
       {emAnalise ? (
         <Aviso tipo="info">Em análise. Você poderá editar depois da decisão.</Aviso>
       ) : null}
@@ -98,14 +113,6 @@ export default async function PaginaPerfil({
             Ver prévia
           </Link>
         </p>
-        {rascunho && p.pendencias.length === 0 ? (
-          <FormAcao
-            acao={acaoEnviarPerfil}
-            campos={{ id: p.id }}
-            rotulo="Enviar para aprovação"
-            rotuloEnviando="Enviando..."
-          />
-        ) : null}
         {rascunho && p.pendencias.length > 0 ? (
           <Aviso tipo="info">
             Para enviar para aprovação, falta:
@@ -152,7 +159,8 @@ export default async function PaginaPerfil({
             <h2 id="titulo-dados">Dados do perfil</h2>
             {p.versaoAprovadaId && !rascunho ? (
               <p className="ajuda">
-                Ao salvar, criamos uma nova versão para aprovação. A versão aprovada continua no ar.
+                Ao salvar, criamos um rascunho. Depois clique em Enviar para aprovação. A versão
+                aprovada continua no ar.
               </p>
             ) : null}
             <FormEditarPerfil
