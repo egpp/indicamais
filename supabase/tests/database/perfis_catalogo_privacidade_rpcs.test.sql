@@ -51,12 +51,13 @@ select is((select coalesce(array_agg(p.proname::text order by p.proname), '{}'::
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'execute')
     and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')),
-  array['catalogo_imagem_publica', 'perfis_perfil_disponivel'], 'anon executa só as funções públicas esperadas');
-select is((select count(*)::int
+  array['busca_normalizar', 'busca_publica', 'catalogo_imagem_publica', 'perfis_perfil_disponivel'], 'anon executa só as funções públicas esperadas');
+-- Fora as de busca pública (security invoker, só leem as visões públicas; ver busca_publica.test.sql), só boolean.
+select is((select array_agg(p.proname::text order by p.proname)
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'execute')
     and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
-    and p.prorettype <> 'boolean'::regtype), 0, 'nenhuma função executável por anon devolve dado (só boolean)');
+    and p.prorettype <> 'boolean'::regtype), array['busca_normalizar', 'busca_publica'], 'só as funções de busca devolvem dado a anon; as demais são boolean');
 select is((select count(*)::int
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname in ('perfis_criar_rascunho', 'perfis_gravar_versao', 'catalogo_criar_item')
