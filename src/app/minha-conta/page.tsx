@@ -76,7 +76,7 @@ export default async function PaginaMinhaConta({ searchParams }: PageProps<"/min
             <Link href="/meus-anuncios">Meus anúncios</Link>
           </li>
           <li>
-            <Link href="/minhas-revisoes">Revisões</Link>
+            <Link href="/minhas-revisoes">Meus resultados</Link>
           </li>
         </ul>
       </section>
