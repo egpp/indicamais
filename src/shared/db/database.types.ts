@@ -372,6 +372,7 @@ export type Database = {
           categoria_principal_id: string | null
           categoria_secundaria_1_id: string | null
           categoria_secundaria_2_id: string | null
+          cidade: string | null
           criado_em: string
           descricao: string | null
           enviada_em: string | null
@@ -382,11 +383,13 @@ export type Database = {
           preco_centavos: number | null
           preco_modo: string | null
           situacao: string
+          uf: string | null
         }
         Insert: {
           categoria_principal_id?: string | null
           categoria_secundaria_1_id?: string | null
           categoria_secundaria_2_id?: string | null
+          cidade?: string | null
           criado_em?: string
           descricao?: string | null
           enviada_em?: string | null
@@ -397,11 +400,13 @@ export type Database = {
           preco_centavos?: number | null
           preco_modo?: string | null
           situacao?: string
+          uf?: string | null
         }
         Update: {
           categoria_principal_id?: string | null
           categoria_secundaria_1_id?: string | null
           categoria_secundaria_2_id?: string | null
+          cidade?: string | null
           criado_em?: string
           descricao?: string | null
           enviada_em?: string | null
@@ -412,6 +417,7 @@ export type Database = {
           preco_centavos?: number | null
           preco_modo?: string | null
           situacao?: string
+          uf?: string | null
         }
         Relationships: [
           {
@@ -837,6 +843,7 @@ export type Database = {
           categoria_principal_id: string | null
           categoria_secundaria_1_id: string | null
           categoria_secundaria_2_id: string | null
+          cidade: string | null
           criado_em: string | null
           descricao: string | null
           foto_path: string | null
@@ -846,6 +853,7 @@ export type Database = {
           preco_centavos: number | null
           preco_modo: string | null
           tipo: string | null
+          uf: string | null
         }
         Relationships: [
           {
@@ -1073,12 +1081,14 @@ export type Database = {
           p_categoria_principal_id?: string
           p_categoria_secundaria_1_id?: string
           p_categoria_secundaria_2_id?: string
+          p_cidade?: string
           p_descricao?: string
           p_nome?: string
           p_perfil_id?: string
           p_preco_centavos?: number
           p_preco_modo?: string
           p_tipo: string
+          p_uf?: string
         }
         Returns: {
           o_item_id: string
