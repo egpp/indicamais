@@ -27,10 +27,14 @@ export const LIMITES = {
     slugMax: 60,
   },
   categorias: { secundariasMax: 2 },
-  item: { nomeMax: 100, descricaoMax: 1500 },
+  item: { nomeMax: 100, descricaoMax: 1500, cidadeMin: 2 },
   preco: { minCentavos: 1, maxCentavos: 100_000_000 },
   categoria: { nomeMin: 2, nomeMax: 60, justificativaMax: 300, pendentesMaxPorConta: 5 },
   revisao: { motivoMax: 500 },
+  /** Patrocinadores do carrossel (IM-020, D-008). Sem preço nem cobrança. */
+  patrocinador: { tituloMin: 2, tituloMax: 60, textoDestinoMax: 200, maximoNoCarrossel: 20 },
+  /** Busca pública (IM-019): limites também impostos no banco (busca_publica). */
+  busca: { termoMax: 80, cidadeMax: 80, limitePadrao: 20, limiteMax: 50, paginaMax: 1000 },
 } as const;
 
 export type TipoImagem = (typeof LIMITES.imagem.tiposPermitidos)[number];

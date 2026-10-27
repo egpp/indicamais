@@ -2,6 +2,7 @@ import { z } from "zod";
 import { LIMITES } from "@/shared/config/limites";
 import { formatoDeCaminhoValido } from "@/shared/conteudo/imagens";
 import { textoOpcional, uuidSchema } from "@/shared/conteudo/zod-util";
+import { ufSchema } from "@/shared/conteudo/ufs";
 import { precoSchema } from "./preco";
 
 /** Entradas do módulo catalogo (IM-014, IM-015, IM-016). Campos desconhecidos são descartados. */
@@ -42,14 +43,56 @@ export const camposItemSchema = z.object({
   categoriasSecundariasIds: categoriasSecundariasSchema,
   /** null = sem preço (preço é opcional). */
   preco: precoSchema.nullable().optional(),
+  /**
+   * Localização do ANÚNCIO PARTICULAR (D-008, IM-015). Item de perfil herda cidade/UF do perfil e não aceita
+   * estes campos (conferido em `novoItemSchema` e em `validarConteudoItem`).
+   */
+  cidade: textoOpcional(
+    LIMITES.perfil.cidadeMax,
+    `A cidade deve ter até ${LIMITES.perfil.cidadeMax} caracteres.`,
+  ),
+  uf: ufSchema.optional(),
 });
 export type CamposItem = z.infer<typeof camposItemSchema>;
 
 /** Novo item (sem foto: o item precisa existir antes do upload): tipo obrigatório; `perfilId` ausente = anúncio particular da conta (IM-015). */
-export const novoItemSchema = camposItemSchema.omit({ fotoPath: true }).extend({
-  tipo: z.enum(TIPOS_ITEM, { error: "Escolha produto ou serviço." }),
-  perfilId: uuidSchema.nullable().optional(),
-});
+export const novoItemSchema = camposItemSchema
+  .omit({ fotoPath: true })
+  .extend({
+    tipo: z.enum(TIPOS_ITEM, { error: "Escolha produto ou serviço." }),
+    perfilId: uuidSchema.nullable().optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.perfilId) {
+      // Item de perfil: a localização é a do perfil.
+      if (v.cidade) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["cidade"],
+          message: "Item de perfil usa a cidade do perfil.",
+        });
+      }
+      if (v.uf) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["uf"],
+          message: "Item de perfil usa a UF do perfil.",
+        });
+      }
+      return;
+    }
+    // Anúncio particular (IM-015, D-008): cidade (2..80) e UF obrigatórias.
+    if (!v.cidade || v.cidade.length < LIMITES.item.cidadeMin) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["cidade"],
+        message: `Informe a cidade (de ${LIMITES.item.cidadeMin} a ${LIMITES.perfil.cidadeMax} caracteres).`,
+      });
+    }
+    if (!v.uf) {
+      ctx.addIssue({ code: "custom", path: ["uf"], message: "Escolha a UF." });
+    }
+  });
 export type NovoItem = z.infer<typeof novoItemSchema>;
 
 // Categorias -----------------------------------------------------------------------------------------------
