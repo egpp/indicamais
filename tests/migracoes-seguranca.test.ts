@@ -187,9 +187,9 @@ describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
   it("grant de tabela inteira a anon só nas tabelas sem coluna privada", () => {
     const inteiras = [...codigo.matchAll(/grant select\s+on public\.(\w+)\s+to ([^;]+);/gi)]
       .filter(([, , para]) => /\banon\b/i.test(para!))
-      .map(([, t]) => t!)
-      .sort();
-    expect(inteiras).toEqual([
+      .map(([, t]) => t!);
+    // Visão recriada em migração posterior repete o grant: deduplica.
+    expect([...new Set(inteiras)].sort()).toEqual([
       "administracao_patrocinador_publico",
       "catalogo_categoria",
       "catalogo_item_publico",

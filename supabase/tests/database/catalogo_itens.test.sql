@@ -89,6 +89,8 @@ select throws_ok($$update public.catalogo_item set versao_aprovada_id = t.iv(t.s
 select is((select nome from public.catalogo_item_versao where item_id = t.part() and situacao = 'rascunho'), 'Bicicleta', 'rascunho incompleto é permitido');
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, '23514', null, 'enviar anúncio incompleto é recusado');
 update public.catalogo_item_versao set descricao = 'Bicicleta aro 29 seminova', foto_path = 'item/' || t.part()::text || '/bike.jpg', categoria_principal_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'fixo', preco_centavos = 120000 where situacao = 'rascunho' and nome = 'Bicicleta';
+select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, '23514', null, 'anúncio particular sem cidade e UF não é enviado (D-008)');
+update public.catalogo_item_versao set cidade = '  Porto Alegre ', uf = 'rs' where situacao = 'rascunho' and nome = 'Bicicleta';
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, 'anúncio completo é enviado');
 
 -- ===== Anon e B: nada de pendente/rascunho =====
@@ -212,8 +214,8 @@ select is((select preco_modo from public.catalogo_item_publico), 'sob_consulta',
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
-select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id, preco_modo, preco_centavos)
-  values (t.part(), 'Bicicleta', 'Bicicleta aro 29 com foto nova', 'item/' || t.part()::text || '/bike2.jpg', '11111111-0000-0000-0000-000000000001', 'fixo', 120000)$$, 'A refaz o anúncio');
+select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id, preco_modo, preco_centavos, cidade, uf)
+  values (t.part(), 'Bicicleta', 'Bicicleta aro 29 com foto nova', 'item/' || t.part()::text || '/bike2.jpg', '11111111-0000-0000-0000-000000000001', 'fixo', 120000, 'Porto Alegre', 'RS')$$, 'A refaz o anúncio');
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, 'A reenvia o anúncio');
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
 select lives_ok($$select public.catalogo_decidir_item_versao(t.iv(t.part(), 'pendente'), true, null)$$, 'administrador aprova o anúncio');
@@ -238,7 +240,7 @@ select is((select count(*)::int from public.catalogo_item_revisao), 0, 'B não l
 
 -- Administrador não aprova o próprio anúncio
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
-select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Meu produto', p_descricao => 'Descrição', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001')$$, 'administrador cria anúncio próprio');
+select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Meu produto', p_descricao => 'Descrição', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_cidade => 'Canoas', p_uf => 'RS')$$, 'administrador cria anúncio próprio');
 select lives_ok($$update public.catalogo_item_versao set foto_path = 'item/' || (select id from public.catalogo_meus_itens)::text || '/p.jpg' where nome = 'Meu produto' and situacao = 'rascunho'$$, 'rascunho do administrador');
 select lives_ok($$select public.catalogo_enviar_item_versao((select id from public.catalogo_item_versao where situacao = 'rascunho'))$$, 'administrador envia');
 select throws_ok($$select public.catalogo_decidir_item_versao((select id from public.catalogo_item_versao where situacao = 'pendente' and nome = 'Meu produto'), true, null)$$, '42501', null, 'administrador não aprova o próprio item');
