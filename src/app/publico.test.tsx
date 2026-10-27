@@ -301,8 +301,9 @@ describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
     expect(og.locale).toBe("pt_BR");
     expect(og.url).toBe("https://indicamais.exemplo/perfil/padaria-da-ana");
     expect(meta.alternates?.canonical).toBe("https://indicamais.exemplo/perfil/padaria-da-ana");
-    expect(og.images[0]!.url).toBe(`${CAMINHO_PUBLICO}${p.imagem_path}`);
-    expect(og.images[0]!.url).toMatch(/^https:\/\//);
+    expect(p.imagem_path).toBeTruthy();
+    expect(og.images[0]!.url).toBe("https://indicamais.exemplo/og/perfil/padaria-da-ana");
+    expect(JSON.stringify(meta)).not.toContain("token=");
     const tw = meta.twitter as { card: string; images: string[] };
     expect(tw.card).toBe("summary_large_image");
     expect(tw.images[0]).toBe(og.images[0]!.url);
@@ -316,6 +317,7 @@ describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
       const meta = await metadadosPerfil(args({ slug: "padaria-da-ana" }));
       expect((meta.openGraph as { url?: string }).url).toBeUndefined();
       expect(meta.alternates).toBeUndefined();
+      expect((meta.openGraph as { images?: unknown }).images).toBeUndefined();
       expect(meta.title).toBe("Padaria da Ana | IndicaMais");
     }
   });
@@ -427,7 +429,7 @@ describe("item e anúncio particular públicos (IM-014, IM-015, IM-079)", () => 
     expect(meta.description).toBe("Pouco usada.");
     const og = meta.openGraph as { url: string; images: { url: string }[]; title: string };
     expect(og.url).toBe(`https://indicamais.exemplo/item/${i.id}`);
-    expect(og.images[0]!.url).toBe(`${CAMINHO_PUBLICO}${i.foto_path}`);
+    expect(og.images[0]!.url).toBe(`https://indicamais.exemplo/og/item/${i.id}`);
     expect(meta.robots).toEqual({ index: false, follow: false });
     conferirSemDadosPrivados(JSON.stringify(meta));
 

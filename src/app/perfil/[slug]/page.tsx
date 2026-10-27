@@ -23,7 +23,6 @@ export async function generateMetadata({ params }: PageProps<"/perfil/[slug]">):
   const p = d.perfil;
   const nome = p.nome ?? "Perfil";
   const local = localTexto(p.cidade, p.uf);
-  const imagemUrl = p.imagemPath ? d.urls[p.imagemPath] : null;
   return metadadosPublicos({
     titulo: `${nome} | IndicaMais`,
     descricao:
@@ -31,7 +30,7 @@ export async function generateMetadata({ params }: PageProps<"/perfil/[slug]">):
       resumir(local ? `${nome} em ${local}. Veja no IndicaMais.` : DESCRICAO_PADRAO) ??
       DESCRICAO_PADRAO,
     caminho: ROTAS_PUBLICAS.perfil(p.slug),
-    imagemUrl,
+    caminhoImagem: p.imagemPath ? ROTAS_PUBLICAS.ogPerfil(p.slug) : null,
     imagemAlt: `Imagem de ${nome}`,
   });
 }

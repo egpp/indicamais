@@ -27,7 +27,6 @@ export async function generateMetadata({ params }: PageProps<"/item/[id]">): Pro
   const nome = item.nome ?? "Item";
   const local = localTexto(item.cidade, item.uf);
   const partes = [item.precoTexto, local].filter(Boolean).join(" · ");
-  const imagemUrl = item.fotoPath ? d.urls[item.fotoPath] : null;
   return metadadosPublicos({
     titulo: `${nome} | IndicaMais`,
     descricao:
@@ -35,7 +34,7 @@ export async function generateMetadata({ params }: PageProps<"/item/[id]">): Pro
       resumir(partes ? `${nome}. ${partes}.` : `${nome} no IndicaMais.`) ??
       nome,
     caminho: ROTAS_PUBLICAS.item(item.id),
-    imagemUrl,
+    caminhoImagem: item.fotoPath ? ROTAS_PUBLICAS.ogItem(item.id) : null,
     imagemAlt: `Foto de ${nome}`,
   });
 }

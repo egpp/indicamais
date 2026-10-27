@@ -18,8 +18,11 @@ type Entrada = {
   descricao: string;
   /** Caminho do app ("/perfil/x"). A URL absoluta só sai se NEXT_PUBLIC_APP_URL estiver configurada. */
   caminho: string;
-  /** URL ABSOLUTA da imagem (assinada no servidor). Sem imagem, a prévia usa o cartão pequeno. */
-  imagemUrl?: string | null;
+  /**
+   * Caminho da rota ESTÁVEL de imagem ("/og/perfil/x"), nunca a URL assinada (expira em 1 hora). Vira URL
+   * absoluta com NEXT_PUBLIC_APP_URL; sem a variável, ou sem imagem, o og:image é omitido (cartão pequeno).
+   */
+  caminhoImagem?: string | null;
   imagemAlt?: string;
   /** Página com filtros (resultado de busca): nunca indexada, mesmo com a indexação ligada. */
   semIndexar?: boolean;
@@ -32,7 +35,8 @@ type Entrada = {
  */
 export function metadadosPublicos(e: Entrada): Metadata {
   const url = urlAbsoluta(e.caminho);
-  const imagens = e.imagemUrl ? [{ url: e.imagemUrl, alt: e.imagemAlt ?? e.titulo }] : undefined;
+  const imagemUrl = e.caminhoImagem ? urlAbsoluta(e.caminhoImagem) : null;
+  const imagens = imagemUrl ? [{ url: imagemUrl, alt: e.imagemAlt ?? e.titulo }] : undefined;
   return {
     title: e.titulo,
     description: e.descricao,
@@ -51,7 +55,7 @@ export function metadadosPublicos(e: Entrada): Metadata {
       card: imagens ? "summary_large_image" : "summary",
       title: e.titulo,
       description: e.descricao,
-      ...(imagens ? { images: [e.imagemUrl as string] } : {}),
+      ...(imagens ? { images: [imagemUrl as string] } : {}),
     },
   };
 }
