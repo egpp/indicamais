@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PainelPagina, SeloEstado } from "../_componentes/painel";
 import { Aviso } from "../_componentes/ui";
-import { formatarDataHora } from "../_lib/apresentacao";
+import { formatarDataHora, motivoParaExibir } from "../_lib/apresentacao";
 import { obterContexto } from "../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../_lib/pagina";
 
@@ -53,9 +53,9 @@ export default async function PaginaMinhasRevisoes() {
                 </span>
               </p>
               <p>{x.mensagem}</p>
-              {x.motivo ? (
+              {motivoParaExibir(x.motivo) ? (
                 <p>
-                  <strong>Motivo:</strong> {x.motivo}
+                  <strong>Motivo:</strong> {motivoParaExibir(x.motivo)}
                 </p>
               ) : null}
               {x.linkPublicado ? (

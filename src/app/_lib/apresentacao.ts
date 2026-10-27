@@ -34,3 +34,10 @@ export const ROTULO_MODO_PRECO = {
   a_partir_de: "A partir de",
   sob_consulta: "Sob consulta",
 } as const;
+
+/** Motivo de rejeição (texto puro) pronto para exibir: sem espaços sobrando e terminado em pontuação. */
+export function motivoParaExibir(motivo: string | null | undefined): string | null {
+  const limpo = (motivo ?? "").replace(/\s+/g, " ").trim();
+  if (!limpo) return null;
+  return /[.!?…]$/.test(limpo) ? limpo : `${limpo}.`;
+}

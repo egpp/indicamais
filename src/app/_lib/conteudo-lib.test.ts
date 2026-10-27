@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { formatarDataHora, nomeDaCategoria } from "./apresentacao";
+import { formatarDataHora, motivoParaExibir, nomeDaCategoria } from "./apresentacao";
 import { lerCamposItem, lerDeRegistro, lerPreco, listaDeAreas } from "./entrada-conteudo";
 import { criarAssinadorImagens } from "./imagens-servidor";
 import { deErro, normalizarErros } from "./resposta";
@@ -200,5 +200,26 @@ describe("URL assinada das imagens (IM-029, IM-086)", () => {
       },
     };
     expect(await criarAssinadorImagens(supabase as never)([caminho])).toEqual({});
+  });
+});
+
+describe("motivoParaExibir", () => {
+  it("acrescenta ponto final quando o motivo não termina em pontuação", () => {
+    expect(motivoParaExibir("foto desfocada")).toBe("foto desfocada.");
+  });
+  it("não duplica pontuação existente", () => {
+    expect(motivoParaExibir("foto desfocada.")).toBe("foto desfocada.");
+    expect(motivoParaExibir("Foto desfocada!")).toBe("Foto desfocada!");
+  });
+  it("normaliza espaços e quebras de linha", () => {
+    expect(motivoParaExibir("  foto \n desfocada  ")).toBe("foto desfocada.");
+  });
+  it("devolve null para motivo vazio", () => {
+    expect(motivoParaExibir("   ")).toBeNull();
+    expect(motivoParaExibir(null)).toBeNull();
+  });
+  it("mantém motivo longo inteiro e como texto puro", () => {
+    const longo = "<b>x</b> ".repeat(100).trim();
+    expect(motivoParaExibir(longo)).toBe(`${longo}.`);
   });
 });

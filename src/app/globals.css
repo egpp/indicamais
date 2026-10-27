@@ -377,3 +377,10 @@ fieldset.grupo-imagens {
     padding: 2rem 1rem;
   }
 }
+
+.motivo-rejeicao {
+  overflow-wrap: anywhere;
+}
+.aviso p {
+  margin: 0 0 0.25rem;
+}

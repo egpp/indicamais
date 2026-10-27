@@ -10,7 +10,7 @@ import {
 } from "../../_componentes/form-perfil";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
-import { formatarDataHora } from "../../_lib/apresentacao";
+import { formatarDataHora, motivoParaExibir } from "../../_lib/apresentacao";
 import { obterContexto } from "../../_lib/contexto-sessao";
 import {
   SEM_INDEXACAO,
@@ -81,8 +81,13 @@ export default async function PaginaPerfil({
       ) : null}
       {rejeicao ? (
         <Aviso tipo="erro">
-          Rejeitado em {formatarDataHora(rejeicao.decididaEm)}.
-          {rejeicao.motivo ? ` Motivo: ${rejeicao.motivo}` : ""} Ajuste e envie novamente.
+          <p>Rejeitado em {formatarDataHora(rejeicao.decididaEm)}.</p>
+          {motivoParaExibir(rejeicao.motivo) ? (
+            <p className="motivo-rejeicao">
+              <strong>Motivo:</strong> {motivoParaExibir(rejeicao.motivo)}
+            </p>
+          ) : null}
+          <p>Ajuste e envie novamente.</p>
         </Aviso>
       ) : null}
 
