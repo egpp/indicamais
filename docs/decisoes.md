@@ -54,6 +54,14 @@ Aprovadas pelo Emerson em 23/10/2026, sobre proposta do gestor:
 Aprovada pelo Emerson em 27/10/2026, sobre recomendação do gestor: aprovar ou rejeitar versão de perfil ou item grava, além das tabelas de revisão, uma linha em `administracao_auditoria` (autor, data, motivo, valor anterior e novo), para haver uma trilha única de ações administrativas (regra do CLAUDE.md). As tabelas de revisão continuam sendo a fonte do resultado mostrado ao responsável.
 Implementada em nova migração, aplicada primeiro no dev com aprovação do Emerson (D-003).
 
+## D-008 · 28/10/2026 · Decisões da Fase 2C (conteúdo público)
+**IDs:** IM-015, IM-019, IM-020
+Aprovadas pelo Emerson ("de acordo") sobre recomendação do gestor:
+- **Anúncio particular com cidade e UF obrigatórias**, para entrar nos filtros de localização (IM-015, IM-019). Exige migração nova na versão do item.
+- **Patrocinador (IM-020):** destino é um perfil comercial público ou um texto sem link externo; link externo fica para quando houver cobrança. Carrossel com até 20 itens, ordenado pelo campo `ordem` definido pelo administrador, sempre identificado como "Patrocinado", sem preço nem cobrança.
+- **Busca (IM-019) só por nome** nesta etapa; busca também em descrição e categoria fica para melhoria futura.
+- Páginas públicas sem botões de ação (contato, indicar): são da Fase 3. "Curtir" segue pendente (IM-043).
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)

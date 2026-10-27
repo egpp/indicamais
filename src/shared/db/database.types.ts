@@ -81,6 +81,70 @@ export type Database = {
           },
         ]
       }
+      administracao_patrocinador: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          criado_em: string
+          fim_em: string | null
+          id: string
+          imagem_path: string
+          inicio_em: string | null
+          ordem: number
+          perfil_destino_id: string | null
+          texto_destino: string | null
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          fim_em?: string | null
+          id?: string
+          imagem_path: string
+          inicio_em?: string | null
+          ordem?: number
+          perfil_destino_id?: string | null
+          texto_destino?: string | null
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          fim_em?: string | null
+          id?: string
+          imagem_path?: string
+          inicio_em?: string | null
+          ordem?: number
+          perfil_destino_id?: string | null
+          texto_destino?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["perfil_destino_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["perfil_destino_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["perfil_destino_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalogo_categoria: {
         Row: {
           ativa: boolean
@@ -732,6 +796,42 @@ export type Database = {
         }
         Relationships: []
       }
+      administracao_patrocinador_publico: {
+        Row: {
+          destino_perfil_id: string | null
+          destino_perfil_slug: string | null
+          destino_texto: string | null
+          destino_tipo: string | null
+          id: string | null
+          identificacao: string | null
+          imagem_path: string | null
+          ordem: number | null
+          titulo: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalogo_item_publico: {
         Row: {
           categoria_principal_id: string | null
@@ -889,8 +989,71 @@ export type Database = {
       }
     }
     Functions: {
+      administracao_alterar_patrocinador: {
+        Args: {
+          p_fim_em: string
+          p_id: string
+          p_imagem_path: string
+          p_inicio_em: string
+          p_motivo: string
+          p_ordem: number
+          p_perfil_destino_id: string
+          p_texto_destino: string
+          p_titulo: string
+        }
+        Returns: undefined
+      }
+      administracao_criar_patrocinador: {
+        Args: {
+          p_ativo?: boolean
+          p_fim_em?: string
+          p_id?: string
+          p_imagem_path: string
+          p_inicio_em?: string
+          p_motivo?: string
+          p_ordem?: number
+          p_perfil_destino_id?: string
+          p_texto_destino?: string
+          p_titulo: string
+        }
+        Returns: string
+      }
+      administracao_definir_patrocinador_ativo: {
+        Args: { p_ativo: boolean; p_id: string; p_motivo: string }
+        Returns: undefined
+      }
       administracao_eh_admin: { Args: never; Returns: boolean }
       administracao_exigir_admin: { Args: never; Returns: string }
+      busca_normalizar: { Args: { p_texto: string }; Returns: string }
+      busca_publica: {
+        Args: {
+          p_categoria_id?: string
+          p_cidade?: string
+          p_limite?: number
+          p_pagina?: number
+          p_termo?: string
+          p_tipo?: string
+          p_uf?: string
+        }
+        Returns: {
+          o_categoria_id: string
+          o_categoria_nome: string
+          o_categoria_slug: string
+          o_cidade: string
+          o_descricao: string
+          o_id: string
+          o_imagem_path: string
+          o_nome: string
+          o_perfil_id: string
+          o_perfil_slug: string
+          o_preco_centavos: number
+          o_preco_modo: string
+          o_slug: string
+          o_tipo: string
+          o_total: number
+          o_uf: string
+        }[]
+      }
       catalogo_alterar_categoria: {
         Args: {
           p_ativa: boolean
