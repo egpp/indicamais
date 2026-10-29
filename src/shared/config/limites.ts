@@ -35,6 +35,19 @@ export const LIMITES = {
   patrocinador: { tituloMin: 2, tituloMax: 60, textoDestinoMax: 200, maximoNoCarrossel: 20 },
   /** Busca pública (IM-019): limites também impostos no banco (busca_publica). */
   busca: { termoMax: 80, cidadeMax: 80, limitePadrao: 20, limiteMax: 50, paginaMax: 1000 },
+  /**
+   * Pedido de contato do visitante (IM-026): limites também impostos no banco (indicacoes_enviar_contato e
+   * CHECKs de indicacoes_pedido_contato). Janela anti-repetição e limite de taxa são parâmetros no banco
+   * (tabela indicacoes_parametro), não constantes aqui.
+   */
+  contato: {
+    nomeMin: 2,
+    nomeMax: 80,
+    emailMax: 254,
+    mensagemMax: 1000,
+    chaveMin: 16,
+    chaveMax: 100,
+  },
 } as const;
 
 export type TipoImagem = (typeof LIMITES.imagem.tiposPermitidos)[number];
