@@ -54,6 +54,28 @@ Aprovadas pelo Emerson em 23/10/2026, sobre proposta do gestor:
 Aprovada pelo Emerson em 27/10/2026, sobre recomendação do gestor: aprovar ou rejeitar versão de perfil ou item grava, além das tabelas de revisão, uma linha em `administracao_auditoria` (autor, data, motivo, valor anterior e novo), para haver uma trilha única de ações administrativas (regra do CLAUDE.md). As tabelas de revisão continuam sendo a fonte do resultado mostrado ao responsável.
 Implementada em nova migração, aplicada primeiro no dev com aprovação do Emerson (D-003).
 
+## D-008 · 28/10/2026 · Decisões da Fase 2C (conteúdo público)
+**IDs:** IM-015, IM-019, IM-020
+Aprovadas pelo Emerson ("de acordo") sobre recomendação do gestor:
+- **Anúncio particular com cidade e UF obrigatórias**, para entrar nos filtros de localização (IM-015, IM-019). Exige migração nova na versão do item.
+- **Patrocinador (IM-020):** destino é um perfil comercial público ou um texto sem link externo; link externo fica para quando houver cobrança. Carrossel com até 20 itens, ordenado pelo campo `ordem` definido pelo administrador, sempre identificado como "Patrocinado", sem preço nem cobrança.
+- **Busca (IM-019) só por nome** nesta etapa; busca também em descrição e categoria fica para melhoria futura.
+- Páginas públicas sem botões de ação (contato, indicar): são da Fase 3. "Curtir" segue pendente (IM-043).
+
+## D-009 · 29/10/2026 · Lista de consulta de negócios e itens na administração
+**IDs:** IM-021, IM-077 (parte), IM-086
+Aprovada pelo Emerson em 29/10/2026 ("sim, é importante pra consultar"), após testar a 2C e notar que a administração só mostra o que está pendente:
+- O administrador passa a ter uma **lista somente de leitura** de todos os perfis e itens, em qualquer situação (rascunho, pendente, aprovado, rejeitado, publicado, despublicado), com busca por nome e filtro por situação.
+- Somente leitura: sem editar, suspender ou reverter (isso segue na Fase 6: IM-077 a IM-081).
+- Leitura pelo banco via visão restrita ao administrador (filtro fixo por papel), sem expor telefone, e-mail nem dados privados de visitantes. Implementada em nova migração, aplicada primeiro no dev com aprovação do Emerson (D-003).
+
+## D-010 · 29/10/2026 · Bloco de layout entre a Fase 3 e a Fase 4
+**IDs:** IM-005, IM-014
+Aprovada pelo Emerson em 29/10/2026 ("aceito sua sugestão, prossiga como sugerido"), sobre recomendação do gestor:
+- A interface atual é funcional, sem identidade visual. O acabamento (sistema de design, logotipo, imagem de prévia do WhatsApp) é feito **depois da Fase 3**, quando o fluxo principal (indicar e contatar) já existe, e **antes da Fase 4**, para que as fases seguintes nasçam com o visual novo.
+- Até lá, telas novas seguem o padrão atual, com celular primeiro e acessibilidade.
+- O Emerson fornece logotipo e arte da marca e define a paleta (manter o verde atual ou outra) antes do bloco começar.
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)

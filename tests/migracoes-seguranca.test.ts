@@ -98,7 +98,12 @@ describe("migrações: funções", () => {
       .filter(([, , para]) => /\banon\b/i.test(para!))
       .map(([, nome]) => nome!)
       .sort();
-    expect(concedidas).toEqual(["catalogo_imagem_publica", "perfis_perfil_disponivel"]);
+    expect(concedidas).toEqual([
+      "busca_normalizar",
+      "busca_publica",
+      "catalogo_imagem_publica",
+      "perfis_perfil_disponivel",
+    ]);
   });
 });
 
@@ -112,8 +117,10 @@ describe("migrações: visões", () => {
   it("encontra as visões", () => {
     expect(visoes.map((v) => v.nome).sort()).toEqual(
       expect.arrayContaining([
+        "administracao_consulta_negocios",
         "administracao_fila_pendencias",
         "administracao_meus_resultados",
+        "administracao_patrocinador_publico",
         "catalogo_item_publico",
         "catalogo_meus_itens",
         "perfis_meus_perfis",
@@ -123,7 +130,11 @@ describe("migrações: visões", () => {
   });
 
   it("visões públicas são security_invoker e não trazem colunas privadas", () => {
-    for (const nome of ["perfis_perfil_publico", "catalogo_item_publico"]) {
+    for (const nome of [
+      "perfis_perfil_publico",
+      "catalogo_item_publico",
+      "administracao_patrocinador_publico",
+    ]) {
       const v = visoes.find((x) => x.nome === nome)!;
       expect(v.invoker, `${nome} deve ser security_invoker`).toBe(true);
       expect(v.corpo).not.toMatch(/responsavel_id|conta_id|whatsapp|autor_id|\bemail\b/i);
@@ -136,6 +147,7 @@ describe("migrações: visões", () => {
       .map((v) => v.nome)
       .sort();
     expect(definer).toEqual([
+      "administracao_consulta_negocios",
       "administracao_fila_pendencias",
       "administracao_meus_resultados",
       "catalogo_meus_itens",
@@ -152,6 +164,11 @@ describe("migrações: visões", () => {
         new RegExp(`grant select on public\\.${v.nome} to[^;]*\\banon\\b`, "i"),
       );
     }
+  });
+
+  it("a consulta do administrador não expõe contato nem dado de visitante", () => {
+    const v = visoes.find((x) => x.nome === "administracao_consulta_negocios")!;
+    expect(v.corpo).not.toMatch(/whatsapp|telefone|email|visitante|contato/i);
   });
 
   it("o resultado da revisão ao responsável não expõe o id do administrador nem e-mail", () => {
@@ -177,9 +194,10 @@ describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
   it("grant de tabela inteira a anon só nas tabelas sem coluna privada", () => {
     const inteiras = [...codigo.matchAll(/grant select\s+on public\.(\w+)\s+to ([^;]+);/gi)]
       .filter(([, , para]) => /\banon\b/i.test(para!))
-      .map(([, t]) => t!)
-      .sort();
-    expect(inteiras).toEqual([
+      .map(([, t]) => t!);
+    // Visão recriada em migração posterior repete o grant: deduplica.
+    expect([...new Set(inteiras)].sort()).toEqual([
+      "administracao_patrocinador_publico",
       "catalogo_categoria",
       "catalogo_item_publico",
       "catalogo_item_versao",

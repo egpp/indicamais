@@ -10,12 +10,12 @@ const EXTENSOES = Object.values(LIMITES.imagem.extensaoPorTipo).join("|");
 
 /**
  * Caminhos OPACOS no bucket (IM-029, IM-086): `perfil/<perfil_id>/<uuid>.<jpg|png|webp>` e
- * `item/<item_id>/<uuid>.<ext>`. Nunca contêm o id da conta. Quem prova que a pasta é do dono é o banco
+ * `item/<item_id>/<uuid>.<ext>` e `patrocinador/<patrocinador_id>/<uuid>.<ext>` (IM-020). Nunca contêm o id da conta. Quem prova que a pasta é do dono é o banco
  * (política do Storage); o perfil/item precisa existir antes do upload.
  */
-export type PastaImagem = "perfil" | "item";
+export type PastaImagem = "perfil" | "item" | "patrocinador";
 
-const CAMINHO = new RegExp(`^(perfil|item)/(${UUID})/(${UUID})\\.(${EXTENSOES})$`);
+const CAMINHO = new RegExp(`^(perfil|item|patrocinador)/(${UUID})/(${UUID})\\.(${EXTENSOES})$`);
 
 export function validarImagem(entrada: {
   tipoMime: string;

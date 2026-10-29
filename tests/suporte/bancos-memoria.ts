@@ -213,6 +213,8 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
           categoria_secundaria_2_id: c.categoria_secundaria_2_id,
           preco_modo: c.preco_modo,
           preco_centavos: c.preco_centavos,
+          cidade: c.cidade ?? null,
+          uf: c.uf ?? null,
           criado_em: t,
           enviada_em: null,
         });

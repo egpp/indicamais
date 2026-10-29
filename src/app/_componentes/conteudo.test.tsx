@@ -223,6 +223,24 @@ describe("FormNovoItem", () => {
     expect(screen.getByLabelText(/Valor \(R\$\)/)).toBeTruthy();
     expect(screen.getByRole("option", { name: "Sob consulta" })).toBeTruthy();
     expect(screen.getByRole("option", { name: "A partir de" })).toBeTruthy();
+    // Cidade e UF (27 siglas) aparecem só no anúncio particular (D-008).
+    expect(screen.getByLabelText(/^Cidade/)).toBeTruthy();
+    const uf = screen.getByLabelText(/^UF/) as HTMLSelectElement;
+    expect(uf.options.length).toBe(28);
+  });
+
+  it("anúncio particular sem cidade e UF mostra os erros; item de perfil não tem esses campos", async () => {
+    const u = usuario();
+    const { unmount } = render(<FormNovoItem origem="anuncio" categorias={CATEGORIAS} />);
+    await u.type(screen.getByLabelText(/^Nome/), "Bike");
+    await u.type(screen.getByLabelText(/^Descrição/), "Boa");
+    await u.click(screen.getByRole("button", { name: "Criar rascunho" }));
+    expect(await screen.findByText(/^Informe a cidade/)).toBeTruthy();
+    expect(screen.getByText("Escolha a UF.")).toBeTruthy();
+    unmount();
+    render(<FormNovoItem origem="perfil" categorias={CATEGORIAS} perfis={[]} />);
+    expect(screen.queryByLabelText(/^Cidade/)).toBeNull();
+    expect(screen.queryByLabelText(/^UF/)).toBeNull();
   });
 
   it("item de perfil pede o perfil; preço inválido mostra a mensagem do módulo", async () => {

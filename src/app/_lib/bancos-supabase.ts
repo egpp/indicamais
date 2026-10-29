@@ -1,7 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ClienteBancoAdministracao,
+  ClienteBancoConsultaNegocios,
+  LinhaConsultaNegocio,
+  ClienteBancoPatrocinadores,
   LinhaFila,
+  LinhaPatrocinadorAdmin,
+  LinhaPatrocinadorPublico,
   LinhaResultadoRevisao,
 } from "@/modules/administracao";
 import type {
@@ -13,12 +18,20 @@ import type {
   LinhaSolicitacao,
   TipoItem,
 } from "@/modules/catalogo";
-import type { ClienteBancoPerfis, LinhaPerfil, LinhaVersaoPerfil } from "@/modules/perfis";
+import type { ClienteBancoBusca, LinhaBusca } from "@/modules/busca";
+import type { LinhaItemPublico } from "@/modules/catalogo";
+import type {
+  ClienteBancoPerfis,
+  LinhaPerfil,
+  LinhaPerfilPublico,
+  LinhaVersaoPerfil,
+} from "@/modules/perfis";
 import type { SituacaoVersao } from "@/shared/conteudo/ciclo-versao";
 import type { ErroBanco } from "@/shared/conteudo/resultado";
 import type { Database } from "@/shared/db/database.types";
 import type { DependenciasContexto } from "./contexto";
 import { criarAssinadorImagens } from "./imagens-servidor";
+import type { ClienteBancoLeituraPublica } from "./leitura-publica";
 
 /**
  * Adaptadores supabase-js dos contratos de banco da Fase 2. Sempre com a SESSÃO DO USUÁRIO (RLS decide);
@@ -35,13 +48,23 @@ export const COLUNAS = {
     "id, perfil_id, situacao, nome, descricao_breve, imagem_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, cidade, uf, endereco, areas_atendidas, banners_paths, fotos_paths, site, informacoes_sociais, criado_em, enviada_em",
   item: "id, perfil_id, tipo, publicado, versao_aprovada_id, criado_em, atualizado_em",
   versaoItem:
-    "id, item_id, situacao, nome, descricao, foto_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, preco_modo, preco_centavos, criado_em, enviada_em",
+    "id, item_id, situacao, nome, descricao, foto_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, preco_modo, preco_centavos, cidade, uf, criado_em, enviada_em",
   categoria: "id, nome, slug, ativa, ordem",
   solicitacao:
     "id, solicitante_id, nome_sugerido, justificativa, situacao, categoria_id, motivo_resposta, decidida_em, criado_em",
+  consultaNegocios:
+    "alvo_tipo, alvo_id, dono_id, versao_id, nome, categoria, cidade, uf, situacao, tem_versao_aprovada, publicado, disponivel, item_tipo, perfil_id, slug, criado_em, atualizado_em",
   fila: "alvo_tipo, versao_id, alvo_id, nome, enviada_em, dono_id, eh_edicao",
   resultado:
     "tipo, alvo_id, versao_id, situacao, nome, motivo, decidida_em, enviada_em, autor_ref, slug, publicado, versao_vigente",
+  perfilPublico:
+    "id, slug, nome, descricao_breve, imagem_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, cidade, uf, endereco, areas_atendidas, banners_paths, fotos_paths, site, informacoes_sociais",
+  itemPublico:
+    "id, perfil_id, tipo, nome, descricao, foto_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, preco_modo, preco_centavos, cidade, uf, criado_em",
+  patrocinadorPublico:
+    "id, identificacao, titulo, imagem_path, destino_tipo, destino_perfil_id, destino_perfil_slug, destino_texto, ordem",
+  patrocinadorAdmin:
+    "id, titulo, imagem_path, perfil_destino_id, texto_destino, ordem, ativo, inicio_em, fim_em, criado_em, atualizado_em",
 } as const;
 
 type ErroPostgrest = { code?: string; message?: string; details?: string } | null;
@@ -156,6 +179,8 @@ function paraVersaoItem(l: LinhaBrutaVersaoItem): LinhaItemVersao {
     categoria_secundaria_2_id: l.categoria_secundaria_2_id,
     preco_modo: l.preco_modo,
     preco_centavos: l.preco_centavos,
+    cidade: l.cidade,
+    uf: l.uf,
     criado_em: l.criado_em,
     enviada_em: l.enviada_em,
   };
@@ -375,6 +400,9 @@ export function criarBancoItens(supabase: ClienteSupabaseFase2): ClienteBancoIte
           p_categoria_secundaria_2_id: opc(c.categoria_secundaria_2_id),
           p_preco_modo: opc(c.preco_modo),
           p_preco_centavos: opc(c.preco_centavos),
+          // Só o anúncio particular leva localização (D-008); nulos são omitidos.
+          ...(c.cidade ? { p_cidade: c.cidade } : {}),
+          ...(c.uf ? { p_uf: c.uf } : {}),
         });
         const linha = Array.isArray(data) ? data[0] : null;
         return {
@@ -426,6 +454,8 @@ export function criarBancoItens(supabase: ClienteSupabaseFase2): ClienteBancoIte
             categoria_secundaria_2_id: c.categoria_secundaria_2_id,
             preco_modo: c.preco_modo,
             preco_centavos: c.preco_centavos,
+            cidade: c.cidade,
+            uf: c.uf,
           })
           .select(COLUNAS.versaoItem)
           .maybeSingle();
@@ -445,6 +475,8 @@ export function criarBancoItens(supabase: ClienteSupabaseFase2): ClienteBancoIte
             categoria_secundaria_2_id: c.categoria_secundaria_2_id,
             preco_modo: c.preco_modo,
             preco_centavos: c.preco_centavos,
+            cidade: c.cidade,
+            uf: c.uf,
           })
           .eq("id", versaoId)
           .select(COLUNAS.versaoItem)
@@ -633,6 +665,157 @@ export function criarBancoAdministracao(
 }
 
 // ---------------------------------------------------------------------------------------------------------
+// Busca pública (IM-019) e patrocinadores (IM-020)
+// ---------------------------------------------------------------------------------------------------------
+
+/**
+ * Busca pública: rpc busca_publica + categorias ativas. Funciona com a sessão anônima. Parâmetros nulos ou
+ * ausentes são OMITIDOS (a função tem default para todos os filtros).
+ */
+export function criarBancoBusca(supabase: ClienteSupabaseFase2): ClienteBancoBusca {
+  return {
+    buscar: (params) =>
+      protegido(async () => {
+        const args: Record<string, string | number> = {};
+        for (const [chave, valor] of Object.entries(params)) {
+          if (valor !== null && valor !== undefined) args[chave] = valor;
+        }
+        const { data, error } = await supabase.rpc("busca_publica", args);
+        return { dados: (data ?? []) as LinhaBusca[], erro: paraErro(error) };
+      }),
+
+    listarCategorias: () =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("catalogo_categoria")
+          .select(COLUNAS.categoria)
+          .order("ordem", { ascending: true })
+          .order("nome", { ascending: true });
+        return { dados: (data ?? []) as LinhaCategoria[], erro: paraErro(error) };
+      }),
+  };
+}
+
+/**
+ * Leitura das páginas públicas de perfil e item: só as visões públicas, colunas nomeadas, sessão anônima.
+ * Linha inexistente (ou não liberada pela RLS/visão) = `dados: null` sem erro.
+ */
+export function criarBancoLeituraPublica(
+  supabase: ClienteSupabaseFase2,
+): ClienteBancoLeituraPublica {
+  const perfil = (coluna: "slug" | "id", valor: string) =>
+    protegido(async () => {
+      const { data, error } = await supabase
+        .from("perfis_perfil_publico")
+        .select(COLUNAS.perfilPublico)
+        .eq(coluna, valor)
+        .maybeSingle();
+      return { dados: (data ?? null) as LinhaPerfilPublico | null, erro: paraErro(error) };
+    });
+  return {
+    buscarPerfilPorSlug: (slug) => perfil("slug", slug),
+    buscarPerfilPorId: (id) => perfil("id", id),
+    buscarItemPorId: (id) =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("catalogo_item_publico")
+          .select(COLUNAS.itemPublico)
+          .eq("id", id)
+          .maybeSingle();
+        return { dados: (data ?? null) as LinhaItemPublico | null, erro: paraErro(error) };
+      }),
+    listarItensDoPerfil: (perfilId) =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("catalogo_item_publico")
+          .select(COLUNAS.itemPublico)
+          .eq("perfil_id", perfilId)
+          .order("criado_em", { ascending: false })
+          .limit(50);
+        return { dados: (data ?? []) as LinhaItemPublico[], erro: paraErro(error) };
+      }),
+  };
+}
+
+/**
+ * Patrocinadores: leitura pública (visão) e funções de administrador (rpc). Sessão do usuário; quem decide é a
+ * RLS e o papel conferido de novo dentro de cada função. Parâmetros opcionais nulos são omitidos na criação;
+ * na alteração a função exige todos os parâmetros, então os nulos seguem como null.
+ */
+export function criarBancoPatrocinadores(
+  supabase: ClienteSupabaseFase2,
+): ClienteBancoPatrocinadores {
+  return {
+    listarPublicos: () =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("administracao_patrocinador_publico")
+          .select(COLUNAS.patrocinadorPublico);
+        return { dados: (data ?? []) as LinhaPatrocinadorPublico[], erro: paraErro(error) };
+      }),
+
+    ehAdministrador: () => consultarAdmin(supabase),
+
+    listarTodos: () =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("administracao_patrocinador")
+          .select(COLUNAS.patrocinadorAdmin)
+          .order("ordem", { ascending: true })
+          .order("criado_em", { ascending: true });
+        return { dados: (data ?? []) as LinhaPatrocinadorAdmin[], erro: paraErro(error) };
+      }),
+
+    async criar(p) {
+      try {
+        const { data, error } = await supabase.rpc("administracao_criar_patrocinador", {
+          p_titulo: p.p_titulo,
+          p_imagem_path: p.p_imagem_path,
+          p_ordem: p.p_ordem,
+          p_ativo: p.p_ativo,
+          p_id: p.p_id,
+          ...(p.p_perfil_destino_id ? { p_perfil_destino_id: p.p_perfil_destino_id } : {}),
+          ...(p.p_texto_destino ? { p_texto_destino: p.p_texto_destino } : {}),
+          ...(p.p_inicio_em ? { p_inicio_em: p.p_inicio_em } : {}),
+          ...(p.p_fim_em ? { p_fim_em: p.p_fim_em } : {}),
+          ...(p.p_motivo ? { p_motivo: p.p_motivo } : {}),
+        });
+        return { id: typeof data === "string" ? data : null, erro: paraErro(error) };
+      } catch {
+        return { id: null, erro: ERRO_DESCONHECIDO };
+      }
+    },
+
+    alterar: (p) =>
+      protegidoErro(async () => {
+        // A função exige todos os parâmetros; os tipos gerados não admitem null, mas o banco aceita.
+        const { error } = await supabase.rpc("administracao_alterar_patrocinador", {
+          p_id: p.p_id,
+          p_titulo: p.p_titulo,
+          p_imagem_path: p.p_imagem_path,
+          p_perfil_destino_id: p.p_perfil_destino_id as string,
+          p_texto_destino: p.p_texto_destino as string,
+          p_ordem: p.p_ordem,
+          p_inicio_em: p.p_inicio_em as string,
+          p_fim_em: p.p_fim_em as string,
+          p_motivo: p.p_motivo,
+        });
+        return paraErro(error);
+      }),
+
+    definirAtivo: (p) =>
+      protegidoErro(async () => {
+        const { error } = await supabase.rpc("administracao_definir_patrocinador_ativo", {
+          p_id: p.p_id,
+          p_ativo: p.p_ativo,
+          p_motivo: p.p_motivo,
+        });
+        return paraErro(error);
+      }),
+  };
+}
+
+// ---------------------------------------------------------------------------------------------------------
 // Montagem
 // ---------------------------------------------------------------------------------------------------------
 
@@ -648,5 +831,29 @@ export function criarBancosSupabase(
     bancoCategorias: criarBancoCategorias(supabase, contaId),
     bancoAdministracao: criarBancoAdministracao(supabase, contaId),
     assinarImagens: assinar,
+  };
+}
+
+/**
+ * Consulta somente leitura (D-009): select na visão administracao_consulta_negocios, que já filtra pelo papel
+ * de administrador. Busca por nome com ilike (o serviço já escapou os curingas), mais novo primeiro.
+ */
+export function criarBancoConsultaNegocios(
+  supabase: ClienteSupabaseFase2,
+): ClienteBancoConsultaNegocios {
+  return {
+    ehAdministrador: () => consultarAdmin(supabase),
+    consultarNegocios: (c) =>
+      protegido(async () => {
+        let q = supabase.from("administracao_consulta_negocios").select(COLUNAS.consultaNegocios);
+        if (c.buscaLike) q = q.ilike("nome", `%${c.buscaLike}%`);
+        if (c.situacao) q = q.eq("situacao", c.situacao);
+        if (c.tipo) q = q.eq("alvo_tipo", c.tipo);
+        const { data, error } = await q
+          .order("atualizado_em", { ascending: false })
+          .order("alvo_id", { ascending: true })
+          .range(c.de, c.ate);
+        return { dados: (data ?? []) as unknown as LinhaConsultaNegocio[], erro: paraErro(error) };
+      }),
   };
 }

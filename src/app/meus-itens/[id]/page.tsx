@@ -146,6 +146,7 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
               itemId={it.id}
               inicial={valoresIniciaisItem(c)}
               categorias={categorias}
+              anuncioParticular={it.anuncioParticular}
             />
             <p className="rodape-links">
               Não encontrou a categoria? <Link href="/solicitar-categoria">Peça uma nova</Link>.

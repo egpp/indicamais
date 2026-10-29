@@ -73,7 +73,12 @@ export const validarEdicaoPerfil = (d: Dados): Erros => {
 export const validarNovoItem = (d: Dados): Erros => {
   const ler = lerDeRegistro(d);
   const erros = resultado(novoItemSchema.safeParse(lerNovoItem(ler))) ?? {};
-  if (perfilObrigatorioFaltando(ler)) erros.perfilId = MENSAGEM_ESCOLHA_PERFIL;
+  if (perfilObrigatorioFaltando(ler)) {
+    // Sem perfil escolhido o formulário ainda não sabe se é anúncio: não cobra cidade/UF nesse caso.
+    delete erros.cidade;
+    delete erros.uf;
+    erros.perfilId = MENSAGEM_ESCOLHA_PERFIL;
+  }
   complementarCategorias(erros, ler);
   return comoRegistro(erros);
 };

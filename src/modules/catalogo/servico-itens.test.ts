@@ -139,13 +139,16 @@ function fakeBanco(contaId = DONO) {
 const foto = (itemId: string, n = 1, ext = "jpg") =>
   `item/${itemId}/aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, "0")}.${ext}`;
 
-const valido = {
+/** Item de PERFIL: herda cidade/UF do perfil (D-008), então não traz localização. */
+const validoPerfil = {
   tipo: "produto" as const,
   nome: "Bolo de cenoura",
   descricao: "Bolo caseiro com cobertura de chocolate.",
   categoriaPrincipalId: CAT_A,
   preco: { modo: "fixo" as const, centavos: 4500 },
 };
+/** Anúncio particular: cidade e UF obrigatórias (D-008, IM-015). */
+const valido = { ...validoPerfil, cidade: "Campinas", uf: "SP" };
 
 /** Fluxo na ordem certa: criar item -> enviar foto -> gravar a foto na versão (editar). */
 async function criarPronto(f = fakeBanco()) {
@@ -161,10 +164,15 @@ describe("itens: criação (IM-014, IM-015)", () => {
   it("cria produto de perfil e serviço sem preço", async () => {
     const f = fakeBanco();
     const svc = criarServicoItens(f.banco);
-    const r = await svc.criarRascunho({ ...valido, perfilId: PERFIL });
+    const r = await svc.criarRascunho({ ...validoPerfil, perfilId: PERFIL });
     expect(r.ok && r.valor.perfilId).toBe(PERFIL);
     expect(r.ok && r.valor.anuncioParticular).toBe(false);
-    const s = await svc.criarRascunho({ tipo: "servico", nome: "Corte de cabelo" });
+    const s = await svc.criarRascunho({
+      tipo: "servico",
+      nome: "Corte de cabelo",
+      cidade: "Campinas",
+      uf: "SP",
+    });
     expect(s.ok && s.valor.conteudoEdicao.preco).toBeNull();
     expect(s.ok && s.valor.estado.rotulo).toBe("Rascunho");
   });
@@ -233,7 +241,7 @@ describe("itens: criação (IM-014, IM-015)", () => {
     ["fixo sem valor", { ...valido, preco: { modo: "fixo" } }],
     ["nome muito longo", { ...valido, nome: "a".repeat(101) }],
     ["descrição muito longa", { ...valido, descricao: "a".repeat(1501) }],
-    ["perfil não é uuid", { ...valido, perfilId: "abc" }],
+    ["perfil não é uuid", { ...validoPerfil, perfilId: "abc" }],
   ])("recusa %s sem tocar no banco", async (_n, entrada) => {
     const f = fakeBanco();
     const r = await criarServicoItens(f.banco).criarRascunho(entrada);
@@ -260,7 +268,12 @@ describe("itens: prévia e envio (IM-017, IM-021)", () => {
   it("não envia incompleto e lista o que falta", async () => {
     const f = fakeBanco();
     const svc = criarServicoItens(f.banco);
-    const c = await svc.criarRascunho({ tipo: "produto", nome: "Só o nome" });
+    const c = await svc.criarRascunho({
+      tipo: "produto",
+      nome: "Só o nome",
+      cidade: "Campinas",
+      uf: "SP",
+    });
     if (!c.ok) throw new Error();
     const r = await svc.enviarParaAprovacao(c.valor.id);
     expect(!r.ok && r.erro.codigo).toBe("INCOMPLETO");
@@ -460,7 +473,7 @@ describe("itens: listagem", () => {
     const f = fakeBanco();
     const svc = criarServicoItens(f.banco);
     await svc.criarRascunho(valido);
-    await svc.criarRascunho({ tipo: "servico", nome: "Aula" });
+    await svc.criarRascunho({ tipo: "servico", nome: "Aula", cidade: "Recife", uf: "PE" });
     const r = await svc.listarMeus();
     expect(r.ok && r.valor).toHaveLength(2);
     expect(r.ok && r.valor.map((i) => i.estado.rotulo)).toEqual(["Rascunho", "Rascunho"]);
@@ -548,6 +561,7 @@ describe("itens: erros do banco e privacidade (IM-029, IM-086)", () => {
         "anuncioParticular",
         "categoriaPrincipalId",
         "categoriasSecundariasIds",
+        "cidade",
         "descricao",
         "fotoPath",
         "id",
@@ -556,6 +570,7 @@ describe("itens: erros do banco e privacidade (IM-029, IM-086)", () => {
         "preco",
         "precoTexto",
         "tipo",
+        "uf",
       ].sort(),
     );
   });
@@ -615,5 +630,115 @@ describe("itens: obterVersaoParaRevisao (IM-021, IM-023, IM-029)", () => {
     expect(!a.ok && a.erro.codigo).toBe("NAO_ENCONTRADO");
     const b = await svc.obterVersaoParaRevisao("00000000-0000-4000-8000-0000000000ff");
     expect(!b.ok && b.erro.codigo).toBe("NAO_ENCONTRADO");
+  });
+});
+
+describe("itens: localização do anúncio particular (D-008, IM-015)", () => {
+  const rejeita = async (entrada: Record<string, unknown>, campo: string) => {
+    const f = fakeBanco();
+    const r = await criarServicoItens(f.banco).criarRascunho(entrada);
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.erro.codigo).toBe("VALIDACAO");
+    expect(!r.ok && Object.keys(r.erro.campos ?? {})).toContain(campo);
+    expect(f.banco.criarItem).not.toHaveBeenCalled();
+  };
+
+  it("anúncio particular com cidade e UF é criado e grava a localização", async () => {
+    const f = fakeBanco();
+    const r = await criarServicoItens(f.banco).criarRascunho({
+      ...validoPerfil,
+      cidade: "  São Paulo ",
+      uf: "sp",
+    });
+    expect(r.ok && r.valor.conteudoEdicao.cidade).toBe("São Paulo");
+    expect(r.ok && r.valor.conteudoEdicao.uf).toBe("SP");
+    expect(f.banco.criarItem).toHaveBeenCalledWith(
+      expect.objectContaining({ cidade: "São Paulo", uf: "SP", perfil_id: null }),
+    );
+  });
+
+  it("anúncio particular SEM cidade é recusado", () =>
+    rejeita({ ...validoPerfil, uf: "SP" }, "cidade"));
+  it("anúncio particular SEM UF é recusado", () =>
+    rejeita({ ...validoPerfil, cidade: "Campinas" }, "uf"));
+  it("anúncio particular sem nenhum dos dois é recusado", async () => {
+    await rejeita(validoPerfil, "cidade");
+    await rejeita(validoPerfil, "uf");
+  });
+  it("cidade em branco, de 1 letra ou com mais de 80 é recusada", async () => {
+    await rejeita({ ...valido, cidade: "   " }, "cidade");
+    await rejeita({ ...valido, cidade: "A" }, "cidade");
+    await rejeita({ ...valido, cidade: "x".repeat(81) }, "cidade");
+  });
+  it("UF inexistente ou com formato errado é recusada", async () => {
+    await rejeita({ ...valido, uf: "XX" }, "uf");
+    await rejeita({ ...valido, uf: "SPP" }, "uf");
+    await rejeita({ ...valido, uf: "S" }, "uf");
+    await rejeita({ ...valido, uf: 12 }, "uf");
+  });
+
+  it("item de PERFIL com cidade ou UF é recusado (herda do perfil)", async () => {
+    await rejeita({ ...validoPerfil, perfilId: PERFIL, cidade: "Campinas" }, "cidade");
+    await rejeita({ ...validoPerfil, perfilId: PERFIL, uf: "SP" }, "uf");
+  });
+
+  it("item de perfil sem localização continua sendo criado, com cidade/UF nulas", async () => {
+    const f = fakeBanco();
+    const r = await criarServicoItens(f.banco).criarRascunho({ ...validoPerfil, perfilId: PERFIL });
+    expect(r.ok && r.valor.conteudoEdicao.cidade).toBeNull();
+    expect(r.ok && r.valor.conteudoEdicao.uf).toBeNull();
+  });
+
+  it("edição do anúncio particular troca a cidade, mas não pode apagá-la", async () => {
+    const { svc, item } = await criarPronto();
+    const ok = await svc.editar(item.id, { cidade: "Recife", uf: "PE" });
+    expect(ok.ok && ok.valor.item.conteudoEdicao.cidade).toBe("Recife");
+    const limpa = await svc.editar(item.id, { cidade: null });
+    expect(!limpa.ok && limpa.erro.campos).toHaveProperty("cidade");
+    const ufRuim = await svc.editar(item.id, { uf: "ZZ" });
+    expect(!ufRuim.ok && ufRuim.erro.codigo).toBe("VALIDACAO");
+  });
+
+  it("edição de item de perfil não aceita cidade nem UF", async () => {
+    const f = fakeBanco();
+    const svc = criarServicoItens(f.banco);
+    const c = await svc.criarRascunho({ ...validoPerfil, perfilId: PERFIL });
+    if (!c.ok) throw new Error();
+    const r = await svc.editar(c.valor.id, { cidade: "Campinas", uf: "SP" });
+    expect(!r.ok && r.erro.campos).toHaveProperty("cidade");
+    expect(!r.ok && r.erro.campos).toHaveProperty("uf");
+    expect(f.banco.atualizarVersao).not.toHaveBeenCalled();
+  });
+
+  it("modelo público do anúncio particular mostra cidade/UF; item de perfil mostra null", () => {
+    const base = {
+      id: "i1",
+      perfil_id: null,
+      tipo: "produto" as const,
+      nome: "Bike",
+      descricao: null,
+      foto_path: null,
+      categoria_principal_id: null,
+      categoria_secundaria_1_id: null,
+      categoria_secundaria_2_id: null,
+      preco_modo: null,
+      preco_centavos: null,
+      criado_em: "2026-10-01T00:00:00Z",
+    };
+    const a = paraItemPublico({ ...base, cidade: "Campinas", uf: "SP" });
+    expect([a.cidade, a.uf, a.anuncioParticular]).toEqual(["Campinas", "SP", true]);
+    const p = paraItemPublico({ ...base, perfil_id: PERFIL });
+    expect([p.cidade, p.uf]).toEqual([null, null]);
+  });
+
+  it("erro de CHECK de localização no banco vira mensagem genérica em pt-BR", () => {
+    const e = mapearErroBancoCatalogo({
+      code: "23514",
+      constraint: "catalogo_item_versao_localizacao",
+      message: "new row for relation violates check constraint (dados internos)",
+    });
+    expect(e.codigo).toBe("VALIDACAO");
+    expect(e.mensagem).toBe("Confira a cidade e a UF informadas.");
+    expect(e.mensagem).not.toMatch(/relation|constraint/i);
   });
 });

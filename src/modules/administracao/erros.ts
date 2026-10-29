@@ -11,6 +11,9 @@ export const MENSAGENS_ADMINISTRACAO = {
   naoEncontrado: "Este item não está mais na fila de revisão.",
   jaDecidida: "Este conteúdo já foi decidido ou não está mais aguardando revisão.",
   dadosInvalidos: "Confira os dados informados.",
+  patrocinadorNaoEncontrado: "Patrocinador não encontrado.",
+  patrocinadorInvalido: "Confira os dados do patrocinador.",
+  perfilDestinoInvalido: "Perfil de destino não encontrado. Escolha um perfil existente.",
 } as const;
 
 export type CodigoErroAdministracao =
@@ -62,5 +65,32 @@ export function mapearErroBancoAdministracao(e: ErroBanco): ErroAdministracao {
       return erroAdm("JA_DECIDIDA", M.jaDecidida);
     default:
       return erroAdm("ERRO_INTERNO", M.generica);
+  }
+}
+
+/**
+ * Erros das funções de patrocinador (IM-020). Reaproveita o mapa geral e acrescenta: perfil de destino
+ * inexistente (23503), patrocinador inexistente (P0002) e CHECK de dados (23514). Texto do banco nunca sai.
+ */
+export function mapearErroBancoPatrocinador(e: ErroBanco): ErroAdministracao {
+  const classe = classificarErroBanco(e);
+  const M = MENSAGENS_ADMINISTRACAO;
+  switch (classe) {
+    case "REFERENCIA":
+      return erroAdm("VALIDACAO", M.perfilDestinoInvalido, {
+        perfilDestinoId: M.perfilDestinoInvalido,
+      });
+    case "NAO_ENCONTRADO":
+      return erroAdm("NAO_ENCONTRADO", M.patrocinadorNaoEncontrado);
+    case "CHECK":
+      return /motivo/i.test(alvoDoErro(e))
+        ? erroAdm("MOTIVO_OBRIGATORIO", M.motivoObrigatorio)
+        : erroAdm("VALIDACAO", M.patrocinadorInvalido);
+    case "DADO_INVALIDO":
+      return erroAdm("MOTIVO_OBRIGATORIO", "Informe o motivo da alteração.");
+    case "DUPLICADO":
+      return erroAdm("VALIDACAO", M.patrocinadorInvalido);
+    default:
+      return mapearErroBancoAdministracao(e);
   }
 }

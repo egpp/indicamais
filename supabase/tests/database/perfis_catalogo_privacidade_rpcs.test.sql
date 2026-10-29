@@ -5,6 +5,8 @@
 -- deixa perfil/item órfão; (5) administracao_meus_resultados mostra ao responsável só o que é dele.
 begin;
 select * from no_plan();
+-- A migração de seed cria as 8 categorias da D-006; este teste monta as suas.
+delete from public.catalogo_categoria;
 
 insert into auth.users (id, instance_id, aud, role, email) values
   ('aaaaaaaa-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'a@teste.local'),
@@ -31,7 +33,7 @@ select columns_are('public', 'perfis_perfil_publico', array['id', 'slug', 'nome'
   'categoria_principal_id', 'categoria_secundaria_1_id', 'categoria_secundaria_2_id', 'cidade', 'uf', 'endereco',
   'areas_atendidas', 'banners_paths', 'fotos_paths', 'site', 'informacoes_sociais'], 'colunas da visão pública do perfil');
 select columns_are('public', 'catalogo_item_publico', array['id', 'perfil_id', 'tipo', 'nome', 'descricao', 'foto_path',
-  'categoria_principal_id', 'categoria_secundaria_1_id', 'categoria_secundaria_2_id', 'preco_modo', 'preco_centavos', 'criado_em'],
+  'categoria_principal_id', 'categoria_secundaria_1_id', 'categoria_secundaria_2_id', 'preco_modo', 'preco_centavos', 'criado_em', 'cidade', 'uf'],
   'colunas da visão pública do item');
 select columns_are('public', 'administracao_meus_resultados', array['tipo', 'alvo_id', 'versao_id', 'situacao', 'nome', 'motivo',
   'decidida_em', 'enviada_em', 'autor_ref', 'slug', 'publicado', 'versao_vigente'], 'colunas do resultado da revisão (sem nome nem e-mail do autor)');
@@ -49,12 +51,13 @@ select is((select coalesce(array_agg(p.proname::text order by p.proname), '{}'::
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'execute')
     and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')),
-  array['catalogo_imagem_publica', 'perfis_perfil_disponivel'], 'anon executa só as funções públicas esperadas');
-select is((select count(*)::int
+  array['busca_normalizar', 'busca_publica', 'catalogo_imagem_publica', 'perfis_perfil_disponivel'], 'anon executa só as funções públicas esperadas');
+-- Fora as de busca pública (security invoker, só leem as visões públicas; ver busca_publica.test.sql), só boolean.
+select is((select array_agg(p.proname::text order by p.proname)
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'execute')
     and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
-    and p.prorettype <> 'boolean'::regtype), 0, 'nenhuma função executável por anon devolve dado (só boolean)');
+    and p.prorettype <> 'boolean'::regtype), array['busca_normalizar', 'busca_publica'], 'só as funções de busca devolvem dado a anon; as demais são boolean');
 select is((select count(*)::int
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname in ('perfis_criar_rascunho', 'perfis_gravar_versao', 'catalogo_criar_item')
@@ -80,7 +83,7 @@ select lives_ok($$select public.perfis_enviar_versao(t.versao('padaria-ana', 'ra
 select throws_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('padaria-ana'), p_whatsapp_comercial => '+5551999990004', p_nome => 'Mexe na pendente')$$, 'P0001', null, 'versão pendente não pode ser regravada');
 
 select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Bicicleta', p_descricao => 'Aro 29',
-  p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_preco_modo => 'fixo', p_preco_centavos => 120000)$$, 'A cria anúncio particular');
+  p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_preco_modo => 'fixo', p_preco_centavos => 120000, p_cidade => 'Porto Alegre', p_uf => 'RS')$$, 'A cria anúncio particular');
 select lives_ok($$update public.catalogo_item_versao set foto_path = 'item/' || (select id from public.catalogo_meus_itens)::text || '/bike.jpg' where situacao = 'rascunho'$$, 'A grava a foto opaca do anúncio');
 select lives_ok($$select public.catalogo_enviar_item_versao((select id from public.catalogo_item_versao where situacao = 'rascunho'))$$, 'A envia o anúncio');
 

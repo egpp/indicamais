@@ -26,6 +26,12 @@ export type LinhaItemVersao = {
   categoria_secundaria_2_id: string | null;
   preco_modo: string | null;
   preco_centavos: number | string | null;
+  /**
+   * Localização do anúncio particular (D-008). OPCIONAL no contrato até a migração (catalogo_item_versao.cidade/uf)
+   * ser aplicada; ausente = null.
+   */
+  cidade?: string | null;
+  uf?: string | null;
   criado_em: string;
   enviada_em: string | null;
 };
@@ -43,6 +49,9 @@ export type LinhaItemPublico = {
   categoria_secundaria_2_id: string | null;
   preco_modo: string | null;
   preco_centavos: number | string | null;
+  /** Só preenchidas no anúncio particular (D-008); opcionais até a migração. */
+  cidade?: string | null;
+  uf?: string | null;
   criado_em: string;
 };
 
@@ -74,6 +83,9 @@ export type ConteudoItem = {
   categoriaPrincipalId: string | null;
   categoriasSecundariasIds: string[];
   preco: Preco | null;
+  /** Só do anúncio particular (D-008); item de perfil herda do perfil e fica null. */
+  cidade?: string | null;
+  uf?: string | null;
 };
 
 export const CONTEUDO_ITEM_VAZIO: ConteudoItem = {
@@ -83,6 +95,8 @@ export const CONTEUDO_ITEM_VAZIO: ConteudoItem = {
   categoriaPrincipalId: null,
   categoriasSecundariasIds: [],
   preco: null,
+  cidade: null,
+  uf: null,
 };
 
 export function conteudoDeVersao(v: LinhaItemVersao): ConteudoItem {
@@ -94,6 +108,8 @@ export function conteudoDeVersao(v: LinhaItemVersao): ConteudoItem {
     categoriaPrincipalId: cat.principalId,
     categoriasSecundariasIds: cat.secundariasIds,
     preco: precoDeColunas(v.preco_modo, v.preco_centavos),
+    cidade: v.cidade ?? null,
+    uf: v.uf ?? null,
   };
 }
 
@@ -107,6 +123,8 @@ export function colunasDeConteudo(c: ConteudoItem) {
       secundariasIds: c.categoriasSecundariasIds,
     }),
     ...precoParaColunas(c.preco),
+    cidade: c.cidade ?? null,
+    uf: c.uf ?? null,
   };
 }
 export type ColunasVersaoItem = ReturnType<typeof colunasDeConteudo>;
@@ -127,6 +145,9 @@ export type ItemExibicao = {
   categoriaPrincipalId: string | null;
   categoriasSecundariasIds: string[];
   preco: Preco | null;
+  /** Localização do anúncio particular (null em item de perfil: vale a do perfil). */
+  cidade: string | null;
+  uf: string | null;
   /** "R$ 10,00", "A partir de R$ 10,00", "Sob consulta" ou null. */
   precoTexto: string | null;
 };
@@ -146,6 +167,8 @@ export function paraItemExibicao(
     categoriaPrincipalId: conteudo.categoriaPrincipalId,
     categoriasSecundariasIds: [...conteudo.categoriasSecundariasIds],
     preco: conteudo.preco,
+    cidade: conteudo.cidade ?? null,
+    uf: conteudo.uf ?? null,
     precoTexto: formatarPreco(conteudo.preco),
   };
 }
@@ -166,14 +189,22 @@ export function paraItemPublico(l: LinhaItemPublico): ItemExibicao {
       categoria_secundaria_2_id: l.categoria_secundaria_2_id,
       preco_modo: l.preco_modo,
       preco_centavos: l.preco_centavos,
+      cidade: l.cidade ?? null,
+      uf: l.uf ?? null,
       criado_em: l.criado_em,
       enviada_em: null,
     }),
   );
 }
 
-/** Parâmetros de `catalogo_criar_item`: sem foto (o item precisa existir antes do upload). */
-export type DadosCriarItem = Omit<ColunasVersaoItem, "foto_path"> & {
+/**
+ * Parâmetros de `catalogo_criar_item`: sem foto (o item precisa existir antes do upload).
+ * `cidade`/`uf` (D-008) viram `p_cidade`/`p_uf`, parâmetros NOVOS ao final da função. Até a migração ser aplicada,
+ * o adaptador só os envia quando não forem null (anúncio particular).
+ */
+export type DadosCriarItem = Omit<ColunasVersaoItem, "foto_path" | "cidade" | "uf"> & {
+  cidade?: string | null;
+  uf?: string | null;
   tipo: TipoItem;
   perfil_id: string | null;
 };
@@ -192,6 +223,8 @@ export function dadosDeCriacao(
     categoria_secundaria_2_id: cols.categoria_secundaria_2_id,
     preco_modo: cols.preco_modo,
     preco_centavos: cols.preco_centavos,
+    cidade: cols.cidade,
+    uf: cols.uf,
     tipo,
     perfil_id: perfilId,
   };

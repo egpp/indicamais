@@ -140,7 +140,7 @@ export function montarMeuItem(item: LinhaItem, versoes: LinhaItemVersao[]): MeuI
     versaoAbertaId: aberta?.id ?? null,
     conteudoEdicao,
     conteudoNoAr: aprovada ? conteudoDeVersao(aprovada) : null,
-    pendencias: pendenciasDoItem(conteudoEdicao),
+    pendencias: pendenciasDoItem(conteudoEdicao, item.perfil_id === null),
     criadoEm: item.criado_em,
   };
 }
@@ -215,7 +215,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         }
         const { tipo, perfilId, ...campos } = p.data;
         const conteudo = aplicarCamposItem(CONTEUDO_ITEM_VAZIO, campos);
-        const incoerencias = validarConteudoItem(conteudo, null);
+        const incoerencias = validarConteudoItem(conteudo, null, !perfilId);
         if (Object.keys(incoerencias).length > 0) {
           return falha(
             erroCatalogo("VALIDACAO", Object.values(incoerencias)[0]!, { campos: incoerencias }),
@@ -261,7 +261,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
               : undefined;
         const base = baseLinha ? conteudoDeVersao(baseLinha) : CONTEUDO_ITEM_VAZIO;
         const novo = aplicarCamposItem(base, p.data);
-        const incoerencias = validarConteudoItem(novo, itemId);
+        const incoerencias = validarConteudoItem(novo, itemId, item.perfil_id === null);
         if (Object.keys(incoerencias).length > 0) {
           return falha(
             erroCatalogo("VALIDACAO", Object.values(incoerencias)[0]!, { campos: incoerencias }),
@@ -325,7 +325,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         const aberta = versaoAberta(versoes);
         const linha = aberta ?? maisRecenteDecidida(versoes);
         const conteudo = linha ? conteudoDeVersao(linha) : CONTEUDO_ITEM_VAZIO;
-        const pendencias = pendenciasDoItem(conteudo);
+        const pendencias = pendenciasDoItem(conteudo, item.perfil_id === null);
         return {
           ok: true,
           valor: {
@@ -346,7 +346,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         const aberta = versaoAberta(versoes);
         if (!aberta) return falha(erroCatalogo("ESTADO_INVALIDO", M.nenhumRascunho));
         if (aberta.situacao === "pendente") return falha(erroCatalogo("EM_ANALISE", M.emAnalise));
-        const pendencias = pendenciasDoItem(conteudoDeVersao(aberta));
+        const pendencias = pendenciasDoItem(conteudoDeVersao(aberta), item.perfil_id === null);
         if (pendencias.length > 0) {
           return falha(erroCatalogo("INCOMPLETO", M.incompleto, { pendencias }));
         }

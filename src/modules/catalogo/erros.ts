@@ -14,6 +14,7 @@ export const MENSAGENS_CATALOGO = {
   categoriaInvalida: "Confira as categorias escolhidas.",
   perfilInvalido: "Perfil não encontrado ou não pertence à sua conta.",
   precoInvalido: "Confira o preço informado.",
+  localizacaoInvalida: "Confira a cidade e a UF informadas.",
   imagemInvalida: "Imagem inválida. Envie novamente.",
   textoInvalido: "Confira os textos informados.",
   categoriaDuplicada: "Já existe uma categoria com este nome.",
@@ -71,6 +72,9 @@ export function mapearErroBancoCatalogo(e: ErroBanco): ErroCatalogo {
     if (/versao_completa/i.test(alvo)) return erroCatalogo("INCOMPLETO", M.incompleto);
     if (/publicado_exige_aprovada/i.test(alvo)) return erroCatalogo("NAO_APROVADO", M.naoAprovado);
     if (/categoria/i.test(alvo)) return erroCatalogo("CATEGORIA_INVALIDA", M.categoriaInvalida);
+    if (/cidade|localiza|_uf/i.test(alvo)) {
+      return erroCatalogo("VALIDACAO", M.localizacaoInvalida);
+    }
     if (/imagem|foto/i.test(alvo)) return erroCatalogo("VALIDACAO", M.imagemInvalida);
     return erroCatalogo("VALIDACAO", M.textoInvalido);
   }

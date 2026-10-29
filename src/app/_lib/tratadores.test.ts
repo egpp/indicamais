@@ -290,6 +290,8 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
     categoriaPrincipalId: m.categorias[2]!.id,
     precoModo: "fixo",
     precoValor: "1.250,50",
+    cidade: "Porto Alegre",
+    uf: "RS",
     ...extra,
   });
 
@@ -307,6 +309,29 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
     const v = m.versoesItem.find((x) => x.item_id === id)!;
     expect(v.preco_modo).toBe("fixo");
     expect(v.preco_centavos).toBe(125050);
+    expect([v.cidade, v.uf]).toEqual(["Porto Alegre", "RS"]);
+  });
+
+  it("anúncio particular exige cidade e UF; item de perfil nao leva cidade/UF (herda do perfil)", async () => {
+    const m = mundo();
+    const semCidade = await criarItem(
+      m.contexto(ANA),
+      formulario(dadosItem(m, { cidade: "", uf: "" })),
+    );
+    expect(semCidade.destino).toBeUndefined();
+    expect(semCidade.erros?.cidade).toMatch(/^Informe a cidade/);
+    expect(semCidade.erros?.uf).toBe("Escolha a UF.");
+    const ufRuim = await criarItem(m.contexto(ANA), formulario(dadosItem(m, { uf: "XX" })));
+    expect(ufRuim.erros?.uf).toBeTruthy();
+
+    const perfilId = await novoPerfil(m, ANA);
+    const r = await criarItem(
+      m.contexto(ANA),
+      formulario(dadosItem(m, { origem: "perfil", perfilId, tipo: "servico" })),
+    );
+    const id = /\/meus-itens\/([0-9a-f-]{36})/.exec(r.destino ?? "")![1];
+    const v = m.versoesItem.find((x) => x.item_id === id)!;
+    expect([v.cidade, v.uf]).toEqual([null, null]);
   });
 
   it("preço: sem preço, a partir de, sob consulta (sem valor) e valor inválido", async () => {

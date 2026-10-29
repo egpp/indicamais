@@ -283,6 +283,8 @@ describe("itens, anúncios e revisões (IM-014, IM-015, IM-023)", () => {
         tipo: "produto",
         nome: "Bicicleta",
         origem: "anuncio",
+        cidade: "Porto Alegre",
+        uf: "RS",
         precoModo: "fixo",
         precoValor: "1.250,00",
       }),
@@ -313,6 +315,8 @@ describe("itens, anúncios e revisões (IM-014, IM-015, IM-023)", () => {
       formulario({
         tipo: "produto",
         origem: "anuncio",
+        cidade: "Canoas",
+        uf: "RS",
         nome: "Sofá",
         descricao: "Usado.",
         categoriaPrincipalId: m.categorias[0]!.id,

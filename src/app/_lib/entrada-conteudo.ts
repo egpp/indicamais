@@ -92,6 +92,8 @@ export const CAMPOS_ITEM = [
   "categoriaSecundaria2",
   "precoModo",
   "precoValor",
+  "cidade",
+  "uf",
 ] as const;
 
 /** Preço: "" = sem preço; "sob_consulta" não leva valor; "fixo" e "a_partir_de" convertem R$ em centavos. */
@@ -103,12 +105,21 @@ export function lerPreco(ler: Ler): unknown {
   return { modo, centavos: parsearReaisParaCentavos(ler("precoValor")) ?? Number.NaN };
 }
 
+/**
+ * Cidade e UF só existem no anúncio particular (D-008, IM-015). Item de perfil herda a localização do perfil:
+ * o formulário nem mostra os campos e eles nunca seguem para o módulo.
+ */
+function localizacaoDoAnuncio(ler: Ler) {
+  return ler("origem") === "anuncio" ? { cidade: ler("cidade"), uf: ler("uf") } : {};
+}
+
 export function lerCamposItem(ler: Ler) {
   return {
     nome: ler("nome"),
     descricao: ler("descricao"),
     preco: lerPreco(ler),
     ...categorias(ler),
+    ...localizacaoDoAnuncio(ler),
   };
 }
 

@@ -3,6 +3,8 @@
 -- (perfis.test.sql: "edição rejeitada mantém a aprovada no ar").
 begin;
 select * from no_plan();
+-- A migração de seed cria as 8 categorias da D-006; este teste monta as suas.
+delete from public.catalogo_categoria;
 
 insert into auth.users (id, instance_id, aud, role, email) values
   ('aaaaaaaa-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'a@teste.local'),
@@ -29,8 +31,8 @@ create function t.iv(s text) returns uuid language sql stable security definer a
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
-select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id)
-  values ('e0000000-0000-0000-0000-000000000001', 'Bolo caseiro 2', 'Descrição nova', 'item/e0000000-0000-0000-0000-000000000001/bolo2.jpg', '11111111-0000-0000-0000-000000000001')$$, 'A edita o item aprovado');
+select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id, cidade, uf)
+  values ('e0000000-0000-0000-0000-000000000001', 'Bolo caseiro 2', 'Descrição nova', 'item/e0000000-0000-0000-0000-000000000001/bolo2.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'A edita o item aprovado');
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv('rascunho'))$$, 'A envia a edição');
 
 -- Administrador rejeita a edição: sem motivo é recusado, com motivo passa
@@ -62,8 +64,8 @@ select is((select versao_vigente from public.administracao_meus_resultados where
 select is((select versao_vigente from public.administracao_meus_resultados where situacao = 'rejeitada'), false, 'a rejeitada não é a vigente');
 
 -- A corrige e reenvia (nova versão aberta é permitida após a rejeição)
-select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id)
-  values ('e0000000-0000-0000-0000-000000000001', 'Bolo caseiro 3', 'Descrição corrigida', 'item/e0000000-0000-0000-0000-000000000001/bolo3.jpg', '11111111-0000-0000-0000-000000000001')$$, 'A corrige a edição rejeitada em nova versão');
+select lives_ok($$insert into public.catalogo_item_versao (item_id, nome, descricao, foto_path, categoria_principal_id, cidade, uf)
+  values ('e0000000-0000-0000-0000-000000000001', 'Bolo caseiro 3', 'Descrição corrigida', 'item/e0000000-0000-0000-0000-000000000001/bolo3.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS')$$, 'A corrige a edição rejeitada em nova versão');
 
 select * from finish();
 rollback;

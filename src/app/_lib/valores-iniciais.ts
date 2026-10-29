@@ -34,5 +34,7 @@ export function valoresIniciaisItem(c: ConteudoItem): Record<string, string> {
     categoriaSecundaria2: c.categoriasSecundariasIds[1] ?? "",
     precoModo: c.preco?.modo ?? "",
     precoValor: c.preco && c.preco.centavos !== null ? semSimbolo(c.preco.centavos) : "",
+    cidade: c.cidade ?? "",
+    uf: c.uf ?? "",
   };
 }

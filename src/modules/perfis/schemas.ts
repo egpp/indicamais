@@ -3,14 +3,12 @@ import { normalizarWhatsappBR } from "@/modules/contas";
 import { LIMITES } from "@/shared/config/limites";
 import { formatoDeCaminhoValido } from "@/shared/conteudo/imagens";
 import { textoOpcional, uuidSchema } from "@/shared/conteudo/zod-util";
+import { UFS, ufSchema } from "@/shared/conteudo/ufs";
 import { normalizarSite, pareceLinkOuRede } from "./texto-livre";
 
 /** Entradas do módulo perfis (IM-011, IM-012, IM-016). Campos desconhecidos são descartados. */
 
-export const UFS = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
-  "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
-] as const; // prettier-ignore
+export { UFS, ufSchema };
 
 const L = LIMITES.perfil;
 const vazioParaNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
@@ -25,11 +23,6 @@ const listaImagens = (max: number, msgMax: string) =>
     .max(max, { error: msgMax })
     .refine((a) => new Set(a).size === a.length, { error: "Não repita a mesma imagem." })
     .optional();
-
-export const ufSchema = z.preprocess(
-  (v) => (typeof v === "string" ? (v.trim() === "" ? null : v.trim().toUpperCase()) : v),
-  z.enum(UFS, { error: "Escolha uma UF válida." }).nullable(),
-);
 
 export const siteSchema = z.preprocess(
   vazioParaNull,
