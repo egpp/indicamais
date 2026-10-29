@@ -8,5 +8,7 @@ docs
 CLAUDE.md
 supabase
 tests/fixtures
+playwright-report
+test-results
 cloudflare-env.d.ts
 src/shared/db/database.types.ts

@@ -18,7 +18,9 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "db:types": "supabase gen types typescript --linked --schema public > src/shared/db/database.types.ts",
     "supabase": "supabase",
-    "check:supabase": "node --env-file=.env.local scripts/checar-supabase.mjs"
+    "check:supabase": "node --env-file=.env.local scripts/checar-supabase.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.13",
@@ -30,6 +32,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^20",
