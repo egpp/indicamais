@@ -57,6 +57,12 @@ select columns_are('public', 'administracao_consulta_negocios',
 select is((select relrowsecurity and relforcerowsecurity from pg_class where oid = 'public.perfis_perfil'::regclass), true, 'RLS segue ativa e forçada (perfis)');
 select is((select relrowsecurity and relforcerowsecurity from pg_class where oid = 'public.catalogo_item'::regclass), true, 'RLS segue ativa e forçada (itens)');
 
+-- ===== Catálogo: nenhum papel de API tem escrita na visão =====
+select is((select bool_or(has_table_privilege(r, 'public.administracao_consulta_negocios', p))
+  from unnest(array['anon', 'authenticated']) r, unnest(array['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p), false,
+  'anon e authenticated não têm INSERT, UPDATE, DELETE nem TRUNCATE na visão');
+select is(has_table_privilege('anon', 'public.administracao_consulta_negocios', 'SELECT'), false, 'anon não tem SELECT na visão');
+
 -- ===== anônimo: sem privilégio =====
 set local role anon;
 select throws_ok($$select count(*) from public.administracao_consulta_negocios$$, '42501', null, 'anônimo não lê a visão');
@@ -68,9 +74,9 @@ select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-0000000
 select is((select count(*)::int from public.administracao_consulta_negocios), 0, 'usuário comum (dono de itens) vê zero linhas');
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select is((select count(*)::int from public.administracao_consulta_negocios), 0, 'dono de perfis não administrador vê zero linhas');
-select throws_ok($$update public.administracao_consulta_negocios set nome = 'x'$$, '42501', null, 'sem UPDATE');
-select throws_ok($$delete from public.administracao_consulta_negocios$$, '42501', null, 'sem DELETE');
-select throws_ok($$insert into public.administracao_consulta_negocios (alvo_tipo) values ('perfil')$$, '42501', null, 'sem INSERT');
+select lives_ok($$do $b$ begin update public.administracao_consulta_negocios set nome = 'x'; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'sem UPDATE (bloqueio 55000 ou 42501, nunca sucesso)');
+select lives_ok($$do $b$ begin delete from public.administracao_consulta_negocios; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'sem DELETE (bloqueio 55000 ou 42501, nunca sucesso)');
+select lives_ok($$do $b$ begin insert into public.administracao_consulta_negocios (alvo_tipo) values ('perfil'); raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'sem INSERT (bloqueio 55000 ou 42501, nunca sucesso)');
 reset role;
 
 -- ===== administrador: vê tudo =====
@@ -96,7 +102,7 @@ select is((select disponivel from public.administracao_consulta_negocios where a
 select is((select disponivel from public.administracao_consulta_negocios where alvo_id = 'e0000000-0000-0000-0000-000000000001'), true, 'item publicado está disponível');
 select is((select cidade from public.administracao_consulta_negocios where alvo_id = 'e0000000-0000-0000-0000-000000000006'), 'Porto Alegre', 'item de perfil herda a cidade do perfil');
 select is((select dono_id from public.administracao_consulta_negocios where alvo_id = 'e0000000-0000-0000-0000-000000000001'), 'bbbbbbbb-0000-0000-0000-00000000000b'::uuid, 'dono_id do item');
-select throws_ok($$update public.administracao_consulta_negocios set nome = 'x'$$, '42501', null, 'administrador também não escreve pela visão');
+select lives_ok($$do $b$ begin update public.administracao_consulta_negocios set nome = 'x'; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'administrador também não escreve pela visão (55000 ou 42501)');
 reset role;
 
 select * from finish();
