@@ -62,6 +62,13 @@ Aprovadas pelo Emerson ("de acordo") sobre recomendação do gestor:
 - **Busca (IM-019) só por nome** nesta etapa; busca também em descrição e categoria fica para melhoria futura.
 - Páginas públicas sem botões de ação (contato, indicar): são da Fase 3. "Curtir" segue pendente (IM-043).
 
+## D-009 · 29/10/2026 · Lista de consulta de negócios e itens na administração
+**IDs:** IM-021, IM-077 (parte), IM-086
+Aprovada pelo Emerson em 29/10/2026 ("sim, é importante pra consultar"), após testar a 2C e notar que a administração só mostra o que está pendente:
+- O administrador passa a ter uma **lista somente de leitura** de todos os perfis e itens, em qualquer situação (rascunho, pendente, aprovado, rejeitado, publicado, despublicado), com busca por nome e filtro por situação.
+- Somente leitura: sem editar, suspender ou reverter (isso segue na Fase 6: IM-077 a IM-081).
+- Leitura pelo banco via visão restrita ao administrador (filtro fixo por papel), sem expor telefone, e-mail nem dados privados de visitantes. Implementada em nova migração, aplicada primeiro no dev com aprovação do Emerson (D-003).
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)

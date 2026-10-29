@@ -773,6 +773,28 @@ export type Database = {
       }
     }
     Views: {
+      administracao_consulta_negocios: {
+        Row: {
+          alvo_id: string | null
+          alvo_tipo: string | null
+          atualizado_em: string | null
+          categoria: string | null
+          cidade: string | null
+          criado_em: string | null
+          disponivel: boolean | null
+          dono_id: string | null
+          item_tipo: string | null
+          nome: string | null
+          perfil_id: string | null
+          publicado: boolean | null
+          situacao: string | null
+          slug: string | null
+          tem_versao_aprovada: boolean | null
+          uf: string | null
+          versao_id: string | null
+        }
+        Relationships: []
+      }
       administracao_fila_pendencias: {
         Row: {
           alvo_id: string | null
