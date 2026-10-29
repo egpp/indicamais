@@ -348,10 +348,15 @@ fieldset.grupo-imagens {
   max-width: 100%;
   border-radius: 8px;
 }
+.visao-imagem {
+  max-width: 32rem;
+}
 .visao-imagem img {
   width: 100%;
+  aspect-ratio: 4 / 3;
   max-height: 20rem;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f2f2f2;
 }
 .visao-banners,
 .visao-fotos {
@@ -578,10 +583,50 @@ fieldset.grupo-imagens {
   max-width: 100%;
   border-radius: 8px;
 }
+/* Imagens sem distorção: proporção fixa + object-fit; o grid não pode esticar a imagem (align-self). */
+.visao-publica img,
+.visao img {
+  display: block;
+  height: auto;
+}
+.visao-publica .imagem-principal {
+  width: 100%;
+  max-width: 40rem;
+  margin: 0.75rem auto;
+}
 .visao-publica .imagem-principal img {
   width: 100%;
-  max-height: 24rem;
+  aspect-ratio: 4 / 3;
+  max-height: 28rem;
+  object-fit: contain;
+  background: #f2f2f2;
+}
+.visao-publica > img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
+  margin: 0.5rem 0;
+  background: #f2f2f2;
+}
+.visao-publica .visao-fotos img,
+.visao .visao-fotos img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  align-self: start;
+  background: #f2f2f2;
+}
+.visao-publica .visao-fotos {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+}
+.visao-banners img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #f2f2f2;
 }
 
 @media (min-width: 640px) {
