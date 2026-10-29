@@ -55,6 +55,15 @@ export function criarLeituraPublica(banco: ClienteBancoLeituraPublica) {
       return { perfil: paraPerfilPublico(linha), itens: itens.map(paraItemPublico) };
     },
 
+    /** Só os dados básicos do perfil publicado e disponível (null = indisponível). Sem itens. */
+    async perfilPorId(id: string): Promise<Pick<PerfilExibicao, "id" | "slug" | "nome"> | null> {
+      if (!UUID.test(id)) return null;
+      const linha = await ler(() => banco.buscarPerfilPorId(id.toLowerCase()));
+      if (!linha || !linha.id) return null;
+      const m = paraPerfilPublico(linha);
+      return { id: m.id, slug: m.slug, nome: m.nome };
+    },
+
     /** null = item inexistente, não publicado, ou do perfil indisponível; o anúncio particular independe do perfil. */
     async itemPorId(id: string): Promise<ItemDaPagina | null> {
       if (!UUID.test(id)) return null;
