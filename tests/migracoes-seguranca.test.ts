@@ -117,6 +117,7 @@ describe("migrações: visões", () => {
   it("encontra as visões", () => {
     expect(visoes.map((v) => v.nome).sort()).toEqual(
       expect.arrayContaining([
+        "administracao_consulta_negocios",
         "administracao_fila_pendencias",
         "administracao_meus_resultados",
         "administracao_patrocinador_publico",
@@ -146,6 +147,7 @@ describe("migrações: visões", () => {
       .map((v) => v.nome)
       .sort();
     expect(definer).toEqual([
+      "administracao_consulta_negocios",
       "administracao_fila_pendencias",
       "administracao_meus_resultados",
       "catalogo_meus_itens",
@@ -162,6 +164,11 @@ describe("migrações: visões", () => {
         new RegExp(`grant select on public\\.${v.nome} to[^;]*\\banon\\b`, "i"),
       );
     }
+  });
+
+  it("a consulta do administrador não expõe contato nem dado de visitante", () => {
+    const v = visoes.find((x) => x.nome === "administracao_consulta_negocios")!;
+    expect(v.corpo).not.toMatch(/whatsapp|telefone|email|visitante|contato/i);
   });
 
   it("o resultado da revisão ao responsável não expõe o id do administrador nem e-mail", () => {
