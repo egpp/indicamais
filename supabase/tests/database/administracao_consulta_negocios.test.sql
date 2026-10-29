@@ -74,9 +74,9 @@ select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-0000000
 select is((select count(*)::int from public.administracao_consulta_negocios), 0, 'usuário comum (dono de itens) vê zero linhas');
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select is((select count(*)::int from public.administracao_consulta_negocios), 0, 'dono de perfis não administrador vê zero linhas');
-select lives_ok($$do $b$ begin update public.administracao_consulta_negocios set nome = 'x'; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'sem UPDATE (bloqueio 55000 ou 42501, nunca sucesso)');
-select lives_ok($$do $b$ begin delete from public.administracao_consulta_negocios; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'sem DELETE (bloqueio 55000 ou 42501, nunca sucesso)');
-select lives_ok($$do $b$ begin insert into public.administracao_consulta_negocios (alvo_tipo) values ('perfil'); raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'sem INSERT (bloqueio 55000 ou 42501, nunca sucesso)');
+select lives_ok($t$do $b$ begin update public.administracao_consulta_negocios set nome = 'x'; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$ $t$, 'sem UPDATE (bloqueio 55000 ou 42501, nunca sucesso)');
+select lives_ok($t$do $b$ begin delete from public.administracao_consulta_negocios; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$ $t$, 'sem DELETE (bloqueio 55000 ou 42501, nunca sucesso)');
+select lives_ok($t$do $b$ begin insert into public.administracao_consulta_negocios (alvo_tipo) values ('perfil'); raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$ $t$, 'sem INSERT (bloqueio 55000 ou 42501, nunca sucesso)');
 reset role;
 
 -- ===== administrador: vê tudo =====
@@ -102,7 +102,7 @@ select is((select disponivel from public.administracao_consulta_negocios where a
 select is((select disponivel from public.administracao_consulta_negocios where alvo_id = 'e0000000-0000-0000-0000-000000000001'), true, 'item publicado está disponível');
 select is((select cidade from public.administracao_consulta_negocios where alvo_id = 'e0000000-0000-0000-0000-000000000006'), 'Porto Alegre', 'item de perfil herda a cidade do perfil');
 select is((select dono_id from public.administracao_consulta_negocios where alvo_id = 'e0000000-0000-0000-0000-000000000001'), 'bbbbbbbb-0000-0000-0000-00000000000b'::uuid, 'dono_id do item');
-select lives_ok($$do $b$ begin update public.administracao_consulta_negocios set nome = 'x'; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$$$, 'administrador também não escreve pela visão (55000 ou 42501)');
+select lives_ok($t$do $b$ begin update public.administracao_consulta_negocios set nome = 'x'; raise exception 'ESCRITA_PERMITIDA'; exception when sqlstate '55000' or sqlstate '42501' then null; end $b$ $t$, 'administrador também não escreve pela visão (55000 ou 42501)');
 reset role;
 
 select * from finish();
