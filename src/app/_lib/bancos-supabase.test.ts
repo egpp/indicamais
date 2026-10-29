@@ -4,6 +4,7 @@ import {
   criarBancoAdministracao,
   criarBancoCategorias,
   criarBancoBusca,
+  criarBancoConsultaNegocios,
   criarBancoItens,
   criarBancoLeituraPublica,
   criarBancoPatrocinadores,
@@ -33,6 +34,8 @@ function simular(respostas: Resposta[] = [], storage?: unknown) {
         "update",
         "eq",
         "in",
+        "ilike",
+        "range",
         "order",
         "limit",
         "maybeSingle",
@@ -639,5 +642,27 @@ describe("leitura pública de perfil e item (IM-011, IM-014, IM-079)", () => {
     }
     expect(consultas[0]!.chamadas).toContainEqual({ metodo: "eq", args: ["slug", "loja"] });
     expect(consultas[2]!.chamadas).toContainEqual({ metodo: "limit", args: [50] });
+  });
+});
+
+describe("consulta de negócios (D-009)", () => {
+  it("lê só a visão, com ilike, filtros, ordem por atualizado_em desc e range", async () => {
+    const { cliente, consultas } = simular([{ data: [], error: null }]);
+    await criarBancoConsultaNegocios(cliente).consultarNegocios({
+      buscaLike: "a\%b",
+      situacao: "pendente",
+      tipo: "perfil",
+      de: 20,
+      ate: 40,
+    });
+    expect(consultas[0]!.tabela).toBe("administracao_consulta_negocios");
+    expect(colunasUsadas(consultas)).toEqual([COLUNAS.consultaNegocios]);
+    const c = consultas[0]!.chamadas;
+    expect(c).toContainEqual({ metodo: "ilike", args: ["nome", "%a\%b%"] });
+    expect(c).toContainEqual({ metodo: "eq", args: ["situacao", "pendente"] });
+    expect(c).toContainEqual({ metodo: "eq", args: ["alvo_tipo", "perfil"] });
+    expect(c).toContainEqual({ metodo: "order", args: ["atualizado_em", { ascending: false }] });
+    expect(c).toContainEqual({ metodo: "range", args: [20, 40] });
+    expect(COLUNAS.consultaNegocios).not.toMatch(/telefone|email|whatsapp/);
   });
 });

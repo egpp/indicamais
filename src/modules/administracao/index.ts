@@ -56,3 +56,24 @@ export type {
   ParamsAlterarPatrocinador,
   ParamsDefinirPatrocinadorAtivo,
 } from "./servico-patrocinadores";
+
+// Consulta somente leitura de perfis e itens (D-009, IM-021, IM-077 parte).
+export {
+  criarServicoConsultaNegocios,
+  filtroNegociosSchema,
+  escaparCuringasLike,
+  paraNegocioConsultado,
+  rotuloSituacaoNegocio,
+  POR_PAGINA_NEGOCIOS,
+  SITUACOES_NEGOCIO,
+  TIPOS_NEGOCIO,
+} from "./consulta-negocios";
+export type {
+  ClienteBancoConsultaNegocios,
+  ConsultaBanco,
+  LinhaConsultaNegocio,
+  NegocioConsultado,
+  PaginaNegocios,
+  ServicoConsultaNegocios,
+  FiltroNegociosEntrada,
+} from "./consulta-negocios";

@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ClienteBancoAdministracao,
+  ClienteBancoConsultaNegocios,
+  LinhaConsultaNegocio,
   ClienteBancoPatrocinadores,
   LinhaFila,
   LinhaPatrocinadorAdmin,
@@ -50,6 +52,8 @@ export const COLUNAS = {
   categoria: "id, nome, slug, ativa, ordem",
   solicitacao:
     "id, solicitante_id, nome_sugerido, justificativa, situacao, categoria_id, motivo_resposta, decidida_em, criado_em",
+  consultaNegocios:
+    "alvo_tipo, alvo_id, dono_id, versao_id, nome, categoria, cidade, uf, situacao, tem_versao_aprovada, publicado, disponivel, item_tipo, perfil_id, slug, criado_em, atualizado_em",
   fila: "alvo_tipo, versao_id, alvo_id, nome, enviada_em, dono_id, eh_edicao",
   resultado:
     "tipo, alvo_id, versao_id, situacao, nome, motivo, decidida_em, enviada_em, autor_ref, slug, publicado, versao_vigente",
@@ -827,5 +831,29 @@ export function criarBancosSupabase(
     bancoCategorias: criarBancoCategorias(supabase, contaId),
     bancoAdministracao: criarBancoAdministracao(supabase, contaId),
     assinarImagens: assinar,
+  };
+}
+
+/**
+ * Consulta somente leitura (D-009): select na visão administracao_consulta_negocios, que já filtra pelo papel
+ * de administrador. Busca por nome com ilike (o serviço já escapou os curingas), mais novo primeiro.
+ */
+export function criarBancoConsultaNegocios(
+  supabase: ClienteSupabaseFase2,
+): ClienteBancoConsultaNegocios {
+  return {
+    ehAdministrador: () => consultarAdmin(supabase),
+    consultarNegocios: (c) =>
+      protegido(async () => {
+        let q = supabase.from("administracao_consulta_negocios").select(COLUNAS.consultaNegocios);
+        if (c.buscaLike) q = q.ilike("nome", `%${c.buscaLike}%`);
+        if (c.situacao) q = q.eq("situacao", c.situacao);
+        if (c.tipo) q = q.eq("alvo_tipo", c.tipo);
+        const { data, error } = await q
+          .order("atualizado_em", { ascending: false })
+          .order("alvo_id", { ascending: true })
+          .range(c.de, c.ate);
+        return { dados: (data ?? []) as unknown as LinhaConsultaNegocio[], erro: paraErro(error) };
+      }),
   };
 }
