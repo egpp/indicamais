@@ -76,6 +76,14 @@ Aprovada pelo Emerson em 29/10/2026 ("aceito sua sugestão, prossiga como sugeri
 - Até lá, telas novas seguem o padrão atual, com celular primeiro e acessibilidade.
 - O Emerson fornece logotipo e arte da marca e define a paleta (manter o verde atual ou outra) antes do bloco começar.
 
+## D-011 · 30/10/2026 · Testes ponta a ponta com Playwright (dev)
+**IDs:** IM-005, IM-086, IM-088
+Aprovada pelo Emerson em 30/10/2026 ("sim"), sobre proposta do gestor, para reduzir testes manuais repetitivos e cobrir a ressalva de tela em celular e desktop das Fases 2A a 2C:
+- Playwright instalado (sem custo), rodando só contra o ambiente de **desenvolvimento** (servidor local), nunca contra produção.
+- Duas contas de teste dedicadas no dev (dona e indicadora), criadas pelo Emerson. Credenciais só em `.env.local`, em variáveis `E2E_*` (nomes em `.env.example`); agentes nunca leem esse arquivo. Nenhum teste usa a chave `service_role` para criar usuários.
+- Julgamento de aparência e de uso no celular continua com o Emerson.
+- Nota de ambiente: no dev, "Confirm email" do Supabase está desligado para os testes. **Religar antes do lançamento.**
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)
