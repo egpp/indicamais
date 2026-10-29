@@ -518,6 +518,407 @@ export type Database = {
         }
         Relationships: []
       }
+      indicacoes_evento: {
+        Row: {
+          canal: string | null
+          criado_em: string
+          id: number
+          link_id: string | null
+          pedido_id: string | null
+          tipo: string
+        }
+        Insert: {
+          canal?: string | null
+          criado_em?: string
+          id?: never
+          link_id?: string | null
+          pedido_id?: string | null
+          tipo: string
+        }
+        Update: {
+          canal?: string | null
+          criado_em?: string
+          id?: never
+          link_id?: string | null
+          pedido_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indicacoes_evento_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_link"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_evento_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_evento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_evento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_evento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_evento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      indicacoes_link: {
+        Row: {
+          codigo: string
+          criado_em: string
+          id: string
+          indicador_id: string
+          item_id: string | null
+          perfil_id: string | null
+        }
+        Insert: {
+          codigo: string
+          criado_em?: string
+          id?: string
+          indicador_id: string
+          item_id?: string | null
+          perfil_id?: string | null
+        }
+        Update: {
+          codigo?: string
+          criado_em?: string
+          id?: string
+          indicador_id?: string
+          item_id?: string | null
+          perfil_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indicacoes_link_indicador_id_fkey"
+            columns: ["indicador_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_link_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_link_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_link_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_link_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_link_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_link_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      indicacoes_notificacao: {
+        Row: {
+          alerta_estado: string
+          atualizado_em: string
+          estado: string
+          pedido_id: string
+          reenvio_solicitado_em: string | null
+          tentativas: number
+          ultima_tentativa_em: string | null
+          ultimo_erro: string | null
+        }
+        Insert: {
+          alerta_estado?: string
+          atualizado_em?: string
+          estado?: string
+          pedido_id: string
+          reenvio_solicitado_em?: string | null
+          tentativas?: number
+          ultima_tentativa_em?: string | null
+          ultimo_erro?: string | null
+        }
+        Update: {
+          alerta_estado?: string
+          atualizado_em?: string
+          estado?: string
+          pedido_id?: string
+          reenvio_solicitado_em?: string | null
+          tentativas?: number
+          ultima_tentativa_em?: string | null
+          ultimo_erro?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indicacoes_notificacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_notificacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_notificacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_notificacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      indicacoes_notificacao_historico: {
+        Row: {
+          criado_em: string
+          erro: string | null
+          evento: string
+          id: number
+          origem: string
+          pedido_id: string
+        }
+        Insert: {
+          criado_em?: string
+          erro?: string | null
+          evento: string
+          id?: never
+          origem: string
+          pedido_id: string
+        }
+        Update: {
+          criado_em?: string
+          erro?: string | null
+          evento?: string
+          id?: never
+          origem?: string
+          pedido_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indicacoes_notificacao_historico_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_notificacao_historico_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_notificacao_historico_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_notificacao_historico_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      indicacoes_parametro: {
+        Row: {
+          atualizado_em: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          chave?: string
+          descricao?: string
+          maximo?: number
+          minimo?: number
+          valor?: number
+        }
+        Relationships: []
+      }
+      indicacoes_pedido_contato: {
+        Row: {
+          autoindicacao_suspeita: boolean
+          chave_idempotencia: string
+          criado_em: string
+          email: string | null
+          id: string
+          item_id: string | null
+          link_id: string | null
+          mensagem: string | null
+          nome: string
+          perfil_id: string | null
+          solicitante_id: string | null
+          whatsapp_e164: string
+        }
+        Insert: {
+          autoindicacao_suspeita?: boolean
+          chave_idempotencia: string
+          criado_em?: string
+          email?: string | null
+          id?: string
+          item_id?: string | null
+          link_id?: string | null
+          mensagem?: string | null
+          nome: string
+          perfil_id?: string | null
+          solicitante_id?: string | null
+          whatsapp_e164: string
+        }
+        Update: {
+          autoindicacao_suspeita?: boolean
+          chave_idempotencia?: string
+          criado_em?: string
+          email?: string | null
+          id?: string
+          item_id?: string | null
+          link_id?: string | null
+          mensagem?: string | null
+          nome?: string
+          perfil_id?: string | null
+          solicitante_id?: string | null
+          whatsapp_e164?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indicacoes_pedido_contato_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_link"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_solicitante_id_fkey"
+            columns: ["solicitante_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfis_perfil: {
         Row: {
           atualizado_em: string
@@ -795,6 +1196,28 @@ export type Database = {
         }
         Relationships: []
       }
+      administracao_fila_contatos: {
+        Row: {
+          alerta_estado: string | null
+          autoindicacao_suspeita: boolean | null
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          email: string | null
+          id: string | null
+          mensagem: string | null
+          nome: string | null
+          notificacao_estado: string | null
+          reenvio_solicitado_em: string | null
+          tentativas: number | null
+          ultima_tentativa_em: string | null
+          ultimo_erro: string | null
+          veio_por_indicacao: boolean | null
+          whatsapp_e164: string | null
+        }
+        Relationships: []
+      }
       administracao_fila_pendencias: {
         Row: {
           alvo_id: string | null
@@ -938,6 +1361,45 @@ export type Database = {
             referencedColumns: ["id", "item_id"]
           },
         ]
+      }
+      indicacoes_meus_links: {
+        Row: {
+          codigo: string | null
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          disponivel: boolean | null
+          id: string | null
+        }
+        Relationships: []
+      }
+      indicacoes_meus_pedidos: {
+        Row: {
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          email: string | null
+          id: string | null
+          mensagem: string | null
+          nome: string | null
+          notificacao_estado: string | null
+          veio_por_indicacao: boolean | null
+          whatsapp_e164: string | null
+        }
+        Relationships: []
+      }
+      indicacoes_minhas_indicacoes: {
+        Row: {
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          id: string | null
+          status: string | null
+        }
+        Relationships: []
       }
       perfis_meus_perfis: {
         Row: {
@@ -1144,6 +1606,74 @@ export type Database = {
       catalogo_imagens_da_conta: { Args: never; Returns: number }
       catalogo_pasta_do_dono: { Args: { p_nome: string }; Returns: boolean }
       contas_pode_indicar: { Args: never; Returns: boolean }
+      indicacoes_definir_parametro: {
+        Args: { p_chave: string; p_motivo: string; p_valor: number }
+        Returns: undefined
+      }
+      indicacoes_eh_responsavel_do_pedido: {
+        Args: { p_pedido_id: string }
+        Returns: boolean
+      }
+      indicacoes_enviar_contato: {
+        Args: {
+          p_chave: string
+          p_codigo?: string
+          p_email?: string
+          p_item_id: string
+          p_mensagem?: string
+          p_nome: string
+          p_perfil_id: string
+          p_whatsapp: string
+        }
+        Returns: {
+          o_pedido_id: string
+          o_repetido: boolean
+          o_whatsapp_responsavel: string
+        }[]
+      }
+      indicacoes_gerar_link: {
+        Args: { p_item_id?: string; p_perfil_id?: string }
+        Returns: {
+          o_codigo: string
+          o_novo: boolean
+        }[]
+      }
+      indicacoes_notificacao_registrar: {
+        Args: { p_erro?: string; p_pedido_id: string; p_sucesso: boolean }
+        Returns: undefined
+      }
+      indicacoes_notificacoes_pendentes: {
+        Args: { p_limite?: number }
+        Returns: {
+          o_destino_nome: string
+          o_destino_tipo: string
+          o_email_responsavel: string
+          o_pedido_id: string
+          o_tentativas: number
+        }[]
+      }
+      indicacoes_parametro_valor: { Args: { p_chave: string }; Returns: number }
+      indicacoes_registrar_compartilhamento: {
+        Args: { p_canal: string; p_codigo: string }
+        Returns: undefined
+      }
+      indicacoes_resolver_destino: {
+        Args: { p_item_id: string; p_perfil_id: string }
+        Returns: {
+          o_disponivel: boolean
+          o_dono_id: string
+          o_nome: string
+          o_whatsapp: string
+        }[]
+      }
+      indicacoes_solicitar_reenvio: {
+        Args: { p_motivo?: string; p_pedido_id: string }
+        Returns: undefined
+      }
+      indicacoes_tratar_alerta: {
+        Args: { p_motivo: string; p_pedido_id: string }
+        Returns: undefined
+      }
       perfis_criar_rascunho: {
         Args: {
           p_areas_atendidas?: string[]
