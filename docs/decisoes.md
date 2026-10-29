@@ -98,3 +98,5 @@ Aprovada pelo Emerson em 29/10/2026 ("aceito sua sugestão, prossiga como sugeri
 | IM-007 (Apple) | Login com Apple exige conta Apple Developer paga. | Implementar e-mail/senha e Google. Apple fica bloqueado até o Emerson aprovar o custo. |
 | IM-043 | Que identificação é exigida para curtir. | Não implementar curtida até a decisão. |
 | IM-051, IM-052 | Eventos e leitura dos avisos. | Construir a estrutura de notificações; detalhes de contagem e leitura esperam decisão. |
+| IM-026 (política) | A política de privacidade ainda não existe. A tela `/politica-de-privacidade` tem um texto curto e provisório, marcado como tal, e o formulário de contato aponta para ela. | Substituir pelo texto definitivo antes de abrir ao público (IM-089). |
+| IM-027, IM-028 (provedor de e-mail) | Sem provedor de e-mail, o aviso ao responsável não é enviado: o pedido fica com o aviso "pendente" e a legenda "Aviso por e-mail ainda não configurado: veja aqui no painel". Com `EMAIL_API_KEY` preenchida a interface dispara o processamento, mas o enviador ainda é o padrão do módulo (falha controlada). | Escolher provedor/SMTP (pode ter custo, IM-089) e implementar o enviador. |

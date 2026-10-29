@@ -14,13 +14,23 @@ export function PainelPagina({
   /** Mostra o atalho da administração (só para quem é administrador). */
   admin?: boolean;
   /** Seção ativa, para aria-current. */
-  atual?: "perfis" | "itens" | "anuncios" | "revisoes" | "conta" | "administracao";
+  atual?:
+    | "perfis"
+    | "itens"
+    | "anuncios"
+    | "pedidos"
+    | "indicacoes"
+    | "revisoes"
+    | "conta"
+    | "administracao";
   children: ReactNode;
 }) {
   const links: { chave: NonNullable<typeof atual>; href: string; texto: string }[] = [
     { chave: "perfis", href: "/meus-perfis", texto: "Meus perfis" },
     { chave: "itens", href: "/meus-itens", texto: "Meus itens" },
     { chave: "anuncios", href: "/meus-anuncios", texto: "Meus anúncios" },
+    { chave: "pedidos", href: "/pedidos-de-contato", texto: "Pedidos de contato" },
+    { chave: "indicacoes", href: "/minhas-indicacoes", texto: "Minhas indicações" },
     { chave: "revisoes", href: "/minhas-revisoes", texto: "Revisões" },
     { chave: "conta", href: "/minha-conta", texto: "Minha conta" },
   ];
