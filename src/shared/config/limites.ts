@@ -48,6 +48,13 @@ export const LIMITES = {
     chaveMin: 16,
     chaveMax: 100,
   },
+  /**
+   * Notificação ao responsável sobre pedido de contato (IM-027, IM-028, IM-050). Política central:
+   * tentativasMax = tentativas de envio por pedido antes de exigir intervenção do administrador.
+   */
+  notificacaoContato: { tentativasMax: 3, lote: 20, erroMax: 100 },
+  /** Compartilhamento de link (IM-024): tamanho do nome do destino aceito no texto pronto. */
+  link: { nomeDestinoMax: 100 },
 } as const;
 
 export type TipoImagem = (typeof LIMITES.imagem.tiposPermitidos)[number];
