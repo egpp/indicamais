@@ -69,6 +69,13 @@ Aprovada pelo Emerson em 29/10/2026 ("sim, é importante pra consultar"), após 
 - Somente leitura: sem editar, suspender ou reverter (isso segue na Fase 6: IM-077 a IM-081).
 - Leitura pelo banco via visão restrita ao administrador (filtro fixo por papel), sem expor telefone, e-mail nem dados privados de visitantes. Implementada em nova migração, aplicada primeiro no dev com aprovação do Emerson (D-003).
 
+## D-010 · 29/10/2026 · Bloco de layout entre a Fase 3 e a Fase 4
+**IDs:** IM-005, IM-014
+Aprovada pelo Emerson em 29/10/2026 ("aceito sua sugestão, prossiga como sugerido"), sobre recomendação do gestor:
+- A interface atual é funcional, sem identidade visual. O acabamento (sistema de design, logotipo, imagem de prévia do WhatsApp) é feito **depois da Fase 3**, quando o fluxo principal (indicar e contatar) já existe, e **antes da Fase 4**, para que as fases seguintes nasçam com o visual novo.
+- Até lá, telas novas seguem o padrão atual, com celular primeiro e acessibilidade.
+- O Emerson fornece logotipo e arte da marca e define a paleta (manter o verde atual ou outra) antes do bloco começar.
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)

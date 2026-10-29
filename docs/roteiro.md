@@ -24,6 +24,11 @@ Uma fase só começa quando a anterior tem seus IDs marcados como Verificado ou 
 **IDs:** IM-024 a IM-029
 Inclui prévia de link para WhatsApp (Open Graph) nas páginas indicáveis.
 
+## Bloco de layout (entre a Fase 3 e a Fase 4) — D-010
+**IDs:** IM-005, IM-014 (acabamento visual; sem requisito novo)
+Sistema de design aplicado a todas as telas existentes: paleta, tipografia, espaçamentos, componentes padronizados, logotipo e imagem de prévia do WhatsApp (substitui `public/og-padrao.png`), com verificação no celular e acessibilidade. As Fases 4 a 7 já nascem com o visual novo.
+**Pendência do Emerson:** logotipo e arte da marca (variações para fundo claro e escuro, se houver); paleta (manter o verde atual ou outra) e sites de referência.
+
 ## Fase 4 — Pontos
 **IDs:** IM-030, IM-032 a IM-036, IM-078
 **Pendência:** IM-031 (valores iniciais).
