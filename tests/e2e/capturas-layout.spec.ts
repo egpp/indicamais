@@ -24,6 +24,8 @@ async function capturar(page: Page, projeto: string, nome: string) {
         if (r.width === 0 || r.height === 0) return;
         // O link do título cobre o card inteiro (::after): o alvo real é o card.
         if (el.classList.contains("card-link")) return;
+        // Campo-armadilha de robôs (IM-076): fora da tela, escondido e fora do foco; não é alvo de toque.
+        if (el.closest('[aria-hidden="true"]')) return;
         if (el instanceof HTMLInputElement && ["hidden", "checkbox", "radio"].includes(el.type))
           return;
         // Link dentro de parágrafo de texto corrido não conta; os demais precisam de 44px.
