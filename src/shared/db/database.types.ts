@@ -81,6 +81,234 @@ export type Database = {
           },
         ]
       }
+      administracao_denuncia: {
+        Row: {
+          alvo_id: string
+          alvo_tipo: string
+          atualizado_em: string
+          criado_em: string
+          denunciante_chave: string
+          denunciante_id: string | null
+          id: string
+          situacao: string
+          texto: string | null
+          tipo: string
+        }
+        Insert: {
+          alvo_id: string
+          alvo_tipo: string
+          atualizado_em?: string
+          criado_em?: string
+          denunciante_chave: string
+          denunciante_id?: string | null
+          id?: string
+          situacao?: string
+          texto?: string | null
+          tipo: string
+        }
+        Update: {
+          alvo_id?: string
+          alvo_tipo?: string
+          atualizado_em?: string
+          criado_em?: string
+          denunciante_chave?: string
+          denunciante_id?: string | null
+          id?: string
+          situacao?: string
+          texto?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_denuncia_denunciante_id_fkey"
+            columns: ["denunciante_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      administracao_denuncia_decisao: {
+        Row: {
+          autor_id: string
+          criado_em: string
+          de_situacao: string
+          denuncia_id: string
+          id: number
+          motivo: string
+          para_situacao: string
+        }
+        Insert: {
+          autor_id: string
+          criado_em?: string
+          de_situacao: string
+          denuncia_id: string
+          id?: never
+          motivo: string
+          para_situacao: string
+        }
+        Update: {
+          autor_id?: string
+          criado_em?: string
+          de_situacao?: string
+          denuncia_id?: string
+          id?: never
+          motivo?: string
+          para_situacao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_denuncia_decisao_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_denuncia_decisao_denuncia_id_fkey"
+            columns: ["denuncia_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_denuncia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_denuncia_decisao_denuncia_id_fkey"
+            columns: ["denuncia_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_denuncias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      administracao_denuncia_tentativa: {
+        Row: {
+          chave: string
+          criado_em: string
+          id: number
+        }
+        Insert: {
+          chave: string
+          criado_em?: string
+          id?: never
+        }
+        Update: {
+          chave?: string
+          criado_em?: string
+          id?: never
+        }
+        Relationships: []
+      }
+      administracao_invalidacao_indicacao: {
+        Row: {
+          autor_id: string
+          criado_em: string
+          id: number
+          motivo: string
+          pedido_id: string
+          reversao_id: string | null
+        }
+        Insert: {
+          autor_id: string
+          criado_em?: string
+          id?: never
+          motivo: string
+          pedido_id: string
+          reversao_id?: string | null
+        }
+        Update: {
+          autor_id?: string
+          criado_em?: string
+          id?: never
+          motivo?: string
+          pedido_id?: string
+          reversao_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_reversao_id_fkey"
+            columns: ["reversao_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_pontos_lancamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_reversao_id_fkey"
+            columns: ["reversao_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_lancamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_reversao_id_fkey"
+            columns: ["reversao_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_meus_lancamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      administracao_parametro: {
+        Row: {
+          atualizado_em: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          chave?: string
+          descricao?: string
+          maximo?: number
+          minimo?: number
+          valor?: number
+        }
+        Relationships: []
+      }
       administracao_patrocinador: {
         Row: {
           ativo: boolean
@@ -149,6 +377,45 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "relacionamento_meu_resumo"
             referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      administracao_permissao: {
+        Row: {
+          concedida_por: string
+          conta_id: string
+          criado_em: string
+          motivo: string
+          permissao: string
+        }
+        Insert: {
+          concedida_por: string
+          conta_id: string
+          criado_em?: string
+          motivo: string
+          permissao: string
+        }
+        Update: {
+          concedida_por?: string
+          conta_id?: string
+          criado_em?: string
+          motivo?: string
+          permissao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_permissao_concedida_por_fkey"
+            columns: ["concedida_por"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_permissao_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -471,6 +738,76 @@ export type Database = {
           },
         ]
       }
+      contas_ciclo_vida: {
+        Row: {
+          anonimizada_em: string | null
+          atualizado_em: string
+          conta_id: string
+          encerramento_executar_apos: string | null
+          encerramento_solicitado_em: string | null
+          situacao: string
+          suspensa_em: string | null
+        }
+        Insert: {
+          anonimizada_em?: string | null
+          atualizado_em?: string
+          conta_id: string
+          encerramento_executar_apos?: string | null
+          encerramento_solicitado_em?: string | null
+          situacao?: string
+          suspensa_em?: string | null
+        }
+        Update: {
+          anonimizada_em?: string | null
+          atualizado_em?: string
+          conta_id?: string
+          encerramento_executar_apos?: string | null
+          encerramento_solicitado_em?: string | null
+          situacao?: string
+          suspensa_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_ciclo_vida_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: true
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contas_ciclo_vida_evento: {
+        Row: {
+          conta_id: string
+          criado_em: string
+          evento: string
+          id: number
+          origem: string
+        }
+        Insert: {
+          conta_id: string
+          criado_em?: string
+          evento: string
+          id?: never
+          origem: string
+        }
+        Update: {
+          conta_id?: string
+          criado_em?: string
+          evento?: string
+          id?: never
+          origem?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_ciclo_vida_evento_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contas_conta: {
         Row: {
           atualizado_em: string
@@ -495,6 +832,33 @@ export type Database = {
           nome_exibicao?: string | null
           whatsapp_e164?: string | null
           whatsapp_verificado?: boolean
+        }
+        Relationships: []
+      }
+      contas_parametro: {
+        Row: {
+          atualizado_em: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          chave?: string
+          descricao?: string
+          maximo?: number
+          minimo?: number
+          valor?: number
         }
         Relationships: []
       }
@@ -2275,6 +2639,86 @@ export type Database = {
         }
         Relationships: []
       }
+      administracao_contas_ciclo_vida: {
+        Row: {
+          anonimizada_em: string | null
+          atualizado_em: string | null
+          conta_id: string | null
+          encerramento_executar_apos: string | null
+          encerramento_solicitado_em: string | null
+          situacao: string | null
+          suspensa_em: string | null
+        }
+        Insert: {
+          anonimizada_em?: string | null
+          atualizado_em?: string | null
+          conta_id?: string | null
+          encerramento_executar_apos?: string | null
+          encerramento_solicitado_em?: string | null
+          situacao?: string | null
+          suspensa_em?: string | null
+        }
+        Update: {
+          anonimizada_em?: string | null
+          atualizado_em?: string | null
+          conta_id?: string | null
+          encerramento_executar_apos?: string | null
+          encerramento_solicitado_em?: string | null
+          situacao?: string | null
+          suspensa_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_ciclo_vida_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: true
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      administracao_denuncia_decisoes: {
+        Row: {
+          autor_ref: string | null
+          criado_em: string | null
+          de_situacao: string | null
+          denuncia_id: string | null
+          motivo: string | null
+          para_situacao: string | null
+        }
+        Insert: {
+          autor_ref?: never
+          criado_em?: string | null
+          de_situacao?: string | null
+          denuncia_id?: string | null
+          motivo?: string | null
+          para_situacao?: string | null
+        }
+        Update: {
+          autor_ref?: never
+          criado_em?: string | null
+          de_situacao?: string | null
+          denuncia_id?: string | null
+          motivo?: string | null
+          para_situacao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_denuncia_decisao_denuncia_id_fkey"
+            columns: ["denuncia_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_denuncia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_denuncia_decisao_denuncia_id_fkey"
+            columns: ["denuncia_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_denuncias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       administracao_fila_beneficios: {
         Row: {
           beneficio_id: string | null
@@ -2351,6 +2795,51 @@ export type Database = {
         }
         Relationships: []
       }
+      administracao_fila_denuncias: {
+        Row: {
+          alvo_id: string | null
+          alvo_nome: string | null
+          alvo_tipo: string | null
+          atualizado_em: string | null
+          criado_em: string | null
+          denunciante_ref: string | null
+          denunciante_tipo: string | null
+          id: string | null
+          situacao: string | null
+          texto: string | null
+          tipo: string | null
+          total_no_alvo: number | null
+        }
+        Insert: {
+          alvo_id?: string | null
+          alvo_nome?: never
+          alvo_tipo?: string | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          denunciante_ref?: string | null
+          denunciante_tipo?: never
+          id?: string | null
+          situacao?: string | null
+          texto?: string | null
+          tipo?: string | null
+          total_no_alvo?: never
+        }
+        Update: {
+          alvo_id?: string | null
+          alvo_nome?: never
+          alvo_tipo?: string | null
+          atualizado_em?: string | null
+          criado_em?: string | null
+          denunciante_ref?: string | null
+          denunciante_tipo?: never
+          id?: string | null
+          situacao?: string | null
+          texto?: string | null
+          tipo?: string | null
+          total_no_alvo?: never
+        }
+        Relationships: []
+      }
       administracao_fila_pendencias: {
         Row: {
           alvo_id: string | null
@@ -2362,6 +2851,59 @@ export type Database = {
           versao_id: string | null
         }
         Relationships: []
+      }
+      administracao_indicacoes_invalidadas: {
+        Row: {
+          autor_ref: string | null
+          criado_em: string | null
+          motivo: string | null
+          pedido_id: string | null
+          tem_reversao: boolean | null
+        }
+        Insert: {
+          autor_ref?: never
+          criado_em?: string | null
+          motivo?: string | null
+          pedido_id?: string | null
+          tem_reversao?: never
+        }
+        Update: {
+          autor_ref?: never
+          criado_em?: string | null
+          motivo?: string | null
+          pedido_id?: string | null
+          tem_reversao?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_invalidacao_indicacao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       administracao_meus_resultados: {
         Row: {
@@ -2377,6 +2919,13 @@ export type Database = {
           tipo: string | null
           versao_id: string | null
           versao_vigente: boolean | null
+        }
+        Relationships: []
+      }
+      administracao_minhas_permissoes: {
+        Row: {
+          criado_em: string | null
+          permissao: string | null
         }
         Relationships: []
       }
@@ -2420,6 +2969,35 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "relacionamento_meu_resumo"
             referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      administracao_permissoes_concedidas: {
+        Row: {
+          concedida_por_ref: string | null
+          conta_id: string | null
+          criado_em: string | null
+          permissao: string | null
+        }
+        Insert: {
+          concedida_por_ref?: never
+          conta_id?: string | null
+          criado_em?: string | null
+          permissao?: string | null
+        }
+        Update: {
+          concedida_por_ref?: never
+          conta_id?: string | null
+          criado_em?: string | null
+          permissao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administracao_permissao_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3005,6 +3583,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      administracao_conceder_permissao: {
+        Args: { p_conta: string; p_motivo: string; p_permissao: string }
+        Returns: undefined
+      }
       administracao_criar_patrocinador: {
         Args: {
           p_ativo?: boolean
@@ -3020,12 +3602,75 @@ export type Database = {
         }
         Returns: string
       }
+      administracao_decidir_denuncia: {
+        Args: { p_decisao: string; p_denuncia_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      administracao_definir_parametro: {
+        Args: { p_chave: string; p_motivo: string; p_valor: number }
+        Returns: undefined
+      }
       administracao_definir_patrocinador_ativo: {
         Args: { p_ativo: boolean; p_id: string; p_motivo: string }
         Returns: undefined
       }
+      administracao_denuncia_dono: {
+        Args: { p_alvo_id: string; p_alvo_tipo: string }
+        Returns: string
+      }
+      administracao_denunciar: {
+        Args: {
+          p_alvo_id: string
+          p_alvo_tipo: string
+          p_origem?: string
+          p_site?: string
+          p_texto?: string
+          p_tipo: string
+        }
+        Returns: undefined
+      }
       administracao_eh_admin: { Args: never; Returns: boolean }
       administracao_exigir_admin: { Args: never; Returns: string }
+      administracao_exigir_permissao: {
+        Args: { p_permissao: string }
+        Returns: string
+      }
+      administracao_invalidar_indicacao: {
+        Args: {
+          p_confirmar_saldo_negativo?: boolean
+          p_motivo: string
+          p_pedido_id: string
+        }
+        Returns: string
+      }
+      administracao_parametro_valor: {
+        Args: { p_chave: string }
+        Returns: number
+      }
+      administracao_permitido: {
+        Args: { p_permissao: string }
+        Returns: boolean
+      }
+      administracao_permitido_algum: {
+        Args: { p_permissoes: string[] }
+        Returns: boolean
+      }
+      administracao_reativar_conta: {
+        Args: { p_conta: string; p_motivo: string }
+        Returns: undefined
+      }
+      administracao_revogar_permissao: {
+        Args: { p_conta: string; p_motivo: string; p_permissao: string }
+        Returns: undefined
+      }
+      administracao_suspender_conta: {
+        Args: { p_conta: string; p_motivo: string }
+        Returns: undefined
+      }
+      administracao_tem_permissao: {
+        Args: { p_conta: string; p_permissao: string }
+        Returns: boolean
+      }
       busca_normalizar: { Args: { p_texto: string }; Returns: string }
       busca_publica: {
         Args: {
@@ -3115,7 +3760,34 @@ export type Database = {
       catalogo_imagem_publica: { Args: { p_nome: string }; Returns: boolean }
       catalogo_imagens_da_conta: { Args: never; Returns: number }
       catalogo_pasta_do_dono: { Args: { p_nome: string }; Returns: boolean }
+      contas_acesso_ativo: { Args: never; Returns: boolean }
+      contas_acesso_permitido: { Args: { p_conta: string }; Returns: boolean }
+      contas_anonimizar: { Args: { p_conta: string }; Returns: undefined }
+      contas_anonimizar_auth: { Args: { p_conta: string }; Returns: undefined }
+      contas_cancelar_encerramento: { Args: never; Returns: undefined }
+      contas_definir_parametro: {
+        Args: { p_chave: string; p_motivo: string; p_valor: number }
+        Returns: undefined
+      }
+      contas_executar_encerramentos: {
+        Args: { p_limite?: number }
+        Returns: number
+      }
+      contas_meu_estado: {
+        Args: never
+        Returns: {
+          o_acesso_permitido: boolean
+          o_encerramento_executar_apos: string
+          o_situacao: string
+        }[]
+      }
+      contas_parametro_valor: { Args: { p_chave: string }; Returns: number }
       contas_pode_indicar: { Args: never; Returns: boolean }
+      contas_pode_publicar: { Args: { p_conta: string }; Returns: boolean }
+      contas_solicitar_encerramento: {
+        Args: { p_confirmacao: string }
+        Returns: string
+      }
       indicacoes_definir_parametro: {
         Args: { p_chave: string; p_motivo: string; p_valor: number }
         Returns: undefined
