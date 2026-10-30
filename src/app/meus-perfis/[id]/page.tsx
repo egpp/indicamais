@@ -68,6 +68,11 @@ export default async function PaginaPerfil({
           Benefícios do perfil
         </Link>
       </p>
+      <p>
+        <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/base`}>
+          Base de relacionamento
+        </Link>
+      </p>
 
       {aviso === "criado" ? (
         <Aviso tipo="sucesso">

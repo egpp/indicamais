@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AbasAvisos } from "../_componentes/avisos";
 import { IndicarDestino } from "../_componentes/indicar-destino";
 import { PainelPagina, SeloEstado } from "../_componentes/painel";
 import { Aviso } from "../_componentes/ui";
@@ -31,6 +32,7 @@ export default async function PaginaMinhasIndicacoes() {
       admin={admin}
       atual="indicacoes"
     >
+      <AbasAvisos atual="minhas" />
       <section aria-labelledby="titulo-links">
         <h2 id="titulo-links">Links que gerei</h2>
         {!links.ok ? (
@@ -72,6 +74,12 @@ export default async function PaginaMinhasIndicacoes() {
       <section aria-labelledby="titulo-recebidas">
         <h2 id="titulo-recebidas">Indicações recebidas</h2>
         <p className="ajuda">Por privacidade, os dados de quem pediu contato não aparecem aqui.</p>
+        {indicacoes.ok ? (
+          <p>
+            Total de indicações que resultaram em contato:{" "}
+            <strong>{indicacoes.valor.length}</strong>
+          </p>
+        ) : null}
         {!indicacoes.ok ? (
           <Aviso tipo="erro">{indicacoes.erro.mensagem}</Aviso>
         ) : indicacoes.valor.length === 0 ? (

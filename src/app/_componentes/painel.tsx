@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoMarca } from "./marca";
+import { SinoAvisos } from "./sino-avisos";
 import type { ReactNode } from "react";
 
 /** Moldura das telas autenticadas: marca, navegação por teclado e título. */
@@ -22,6 +23,8 @@ export function PainelPagina({
     | "pedidos"
     | "indicacoes"
     | "pontos"
+    | "avisos"
+    | "participacoes"
     | "revisoes"
     | "conta"
     | "administracao";
@@ -34,6 +37,8 @@ export function PainelPagina({
     { chave: "pedidos", href: "/pedidos-de-contato", texto: "Pedidos de contato" },
     { chave: "indicacoes", href: "/minhas-indicacoes", texto: "Minhas indicações" },
     { chave: "pontos", href: "/pontos", texto: "Meus pontos" },
+    { chave: "avisos", href: "/avisos", texto: "Avisos" },
+    { chave: "participacoes", href: "/minhas-participacoes", texto: "Minhas participações" },
     { chave: "revisoes", href: "/minhas-revisoes", texto: "Revisões" },
     { chave: "conta", href: "/minha-conta", texto: "Minha conta" },
   ];
@@ -42,7 +47,10 @@ export function PainelPagina({
   }
   return (
     <main className="pagina pagina-painel">
-      <LogoMarca />
+      <div className="topo-painel">
+        <LogoMarca />
+        <SinoAvisos />
+      </div>
       <nav aria-label="Principal">
         <ul className="nav-painel">
           {links.map((l) => (

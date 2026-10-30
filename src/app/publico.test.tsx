@@ -54,7 +54,7 @@ function conferirSemDadosPrivados(html: string) {
   expect(html).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.-]+/);
 }
 
-/** IM-043 pendente: nenhuma tela pública tem "Curtir". */
+/** IM-043 (D-013): listagens não têm "Curtir"; perfil e item só mostram o convite a entrar a quem não tem login. */
 function conferirSemCurtir() {
   const curtir = /curtir|curtida|curti/i;
   expect(screen.queryAllByRole("button", { name: curtir })).toEqual([]);
@@ -69,9 +69,12 @@ function conferirSemAcoesNaListagem() {
   expect(screen.queryAllByRole("link", { name: acoes })).toEqual([]);
 }
 
-/** IM-013: perfil e item têm "Quero entrar em contato" e "Indique ...", sem "Curtir". */
+/** IM-013: perfil e item têm "Quero entrar em contato" e "Indique ..."; visitante não tem botão de curtir. */
 function conferirAcoesDaFase3(rotuloIndicar: string) {
-  conferirSemCurtir();
+  expect(screen.queryAllByRole("button", { name: /curtir|curtida|curti/i })).toEqual([]);
+  for (const l of screen.queryAllByRole("link", { name: /curt/i })) {
+    expect(l.textContent).toBe("Entrar para curtir");
+  }
   expect(screen.getByRole("link", { name: "Quero entrar em contato" }).getAttribute("href")).toBe(
     "#contato",
   );

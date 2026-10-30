@@ -108,6 +108,28 @@ Decidida pelo Emerson em 30/10/2026 ("10 pontos a cada 30 dias, mas isso será c
 
 ---
 
+## D-013 · 30/10/2026 · Base de Relacionamento e notificações (resolve IM-043, IM-044, IM-045, IM-051, IM-052)
+**IDs:** IM-039 a IM-045, IM-047 a IM-053
+Aprovada pelo Emerson em 30/10/2026 ("siga as recomendações"), sobre proposta do gestor:
+- **Curtir (IM-043):** exige conta logada; uma curtida por conta e por perfil; pode ser desfeita a qualquer momento. Visitante sem login não curte. Curtir não pontua nem gera comissão (IM-042).
+- **Entrada na base por indicação (IM-044):** só com **contato válido** pelo link do indicador (mesmo critério dos pontos, D-012). Gerar link ou compartilhar não inclui ninguém.
+- **Saída (IM-045):** descurtir remove só a curtida (a pessoa permanece se ainda tem indicação). "Sair da base" é ação nova da pessoa: remove da base da empresa e encerra notificações dela; fica só histórico agregado e anônimo. Encerramento de conta segue junto da exclusão de conta/LGPD (pendência antes do lançamento). A empresa vê nome de perfil público, datas de curtida e indicação e contagem de interações; nunca WhatsApp, e-mail nem nome completo (IM-041).
+- **Estados e contagens (IM-051):** avisos e contagens usam só dois eventos: contato válido e curtida. "Link gerado" e "compartilhado" não contam. Nenhum aviso afirma compartilhamento externo.
+- **Leitura dos avisos (IM-052):** sino com contador de não lidas, marcar como lida (uma ou todas) e abrir o item relacionado ao clicar.
+- Na Fase 5 os avisos aparecem só no app; e-mail depende de provedor (custo, decisão do Emerson).
+
+**Confirmações do Emerson em 30/10/2026 ("siga as recomendações", sobre o banco da Fase 5):**
+- O sino mostra só contato válido, curtida e resultado de revisão; contato sem link não aparece no sino (o e-mail do responsável continua cobrindo todos os pedidos quando houver provedor).
+- Contato válido repetido do mesmo visitante dentro de 30 dias conta como interação e gera aviso (o intervalo de 30 dias é regra dos pontos, não da base).
+- O responsável não pode curtir o próprio perfil.
+- Nome mostrado ao responsável: primeiro nome + inicial do último sobrenome ("Maria S."); sem nome, "Pessoa".
+- Quem saiu da base continua aparecendo como contato válido ao responsável, sem nome.
+- "Sair da base" é por perfil (sem "sair de todas").
+- Curtir/descurtir repetido tem limite simples por pessoa e perfil, para não inflar o histórico agregado. Valor inicial: 10 mudanças (curtir ou descurtir) em 24 horas por pessoa e perfil, configurável em `relacionamento_parametro`; excedido responde P0429 (mensagem neutra), sem gravar evento nem alterar a curtida.
+- Exclusão de conta de quem está na base fica junto da pendência de exclusão/LGPD antes do lançamento.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

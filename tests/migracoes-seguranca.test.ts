@@ -163,9 +163,14 @@ describe("migrações: visões", () => {
       "indicacoes_meus_links",
       "indicacoes_meus_pedidos",
       "indicacoes_minhas_indicacoes",
+      "notificacoes_meus_avisos",
+      "notificacoes_quem_me_indicou",
       "perfis_meus_perfis",
       "pontos_meu_saldo",
       "pontos_meus_lancamentos",
+      "relacionamento_meu_resumo",
+      "relacionamento_meus_membros",
+      "relacionamento_minhas_participacoes",
     ]);
     for (const v of visoes.filter((x) => !x.invoker)) {
       expect(v.corpo, `${v.nome} sem filtro por auth.uid()/administrador`).toMatch(
@@ -478,5 +483,186 @@ describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
   it("bucket de imagens é privado", () => {
     expect(codigo).toMatch(/values \('indicamais-imagens', 'indicamais-imagens', false,/i);
     expect(codigo).toMatch(/set public = false/i);
+  });
+});
+
+describe("migrações: relacionamento e notificações (IM-039 a IM-045, IM-047 a IM-053, IM-086)", () => {
+  const modulo = semComentario(
+    sql
+      .filter((s) => /^\d+_(relacionamento|notificacoes)_/.test(s.n))
+      .map((s) => s.t)
+      .join("\n"),
+  );
+  const corpoFuncao = (nome: string) =>
+    [...modulo.matchAll(new RegExp(`create function public\\.${nome}\\(([\\s\\S]*?)\\$\\$;`, "gi"))]
+      .map((m) => m[0])
+      .at(-1) ?? "";
+  const visoes = [...modulo.matchAll(/create view public\.(\w+) as([\s\S]*?);/gi)].map((m) => ({
+    nome: m[1]!,
+    corpo: m[2]!,
+  }));
+  const tabelasModulo = [...modulo.matchAll(/create table public\.(\w+)/gi)].map((m) => m[1]!);
+
+  it("tem as oito tabelas e as cinco visões", () => {
+    expect([...tabelasModulo].sort()).toEqual([
+      "notificacoes_leitura",
+      "relacionamento_alternancia",
+      "relacionamento_entrada_decisao",
+      "relacionamento_evento",
+      "relacionamento_falha",
+      "relacionamento_membro",
+      "relacionamento_parametro",
+      "relacionamento_saida",
+    ]);
+    expect(visoes.map((v) => v.nome).sort()).toEqual([
+      "notificacoes_meus_avisos",
+      "notificacoes_quem_me_indicou",
+      "relacionamento_meu_resumo",
+      "relacionamento_meus_membros",
+      "relacionamento_minhas_participacoes",
+    ]);
+  });
+
+  it("nenhuma visão devolve id de conta, contato privado nem dado do visitante (IM-041, IM-050)", () => {
+    for (const v of visoes) {
+      // O pgTAP confere as colunas reais; aqui, o texto: id de conta nunca é coluna de saída (sha256 é opaco).
+      const semHash = v.corpo.replace(/sha256\([\s\S]*?\), 'hex'\)/gi, "");
+      expect(semHash, v.nome).not.toMatch(
+        /\bas\s+(indicador_id|responsavel_id|conta_id|solicitante_id|autor_id|dono_id)\b/i,
+      );
+      expect(v.corpo, v.nome).not.toMatch(/whatsapp|\bemail\b|mensagem|p\.nome\b/i);
+      // nome_exibicao só entra como argumento da função que o reduz a "Maria S."
+      expect(
+        v.corpo.replace(/relacionamento_nome_publico\(\w+\.nome_exibicao\)/gi, ""),
+        v.nome,
+      ).not.toMatch(/nome_exibicao/i);
+    }
+  });
+
+  it("o nome de uma pessoa sai só por relacionamento_nome_publico: função pura (texto), só authenticated", () => {
+    const f = corpoFuncao("relacionamento_nome_publico");
+    expect(f).toMatch(/upper\(left\(/);
+    expect(f).not.toMatch(/security definer|\bfrom\b/i);
+    expect(modulo).toMatch(
+      /grant execute on function public\.relacionamento_nome_publico\(text\) to authenticated;/i,
+    );
+    expect(modulo).not.toMatch(
+      /grant execute on function public\.relacionamento_nome_publico\([^)]*\) to[^;]*\banon\b/i,
+    );
+  });
+
+  it("nenhum privilégio de tabela a anon/authenticated nas tabelas de relacionamento; leitura só da própria", () => {
+    for (const t of tabelasModulo.filter((x) => x !== "notificacoes_leitura")) {
+      expect(modulo, t).not.toMatch(new RegExp(`grant [a-z, ()_]*on public\.${t} to`, "i"));
+    }
+    expect(modulo).toMatch(/grant select on public\.notificacoes_leitura to authenticated/i);
+    expect(modulo).not.toMatch(
+      /grant (insert|update|delete)[^;]*on public\.(relacionamento|notificacoes)_/i,
+    );
+  });
+
+  it("decisões, eventos, falhas e leitura são só de inserção (gatilho vale para service_role)", () => {
+    for (const t of [
+      "relacionamento_evento",
+      "relacionamento_entrada_decisao",
+      "relacionamento_falha",
+      "relacionamento_alternancia",
+      "notificacoes_leitura",
+    ]) {
+      expect(modulo, t).toMatch(
+        new RegExp(
+          `before update or delete on public\\.${t}\\s+for each row execute function public\\.administracao_registro_imutavel`,
+          "i",
+        ),
+      );
+    }
+  });
+
+  it("curtir e descurtir passam pelo limite de alternância (P0429), sem grant a API (D-013)", () => {
+    for (const f of ["relacionamento_curtir", "relacionamento_descurtir"]) {
+      expect(corpoFuncao(f), f).toMatch(/relacionamento_checar_alternancia\(/i);
+    }
+    const c = corpoFuncao("relacionamento_checar_alternancia");
+    expect(c).toMatch(/P0429/);
+    expect(c).toMatch(/alternancia_limite/);
+    expect(modulo).toMatch(
+      /revoke all on function public\.relacionamento_checar_alternancia\(uuid, uuid\) from public, anon, authenticated;/i,
+    );
+    expect(modulo).not.toMatch(
+      /grant execute on function public\.relacionamento_checar_alternancia/i,
+    );
+  });
+
+  it("o histórico agregado não tem coluna de pessoa (anônimo, IM-045)", () => {
+    const m = modulo.match(/create table public\.relacionamento_evento \(([\s\S]*?)\n\);/i)!;
+    expect(m[1]).not.toMatch(/conta|pessoa|usuario/i);
+  });
+
+  it("curtir só para authenticated; avaliação e nome público sem grant; lote só para service_role", () => {
+    for (const f of [
+      "relacionamento_curtir",
+      "relacionamento_descurtir",
+      "relacionamento_sair_da_base",
+    ]) {
+      expect(modulo).toMatch(
+        new RegExp(`grant execute on function public\\.${f}\\(uuid\\) to authenticated;`, "i"),
+      );
+      expect(modulo).not.toMatch(
+        new RegExp(`grant execute on function public\\.${f}\\([^)]*\\) to[^;]*\\banon\\b`, "i"),
+      );
+    }
+    for (const f of ["relacionamento_avaliar_pedido", "relacionamento_pedido_avaliar"]) {
+      expect(modulo).not.toMatch(new RegExp(`grant execute on function public\\.${f}\\(`, "i"));
+    }
+    expect(modulo).toMatch(
+      /grant execute on function public\.relacionamento_reprocessar_pendentes\(integer\) to service_role;/i,
+    );
+  });
+
+  it("a base e os avisos não tocam pontos nem comissões (IM-042)", () => {
+    expect(modulo).not.toMatch(/public\.(pontos|comissoes)_\w+/i);
+  });
+
+  it("o gatilho de entrada nunca impede o pedido (captura exceção e registra a falha)", () => {
+    const g = corpoFuncao("relacionamento_pedido_avaliar");
+    expect(g).toMatch(/exception when others/i);
+    expect(g).toMatch(/insert into public\.relacionamento_falha/i);
+    expect(modulo).toMatch(
+      /create trigger relacionamento_pedido_avaliar after insert on public\.indicacoes_pedido_contato/i,
+    );
+  });
+
+  it("a entrada por indicação exige contato com link, e nem link gerado nem compartilhamento a ativam (IM-044)", () => {
+    const f = corpoFuncao("relacionamento_avaliar_pedido");
+    expect(f).toMatch(/link_id is null/);
+    expect(f).toMatch(/autoindicacao/);
+    expect(f).toMatch(/o_disponivel/);
+    expect(modulo).not.toMatch(/on public\.indicacoes_(evento|link)\b/i);
+    expect(modulo).not.toMatch(/link_gerado|link_compartilhado/);
+  });
+
+  it("os avisos são derivados, sem copiar conteúdo (IM-051, IM-053)", () => {
+    const v = visoes.find((x) => x.nome === "notificacoes_meus_avisos")!;
+    expect(v.corpo).toMatch(/relacionamento_entrada_decisao/);
+    expect(v.corpo).toMatch(/relacionamento_membro/);
+    expect(v.corpo).toMatch(/administracao_meus_resultados/);
+    expect(v.corpo).not.toMatch(/compartilh|link_gerado/i);
+    const leitura = modulo.match(
+      /create table public\.notificacoes_leitura \(([\s\S]*?)\n\);/i,
+    )![1]!;
+    expect(leitura).not.toMatch(/texto|mensagem|titulo|corpo/i);
+  });
+
+  it("a leitura de avisos exige login e responde igual para aviso alheio ou inexistente", () => {
+    for (const f of [
+      "notificacoes_contar_nao_lidas",
+      "notificacoes_marcar_lida",
+      "notificacoes_marcar_todas_lidas",
+    ]) {
+      expect(corpoFuncao(f), f).toMatch(/errcode = '42501'/);
+    }
+    expect(corpoFuncao("notificacoes_marcar_lida")).toMatch(
+      /aviso não encontrado' using errcode = 'P0002'/,
+    );
   });
 });
