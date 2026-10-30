@@ -6,7 +6,9 @@ import type { BeneficioPublico } from "@/modules/pontos";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { CabecalhoPublico, GradeCards, dadosDeItem, localTexto } from "../../_componentes/publico";
 import { AVISO_SEM_RESGATE, ListaBeneficiosPublicos } from "../../_componentes/pontos";
+import { CurtirPerfil } from "../../_componentes/form-relacionamento";
 import { nomeDaCategoria } from "../../_lib/apresentacao";
+import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
 import { obterServicoPontosPublico } from "../../_lib/contexto-pontos";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
 import { carregarPerfilPublico } from "../../_lib/paginas-publicas";
@@ -16,7 +18,7 @@ import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
 /**
  * Perfil comercial público (IM-011, IM-012, IM-014, IM-079). Renderizado no servidor, com Open Graph e Twitter
  * para a prévia no WhatsApp. Só aparece o que está aprovado, publicado e disponível; o resto é 404 genérico.
- * Sem WhatsApp, responsável nem e-mail no HTML. Ações da Fase 3 (IM-013): contato e indicar; sem curtir (IM-043).
+ * Sem WhatsApp, responsável nem e-mail no HTML. Ações: contato e indicar (IM-013) e curtir só para quem está logado (IM-043).
  * ?ind=<codigo> (IM-025) vai só ao formulário de contato desta página.
  */
 export const dynamic = "force-dynamic";
@@ -60,6 +62,7 @@ export default async function PaginaPerfilPublico({
   } catch {
     beneficios = [];
   }
+  const curtida = await lerEstadoCurtida(perfil.id);
   const nomesCategorias = [perfil.categoriaPrincipalId, ...perfil.categoriasSecundariasIds]
     .filter((c): c is string => Boolean(c))
     .map((c) => nomeDaCategoria(c, categorias));
@@ -130,6 +133,12 @@ export default async function PaginaPerfilPublico({
         rotuloIndicar="Indique esta empresa"
         retorno={ROTAS_PUBLICAS.perfil(perfil.slug)}
         ind={ind}
+      />
+      <CurtirPerfil
+        perfilId={perfil.id}
+        logado={curtida.logado}
+        curtiu={curtida.curtiu}
+        retorno={ROTAS_PUBLICAS.perfil(perfil.slug)}
       />
 
       <section aria-labelledby="titulo-itens">

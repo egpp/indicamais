@@ -4,8 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
+import { CurtirPerfil } from "../../_componentes/form-relacionamento";
 import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
 import { nomeDaCategoria } from "../../_lib/apresentacao";
+import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
 import { carregarItemPublico } from "../../_lib/paginas-publicas";
 import { metadadosPublicos, resumir } from "../../_lib/metadados-publicos";
@@ -14,7 +16,7 @@ import { metadadosPublicos, resumir } from "../../_lib/metadados-publicos";
  * Produto, serviço ou anúncio particular público (IM-014, IM-015, IM-079). Renderizado no servidor, com Open
  * Graph e Twitter para a prévia no WhatsApp. Só o que está aprovado, publicado e disponível; o resto é 404
  * genérico. Sem dados do dono (conta, WhatsApp, e-mail) no HTML. Ações da Fase 3 (IM-013): contato e indicar;
- * sem curtir (IM-043). ?ind=<codigo> (IM-025) vai só ao formulário de contato deste item.
+ * curtir o perfil de origem só para logado (IM-043). ?ind=<codigo> (IM-025) vai só ao formulário de contato deste item.
  */
 export const dynamic = "force-dynamic";
 
@@ -50,6 +52,7 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
   const nome = item.nome ?? "Item sem nome";
   const local = localTexto(item.cidade, item.uf);
   const foto = item.fotoPath ? urls[item.fotoPath] : undefined;
+  const curtida = perfil ? await lerEstadoCurtida(perfil.id) : null;
   const nomesCategorias = [item.categoriaPrincipalId, ...item.categoriasSecundariasIds]
     .filter((c): c is string => Boolean(c))
     .map((c) => nomeDaCategoria(c, categorias));
@@ -93,6 +96,14 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
         retorno={ROTAS_PUBLICAS.item(item.id)}
         ind={ind}
       />
+      {perfil && curtida ? (
+        <CurtirPerfil
+          perfilId={perfil.id}
+          logado={curtida.logado}
+          curtiu={curtida.curtiu}
+          retorno={ROTAS_PUBLICAS.item(item.id)}
+        />
+      ) : null}
       <p className="rodape-links">
         <Link href="/">Voltar para a página inicial</Link>
       </p>

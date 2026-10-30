@@ -52,12 +52,15 @@ let codigoLink = "";
 test.describe.configure({ mode: "serial" });
 
 test.describe("página pública: botões (IM-013)", () => {
-  test("tem Quero entrar em contato e Indique, sem Curtir (IM-043 pendente)", async ({ page }) => {
+  test("tem Quero entrar em contato e Indique, e só o convite a entrar para curtir (IM-043)", async ({
+    page,
+  }) => {
     await abrirPerfil(page);
     await expect(page.getByRole("link", { name: "Quero entrar em contato" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Indique esta empresa" })).toBeVisible();
-    await expect(page.getByText(/curtir/i)).toHaveCount(0);
+    // Visitante: só o convite a entrar (IM-043, D-013); nenhum botão de curtir.
     await expect(page.getByRole("button", { name: /curtir/i })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Entrar para curtir" })).toBeVisible();
   });
 
   test("no celular nada estoura a largura da tela (IM-005)", async ({ page }) => {
@@ -84,7 +87,7 @@ test.describe("página pública: botões (IM-013)", () => {
     await abrirPerfil(page);
     await clicarIndique(page);
     await expect(page.getByText("Entre na sua conta para continuar.")).toBeVisible();
-    const entrarLink = page.locator('a.botao[href^="/entrar"]');
+    const entrarLink = page.locator('a.botao[href^="/entrar"]').first(); // o 2º é "Entrar para curtir"
     await expect(entrarLink).toHaveAttribute(
       "href",
       `/entrar?proximo=${encodeURIComponent(CAMINHO)}`,
