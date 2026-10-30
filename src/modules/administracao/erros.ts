@@ -23,6 +23,9 @@ export type CodigoErroAdministracao =
   | "SEM_PERMISSAO"
   | "NAO_ENCONTRADO"
   | "JA_DECIDIDA"
+  | "ESTADO_INVALIDO"
+  | "LIMITE"
+  | "SALDO_NEGATIVO"
   | "ERRO_INTERNO";
 
 export type ErroAdministracao = {
