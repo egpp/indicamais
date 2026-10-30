@@ -304,9 +304,14 @@ form {
   font-weight: 600;
   text-decoration: underline;
 }
+summary {
+  display: list-item;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  cursor: pointer;
+}
 summary.botao-texto {
-  display: inline-flex;
-  align-items: center;
+  padding: 0.625rem var(--e3);
 }
 
 /* Avisos */
@@ -429,7 +434,9 @@ summary.botao-texto {
   margin: 0 0 var(--e1);
   font-size: 1.0625rem;
 }
-.cartao h2 a {
+.cartao h2 a,
+.cartao h3 a,
+.lista-dados dd a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
