@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FormInvalidarIndicacao } from "../../_componentes/form-ciclo-vida";
 import { FormReenviarAdmin, FormTratarAlerta } from "../../_componentes/form-indicacoes-admin";
 import { CartaoPedido } from "../../_componentes/pedidos";
 import { PainelPagina } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
+import { obterContextoCicloVida } from "../../_lib/contexto-ciclo-vida";
 import { exigirAdministrador, obterContextoIndicacoes } from "../../_lib/contexto-indicacoes";
 import { provedorEmailConfigurado } from "../../_lib/notificacoes-contato";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
@@ -27,6 +29,15 @@ export default async function PaginaPedidosAdmin({
   const somenteAlertas = um((await searchParams).alertas) === "abertos";
   const r = await ctx.servico.filaContatosAdmin({ somenteAlertasAbertos: somenteAlertas });
   const emailConfigurado = provedorEmailConfigurado();
+  // IM-077: o botão de invalidar só aparece para quem tem a permissão (o banco confere de novo).
+  let podeInvalidar = false;
+  try {
+    podeInvalidar = (
+      await (await obterContextoCicloVida("/administracao/pedidos")).permissoes()
+    ).includes("invalidar_indicacoes");
+  } catch {
+    podeInvalidar = false; // falha fechado: sem o botão
+  }
   return (
     <PainelPagina
       titulo="Pedidos de contato"
@@ -75,6 +86,12 @@ export default async function PaginaPedidosAdmin({
                 <summary className="botao-texto">Reenviar aviso</summary>
                 <FormReenviarAdmin pedidoId={p.id} />
               </details>
+              {podeInvalidar ? (
+                <details>
+                  <summary className="botao-texto">Invalidar indicação</summary>
+                  <FormInvalidarIndicacao pedidoId={p.id} />
+                </details>
+              ) : null}
               {p.alertaEstado === "aberto" ? (
                 <details>
                   <summary className="botao-texto">Tratar alerta</summary>
