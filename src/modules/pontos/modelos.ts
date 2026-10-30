@@ -1,4 +1,5 @@
 import type { Database } from "@/shared/db/database.types";
+import { CATEGORIAS_REVERSAO, ROTULOS_CATEGORIA_REVERSAO, type CategoriaReversao } from "./schemas";
 
 /**
  * Tipos de leitura. Linhas = colunas das visões/tabelas; modelos = o que a aplicação entrega.
@@ -15,6 +16,7 @@ export type LinhaSaldoAdmin = Visoes["administracao_pontos_saldos"]["Row"];
 export type LinhaDecisaoAdmin = Visoes["administracao_pontos_decisoes"]["Row"];
 export type LinhaFalhaAdmin = Visoes["administracao_pontos_falhas"]["Row"];
 export type LinhaFilaBeneficio = Visoes["administracao_fila_beneficios"]["Row"];
+export type LinhaAguardandoAceite = Visoes["administracao_beneficios_aguardando_aceite"]["Row"];
 export type LinhaBeneficioPublico = Visoes["pontos_beneficio_publico"]["Row"];
 export type LinhaParametrosAtuais =
   Database["public"]["Functions"]["pontos_parametros_atuais"]["Returns"][number];
@@ -34,7 +36,8 @@ export type LinhaBeneficioVersao = Pick<
   | "limite_total"
   | "limite_por_pessoa"
   | "prazo_resgate_ate"
-  | "prazo_uso_ate"
+  | "prazo_uso_dias"
+  | "origem"
   | "criado_em"
   | "enviada_em"
 >;
@@ -56,6 +59,8 @@ const tipoLancamento = (v: string | null): TipoLancamento | null =>
   v === "credito" || v === "reversao" ? v : null;
 const situacao = (v: string | null): SituacaoLancamento | null =>
   v === "creditado" || v === "revertido" || v === "reversao" ? v : null;
+const categoriaReversao = (v: string | null): CategoriaReversao | null =>
+  (CATEGORIAS_REVERSAO as readonly string[]).includes(v ?? "") ? (v as CategoriaReversao) : null;
 const tipoDestino = (v: string | null): TipoDestinoPontos | null =>
   v === "perfil" || v === "item" ? v : null;
 
@@ -97,8 +102,10 @@ export type MeuLancamento = {
   destinoTipo: TipoDestinoPontos;
   destinoId: string;
   destinoNome: string;
-  /** Só na reversão: categoria/texto escrito pelo administrador. Observação interna nunca chega aqui. */
-  motivo: string | null;
+  /** Só na reversão: categoria fixa. A observação interna nunca chega ao indicador (D-012). */
+  categoria: CategoriaReversao | null;
+  /** Rótulo em pt-BR da categoria. */
+  categoriaRotulo: string | null;
   originalId: string | null;
   criadoEm: string;
 };
@@ -110,6 +117,8 @@ export function paraMeuLancamento(l: LinhaMeuLancamento): MeuLancamento | null {
   if (!l.id || !tipo || !sit || !dest || !l.destino_id || l.pontos === null || !l.criado_em) {
     return null;
   }
+  // Só reversão tem categoria; reversões antigas (anteriores à categoria) ficam sem.
+  const categoria = tipo === "reversao" ? categoriaReversao(l.categoria) : null;
   return {
     id: l.id,
     tipo,
@@ -118,7 +127,8 @@ export function paraMeuLancamento(l: LinhaMeuLancamento): MeuLancamento | null {
     destinoTipo: dest,
     destinoId: l.destino_id,
     destinoNome: l.destino_nome ?? "",
-    motivo: tipo === "reversao" ? l.motivo : null,
+    categoria,
+    categoriaRotulo: categoria ? ROTULOS_CATEGORIA_REVERSAO[categoria] : null,
     originalId: l.original_id,
     criadoEm: l.criado_em,
   };
@@ -139,18 +149,19 @@ export function paraParametros(l: LinhaParametrosAtuais | undefined): Parametros
 // Administrador (indicador identificado só por indicador_ref, hash opaco) -----------------------------------------
 
 export type LancamentoAdmin = MeuLancamento & {
+  /** Observação interna da reversão (só administrador). */
+  observacao: string | null;
   indicadorRef: string;
   pedidoId: string | null;
   confirmouSaldoNegativo: boolean;
 };
 
 export function paraLancamentoAdmin(l: LinhaLancamentoAdmin): LancamentoAdmin | null {
-  const base = paraMeuLancamento({ ...l, motivo: l.motivo });
+  const base = paraMeuLancamento(l);
   if (!base || !l.indicador_ref) return null;
   return {
     ...base,
-    // Para o administrador o motivo é mostrado inteiro.
-    motivo: l.motivo,
+    observacao: l.motivo,
     indicadorRef: l.indicador_ref,
     pedidoId: l.pedido_id,
     confirmouSaldoNegativo: l.confirmou_saldo_negativo ?? false,
@@ -260,7 +271,8 @@ export type BeneficioPublico = {
   limitePorPessoa: number | null;
   /** AAAA-MM-DD, inclusive. */
   prazoResgateAte: string | null;
-  prazoUsoAte: string | null;
+  /** Prazo de uso: N dias após o resgate. */
+  prazoUsoDias: number | null;
 };
 
 /** Data civil de hoje em America/Sao_Paulo (AAAA-MM-DD). */
@@ -273,7 +285,10 @@ export function hojeSaoPaulo(agora: Date): string {
   }).format(agora);
 }
 
-/** Confirmação D-012: benefício com prazo de resgate vencido sai da vitrine. O último dia do prazo ainda vale. */
+/**
+ * Confirmação D-012: benefício com prazo de resgate vencido sai da vitrine. O último dia do prazo ainda vale.
+ * O banco já filtra (pontos_beneficio_no_prazo); este filtro é só uma segunda barreira, inofensiva.
+ */
 export function prazoResgateVigente(prazoResgateAte: string | null, agora: Date): boolean {
   return prazoResgateAte === null || prazoResgateAte >= hojeSaoPaulo(agora);
 }
@@ -295,11 +310,14 @@ export function paraBeneficioPublico(
     limiteTotal: l.limite_total,
     limitePorPessoa: l.limite_por_pessoa,
     prazoResgateAte: l.prazo_resgate_ate,
-    prazoUsoAte: l.prazo_uso_ate,
+    prazoUsoDias: l.prazo_uso_dias,
   };
 }
 
-export type SituacaoVersao = "rascunho" | "pendente" | "aprovada" | "rejeitada";
+export type SituacaoVersao =
+  "rascunho" | "pendente" | "aguardando_aceite" | "aprovada" | "rejeitada" | "substituida";
+
+export type OrigemVersao = "responsavel" | "administrador";
 
 export type VersaoBeneficio = {
   id: string;
@@ -311,7 +329,9 @@ export type VersaoBeneficio = {
   limiteTotal: number | null;
   limitePorPessoa: number | null;
   prazoResgateAte: string | null;
-  prazoUsoAte: string | null;
+  prazoUsoDias: number | null;
+  /** administrador = proposta do administrador (aguardando aceite do responsável). */
+  origem: OrigemVersao;
   criadoEm: string;
   enviadaEm: string | null;
   /** Motivo da rejeição, quando houver (o autor da decisão nunca é exposto). */
@@ -328,7 +348,14 @@ export type BeneficioDoPerfil = {
 };
 
 const situacaoVersao = (v: string): SituacaoVersao | null =>
-  v === "rascunho" || v === "pendente" || v === "aprovada" || v === "rejeitada" ? v : null;
+  v === "rascunho" ||
+  v === "pendente" ||
+  v === "aguardando_aceite" ||
+  v === "aprovada" ||
+  v === "rejeitada" ||
+  v === "substituida"
+    ? v
+    : null;
 
 export function montarBeneficiosDoPerfil(l: LinhasBeneficiosDoPerfil): BeneficioDoPerfil[] {
   const rejeicao = new Map<string, string | null>();
@@ -349,7 +376,8 @@ export function montarBeneficiosDoPerfil(l: LinhasBeneficiosDoPerfil): Beneficio
         limiteTotal: v.limite_total,
         limitePorPessoa: v.limite_por_pessoa,
         prazoResgateAte: v.prazo_resgate_ate,
-        prazoUsoAte: v.prazo_uso_ate,
+        prazoUsoDias: v.prazo_uso_dias,
+        origem: v.origem === "administrador" ? "administrador" : "responsavel",
         criadoEm: v.criado_em,
         enviadaEm: v.enviada_em,
         motivoRejeicao: sit === "rejeitada" ? (rejeicao.get(v.id) ?? null) : null,
@@ -364,6 +392,22 @@ export function montarBeneficiosDoPerfil(l: LinhasBeneficiosDoPerfil): Beneficio
     });
   }
   return out;
+}
+
+/**
+ * Propostas do administrador aguardando o aceite do responsável (versões em `aguardando_aceite` dos benefícios
+ * do perfil). Aceitar aprova e ativa; recusar exige motivo.
+ */
+export type PropostaAguardandoAceite = { beneficioId: string; versao: VersaoBeneficio };
+
+export function propostasAguardandoAceite(bs: BeneficioDoPerfil[]): PropostaAguardandoAceite[] {
+  return bs
+    .flatMap((b) =>
+      b.versoes
+        .filter((v) => v.situacao === "aguardando_aceite")
+        .map((v) => ({ beneficioId: b.id, versao: v })),
+    )
+    .sort((a, b) => Date.parse(b.versao.criadoEm) - Date.parse(a.versao.criadoEm));
 }
 
 /** Fila do administrador: versões pendentes. eh_edicao = o benefício já tem versão aprovada no ar. */
@@ -385,5 +429,25 @@ export function paraBeneficioPendente(l: LinhaFilaBeneficio): BeneficioPendente 
     nome: l.nome ?? "",
     enviadaEm: l.enviada_em,
     ehEdicao: l.eh_edicao ?? false,
+  };
+}
+
+/** Administrador: propostas dele que aguardam o aceite do responsável. */
+export type BeneficioAguardandoAceite = {
+  versaoId: string;
+  beneficioId: string;
+  perfilId: string;
+  nome: string;
+  enviadaEm: string;
+};
+
+export function paraAguardandoAceite(l: LinhaAguardandoAceite): BeneficioAguardandoAceite | null {
+  if (!l.versao_id || !l.beneficio_id || !l.perfil_id || !l.enviada_em) return null;
+  return {
+    versaoId: l.versao_id,
+    beneficioId: l.beneficio_id,
+    perfilId: l.perfil_id,
+    nome: l.nome ?? "",
+    enviadaEm: l.enviada_em,
   };
 }

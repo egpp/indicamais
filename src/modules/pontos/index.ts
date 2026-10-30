@@ -25,6 +25,8 @@ export {
   salvarBeneficioSchema,
   adminCadastrarBeneficioSchema,
   decidirBeneficioSchema,
+  editarPropostaBeneficioSchema,
+  responderPropostaSchema,
 } from "./schemas";
 export type { CategoriaReversao, ChaveParametroPontos, ReverterCredito } from "./schemas";
 export { ROTULOS_MOTIVO_DECISAO, hojeSaoPaulo, prazoResgateVigente } from "./modelos";
@@ -42,6 +44,9 @@ export type {
   VersaoBeneficio,
   SituacaoVersao,
   BeneficioPendente,
+  BeneficioAguardandoAceite,
+  PropostaAguardandoAceite,
+  OrigemVersao,
   TipoLancamento,
   SituacaoLancamento,
   TipoDestinoPontos,
@@ -53,6 +58,7 @@ export type {
   LinhaDecisaoAdmin,
   LinhaFalhaAdmin,
   LinhaFilaBeneficio,
+  LinhaAguardandoAceite,
   LinhaBeneficioPublico,
   LinhaBeneficio,
   LinhaBeneficioVersao,

@@ -15,6 +15,7 @@ import {
 import {
   montarBeneficiosDoPerfil,
   ordenarPorMaisRecente,
+  paraAguardandoAceite,
   paraBeneficioPendente,
   paraBeneficioPublico,
   paraDecisaoAdmin,
@@ -24,6 +25,8 @@ import {
   paraMeuSaldo,
   paraParametros,
   paraSaldoAdmin,
+  propostasAguardandoAceite,
+  type BeneficioAguardandoAceite,
   type BeneficioDoPerfil,
   type BeneficioPendente,
   type BeneficioPublico,
@@ -31,6 +34,7 @@ import {
   type FalhaCredito,
   type LancamentoAdmin,
   type LinhaBeneficioPublico,
+  type LinhaAguardandoAceite,
   type LinhaDecisaoAdmin,
   type LinhaFalhaAdmin,
   type LinhaFilaBeneficio,
@@ -43,6 +47,7 @@ import {
   type MeuLancamento,
   type MeuSaldo,
   type ParametrosPontos,
+  type PropostaAguardandoAceite,
   type SaldoAdmin,
 } from "./modelos";
 import {
@@ -50,11 +55,13 @@ import {
   adminDefinirBeneficioAtivoSchema,
   criarBeneficioSchema,
   decidirBeneficioSchema,
+  editarPropostaBeneficioSchema,
   definirBeneficioAtivoSchema,
   definirParametroSchema,
   enviarVersaoSchema,
   perfilIdSchema,
   reprocessarPedidoSchema,
+  responderPropostaSchema,
   reverterCreditoSchema,
   salvarBeneficioSchema,
   type CategoriaReversao,
@@ -72,7 +79,7 @@ export type CamposBeneficioBanco = {
   limiteTotal: number | null;
   limitePorPessoa: number | null;
   prazoResgateAte: string | null;
-  prazoUsoAte: string | null;
+  prazoUsoDias: number | null;
 };
 
 /**
@@ -92,11 +99,11 @@ export interface ClienteBancoPontos {
     valor: number;
     motivo: string;
   }): Promise<{ erro: ErroBanco | null }>;
-  /** rpc pontos_reverter_credito(...) -> id do lançamento de reversão. Categoria: ver adaptador. */
+  /** rpc pontos_reverter_credito(p_lancamento_id, p_categoria, p_motivo = observação interna, p_confirmar_saldo_negativo) -> id da reversão. */
   reverterCredito(a: {
     lancamentoId: string;
     categoria: CategoriaReversao;
-    observacao: string | null;
+    observacao: string;
     confirmarSaldoNegativo: boolean;
   }): Promise<RespostaBanco<string>>;
   /** rpc pontos_reprocessar_pedido(p_pedido_id, p_motivo) -> id da decisão. */
@@ -139,6 +146,18 @@ export interface ClienteBancoPontos {
   adminCadastrarBeneficio(
     a: { perfilId: string; motivo: string } & CamposBeneficioBanco,
   ): Promise<RespostaBanco<{ o_beneficio_id: string; o_versao_id: string }[]>>;
+  /** select de administracao_beneficios_aguardando_aceite. */
+  listarAguardandoAceite(): Promise<RespostaBanco<LinhaAguardandoAceite[]>>;
+  /** rpc pontos_responder_proposta_beneficio(p_versao_id, p_aceitar, p_motivo). */
+  responderProposta(a: {
+    versaoId: string;
+    aceitar: boolean;
+    motivo: string | null;
+  }): Promise<{ erro: ErroBanco | null }>;
+  /** rpc pontos_admin_editar_proposta_beneficio(...) -> id da nova versão (aguardando aceite). */
+  adminEditarProposta(
+    a: { versaoId: string; motivo: string } & CamposBeneficioBanco,
+  ): Promise<RespostaBanco<string>>;
   /** rpc pontos_admin_definir_beneficio_ativo(p_beneficio_id, p_ativo, p_motivo). */
   adminDefinirBeneficioAtivo(a: {
     beneficioId: string;
@@ -169,7 +188,7 @@ function camposBanco(d: CamposBeneficioBanco): CamposBeneficioBanco {
     limiteTotal: d.limiteTotal,
     limitePorPessoa: d.limitePorPessoa,
     prazoResgateAte: d.prazoResgateAte,
-    prazoUsoAte: d.prazoUsoAte,
+    prazoUsoDias: d.prazoUsoDias,
   };
 }
 
@@ -396,8 +415,8 @@ export function criarServicoPontos(banco: ClienteBancoPontos, opcoes: OpcoesServ
       }),
 
     /**
-     * Administrador cadastra benefício já aprovado (motivo obrigatório). PENDENTE: a migração em andamento exige
-     * aceite do responsável do perfil; este método segue a assinatura atual e será ajustado.
+     * Administrador cadastra uma PROPOSTA (motivo obrigatório): benefício inativo e versão aguardando aceite do
+     * responsável. Nada é publicado até o aceite.
      */
     adminCadastrarBeneficio: (
       entrada: unknown,
@@ -414,6 +433,64 @@ export function criarServicoPontos(banco: ClienteBancoPontos, opcoes: OpcoesServ
         const l = r.dados?.[0];
         if (!l) return falha(erroPontos("ERRO_INTERNO", M.generica));
         return { ok: true, valor: { beneficioId: l.o_beneficio_id, versaoId: l.o_versao_id } };
+      }),
+
+    /**
+     * Administrador edita só o que o responsável propôs (versão em análise). Vira contraproposta aguardando aceite;
+     * devolve o id da nova versão. Motivo obrigatório (auditado).
+     */
+    adminEditarProposta: (entrada: unknown): Promise<Resultado<{ versaoId: string }>> =>
+      seguro(async () => {
+        const p = editarPropostaBeneficioSchema.safeParse(entrada);
+        if (!p.success) return falhaValidacao(p.error);
+        const r = await banco.adminEditarProposta({
+          versaoId: p.data.versaoId,
+          motivo: p.data.motivo,
+          ...camposBanco(p.data),
+        });
+        if (r.erro) return falha(mapearErroBancoPontos(r.erro, "beneficio_admin"));
+        if (!r.dados) return falha(erroPontos("ERRO_INTERNO", M.generica));
+        return { ok: true, valor: { versaoId: r.dados } };
+      }),
+
+    /** Administrador: propostas dele aguardando o aceite do responsável. */
+    listarAguardandoAceite: (): Promise<Resultado<BeneficioAguardandoAceite[]>> =>
+      seguro(() =>
+        lista(
+          () => banco.listarAguardandoAceite(),
+          paraAguardandoAceite,
+          (xs) => [...xs].sort((a, b) => Date.parse(a.enviadaEm) - Date.parse(b.enviadaEm)),
+        ),
+      ),
+
+    /** Responsável: propostas do administrador aguardando o seu aceite, nos benefícios do perfil. */
+    propostasAguardandoAceite: (entrada: unknown): Promise<Resultado<PropostaAguardandoAceite[]>> =>
+      seguro(async () => {
+        const p = perfilIdSchema.safeParse(entrada);
+        if (!p.success) return falhaValidacao(p.error);
+        const r = await banco.listarBeneficiosDoPerfil(p.data.perfilId);
+        if (r.erro) return falha(mapearErroBancoPontos(r.erro, "leitura"));
+        if (!r.dados) return { ok: true, valor: [] };
+        return { ok: true, valor: propostasAguardandoAceite(montarBeneficiosDoPerfil(r.dados)) };
+      }),
+
+    /**
+     * Responsável responde à proposta do administrador. Aceitar APROVA a versão e ATIVA o benefício (banco, auditado);
+     * recusar exige motivo. Só o responsável do perfil consegue (RLS/banco).
+     */
+    responderProposta: (entrada: unknown): Promise<Resultado<null>> =>
+      seguro(async () => {
+        const p = responderPropostaSchema.safeParse(entrada);
+        if (!p.success) return falhaValidacao(p.error);
+        return simples(
+          () =>
+            banco.responderProposta({
+              versaoId: p.data.versaoId,
+              aceitar: p.data.aceitar,
+              motivo: p.data.aceitar ? null : p.data.motivo,
+            }),
+          "beneficio",
+        );
       }),
 
     /** Administrador liga/desliga qualquer benefício, com motivo (auditado). */

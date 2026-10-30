@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ROTULOS_CATEGORIA_REVERSAO, type ClienteBancoPontos } from "@/modules/pontos";
+import type { ClienteBancoPontos } from "@/modules/pontos";
 import type { ErroBanco } from "@/shared/conteudo/resultado";
 import type { Database } from "@/shared/db/database.types";
 
@@ -14,20 +14,21 @@ type ErroPostgrest = { code?: string; message?: string; details?: string } | nul
 export const COLUNAS_PONTOS = {
   meuSaldo: "saldo, total_creditado, total_revertido, ultimo_lancamento_em",
   meusLancamentos:
-    "id, tipo, pontos, situacao, destino_tipo, destino_id, destino_nome, motivo, original_id, criado_em",
+    "id, tipo, pontos, situacao, destino_tipo, destino_id, destino_nome, categoria, original_id, criado_em",
   lancamentosAdmin:
-    "id, indicador_ref, tipo, pontos, situacao, destino_tipo, destino_id, destino_nome, motivo, original_id, pedido_id, confirmou_saldo_negativo, criado_em",
+    "id, indicador_ref, tipo, pontos, situacao, destino_tipo, destino_id, destino_nome, categoria, motivo, original_id, pedido_id, confirmou_saldo_negativo, criado_em",
   saldosAdmin: "indicador_ref, saldo, total_creditado, total_revertido, ultimo_lancamento_em",
   decisoesAdmin:
     "id, pedido_id, pedido_criado_em, destino_tipo, destino_id, indicador_ref, pontuado, motivo, pontos, intervalo_dias, decidido_em",
   falhasAdmin: "pedido_id, falhas, ultima_falha_em, ultimo_erro, pendente",
   beneficioPublico:
-    "id, perfil_id, nome, descricao, pontos_necessarios, condicoes, limite_total, limite_por_pessoa, prazo_resgate_ate, prazo_uso_ate, criado_em",
+    "id, perfil_id, nome, descricao, pontos_necessarios, condicoes, limite_total, limite_por_pessoa, prazo_resgate_ate, prazo_uso_dias, criado_em",
   beneficio: "id, perfil_id, ativo, versao_aprovada_id, criado_em",
   beneficioVersao:
-    "id, beneficio_id, situacao, nome, descricao, pontos_necessarios, condicoes, limite_total, limite_por_pessoa, prazo_resgate_ate, prazo_uso_ate, criado_em, enviada_em",
+    "id, beneficio_id, situacao, nome, descricao, pontos_necessarios, condicoes, limite_total, limite_por_pessoa, prazo_resgate_ate, prazo_uso_dias, origem, criado_em, enviada_em",
   beneficioRevisao: "versao_id, decisao, motivo, decidida_em",
   filaBeneficios: "versao_id, beneficio_id, perfil_id, nome, enviada_em, eh_edicao",
+  aguardandoAceite: "versao_id, beneficio_id, perfil_id, nome, enviada_em",
 } as const;
 
 const ERRO_DESCONHECIDO: ErroBanco = { code: "XX000" };
@@ -65,7 +66,7 @@ export function criarBancoPontos(supabase: Cliente): ClienteBancoPontos {
     limiteTotal: number | null;
     limitePorPessoa: number | null;
     prazoResgateAte: string | null;
-    prazoUsoAte: string | null;
+    prazoUsoDias: number | null;
   }) => ({
     p_nome: a.nome,
     p_descricao: a.descricao,
@@ -74,7 +75,7 @@ export function criarBancoPontos(supabase: Cliente): ClienteBancoPontos {
     p_limite_total: naoNulo(a.limiteTotal),
     p_limite_por_pessoa: naoNulo(a.limitePorPessoa),
     p_prazo_resgate_ate: a.prazoResgateAte ?? nulo,
-    p_prazo_uso_ate: a.prazoUsoAte ?? nulo,
+    p_prazo_uso_dias: naoNulo(a.prazoUsoDias),
   });
 
   return {
@@ -110,14 +111,12 @@ export function criarBancoPontos(supabase: Cliente): ClienteBancoPontos {
         return paraErro(error);
       }),
 
-    // PROVISÓRIO: a assinatura atual de pontos_reverter_credito só tem p_motivo (texto visível ao indicador). Até
-    // existir o RPC com categoria fixa (migração em andamento por outro agente), envia só o RÓTULO da categoria e
-    // NÃO envia a observação interna (evita vazá-la ao indicador). Trocar quando a assinatura final sair.
     reverterCredito: (a) =>
       protegido(async () => {
         const { data, error } = await supabase.rpc("pontos_reverter_credito", {
           p_lancamento_id: a.lancamentoId,
-          p_motivo: ROTULOS_CATEGORIA_REVERSAO[a.categoria],
+          p_categoria: a.categoria,
+          p_motivo: a.observacao,
           p_confirmar_saldo_negativo: a.confirmarSaldoNegativo,
         });
         return { dados: data ?? null, erro: paraErro(error) };
@@ -255,6 +254,34 @@ export function criarBancoPontos(supabase: Cliente): ClienteBancoPontos {
       protegido(async () => {
         const { data, error } = await supabase.rpc("pontos_admin_cadastrar_beneficio", {
           p_perfil_id: a.perfilId,
+          p_motivo: a.motivo,
+          ...argsBeneficio(a),
+        });
+        return { dados: data ?? null, erro: paraErro(error) };
+      }),
+
+    listarAguardandoAceite: () =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("administracao_beneficios_aguardando_aceite")
+          .select(COLUNAS_PONTOS.aguardandoAceite);
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    responderProposta: (a) =>
+      protegidoErro(async () => {
+        const { error } = await supabase.rpc("pontos_responder_proposta_beneficio", {
+          p_versao_id: a.versaoId,
+          p_aceitar: a.aceitar,
+          p_motivo: a.motivo ?? nulo,
+        });
+        return paraErro(error);
+      }),
+
+    adminEditarProposta: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("pontos_admin_editar_proposta_beneficio", {
+          p_versao_id: a.versaoId,
           p_motivo: a.motivo,
           ...argsBeneficio(a),
         });

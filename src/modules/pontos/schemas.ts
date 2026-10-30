@@ -5,7 +5,7 @@ import { semControle, uuidSchema } from "@/shared/conteudo/zod-util";
 
 /**
  * Categorias fixas de reversão (D-012, confirmações). A categoria é a parte visível ao indicador; a observação
- * interna é só do administrador. A assinatura final do RPC (outro agente) ainda não existe: ver adaptador.
+ * interna (p_motivo do RPC, obrigatória) é só do administrador.
  */
 export const CATEGORIAS_REVERSAO = [
   "contato_duplicado",
@@ -57,8 +57,8 @@ const textoOpcionalNulo = (max: number) =>
 export const reverterCreditoSchema = z.object({
   lancamentoId: uuidSchema,
   categoria: z.enum(CATEGORIAS_REVERSAO, { error: "Escolha a categoria da reversão." }),
-  /** Observação interna do administrador (nunca vai ao indicador). */
-  observacao: textoOpcionalNulo(500),
+  /** Observação interna do administrador, obrigatória (nunca vai ao indicador). */
+  observacao: motivoSchema,
   confirmarSaldoNegativo: z.boolean().optional().default(false),
 });
 export type ReverterCredito = z.infer<typeof reverterCreditoSchema>;
@@ -136,30 +136,24 @@ const camposBeneficio = {
   limiteTotal: inteiroOpcional(1_000_000, "Informe um número inteiro maior que zero."),
   limitePorPessoa: inteiroOpcional(1_000_000, "Informe um número inteiro maior que zero."),
   prazoResgateAte: dataOpcional,
-  prazoUsoAte: dataOpcional,
+  /** Prazo de uso: N dias após o resgate (inteiro, 1 a 3650). O resgate em si é futuro (IM-037). */
+  prazoUsoDias: inteiroOpcional(3650, "Informe de 1 a 3650 dias."),
 };
 
 type CamposRelacionados = {
   limiteTotal: number | null;
   limitePorPessoa: number | null;
   prazoResgateAte: string | null;
-  prazoUsoAte: string | null;
+  prazoUsoDias: number | null;
 };
 
-/** Regras entre campos, espelhando o banco: limite por pessoa <= total; uso não termina antes do resgate. */
+/** Regra entre campos, espelhando o banco: limite por pessoa <= total. */
 function coerencia(d: CamposRelacionados, ctx: z.RefinementCtx) {
   if (d.limiteTotal !== null && d.limitePorPessoa !== null && d.limitePorPessoa > d.limiteTotal) {
     ctx.addIssue({
       code: "custom",
       path: ["limitePorPessoa"],
       message: "O limite por pessoa não pode ser maior que o limite total.",
-    });
-  }
-  if (d.prazoResgateAte && d.prazoUsoAte && d.prazoUsoAte < d.prazoResgateAte) {
-    ctx.addIssue({
-      code: "custom",
-      path: ["prazoUsoAte"],
-      message: "O prazo de uso não pode terminar antes do prazo de resgate.",
     });
   }
 }
@@ -173,6 +167,23 @@ export const salvarBeneficioSchema = z
 export const adminCadastrarBeneficioSchema = z
   .object({ perfilId: uuidSchema, ...camposBeneficio, motivo: motivoSchema })
   .superRefine(coerencia);
+
+export const editarPropostaBeneficioSchema = z
+  .object({ versaoId: uuidSchema, ...camposBeneficio, motivo: motivoSchema })
+  .superRefine(coerencia);
+
+/** Aceite do responsável: aceitar aprova e ativa; recusar exige motivo. */
+export const responderPropostaSchema = z
+  .object({
+    versaoId: uuidSchema,
+    aceitar: z.boolean(),
+    motivo: textoOpcionalNulo(500),
+  })
+  .superRefine((d, ctx) => {
+    if (!d.aceitar && d.motivo === null) {
+      ctx.addIssue({ code: "custom", path: ["motivo"], message: "Informe o motivo da recusa." });
+    }
+  });
 
 export const enviarVersaoSchema = z.object({ versaoId: uuidSchema });
 export const definirBeneficioAtivoSchema = z.object({

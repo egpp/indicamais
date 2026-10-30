@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { COLUNAS_PONTOS, criarBancoPontos } from "./banco-pontos";
 
 const ID = "11111111-1111-4111-8111-111111111111";
+const ID2 = "22222222-2222-4222-8222-222222222222";
 
 /** Cliente supabase-js falso: registra o que foi chamado e devolve o que o teste mandar. */
 function falso(resposta: { data?: unknown; error?: unknown } = {}, lancar = false) {
@@ -66,7 +67,7 @@ describe("adaptador do banco de pontos (sessão do usuário)", () => {
     }
   });
 
-  it("reverter: provisório envia só o rótulo da categoria, nunca a observação interna", async () => {
+  it("reverter: categoria fixa em p_categoria e observação interna em p_motivo", async () => {
     const { cliente, chamadas } = falso({ data: ID });
     const banco = criarBancoPontos(cliente as never);
     const r = await banco.reverterCredito({
@@ -78,7 +79,12 @@ describe("adaptador do banco de pontos (sessão do usuário)", () => {
     expect(r.dados).toBe(ID);
     expect(chamadas.rpc[0]).toEqual([
       "pontos_reverter_credito",
-      { p_lancamento_id: ID, p_motivo: "Suspeita de fraude", p_confirmar_saldo_negativo: true },
+      {
+        p_lancamento_id: ID,
+        p_categoria: "fraude",
+        p_motivo: "segredo do admin",
+        p_confirmar_saldo_negativo: true,
+      },
     ]);
   });
 
@@ -87,10 +93,48 @@ describe("adaptador do banco de pontos (sessão do usuário)", () => {
     const r = await criarBancoPontos(cliente as never).reverterCredito({
       lancamentoId: ID,
       categoria: "outro",
-      observacao: null,
+      observacao: "x",
       confirmarSaldoNegativo: false,
     });
     expect(r.erro?.code).toBe("P0410");
+  });
+
+  it("indicador não seleciona a observação interna: colunas de pontos_meus_lancamentos sem motivo", () => {
+    expect(COLUNAS_PONTOS.meusLancamentos).toContain("categoria");
+    expect(COLUNAS_PONTOS.meusLancamentos).not.toMatch(/(^|[ ,])motivo([ ,]|$)/);
+  });
+
+  it("proposta: responder, editar e listar aguardando aceite usam as assinaturas reais", async () => {
+    const { cliente, chamadas } = falso({ data: ID2 });
+    const banco = criarBancoPontos(cliente as never);
+    await banco.responderProposta({ versaoId: ID, aceitar: true, motivo: null });
+    const e = await banco.adminEditarProposta({
+      versaoId: ID,
+      motivo: "ajuste",
+      nome: "n",
+      descricao: "d",
+      pontosNecessarios: 5,
+      condicoes: null,
+      limiteTotal: null,
+      limitePorPessoa: null,
+      prazoResgateAte: null,
+      prazoUsoDias: 10,
+    });
+    expect(e.dados).toBe(ID2);
+    expect(chamadas.rpc[0]).toEqual([
+      "pontos_responder_proposta_beneficio",
+      { p_versao_id: ID, p_aceitar: true, p_motivo: null },
+    ]);
+    expect(chamadas.rpc[1]![0]).toBe("pontos_admin_editar_proposta_beneficio");
+    expect(chamadas.rpc[1]![1]).toMatchObject({
+      p_versao_id: ID,
+      p_motivo: "ajuste",
+      p_prazo_uso_dias: 10,
+    });
+    await banco.listarAguardandoAceite();
+    expect(chamadas.selects.map((x) => x[0])).toContain(
+      "administracao_beneficios_aguardando_aceite",
+    );
   });
 
   it("exceção de rede vira erro genérico sem a mensagem original", async () => {
@@ -112,7 +156,7 @@ describe("adaptador do banco de pontos (sessão do usuário)", () => {
       limiteTotal: null,
       limitePorPessoa: null,
       prazoResgateAte: null,
-      prazoUsoAte: null,
+      prazoUsoDias: 30,
     });
     await banco.decidirVersao({ versaoId: ID, aprovar: true, motivo: null });
     expect(chamadas.rpc[0]![0]).toBe("pontos_criar_beneficio");
@@ -121,7 +165,9 @@ describe("adaptador do banco de pontos (sessão do usuário)", () => {
       p_pontos_necessarios: 5,
       p_condicoes: null,
       p_limite_total: null,
+      p_prazo_uso_dias: 30,
     });
+    expect(chamadas.rpc[0]![1]).not.toHaveProperty("p_prazo_uso_ate");
     expect(chamadas.rpc[1]).toEqual([
       "pontos_decidir_beneficio_versao",
       { p_versao_id: ID, p_aprovar: true, p_motivo: null },
