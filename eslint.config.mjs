@@ -19,6 +19,9 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "next-env.d.ts",
     "cloudflare-env.d.ts",
+    // Saídas geradas pelo Playwright (fora do git).
+    "playwright-report/**",
+    "test-results/**",
     // Fixtures violam a regra de proposito; sao lintadas so pelo teste.
     "tests/fixtures/**",
   ]),

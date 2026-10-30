@@ -43,7 +43,7 @@ export default async function PaginaMeusPontos() {
         ) : (
           <div className="cartao">
             <p>
-              <strong style={{ fontSize: "2rem" }}>
+              <strong className="saldo-destaque">
                 {saldo.valor.saldo.toLocaleString("pt-BR")}
               </strong>{" "}
               {saldo.valor.saldo === 1 ? "ponto" : "pontos"}

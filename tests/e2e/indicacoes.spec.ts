@@ -402,7 +402,11 @@ test.describe("permissões das telas administrativas (IM-041, IM-086)", () => {
 test.describe("política de privacidade (IM-026)", () => {
   test("existe, é marcada como provisória e o formulário aponta para ela", async ({ page }) => {
     await abrirPerfil(page);
-    await page.getByRole("link", { name: /política de privacidade/i }).click();
+    // O rodapé também tem o link; o do formulário fica dentro de <main>.
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: /política de privacidade/i })
+      .click();
     await expect(page).toHaveURL(/\/politica-de-privacidade$/);
     await expect(page.getByText(/provisório/i).first()).toBeVisible();
   });

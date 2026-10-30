@@ -82,7 +82,7 @@ export function FormDecidirRevisao({
         enviando={enviando}
         rotulo={rejeitar ? "Rejeitar" : "Aprovar"}
         rotuloEnviando={rejeitar ? "Rejeitando..." : "Aprovando..."}
-        secundario={rejeitar}
+        perigo={rejeitar}
       />
     </form>
   );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoMarca } from "./marca";
 import type { ReactNode } from "react";
 
 /** Moldura das telas autenticadas: marca, navegação por teclado e título. */
@@ -41,9 +42,7 @@ export function PainelPagina({
   }
   return (
     <main className="pagina pagina-painel">
-      <p className="marca">
-        <Link href="/">IndicaMais</Link>
-      </p>
+      <LogoMarca />
       <nav aria-label="Principal">
         <ul className="nav-painel">
           {links.map((l) => (
@@ -64,5 +63,16 @@ export function PainelPagina({
 
 /** Situação do conteúdo (Rascunho, Aguardando aprovação, Publicado...). Texto, não só cor. */
 export function SeloEstado({ rotulo }: { rotulo: string }) {
-  return <span className="selo">{rotulo}</span>;
+  return <span className={`selo ${tomDoRotulo(rotulo)}`.trim()}>{rotulo}</span>;
+}
+
+/** Só apresentação: escolhe a cor da etiqueta pelo texto. O significado continua no texto. */
+function tomDoRotulo(rotulo: string): string {
+  const r = rotulo.toLowerCase();
+  if (/(rejeitad|inativ|indispon|despublic|suspens|negad|revertid|cancelad)/.test(r))
+    return "selo-erro";
+  if (/(aguardando|em an[aá]lise|pendente)/.test(r)) return "selo-aviso";
+  if (/(publicad|aprovad|ativ[ao]|dispon[ií]vel|conclu[ií]d|confirmad|v[aá]lid)/.test(r))
+    return "selo-sucesso";
+  return "";
 }

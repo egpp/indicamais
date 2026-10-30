@@ -56,6 +56,7 @@ function FormSoMotivo({
   rotuloBotao,
   rotuloEnviando,
   secundario,
+  perigo,
   ajuda = "Fica registrado na auditoria.",
 }: {
   acao: Acao;
@@ -65,6 +66,7 @@ function FormSoMotivo({
   rotuloBotao: string;
   rotuloEnviando: string;
   secundario?: boolean;
+  perigo?: boolean;
   ajuda?: string;
 }) {
   const { estado, action, enviando, erros, registrarForm, aoEnviar } = useFormulario<EstadoPontos>(
@@ -88,6 +90,7 @@ function FormSoMotivo({
         rotulo={rotuloBotao}
         rotuloEnviando={rotuloEnviando}
         secundario={secundario}
+        perigo={perigo}
       />
     </form>
   );
@@ -131,7 +134,7 @@ export function FormMotivoDecisao({
       rotuloCampo={rotuloCampo}
       rotuloBotao={rotuloBotao}
       rotuloEnviando="Enviando..."
-      secundario
+      perigo
       ajuda="Obrigatório. O motivo fica registrado."
     />
   );
@@ -211,6 +214,7 @@ export function FormReverter({ lancamentoId }: { lancamentoId: string }) {
         enviando={enviando}
         rotulo={estado.pedirConfirmacao ? "Confirmar reversão" : "Reverter crédito"}
         rotuloEnviando="Revertendo..."
+        perigo
       />
     </form>
   );

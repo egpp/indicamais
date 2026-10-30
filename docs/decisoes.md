@@ -76,6 +76,12 @@ Aprovada pelo Emerson em 29/10/2026 ("aceito sua sugestão, prossiga como sugeri
 - Até lá, telas novas seguem o padrão atual, com celular primeiro e acessibilidade.
 - O Emerson fornece logotipo e arte da marca e define a paleta (manter o verde atual ou outra) antes do bloco começar.
 
+**Atualização em 30/10/2026 (aprovada pelo Emerson, "sim, aprovado"):**
+- Logotipos entregues em `docs/marca/logotipo indicamais/` (8 PNG: fundo claro, escuro e transparente; quadrado e retangular). Sem SVG.
+- **Paleta passa a ser a da marca**, no lugar do verde atual: grafite (≈ #232323) para texto, coral (≈ #FF5043) como cor principal de ação, laranja (≈ #F97316) em degradê e destaques, fundo claro neutro. Valores exatos extraídos dos arquivos pelo `interface`, com contraste acessível conferido.
+- Os PNG são otimizados para a web e copiados para `public/marca/` com nomes padronizados (sem `.png.png`). A prévia do WhatsApp (`og-padrao.png`) passa a usar o logotipo quadrado.
+- Trabalho na branch `layout/sistema-de-design`. Sem sites de referência: visual limpo e moderno, cantos arredondados como no logotipo.
+
 ## D-011 · 30/10/2026 · Testes ponta a ponta com Playwright (dev)
 **IDs:** IM-005, IM-086, IM-088
 Aprovada pelo Emerson em 30/10/2026 ("sim"), sobre proposta do gestor, para reduzir testes manuais repetitivos e cobrir a ressalva de tela em celular e desktop das Fases 2A a 2C:

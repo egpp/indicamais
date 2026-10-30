@@ -215,7 +215,7 @@ export function FormAtivarPatrocinador({ id, ativo }: { id: string; ativo: boole
         enviando={enviando}
         rotulo={rotulo}
         rotuloEnviando={ativo ? "Desativando..." : "Ativando..."}
-        secundario={ativo}
+        perigo={ativo}
       />
     </form>
   );
