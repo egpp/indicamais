@@ -1,7 +1,9 @@
 import { notFound, redirect } from "next/navigation";
+import { criarServicoCicloVidaConta } from "@/modules/contas";
 import { criarServicoIndicacoes, type ServicoIndicacoes } from "@/modules/indicacoes";
 import { criarClientePublico } from "@/shared/supabase/publico";
 import { criarClienteServidor } from "@/shared/supabase/servidor";
+import { criarBancoCicloVidaConta } from "./banco-ciclo-vida";
 import { criarBancoIndicacoes } from "./banco-indicacoes";
 import { criarBancoLeituraPublica, consultarAdmin } from "./bancos-supabase";
 import { criarLeituraPublica, type LeituraPublica } from "./leitura-publica";
@@ -19,6 +21,8 @@ export type ContextoIndicacoes = {
   logado: boolean;
   /** Administrador (conferido no banco; falha fechado). */
   ehAdministrador: () => Promise<boolean>;
+  /** Estado da própria conta (IM-080), só para refinar a mensagem de quem tenta gerar link. null = não sei. */
+  estadoDaConta: () => Promise<{ acessoPermitido: boolean } | null>;
 };
 
 export function criarContextoIndicacoes(d: {
@@ -27,12 +31,14 @@ export function criarContextoIndicacoes(d: {
   logado: boolean;
   urlBase?: string | null;
   ehAdministrador?: () => Promise<boolean>;
+  estadoDaConta?: () => Promise<{ acessoPermitido: boolean } | null>;
 }): ContextoIndicacoes {
   return {
     servico: criarServicoIndicacoes(d.banco, { urlBase: d.urlBase ?? origemPublica() }),
     leitura: d.leitura,
     logado: d.logado,
     ehAdministrador: d.ehAdministrador ?? (async () => false),
+    estadoDaConta: d.estadoDaConta ?? (async () => null),
   };
 }
 
@@ -44,6 +50,12 @@ async function montar(): Promise<ContextoIndicacoes> {
     leitura: criarLeituraPublica(criarBancoLeituraPublica(criarClientePublico())),
     logado: Boolean(data.user),
     ehAdministrador: () => consultarAdmin(supabase),
+    estadoDaConta: async () => {
+      const r = await criarServicoCicloVidaConta(
+        criarBancoCicloVidaConta(supabase),
+      ).obterMeuEstado();
+      return r.ok ? r.valor : null;
+    },
   });
 }
 

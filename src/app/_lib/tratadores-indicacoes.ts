@@ -1,4 +1,8 @@
-import { MENSAGENS_INDICACOES, type ErroIndicacoes } from "@/modules/indicacoes";
+import {
+  MENSAGENS_INDICACOES,
+  refinarErroPorEstadoDaConta,
+  type ErroIndicacoes,
+} from "@/modules/indicacoes";
 import type { ContextoIndicacoes } from "./contexto-indicacoes";
 import { lerDeFormData } from "./entrada-conteudo";
 import type { EstadoContato, EstadoLink } from "./estado-indicacoes";
@@ -93,15 +97,21 @@ export async function gerarLinkDeIndicacao(
   if (!destino) return { erro: MENSAGENS_INDICACOES.destinoIndisponivel };
   const r = await ctx.servico.gerarLink(destino);
   if (!r.ok) {
-    switch (r.erro.codigo) {
+    // IM-080: conta suspensa não é "cadastre seu WhatsApp". Só consulta o estado quando o erro é SEM_WHATSAPP.
+    let erro = r.erro;
+    if (erro.codigo === "SEM_WHATSAPP") {
+      const estado = await ctx.estadoDaConta().catch(() => null);
+      erro = refinarErroPorEstadoDaConta(erro, { acessoPermitido: estado?.acessoPermitido });
+    }
+    switch (erro.codigo) {
       case "NAO_AUTENTICADO":
-        return { erro: r.erro.mensagem, passo: "entrar" };
+        return { erro: erro.mensagem, passo: "entrar" };
       case "SEM_WHATSAPP":
-        return { erro: r.erro.mensagem, passo: "whatsapp" };
+        return { erro: erro.mensagem, passo: "whatsapp" };
       case "AUTOINDICACAO":
-        return { erro: r.erro.mensagem, passo: "autoindicacao" };
+        return { erro: erro.mensagem, passo: "autoindicacao" };
       default:
-        return { erro: r.erro.mensagem };
+        return { erro: erro.mensagem };
     }
   }
   const { codigo, url, texto, urlWhatsapp } = r.valor;

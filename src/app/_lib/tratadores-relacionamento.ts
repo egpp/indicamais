@@ -68,16 +68,24 @@ export async function marcarTodosAvisosLidos(
  * nunca do que o navegador mandou. "Sua indicação gerou um contato" abre a página pública do destino; os demais
  * avisos são do responsável e abrem o painel do perfil ou item. Sem destino conhecido, volta aos avisos.
  */
+export const CAMINHO_DESTINO_INDISPONIVEL = "/avisos?aviso=indisponivel";
+
 export async function caminhoDoAviso(
   aviso: Aviso,
   slugDoPerfil: (id: string) => Promise<string | null>,
+  itemDisponivel: (id: string) => Promise<boolean> = async () => true,
 ): Promise<string> {
   const d = aviso.destino;
   if (!d) return "/avisos";
   if (aviso.tipo === "indicacao_valida") {
-    if (d.tipo === "item") return ROTAS_PUBLICAS.item(d.id);
+    // O destino pode ter saído do ar: em vez de um 404 seco, volta aos avisos com uma mensagem amigável.
+    if (d.tipo === "item") {
+      return (await itemDisponivel(d.id))
+        ? ROTAS_PUBLICAS.item(d.id)
+        : CAMINHO_DESTINO_INDISPONIVEL;
+    }
     const slug = await slugDoPerfil(d.id);
-    return slug ? ROTAS_PUBLICAS.perfil(slug) : "/avisos";
+    return slug ? ROTAS_PUBLICAS.perfil(slug) : CAMINHO_DESTINO_INDISPONIVEL;
   }
   return d.tipo === "perfil" ? `/meus-perfis/${d.id}` : `/meus-itens/${d.id}`;
 }
@@ -92,5 +100,9 @@ export async function abrirAviso(ctx: ContextoRelacionamento, f: FormData): Prom
   const aviso = lista.valor.find((a) => a.origem === origem && a.origemId === origemId);
   if (!aviso) return "/avisos";
   await ctx.notificacoes.marcarLida({ origem: aviso.origem, origemId: aviso.origemId });
-  return caminhoDoAviso(aviso, async (id) => (await ctx.leitura.perfilPorId(id))?.slug ?? null);
+  return caminhoDoAviso(
+    aviso,
+    async (id) => (await ctx.leitura.perfilPorId(id))?.slug ?? null,
+    async (id) => (await ctx.leitura.itemPorId(id)) !== null,
+  );
 }

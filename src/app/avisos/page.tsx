@@ -5,7 +5,7 @@ import { PainelPagina, SeloEstado } from "../_componentes/painel";
 import { Aviso } from "../_componentes/ui";
 import { formatarDataHora } from "../_lib/apresentacao";
 import { obterContextoRelacionamento } from "../_lib/contexto-relacionamento";
-import { SEM_INDEXACAO } from "../_lib/pagina";
+import { SEM_INDEXACAO, um } from "../_lib/pagina";
 
 export const metadata: Metadata = { title: "Avisos | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
@@ -15,7 +15,8 @@ export const dynamic = "force-dynamic";
  * de revisão). Os textos vêm só de `textoDoAviso`; quem agiu aparece pelo nome reduzido e nunca há telefone, e-mail ou
  * nome completo. Nenhum texto afirma compartilhamento externo.
  */
-export default async function PaginaAvisos() {
+export default async function PaginaAvisos({ searchParams }: PageProps<"/avisos">) {
+  const destinoIndisponivel = um((await searchParams).aviso) === "indisponivel";
   const ctx = await obterContextoRelacionamento("/avisos");
   const [admin, avisos] = await Promise.all([ctx.ehAdministrador(), ctx.notificacoes.meusAvisos()]);
   const naoLidas = avisos.ok ? avisos.valor.filter((a) => !a.lida).length : 0;
@@ -27,6 +28,12 @@ export default async function PaginaAvisos() {
       atual="avisos"
     >
       <AbasAvisos atual="avisos" />
+      {destinoIndisponivel ? (
+        <Aviso tipo="info">
+          Este item não está disponível no momento. Ele pode ter sido pausado ou removido por quem o
+          publicou.
+        </Aviso>
+      ) : null}
       {!avisos.ok ? (
         <Aviso tipo="erro">{avisos.erro.mensagem}</Aviso>
       ) : avisos.valor.length === 0 ? (
