@@ -143,6 +143,13 @@ export type Database = {
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["perfil_destino_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
         ]
       }
       catalogo_categoria: {
@@ -663,6 +670,13 @@ export type Database = {
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "indicacoes_link_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
         ]
       }
       indicacoes_notificacao: {
@@ -911,8 +925,44 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "indicacoes_pedido_contato_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+          {
             foreignKeyName: "indicacoes_pedido_contato_solicitante_id_fkey"
             columns: ["solicitante_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes_leitura: {
+        Row: {
+          conta_id: string
+          lida_em: string
+          origem: string
+          origem_id: string
+        }
+        Insert: {
+          conta_id: string
+          lida_em?: string
+          origem: string
+          origem_id: string
+        }
+        Update: {
+          conta_id?: string
+          lida_em?: string
+          origem?: string
+          origem_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_leitura_conta_id_fkey"
+            columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "contas_conta"
             referencedColumns: ["id"]
@@ -1071,6 +1121,13 @@ export type Database = {
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "perfis_perfil_versao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
         ]
       }
       perfis_perfil_versao_contato: {
@@ -1157,6 +1214,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "perfis_revisao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+          {
             foreignKeyName: "perfis_revisao_versao_aprovada_anterior_id_fkey"
             columns: ["versao_aprovada_anterior_id"]
             isOneToOne: false
@@ -1218,6 +1282,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
           },
           {
             foreignKeyName: "pontos_beneficio_versao_aprovada_fk"
@@ -1656,6 +1727,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pontos_lancamento_destino_perfil_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+          {
             foreignKeyName: "pontos_lancamento_indicador_id_fkey"
             columns: ["indicador_id"]
             isOneToOne: false
@@ -1726,6 +1804,400 @@ export type Database = {
         }
         Relationships: []
       }
+      relacionamento_alternancia: {
+        Row: {
+          conta_id: string
+          criado_em: string
+          id: number
+          perfil_id: string
+        }
+        Insert: {
+          conta_id: string
+          criado_em?: string
+          id?: never
+          perfil_id: string
+        }
+        Update: {
+          conta_id?: string
+          criado_em?: string
+          id?: never
+          perfil_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_alternancia_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_alternancia_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_alternancia_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_alternancia_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_alternancia_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      relacionamento_entrada_decisao: {
+        Row: {
+          base_perfil_id: string | null
+          decidido_em: string
+          id: number
+          incluido_na_base: boolean
+          motivo: string
+          pedido_id: string
+          valido: boolean
+        }
+        Insert: {
+          base_perfil_id?: string | null
+          decidido_em?: string
+          id?: never
+          incluido_na_base?: boolean
+          motivo: string
+          pedido_id: string
+          valido: boolean
+        }
+        Update: {
+          base_perfil_id?: string | null
+          decidido_em?: string
+          id?: never
+          incluido_na_base?: boolean
+          motivo?: string
+          pedido_id?: string
+          valido?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_base_perfil_id_fkey"
+            columns: ["base_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_base_perfil_id_fkey"
+            columns: ["base_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_base_perfil_id_fkey"
+            columns: ["base_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_base_perfil_id_fkey"
+            columns: ["base_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relacionamento_evento: {
+        Row: {
+          criado_em: string
+          id: number
+          perfil_id: string
+          tipo: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: never
+          perfil_id: string
+          tipo: string
+        }
+        Update: {
+          criado_em?: string
+          id?: never
+          perfil_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      relacionamento_falha: {
+        Row: {
+          criado_em: string
+          erro: string
+          id: number
+          pedido_id: string
+        }
+        Insert: {
+          criado_em?: string
+          erro: string
+          id?: never
+          pedido_id: string
+        }
+        Update: {
+          criado_em?: string
+          erro?: string
+          id?: never
+          pedido_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relacionamento_membro: {
+        Row: {
+          atualizado_em: string
+          conta_id: string
+          curtida_em: string | null
+          entrou_em: string
+          id: string
+          indicacoes_validas: number
+          perfil_id: string
+          primeira_indicacao_em: string | null
+          ultima_indicacao_em: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          conta_id: string
+          curtida_em?: string | null
+          entrou_em?: string
+          id?: string
+          indicacoes_validas?: number
+          perfil_id: string
+          primeira_indicacao_em?: string | null
+          ultima_indicacao_em?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          conta_id?: string
+          curtida_em?: string | null
+          entrou_em?: string
+          id?: string
+          indicacoes_validas?: number
+          perfil_id?: string
+          primeira_indicacao_em?: string | null
+          ultima_indicacao_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_membro_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      relacionamento_parametro: {
+        Row: {
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Insert: {
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Update: {
+          chave?: string
+          descricao?: string
+          maximo?: number
+          minimo?: number
+          valor?: number
+        }
+        Relationships: []
+      }
+      relacionamento_saida: {
+        Row: {
+          conta_id: string
+          perfil_id: string
+          saiu_em: string
+        }
+        Insert: {
+          conta_id: string
+          perfil_id: string
+          saiu_em?: string
+        }
+        Update: {
+          conta_id?: string
+          perfil_id?: string
+          saiu_em?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_saida_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_saida_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_saida_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_saida_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_saida_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
     }
     Views: {
       administracao_beneficios_aguardando_aceite: {
@@ -1757,6 +2229,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
           },
           {
             foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
@@ -1826,6 +2305,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
           },
           {
             foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
@@ -1927,6 +2413,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
           },
         ]
       }
@@ -2190,6 +2683,65 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacoes_meus_avisos: {
+        Row: {
+          ator_nome: string | null
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          lida: boolean | null
+          lida_em: string | null
+          origem: string | null
+          origem_id: string | null
+          tipo: string | null
+        }
+        Relationships: []
+      }
+      notificacoes_quem_me_indicou: {
+        Row: {
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          id: string | null
+          indicador_nome: string | null
+          indicador_ref: string | null
+          indicador_saiu_da_base: boolean | null
+          perfil_destino_id: string | null
+          perfil_destino_nome: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_pedido_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfis_meus_perfis: {
         Row: {
           atualizado_em: string | null
@@ -2304,6 +2856,13 @@ export type Database = {
             referencedRelation: "perfis_perfil_publico"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
         ]
       }
       pontos_meu_saldo: {
@@ -2329,6 +2888,106 @@ export type Database = {
           tipo: string | null
         }
         Relationships: []
+      }
+      relacionamento_meu_resumo: {
+        Row: {
+          curtidas_ativas: number | null
+          indicadores: number | null
+          interacoes: number | null
+          membros: number | null
+          perfil_id: string | null
+          perfil_nome: string | null
+          saidas: number | null
+        }
+        Relationships: []
+      }
+      relacionamento_meus_membros: {
+        Row: {
+          curtida_em: string | null
+          curtiu: boolean | null
+          entrou_em: string | null
+          id: string | null
+          indicacoes_validas: number | null
+          indicou: boolean | null
+          interacoes: number | null
+          perfil_id: string | null
+          perfil_nome: string | null
+          pessoa_nome: string | null
+          primeira_indicacao_em: string | null
+          ultima_indicacao_em: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      relacionamento_minhas_participacoes: {
+        Row: {
+          curtida_em: string | null
+          curtiu: boolean | null
+          entrou_em: string | null
+          indicacoes_validas: number | null
+          indicou: boolean | null
+          perfil_id: string | null
+          perfil_nome: string | null
+          perfil_slug: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
       }
     }
     Functions: {
@@ -2525,6 +3184,12 @@ export type Database = {
         Args: { p_motivo: string; p_pedido_id: string }
         Returns: undefined
       }
+      notificacoes_contar_nao_lidas: { Args: never; Returns: number }
+      notificacoes_marcar_lida: {
+        Args: { p_origem: string; p_origem_id: string }
+        Returns: boolean
+      }
+      notificacoes_marcar_todas_lidas: { Args: never; Returns: number }
       perfis_criar_rascunho: {
         Args: {
           p_areas_atendidas?: string[]
@@ -2705,6 +3370,28 @@ export type Database = {
           p_prazo_uso_dias?: number
         }
         Returns: string
+      }
+      relacionamento_avaliar_pedido: {
+        Args: { p_pedido_id: string }
+        Returns: number
+      }
+      relacionamento_checar_alternancia: {
+        Args: { p_conta_id: string; p_perfil_id: string }
+        Returns: undefined
+      }
+      relacionamento_curtir: { Args: { p_perfil_id: string }; Returns: boolean }
+      relacionamento_descurtir: {
+        Args: { p_perfil_id: string }
+        Returns: boolean
+      }
+      relacionamento_nome_publico: { Args: { p_nome: string }; Returns: string }
+      relacionamento_reprocessar_pendentes: {
+        Args: { p_limite?: number }
+        Returns: number
+      }
+      relacionamento_sair_da_base: {
+        Args: { p_perfil_id: string }
+        Returns: boolean
       }
     }
     Enums: {
