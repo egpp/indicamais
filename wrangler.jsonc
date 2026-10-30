@@ -2,7 +2,8 @@
   // Worker de DESENVOLVIMENTO (D-003). O Worker de producao so sera configurado com aprovacao do Emerson.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "indicamais-dev",
-  "main": ".open-next/worker.js",
+  // Entrada propria: reaproveita o fetch do OpenNext e acrescenta o handler scheduled (Cron Trigger).
+  "main": "worker/entrada.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
@@ -11,4 +12,6 @@
   },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "indicamais-dev" }],
   "images": { "binding": "IMAGES" },
+  // Rotinas agendadas (IM-081): encerramentos, reprocessamento de pendentes e limpeza de tentativas de denuncia.
+  "triggers": { "crons": ["*/15 * * * *"] },
 }

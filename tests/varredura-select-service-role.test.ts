@@ -46,15 +46,20 @@ describe("varredura do app", () => {
     expect(fontes.some(({ c }) => eServico(c))).toBe(true);
   });
 
-  it("o cliente de serviço só é importado por notificacoes-contato.ts e nunca por código de cliente", () => {
+  it("o cliente de serviço só é importado por arquivos de servidor aprovados e nunca por código de cliente", () => {
     const importadores = fontes.filter(
       ({ c, t }) => !eServico(c) && /supabase\/servico["']/.test(t),
     );
-    expect(importadores.map((i) => i.c.split(/[\\/]/).pop())).toEqual(["notificacoes-contato.ts"]);
+    expect(importadores.map((i) => i.c.split(/[\\/]/).pop()).sort()).toEqual([
+      "notificacoes-contato.ts",
+      "rotinas.ts",
+    ]);
     const clientes = fontes.filter(({ t }) => /^\s*["']use client["']/.test(t));
     expect(clientes.length).toBeGreaterThan(5);
     for (const { t } of clientes) {
-      expect(t).not.toMatch(/notificacoes-contato|supabase\/servico|banco-indicacoes/);
+      expect(t).not.toMatch(
+        /notificacoes-contato|supabase\/servico|supabase\/acesso-conta|agendador|banco-indicacoes/,
+      );
     }
   });
 
