@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
+import { FormDenunciar } from "../../_componentes/form-ciclo-vida";
 import { CurtirPerfil } from "../../_componentes/form-relacionamento";
 import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
 import { nomeDaCategoria } from "../../_lib/apresentacao";
@@ -96,7 +97,7 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
         retorno={ROTAS_PUBLICAS.item(item.id)}
         ind={ind}
       />
-      {perfil && curtida ? (
+      {perfil && curtida && !curtida.proprio ? (
         <CurtirPerfil
           perfilId={perfil.id}
           logado={curtida.logado}
@@ -104,6 +105,7 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
           retorno={ROTAS_PUBLICAS.item(item.id)}
         />
       ) : null}
+      <FormDenunciar alvoTipo="item" alvoId={item.id} />
       <p className="rodape-links">
         <Link href="/">Voltar para a página inicial</Link>
       </p>
