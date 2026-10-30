@@ -102,6 +102,20 @@ describe("caminhoDoAviso (IM-052)", () => {
     } as never;
     expect(await caminhoDoAviso(b, slug)).toBe("/item/i1");
   });
+  it("destino fora do ar leva à mensagem amigável, não ao 404", async () => {
+    const a = {
+      ...base,
+      tipo: "indicacao_valida",
+      destino: { tipo: "item", id: "i1", nome: "" },
+    } as never;
+    expect(await caminhoDoAviso(a, slug, async () => false)).toBe("/avisos?aviso=indisponivel");
+    const b = {
+      ...base,
+      tipo: "indicacao_valida",
+      destino: { tipo: "perfil", id: "p1", nome: "" },
+    } as never;
+    expect(await caminhoDoAviso(b, async () => null)).toBe("/avisos?aviso=indisponivel");
+  });
   it("sem destino volta aos avisos", async () => {
     expect(await caminhoDoAviso({ ...base, tipo: "curtida", destino: null } as never, slug)).toBe(
       "/avisos",

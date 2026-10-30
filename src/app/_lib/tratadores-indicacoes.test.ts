@@ -165,6 +165,24 @@ describe("Indique (IM-024)", () => {
     expect(r.erro).toBe("Cadastre seu WhatsApp na sua conta antes de indicar.");
   });
 
+  it("conta suspensa sem WhatsApp: mensagem própria, sem mandar cadastrar o WhatsApp (IM-080)", async () => {
+    const { ctx } = cenario({ id: randomUUID() });
+    ctx.estadoDaConta = async () => ({ acessoPermitido: false });
+    const r = await gerarLinkDeIndicacao(
+      ctx,
+      formulario({ tipo: "perfil", slug: "padaria-da-ana" }),
+    );
+    expect(r.passo).toBeUndefined();
+    expect(r.erro).not.toContain("Cadastre seu WhatsApp");
+    // Estado desconhecido nunca troca a mensagem.
+    ctx.estadoDaConta = async () => null;
+    const r2 = await gerarLinkDeIndicacao(
+      ctx,
+      formulario({ tipo: "perfil", slug: "padaria-da-ana" }),
+    );
+    expect(r2.passo).toBe("whatsapp");
+  });
+
   it("dono do perfil ou do item: mensagem de autoindicação", async () => {
     const { ctx, item } = cenario({ id: randomUUID(), comWhatsapp: true }, true);
     const p = await gerarLinkDeIndicacao(

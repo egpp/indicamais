@@ -6,6 +6,7 @@ import type { BeneficioPublico } from "@/modules/pontos";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { CabecalhoPublico, GradeCards, dadosDeItem, localTexto } from "../../_componentes/publico";
 import { AVISO_SEM_RESGATE, ListaBeneficiosPublicos } from "../../_componentes/pontos";
+import { FormDenunciar } from "../../_componentes/form-ciclo-vida";
 import { CurtirPerfil } from "../../_componentes/form-relacionamento";
 import { nomeDaCategoria } from "../../_lib/apresentacao";
 import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
@@ -134,12 +135,14 @@ export default async function PaginaPerfilPublico({
         retorno={ROTAS_PUBLICAS.perfil(perfil.slug)}
         ind={ind}
       />
-      <CurtirPerfil
-        perfilId={perfil.id}
-        logado={curtida.logado}
-        curtiu={curtida.curtiu}
-        retorno={ROTAS_PUBLICAS.perfil(perfil.slug)}
-      />
+      {curtida.proprio ? null : (
+        <CurtirPerfil
+          perfilId={perfil.id}
+          logado={curtida.logado}
+          curtiu={curtida.curtiu}
+          retorno={ROTAS_PUBLICAS.perfil(perfil.slug)}
+        />
+      )}
 
       <section aria-labelledby="titulo-itens">
         <h2 id="titulo-itens">Produtos e serviços</h2>
@@ -156,6 +159,7 @@ export default async function PaginaPerfilPublico({
           <ListaBeneficiosPublicos beneficios={beneficios} />
         </section>
       ) : null}
+      <FormDenunciar alvoTipo="perfil" alvoId={perfil.id} />
       <p className="rodape-links">
         <Link href="/">Voltar para a página inicial</Link>
       </p>

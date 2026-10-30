@@ -34,9 +34,9 @@ update public.perfis_perfil set versao_aprovada_id = 'a1000000-0000-0000-0000-00
 select is((select bool_and(relrowsecurity and relforcerowsecurity) from pg_class where oid = any(array[
   'public.pontos_beneficio'::regclass, 'public.pontos_beneficio_versao'::regclass, 'public.pontos_beneficio_revisao'::regclass])),
   true, 'RLS ativa e forçada nas 3 tabelas de benefício');
-select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'pontos_beneficio'), 6, 'pontos_beneficio: políticas por operação (3 select + 3 negados)');
-select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'pontos_beneficio_versao'), 6, 'pontos_beneficio_versao: políticas por operação');
-select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'pontos_beneficio_revisao'), 5, 'pontos_beneficio_revisao: políticas por operação');
+select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'pontos_beneficio'), 7, 'pontos_beneficio: políticas por operação (4 select, incl. aprovador, + 3 negados)');
+select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'pontos_beneficio_versao'), 7, 'pontos_beneficio_versao: políticas por operação (inclui aprovador)');
+select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'pontos_beneficio_revisao'), 6, 'pontos_beneficio_revisao: políticas por operação (inclui aprovador)');
 select is((select bool_or(has_table_privilege(r, t, p))
   from unnest(array['anon', 'authenticated']) r,
   unnest(array['public.pontos_beneficio', 'public.pontos_beneficio_versao', 'public.pontos_beneficio_revisao']) t,

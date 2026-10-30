@@ -1,2 +1,7 @@
 # Copie para .dev.vars (ignorado pelo Git). Seleciona quais arquivos .env o Next carrega no preview.
 NEXTJS_ENV=development
+
+# Worker (dev): o Cron Trigger e o bloqueio de acesso precisam destas duas, como secrets/variaveis do Worker
+# (localmente, aqui). Nomes apenas; nunca comite valores.
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=

@@ -55,3 +55,8 @@ export function formatarPontos(n: number, comSinal = false): string {
   const sinal = comSinal && n > 0 ? "+" : n < 0 ? "-" : "";
   return `${sinal}${abs.toLocaleString("pt-BR")} ${unidade}`;
 }
+
+/** Instante UTC -> "31/12/2026" no fuso de Brasília (prazos como o fim da carência de encerramento). */
+export function formatarDataSP(iso: string | null | undefined): string {
+  return formatarDataHora(iso).split(" ")[0] ?? "";
+}

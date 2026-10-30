@@ -99,6 +99,7 @@ describe("migrações: funções", () => {
       .map(([, nome]) => nome!)
       .sort();
     expect(concedidas).toEqual([
+      "administracao_denunciar",
       "busca_normalizar",
       "busca_publica",
       "catalogo_imagem_publica",
@@ -152,9 +153,15 @@ describe("migrações: visões", () => {
     const definer = [...new Set(visoes.filter((v) => !v.invoker).map((v) => v.nome))].sort();
     expect(definer).toEqual([
       "administracao_consulta_negocios",
+      "administracao_contas_ciclo_vida",
+      "administracao_denuncia_decisoes",
       "administracao_fila_contatos",
+      "administracao_fila_denuncias",
       "administracao_fila_pendencias",
+      "administracao_indicacoes_invalidadas",
       "administracao_meus_resultados",
+      "administracao_minhas_permissoes",
+      "administracao_permissoes_concedidas",
       "administracao_pontos_decisoes",
       "administracao_pontos_falhas",
       "administracao_pontos_lancamentos",
@@ -174,7 +181,7 @@ describe("migrações: visões", () => {
     ]);
     for (const v of visoes.filter((x) => !x.invoker)) {
       expect(v.corpo, `${v.nome} sem filtro por auth.uid()/administrador`).toMatch(
-        /auth\.uid\(\)|administracao_eh_admin\(\)/,
+        /auth\.uid\(\)|administracao_eh_admin\(\)|administracao_permitido(?:_algum)?\(/,
       );
       expect(codigo).toMatch(
         new RegExp(`revoke all on public\\.${v.nome} from anon, authenticated`, "i"),

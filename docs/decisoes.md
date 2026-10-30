@@ -130,6 +130,25 @@ Aprovada pelo Emerson em 30/10/2026 ("siga as recomendações"), sobre proposta 
 
 ---
 
+## D-014 · 30/10/2026 · Administração e ciclo de vida (IM-076, IM-077, IM-080, IM-081; IM-082 provisória)
+**IDs:** IM-076, IM-077, IM-080, IM-081, IM-082
+Aprovada pelo Emerson em 30/10/2026 ("siga as recomendações"), sobre proposta do gestor:
+- **Permissões (IM-077):** administrador geral concede permissões específicas a outras contas: aprovar, gerir categorias, analisar denúncias, invalidar indicações, reverter pontos e suspender. A conta de administração atual é administrador geral. Toda ação administrativa grava auditoria (autor, data, motivo, valor original).
+- **Denúncias (IM-076):** qualquer pessoa, logada ou não, pode denunciar (autoindicação, spam/fraude, uso indevido de dados, conteúdo inadequado). Proteção antispam: limite por pessoa e por alvo e campo-armadilha; captcha gratuito (Turnstile da Cloudflare) entra depois, com a proteção da borda. O denunciado nunca vê quem denunciou. Estados: aberta, em análise, procedente, improcedente. Nenhuma suspensão é automática.
+- **Suspensão e reativação (IM-080):** suspensa, a conta não entra, perfis e itens saem do ar e ela não recebe contatos; pontos e histórico ficam guardados. Reativada, os perfis voltam despublicados e o responsável republica por conta própria.
+- **Encerramento (IM-081):** confirmação reforçada (a pessoa digita uma palavra de confirmação); perfis ficam despublicados, sem transferência; **carência de 30 dias** com possibilidade de desistir; depois, dados pessoais (nome, telefone, e-mail) são anonimizados e ficam só históricos necessários (auditoria, pontos, lançamentos) sem identificação. Resolve também a exclusão de conta pendente para pontos e relacionamento.
+- **IM-082 (políticas):** o prazo de carência e a retenção acima são provisórios para desenvolvimento. **Antes do lançamento**, a política real de privacidade e retenção precisa de revisão jurídica (pendência do Emerson); efeitos sobre assinaturas e comissões ficam para as respectivas ativações.
+
+**Confirmações do Emerson em 30/10/2026 ("aprovado e siga as recomendações", sobre o banco da Fase 6):**
+- Patrocinador, parâmetros (pontos, indicações, contas), alertas e concessão de permissões ficam só com o administrador geral; benefícios com `aprovar`.
+- Conteúdo comercial dos perfis da conta encerrada (nome, descrição, WhatsApp comercial) e pedidos de contato feitos como visitante permanecem por ora; decisão final depende da política de retenção (IM-082, revisão jurídica).
+- Indicador reativado volta a pontuar; pontos e histórico ficam guardados durante a suspensão.
+- Indicador suspenso que tenta gerar link recebe mensagem própria (não a de "cadastre seu WhatsApp").
+- Invalidar indicação reverte só os pontos; não altera a base de relacionamento nem o pedido (IM-042).
+- Bloqueio de acesso: o servidor consulta `contas_meu_estado()` a cada requisição e aplica/desfaz `banned_until` pela Admin API ao suspender/reativar (sem custo novo). Rotina agendada de encerramentos e limpeza de tentativas de denúncia fica para o `devops`.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

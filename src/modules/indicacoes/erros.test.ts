@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { mapearErroBancoIndicacoes, MENSAGENS_INDICACOES } from "./index";
+import {
+  mapearErroBancoIndicacoes,
+  MENSAGENS_INDICACOES,
+  refinarErroPorEstadoDaConta,
+} from "./index";
 
 const e = (code: string) => ({
   code,
@@ -49,5 +53,30 @@ describe("mapearErroBancoIndicacoes", () => {
     expect(mapearErroBancoIndicacoes({ message: "x" }, "contato").mensagem).toBe(
       MENSAGENS_INDICACOES.generica,
     );
+  });
+});
+
+describe("refinarErroPorEstadoDaConta (IM-080)", () => {
+  const semWhats = mapearErroBancoIndicacoes(e("P0412"), "gerar_link");
+
+  it("conta suspensa: mensagem própria, diferente de 'cadastre seu WhatsApp'", () => {
+    const r = refinarErroPorEstadoDaConta(semWhats, { acessoPermitido: false });
+    expect(r.codigo).toBe("CONTA_SUSPENSA");
+    expect(r.mensagem).toBe(MENSAGENS_INDICACOES.contaSuspensa);
+    expect(r.mensagem).not.toMatch(/WhatsApp/);
+  });
+
+  it("conta com acesso ou estado desconhecido: continua pedindo o WhatsApp", () => {
+    expect(refinarErroPorEstadoDaConta(semWhats, { acessoPermitido: true }).codigo).toBe(
+      "SEM_WHATSAPP",
+    );
+    expect(refinarErroPorEstadoDaConta(semWhats, { acessoPermitido: null }).codigo).toBe(
+      "SEM_WHATSAPP",
+    );
+  });
+
+  it("não mexe em outros erros", () => {
+    const outro = mapearErroBancoIndicacoes(e("P0403"), "gerar_link");
+    expect(refinarErroPorEstadoDaConta(outro, { acessoPermitido: false })).toBe(outro);
   });
 });
