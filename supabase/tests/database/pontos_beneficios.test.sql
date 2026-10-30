@@ -240,12 +240,13 @@ select throws_ok($$select public.pontos_responder_proposta_beneficio(current_set
 reset role;
 select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid), 'aprovada', 'aceite aprova a versão');
 select is((select versao_aprovada_id from public.pontos_beneficio where id = current_setting('t.b5')::uuid), current_setting('t.v5')::uuid, 'e a torna a versão aprovada');
-select is((select ativo from public.pontos_beneficio where id = current_setting('t.b5')::uuid), false, 'aceitar não liga o benefício');
+select is((select ativo from public.pontos_beneficio where id = current_setting('t.b5')::uuid), true, 'aceitar já ativa o benefício');
+select is((select (valor_novo ->> 'ativo')::boolean from public.administracao_auditoria where alvo_id = current_setting('t.v5')), true, 'e a auditoria registra a ativação');
+select is((select (valor_anterior ->> 'ativo')::boolean from public.administracao_auditoria where alvo_id = current_setting('t.v5')), false, 'com o estado anterior inativo');
 select is((select decisor from public.pontos_beneficio_revisao where versao_id = current_setting('t.v5')::uuid), 'responsavel', 'a revisão registra que o responsável decidiu');
 select is((select acao from public.administracao_auditoria where alvo_id = current_setting('t.v5')), 'aceitar_proposta_beneficio', 'aceite auditado');
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
-select lives_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b5')::uuid, true)$$, 'o responsável liga o benefício aceito');
 reset role;
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
@@ -293,8 +294,6 @@ select set_config('t.b9', r.o_beneficio_id::text, true), set_config('t.v9', r.o_
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 select lives_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v8')::uuid, true)$$, 'aceita o benefício de prazo vencido');
 select lives_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v9')::uuid, true)$$, 'aceita o benefício que vence hoje');
-select lives_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b8')::uuid, true)$$, 'liga o vencido');
-select lives_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b9')::uuid, true)$$, 'liga o que vence hoje');
 select is((select count(*)::int from public.pontos_beneficio where id = current_setting('t.b8')::uuid), 1, 'o responsável ainda enxerga o próprio benefício vencido');
 reset role;
 set local role anon;

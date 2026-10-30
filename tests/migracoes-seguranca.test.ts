@@ -421,7 +421,10 @@ describe("migrações: módulo pontos (IM-030 a IM-036, IM-078, IM-079, IM-086)"
     const f = corpoFuncao("pontos_admin_cadastrar_beneficio");
     expect(f).toMatch(/'aguardando_aceite'/);
     expect(f).not.toMatch(/ativo = true|'aprovada'/);
-    expect(corpoFuncao("pontos_responder_proposta_beneficio")).toMatch(/responsavel_id = v_uid/);
+    const r = corpoFuncao("pontos_responder_proposta_beneficio");
+    expect(r).toMatch(/responsavel_id = v_uid/);
+    expect(r).toMatch(/ativo = true/); // aceite aprova e ativa (decisão de 30/10/2026)
+    expect(r).toMatch(/administracao_auditoria/);
   });
 
   it("não existe resgate, cupom nem sorteio (IM-037, IM-038 são futuros)", () => {

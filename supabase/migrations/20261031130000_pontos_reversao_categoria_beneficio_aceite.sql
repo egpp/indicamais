@@ -305,8 +305,8 @@ begin
   return v_ver;
 end $$;
 
--- Aceite do responsável: aceita (aprova a versão, que passa a ser a aprovada; ligar o benefício continua com ele) ou
--- recusa (motivo obrigatório). Só vale para versão aguardando aceite do PRÓPRIO perfil.
+-- Aceite do responsável (decisão de 30/10/2026): aceitar aprova a versão E já ativa o benefício, na mesma transação e
+-- com auditoria (valor anterior inclui o estado ativo). Recusa (motivo obrigatório). Só vale para versão aguardando aceite do PRÓPRIO perfil.
 create function public.pontos_responder_proposta_beneficio(p_versao_id uuid, p_aceitar boolean, p_motivo text default null) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -314,6 +314,7 @@ declare
   v_ben uuid;
   v_sit text;
   v_anterior uuid;
+  v_ativo boolean;
   v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
 begin
   if v_uid is null then
@@ -322,7 +323,7 @@ begin
   if p_aceitar is null then
     raise exception 'informe aceitar ou recusar' using errcode = '22023';
   end if;
-  select v.beneficio_id, v.situacao, b.versao_aprovada_id into v_ben, v_sit, v_anterior
+  select v.beneficio_id, v.situacao, b.versao_aprovada_id, b.ativo into v_ben, v_sit, v_anterior, v_ativo
   from public.pontos_beneficio_versao v
   join public.pontos_beneficio b on b.id = v.beneficio_id
   join public.perfis_perfil p on p.id = b.perfil_id
@@ -343,13 +344,14 @@ begin
      set situacao = case when p_aceitar then 'aprovada' else 'rejeitada' end
    where id = p_versao_id;
   if p_aceitar then
-    update public.pontos_beneficio set versao_aprovada_id = p_versao_id where id = v_ben;
+    update public.pontos_beneficio set versao_aprovada_id = p_versao_id, ativo = true where id = v_ben;
   end if;
   insert into public.administracao_auditoria (autor_id, acao, alvo_tabela, alvo_id, motivo, valor_anterior, valor_novo)
   values (v_uid, case when p_aceitar then 'aceitar_proposta_beneficio' else 'recusar_proposta_beneficio' end,
           'pontos_beneficio_versao', p_versao_id::text, v_motivo,
-          jsonb_build_object('situacao', v_sit, 'beneficio_id', v_ben, 'versao_aprovada_anterior_id', v_anterior),
-          jsonb_build_object('situacao', case when p_aceitar then 'aprovada' else 'rejeitada' end, 'beneficio_id', v_ben));
+          jsonb_build_object('situacao', v_sit, 'beneficio_id', v_ben, 'versao_aprovada_anterior_id', v_anterior, 'ativo', v_ativo),
+          jsonb_build_object('situacao', case when p_aceitar then 'aprovada' else 'rejeitada' end, 'beneficio_id', v_ben,
+                             'ativo', case when p_aceitar then true else v_ativo end));
 end $$;
 
 -- Funções do administrador ---------------------------------------------------------------------------------------
