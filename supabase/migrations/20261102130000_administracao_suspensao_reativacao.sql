@@ -18,7 +18,7 @@
 create function public.administracao_suspender_conta(p_conta uuid, p_motivo text) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
-  v_admin uuid := public.administracao_exigir_admin();
+  v_admin uuid := public.administracao_exigir_permissao('suspender');
   v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
   v_sit text;
   v_enc_ate timestamptz;
@@ -72,7 +72,7 @@ end $$;
 create function public.administracao_reativar_conta(p_conta uuid, p_motivo text) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
-  v_admin uuid := public.administracao_exigir_admin();
+  v_admin uuid := public.administracao_exigir_permissao('suspender');
   v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
   v_sit text;
   v_desde timestamptz;
@@ -107,8 +107,6 @@ revoke all on function public.administracao_suspender_conta(uuid, text) from pub
 revoke all on function public.administracao_reativar_conta(uuid, text) from public, anon;
 grant execute on function public.administracao_suspender_conta(uuid, text) to authenticated;
 grant execute on function public.administracao_reativar_conta(uuid, text) to authenticated;
-alter function public.administracao_suspender_conta(uuid, text) set indicamais.permissao_exigida = 'suspender';
-alter function public.administracao_reativar_conta(uuid, text) set indicamais.permissao_exigida = 'suspender';
 
 -- Contas fora do normal, para quem tem a permissão suspender. Sem nome, telefone nem e-mail.
 create view public.administracao_contas_ciclo_vida as

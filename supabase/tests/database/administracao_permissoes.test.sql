@@ -32,10 +32,19 @@ select is((select bool_or(has_table_privilege(r, 'public.administracao_permissao
   'nenhum privilégio direto na tabela de permissões');
 select columns_are('public', 'administracao_minhas_permissoes', array['permissao', 'criado_em'], 'minhas permissões: sem id de conta');
 select columns_are('public', 'administracao_permissoes_concedidas', array['conta_id', 'permissao', 'concedida_por_ref', 'criado_em'], 'concedidas: autor opaco');
+select is((select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.prosrc like '%public.administracao_exigir_admin()%' and p.proname <> 'administracao_exigir_admin'),
+  array['administracao_alterar_patrocinador', 'administracao_conceder_permissao', 'administracao_criar_patrocinador',
+        'administracao_definir_parametro', 'administracao_definir_patrocinador_ativo', 'administracao_revogar_permissao',
+        'contas_definir_parametro', 'indicacoes_definir_parametro', 'indicacoes_tratar_alerta', 'pontos_definir_parametro'],
+  'só as RPCs sem permissão específica seguem exigindo administrador geral');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public' and p.prosrc like '%administracao_exigir_admin()%' and p.proname <> 'administracao_exigir_admin'
-    and not exists (select 1 from unnest(coalesce(p.proconfig, '{}'::text[])) c where c like 'indicamais.permissao_exigida=%')), 0,
-  'toda RPC administrativa declara a permissão exigida');
+  where n.nspname = 'public' and p.proname in ('perfis_decidir_versao', 'catalogo_decidir_item_versao', 'pontos_decidir_beneficio_versao',
+    'pontos_admin_cadastrar_beneficio', 'pontos_admin_editar_proposta_beneficio', 'pontos_admin_definir_beneficio_ativo',
+    'catalogo_criar_categoria', 'catalogo_alterar_categoria', 'catalogo_decidir_solicitacao', 'pontos_reverter_credito',
+    'pontos_reprocessar_pedido', 'administracao_decidir_denuncia', 'administracao_suspender_conta', 'administracao_reativar_conta',
+    'administracao_invalidar_indicacao')
+    and p.prosrc like '%public.administracao_exigir_permissao(%'), 15, 'as 15 RPCs por permissão usam o guarda da permissão específica');
 select is(has_function_privilege('anon', 'public.administracao_conceder_permissao(uuid,text,text)', 'EXECUTE')
   or has_function_privilege('anon', 'public.administracao_revogar_permissao(uuid,text,text)', 'EXECUTE')
   or has_function_privilege('anon', 'public.administracao_permitido(text)', 'EXECUTE'), false, 'anon não executa as funções de permissão');

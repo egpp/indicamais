@@ -49,7 +49,7 @@ create function public.administracao_invalidar_indicacao(
 ) returns uuid
 language plpgsql security definer set search_path = '' as $$
 declare
-  v_admin uuid := public.administracao_exigir_admin();
+  v_admin uuid := public.administracao_exigir_permissao('invalidar_indicacoes');
   v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
   v_pedido public.indicacoes_pedido_contato%rowtype;
   v_indicador uuid;
@@ -104,7 +104,6 @@ begin
 end $$;
 revoke all on function public.administracao_invalidar_indicacao(uuid, text, boolean) from public, anon;
 grant execute on function public.administracao_invalidar_indicacao(uuid, text, boolean) to authenticated;
-alter function public.administracao_invalidar_indicacao(uuid, text, boolean) set indicamais.permissao_exigida = 'invalidar_indicacoes';
 
 -- Indicações invalidadas, para quem tem a permissão. Sem id de conta, sem dado do visitante.
 create view public.administracao_indicacoes_invalidadas as

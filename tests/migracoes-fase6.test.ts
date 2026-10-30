@@ -50,27 +50,37 @@ describe("Fase 6: permissões granulares (IM-077)", () => {
     expect(permissoes).toMatch(/administracao_permissao_valida check \(permissao in \(/);
   });
 
-  it("toda função que chama administracao_exigir_admin() declara a permissão exigida (fail-closed se faltar)", () => {
-    const nomes = new Set<string>();
+  it("só as RPCs sem permissão específica no IM-077 seguem exigindo administrador geral", () => {
+    // Vale a ÚLTIMA definição de cada função (as antigas foram recriadas com o guarda novo).
+    const ultimas = new Map<string, string>();
     for (const m of todas.matchAll(
       /create (?:or replace )?function public\.(\w+)\(([\s\S]*?)\$\$;/gi,
     )) {
-      if (/administracao_exigir_admin\(\)/.test(m[0]) && m[1] !== "administracao_exigir_admin") {
-        nomes.add(m[1]!);
-      }
+      ultimas.set(m[1]!, m[0]);
     }
-    expect(nomes.size).toBeGreaterThan(20);
-    for (const n of nomes) {
-      expect(todas, `${n} sem ALTER FUNCTION ... SET indicamais.permissao_exigida`).toMatch(
-        new RegExp(
-          `alter function public\\.${n}\\([^)]*\\)\\s+set indicamais\\.permissao_exigida = '(geral|${LISTA.join("|")})'`,
-          "i",
-        ),
-      );
-    }
+    const geral = [...ultimas]
+      .filter(
+        ([nome, c]) =>
+          nome !== "administracao_exigir_admin" && /administracao_exigir_admin\(\)/.test(c),
+      )
+      .map(([nome]) => nome);
+    expect([...geral].sort()).toEqual(
+      [
+        "administracao_alterar_patrocinador",
+        "administracao_conceder_permissao",
+        "administracao_criar_patrocinador",
+        "administracao_definir_parametro",
+        "administracao_definir_patrocinador_ativo",
+        "administracao_revogar_permissao",
+        "contas_definir_parametro",
+        "indicacoes_definir_parametro",
+        "indicacoes_tratar_alerta",
+        "pontos_definir_parametro",
+      ].sort(),
+    );
   });
 
-  it("cada RPC existente exige a permissão específica certa", () => {
+  it("cada RPC exige a permissão específica certa (última definição) e grava auditoria", () => {
     const esperado: Record<string, string> = {
       perfis_decidir_versao: "aprovar",
       catalogo_decidir_item_versao: "aprovar",
@@ -83,26 +93,31 @@ describe("Fase 6: permissões granulares (IM-077)", () => {
       catalogo_decidir_solicitacao: "gerir_categorias",
       pontos_reverter_credito: "reverter_pontos",
       pontos_reprocessar_pedido: "reverter_pontos",
-      pontos_definir_parametro: "geral",
+      administracao_decidir_denuncia: "analisar_denuncias",
+      administracao_suspender_conta: "suspender",
+      administracao_reativar_conta: "suspender",
+      administracao_invalidar_indicacao: "invalidar_indicacoes",
     };
     for (const [fn, perm] of Object.entries(esperado)) {
-      expect(permissoes, fn).toMatch(
-        new RegExp(
-          `alter function public\\.${fn}\\([^)]*\\)\\s+set indicamais\\.permissao_exigida = '${perm}'`,
-          "i",
-        ),
-      );
+      const c = corpo(todas, fn);
+      expect(c, fn).toContain(`administracao_exigir_permissao('${perm}')`);
+      expect(c, fn).not.toMatch(/administracao_exigir_admin\(\)/);
+      expect(c, fn).toMatch(/insert into public\.administracao_auditoria/);
     }
   });
 
-  it("o guarda trata permissão ausente ou desconhecida como administrador geral/negado e só delega por configuração interna", () => {
-    const g = corpo(permissoes, "administracao_exigir_admin");
-    expect(g).toMatch(
-      /coalesce\(nullif\(current_setting\('indicamais\.permissao_exigida', true\), ''\), 'geral'\)/,
-    );
-    expect(g).toMatch(/v_ok := false/);
+  it("os guardas recusam conta sem acesso e permissão desconhecida; sem grant para a API", () => {
+    const g = corpo(permissoes, "administracao_exigir_permissao");
+    expect(g).toMatch(/permissão desconhecida/);
     expect(g).toMatch(/contas_acesso_permitido\(v_uid\)/);
+    expect(g).toMatch(/administracao_tem_permissao\(v_uid, p_permissao\)/);
     expect(g).toMatch(/errcode = '42501'/);
+    expect(permissoes).toMatch(
+      /revoke all on function public\.administracao_exigir_permissao\(text\) from public, anon, authenticated;/,
+    );
+    const geral = corpo(permissoes, "administracao_exigir_admin");
+    expect(geral).toMatch(/contas_acesso_permitido\(v_uid\)/);
+    expect(geral).toMatch(/administracao_administrador/);
   });
 
   it("conceder e revogar: só administrador geral, motivo obrigatório e auditoria com valor anterior", () => {
@@ -112,12 +127,6 @@ describe("Fase 6: permissões granulares (IM-077)", () => {
       expect(c, f).toMatch(/motivo obrigatório/);
       expect(c, f).toMatch(/insert into public\.administracao_auditoria/);
       expect(c, f).toMatch(/valor_anterior/);
-      expect(permissoes, f).toMatch(
-        new RegExp(
-          `alter function public\\.${f}\\([^)]*\\)\\s+set indicamais\\.permissao_exigida = 'geral'`,
-          "i",
-        ),
-      );
     }
   });
 
@@ -190,9 +199,7 @@ describe("Fase 6: denúncias (IM-076)", () => {
 
   it("decidir exige analisar_denuncias, motivo e auditoria, e NÃO executa nada além do registro (sem suspensão automática)", () => {
     const d = corpo(denuncias, "administracao_decidir_denuncia");
-    expect(denuncias).toMatch(
-      /alter function public\.administracao_decidir_denuncia\([^)]*\)\s+set indicamais\.permissao_exigida = 'analisar_denuncias'/,
-    );
+    expect(d).toContain("administracao_exigir_permissao('analisar_denuncias')");
     expect(d).toMatch(/motivo obrigatório/);
     expect(d).toMatch(/insert into public\.administracao_auditoria/);
     expect(d).not.toMatch(/contas_ciclo_vida|publicado|suspend|despublic|pontos_|delete from/i);
@@ -212,9 +219,7 @@ describe("Fase 6: denúncias (IM-076)", () => {
 describe("Fase 6: suspensão e reativação (IM-080)", () => {
   it("suspender: permissão suspender, motivo, auditoria com valor anterior, despublica e preserva pontos e histórico", () => {
     const s = corpo(suspensao, "administracao_suspender_conta");
-    expect(suspensao).toMatch(
-      /alter function public\.administracao_suspender_conta\([^)]*\)\s+set indicamais\.permissao_exigida = 'suspender'/,
-    );
+    expect(s).toContain("administracao_exigir_permissao('suspender')");
     expect(s).toMatch(/motivo obrigatório/);
     expect(s).toMatch(/update public\.perfis_perfil set publicado = false/);
     expect(s).toMatch(/update public\.catalogo_item set publicado = false/);
@@ -314,9 +319,7 @@ describe("Fase 6: invalidar indicação (IM-077, IM-035, IM-078)", () => {
   const f = corpo(invalidar, "administracao_invalidar_indicacao");
 
   it("exige invalidar_indicacoes, motivo e auditoria", () => {
-    expect(invalidar).toMatch(
-      /alter function public\.administracao_invalidar_indicacao\([^)]*\)\s+set indicamais\.permissao_exigida = 'invalidar_indicacoes'/,
-    );
+    expect(f).toContain("administracao_exigir_permissao('invalidar_indicacoes')");
     expect(f).toMatch(/motivo obrigatório/);
     expect(f).toMatch(/insert into public\.administracao_auditoria/);
   });

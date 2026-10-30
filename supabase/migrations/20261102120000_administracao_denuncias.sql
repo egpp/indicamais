@@ -239,7 +239,6 @@ begin
 end $$;
 revoke all on function public.administracao_definir_parametro(text, integer, text) from public, anon;
 grant execute on function public.administracao_definir_parametro(text, integer, text) to authenticated;
-alter function public.administracao_definir_parametro(text, integer, text) set indicamais.permissao_exigida = 'geral';
 
 -- Denunciar (pública) ----------------------------------------------------------------------------------------------------------
 create function public.administracao_denunciar(
@@ -319,7 +318,7 @@ grant execute on function public.administracao_denunciar(text, uuid, text, text,
 create function public.administracao_decidir_denuncia(p_denuncia_id uuid, p_decisao text, p_motivo text) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
-  v_admin uuid := public.administracao_exigir_admin();
+  v_admin uuid := public.administracao_exigir_permissao('analisar_denuncias');
   v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
   d public.administracao_denuncia%rowtype;
 begin
@@ -352,7 +351,6 @@ begin
 end $$;
 revoke all on function public.administracao_decidir_denuncia(uuid, text, text) from public, anon;
 grant execute on function public.administracao_decidir_denuncia(uuid, text, text) to authenticated;
-alter function public.administracao_decidir_denuncia(uuid, text, text) set indicamais.permissao_exigida = 'analisar_denuncias';
 
 -- Visões (só quem tem a permissão analisar_denuncias) -----------------------------------------------------------------------------
 -- A fila não traz id de conta nem dado de contato: o denunciante aparece só como tipo (anonimo ou conta) e chave opaca,
