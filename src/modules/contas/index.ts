@@ -39,3 +39,23 @@ export type {
   RespostaBanco,
   Resultado,
 } from "./servico";
+
+// Ciclo de vida da própria conta (Fase 6, D-014: IM-080, IM-081, IM-082).
+export {
+  PALAVRA_CONFIRMACAO_ENCERRAMENTO,
+  MENSAGENS_CICLO_CONTA,
+  SITUACOES_CONTA,
+  solicitarEncerramentoSchema,
+  paraEstadoDaConta,
+  mapearErroCicloConta,
+  criarServicoCicloVidaConta,
+} from "./ciclo-vida";
+export type {
+  SituacaoConta,
+  EstadoDaConta,
+  LinhaMeuEstado,
+  SolicitarEncerramento,
+  ResultadoCiclo,
+  ClienteBancoCicloVidaConta,
+  ServicoCicloVidaConta,
+} from "./ciclo-vida";

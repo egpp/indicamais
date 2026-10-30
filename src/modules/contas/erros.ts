@@ -5,7 +5,14 @@ import {
 } from "./mensagens";
 
 export type CodigoErroConta =
-  "VALIDACAO" | "WHATSAPP_INDISPONIVEL" | "NOME_INVALIDO" | "NAO_ENCONTRADA" | "ERRO_INTERNO";
+  | "VALIDACAO"
+  | "WHATSAPP_INDISPONIVEL"
+  | "NOME_INVALIDO"
+  | "NAO_ENCONTRADA"
+  | "NAO_AUTENTICADO"
+  | "CONFIRMACAO_INVALIDA"
+  | "ESTADO_INVALIDO"
+  | "ERRO_INTERNO";
 
 export type ErroConta = { codigo: CodigoErroConta; mensagem: string };
 
