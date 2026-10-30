@@ -50,6 +50,7 @@ select set_config('t.p1', (select id::text from public.indicacoes_pedido_contato
 select set_config('t.p2', (select id::text from public.indicacoes_pedido_contato where whatsapp_e164 = '+5511988880002'), true);
 select set_config('t.p3', (select id::text from public.indicacoes_pedido_contato where whatsapp_e164 = '+5511988880003'), true);
 select is((select count(*)::int from public.pontos_lancamento where tipo = 'credito'), 2, 'baseline: dois créditos (pedidos 1 e 3)');
+select set_config('t.cred3', (select id::text from public.pontos_lancamento where pedido_id = current_setting('t.p3')::uuid and tipo = 'credito'), true);
 
 -- ===== Estrutura =====
 select is((select relrowsecurity and relforcerowsecurity from pg_class where oid = 'public.administracao_invalidacao_indicacao'::regclass), true, 'RLS ativa e forçada');
@@ -112,7 +113,7 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
 select is((select public.administracao_invalidar_indicacao(current_setting('t.p2')::uuid, 'Contato falso')), null, 'pedido sem crédito: marca sem reverter nada');
 -- A delegação interna não vaza: K continua sem poder reverter pontos diretamente.
-select throws_ok($$select public.pontos_reverter_credito((select id from public.pontos_lancamento where pedido_id = current_setting('t.p3')::uuid and tipo = 'credito'), 'fraude', 'direto')$$,
+select throws_ok($$select public.pontos_reverter_credito(current_setting('t.cred3')::uuid, 'fraude', 'direto')$$,
   '42501', null, 'K não reverte pontos diretamente (só tem invalidar_indicacoes)');
 reset role;
 select is((select count(*)::int from public.pontos_lancamento where tipo = 'reversao'), 1, 'nenhuma reversão a mais');
@@ -126,7 +127,7 @@ reset role;
 -- ===== M reverte o crédito do pedido 3 direto; depois K invalida e reaproveita a reversão =====
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
-select set_config('t.rev3', (select public.pontos_reverter_credito((select id from public.pontos_lancamento where pedido_id = current_setting('t.p3')::uuid and tipo = 'credito'), 'fraude', 'Observação interna')::text), true);
+select set_config('t.rev3', (select public.pontos_reverter_credito(current_setting('t.cred3')::uuid, 'fraude', 'Observação interna')::text), true);
 select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
 select is((select public.administracao_invalidar_indicacao(current_setting('t.p3')::uuid, 'Fraude confirmada')::text), current_setting('t.rev3'), 'crédito já revertido: a invalidação reaproveita a reversão existente');
 select is((select count(*)::int from public.administracao_indicacoes_invalidadas), 3, 'K lista as três indicações invalidadas');
