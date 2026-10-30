@@ -200,6 +200,26 @@ reset role;
 select is((select count(*)::int from public.relacionamento_evento where tipo = 'descurtida'), 1, 'evento de descurtida registrado');
 select is((select count(*)::int from public.pontos_lancamento), 0, 'curtir não pontua (IM-042)');
 
+-- ===== Limite de alternância curtir/descurtir por pessoa e perfil (D-013) =====
+select is((select valor from public.relacionamento_parametro where chave = 'alternancia_limite'), 10, 'limite inicial: 10 alternâncias');
+select is((select valor from public.relacionamento_parametro where chave = 'alternancia_janela_horas'), 24, 'janela inicial: 24 horas');
+update public.relacionamento_parametro set valor = 5 where chave = 'alternancia_limite';
+select is((select count(*)::int from public.relacionamento_alternancia where conta_id = 'eeeeeeee-0000-0000-0000-00000000000e'), 3, 'E já alternou 3 vezes');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
+select is(public.relacionamento_descurtir('a0000000-0000-0000-0000-000000000001'), true, 'alternância 4');
+select is(public.relacionamento_curtir('a0000000-0000-0000-0000-000000000001'), true, 'alternância 5');
+reset role;
+select set_config('t.ev_desc', (select count(*)::text from public.relacionamento_evento where tipo = 'descurtida'), true);
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
+select throws_ok($$select public.relacionamento_descurtir('a0000000-0000-0000-0000-000000000001')$$, 'P0429', null, 'acima do limite: descurtir responde P0429');
+select is((select curtiu from public.relacionamento_minhas_participacoes where perfil_id = 'a0000000-0000-0000-0000-000000000001'), true, 'a curtida não foi alterada');
+reset role;
+select is((select count(*)::text from public.relacionamento_evento where tipo = 'descurtida'), current_setting('t.ev_desc'), 'nenhum evento gravado no bloqueio');
+select is((select count(*)::int from public.relacionamento_alternancia where conta_id = 'eeeeeeee-0000-0000-0000-00000000000e'), 5, 'bloqueio não conta como alternância');
+update public.relacionamento_parametro set valor = 10 where chave = 'alternancia_limite';
+
 -- ===== Gerar link e compartilhar NÃO incluem ninguém nem geram aviso (IM-044, IM-051) =====
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
@@ -352,26 +372,6 @@ select is((select curtiu::text || '/' || indicou::text from public.relacionament
   'volta só com a curtida: o histórico de indicações não é restaurado');
 reset role;
 select is((select count(*)::int from public.relacionamento_saida where conta_id = 'cccccccc-0000-0000-0000-00000000000c'), 0, 'a marca de saída é removida pelo ato explícito');
-
--- ===== Limite de alternância curtir/descurtir por pessoa e perfil (D-013) =====
-select is((select valor from public.relacionamento_parametro where chave = 'alternancia_limite'), 10, 'limite inicial: 10 alternâncias');
-select is((select valor from public.relacionamento_parametro where chave = 'alternancia_janela_horas'), 24, 'janela inicial: 24 horas');
-update public.relacionamento_parametro set valor = 5 where chave = 'alternancia_limite';
-select is((select count(*)::int from public.relacionamento_alternancia where conta_id = 'eeeeeeee-0000-0000-0000-00000000000e'), 3, 'E já alternou 3 vezes');
-set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
-select is(public.relacionamento_descurtir('a0000000-0000-0000-0000-000000000001'), true, 'alternância 4');
-select is(public.relacionamento_curtir('a0000000-0000-0000-0000-000000000001'), true, 'alternância 5');
-reset role;
-select set_config('t.ev_desc', (select count(*)::text from public.relacionamento_evento where tipo = 'descurtida'), true);
-set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
-select throws_ok($$select public.relacionamento_descurtir('a0000000-0000-0000-0000-000000000001')$$, 'P0429', null, 'acima do limite: descurtir responde P0429');
-select is((select curtiu from public.relacionamento_minhas_participacoes where perfil_id = 'a0000000-0000-0000-0000-000000000001'), true, 'a curtida não foi alterada');
-reset role;
-select is((select count(*)::text from public.relacionamento_evento where tipo = 'descurtida'), current_setting('t.ev_desc'), 'nenhum evento gravado no bloqueio');
-select is((select count(*)::int from public.relacionamento_alternancia where conta_id = 'eeeeeeee-0000-0000-0000-00000000000e'), 5, 'bloqueio não conta como alternância');
-update public.relacionamento_parametro set valor = 10 where chave = 'alternancia_limite';
 
 -- ===== Falha não impede o pedido (IM-028) =====
 alter table public.relacionamento_membro add constraint falha_simulada
