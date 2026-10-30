@@ -84,6 +84,14 @@ Aprovada pelo Emerson em 30/10/2026 ("sim"), sobre proposta do gestor, para redu
 - Julgamento de aparência e de uso no celular continua com o Emerson.
 - Nota de ambiente: no dev, "Confirm email" do Supabase está desligado para os testes. **Religar antes do lançamento.**
 
+## D-012 · 30/10/2026 · Parâmetros iniciais dos pontos (resolve IM-031)
+**IDs:** IM-030, IM-031
+Decidida pelo Emerson em 30/10/2026 ("10 pontos a cada 30 dias, mas isso será configurável no painel do admin posteriormente"):
+- Valores iniciais: **10 pontos por indicação válida** e **intervalo de 30 dias** entre pontuações do mesmo visitante no mesmo destino (IM-032, IM-033).
+- Os dois valores ficam em configuração central no banco (IM-030), nunca fixos no código. A edição pelo painel do administrador (com motivo e auditoria) vem depois; até lá, a alteração é feita pela mesma rotina auditada dos demais parâmetros.
+- O prazo de 15 dias citado no histórico fica descartado.
+- **Interpretação do gestor, a confirmar com o Emerson:** "indicação válida" = pedido de contato recebido pelo link do indicador, no destino do link, com perfil disponível, sem ser autoindicação (IM-034) e fora do intervalo do mesmo visitante e destino (IM-032, IM-033). Visita ou compartilhamento isolado não pontua (IM-025). Os pontos entram assim que o pedido é registrado, sem confirmação do responsável. Resgates seguem desativados (IM-037), então os pontos só acumulam saldo.
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)
