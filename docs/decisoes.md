@@ -92,6 +92,14 @@ Decidida pelo Emerson em 30/10/2026 ("10 pontos a cada 30 dias, mas isso será c
 - O prazo de 15 dias citado no histórico fica descartado.
 - **Interpretação do gestor, a confirmar com o Emerson:** "indicação válida" = pedido de contato recebido pelo link do indicador, no destino do link, com perfil disponível, sem ser autoindicação (IM-034) e fora do intervalo do mesmo visitante e destino (IM-032, IM-033). Visita ou compartilhamento isolado não pontua (IM-025). Os pontos entram assim que o pedido é registrado, sem confirmação do responsável. Resgates seguem desativados (IM-037), então os pontos só acumulam saldo.
 
+**Confirmações do Emerson em 30/10/2026 ("siga as recomendações"):**
+- A interpretação de "indicação válida" acima fica **confirmada**: pontos entram ao registrar o pedido, sem confirmação do responsável.
+- Reversão de crédito **não reabre** o intervalo: o prazo de 30 dias segue contando desde o último pedido pontuado.
+- Benefícios: prazo de uso como "N dias depois do resgate"; prazo de resgate como data. Benefício com prazo de resgate vencido sai da vitrine pública.
+- Benefício cadastrado pelo administrador exige aceitação do responsável do perfil; o administrador só edita o que o responsável propôs.
+- Motivo da reversão visível ao indicador: categorias fixas (ex.: "contato duplicado", "indicação inválida"). A observação interna é só do administrador.
+- O indicador não vê por que um contato não pontuou (evita revelar que o visitante já contatou a empresa).
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)
