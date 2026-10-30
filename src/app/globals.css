@@ -1157,3 +1157,18 @@ fieldset.grupo-imagens {
     justify-content: start;
   }
 }
+
+/* Fase 6: denúncia pública e campo-armadilha contra robôs (fora da tela, fora do foco, escondido de leitores). */
+.secao-denuncia {
+  margin: var(--e6) 0 var(--e4);
+}
+.campo-armadilha {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.lista-cartoes .cartao details {
+  margin-top: var(--e2);
+}
