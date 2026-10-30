@@ -111,7 +111,10 @@ describe("página inicial pública (IM-019, IM-020)", () => {
     expect(screen.getByRole("link", { name: "Bolo de cenoura" })).toBeTruthy();
     expect(screen.getAllByText(/R\$\s125,50/).length).toBeGreaterThan(0);
     expect(screen.getByText("Bolo caseiro.")).toBeTruthy();
-    const imagens = Array.from(document.querySelectorAll("img")).map((i) => i.getAttribute("src"));
+    // O logotipo (arquivo estático em /marca/) não é imagem do conteúdo e fica fora da conferência.
+    const imagens = Array.from(document.querySelectorAll("img:not([src^='/marca/'])")).map((i) =>
+      i.getAttribute("src"),
+    );
     expect(imagens.length).toBeGreaterThan(2);
     expect(imagens.every((s) => s?.startsWith(CAMINHO_PUBLICO))).toBe(true);
     expect(screen.getByRole("heading", { name: "Produtos" })).toBeTruthy();

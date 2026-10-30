@@ -19,7 +19,6 @@ const ROTULO_SITUACAO = {
   revertido: "Revertido",
   reversao: "Reversão",
 } as const;
-const REF = { wordBreak: "break-all" } as const;
 
 /**
  * IM-030, IM-035, IM-028, IM-077, IM-078: lançamentos, saldos, decisões e falhas de crédito. O indicador aparece só
@@ -110,9 +109,7 @@ export default async function PaginaPontosAdmin({
                       </>
                     ) : null}
                   </p>
-                  <p className="ajuda" style={REF}>
-                    Indicador (referência): {l.indicadorRef}
-                  </p>
+                  <p className="ajuda quebra-total">Indicador (referência): {l.indicadorRef}</p>
                   {l.tipo === "reversao" ? (
                     <p>
                       Categoria: {l.categoriaRotulo ?? "Sem categoria"}
@@ -144,9 +141,7 @@ export default async function PaginaPontosAdmin({
             {saldos.valor.slice(0, LIMITE).map((s) => (
               <li key={s.indicadorRef} className="cartao">
                 <h3>{formatarPontos(s.saldo)}</h3>
-                <p className="ajuda" style={REF}>
-                  Indicador (referência): {s.indicadorRef}
-                </p>
+                <p className="ajuda quebra-total">Indicador (referência): {s.indicadorRef}</p>
                 <p className="ajuda">
                   Creditado {formatarPontos(s.totalCreditado)} · Revertido{" "}
                   {formatarPontos(Math.abs(s.totalRevertido))}
@@ -196,7 +191,7 @@ export default async function PaginaPontosAdmin({
                   <SeloEstado rotulo={d.pontuado ? "Pontuou" : "Não pontuou"} />{" "}
                   {d.pontuado ? formatarPontos(d.pontos, true) : null}
                 </p>
-                <p className="ajuda" style={REF}>
+                <p className="ajuda quebra-total">
                   Pedido {d.pedidoId} · Indicador (referência): {d.indicadorRef ?? "sem indicador"}
                 </p>
                 <p className="ajuda">

@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- URLs assinadas do Storage mudam a cada visita; next/image não as otimiza. */
 import Link from "next/link";
+import { LogoMarca } from "./marca";
 import type { CardBusca, FiltrosDisponiveis, TipoBusca } from "@/modules/busca";
 import type { PatrocinadorPublico } from "@/modules/administracao";
 import type { ItemExibicao } from "@/modules/catalogo";
@@ -23,9 +24,7 @@ export const ROTULO_TIPO_BUSCA: Record<TipoBusca, string> = {
 export function CabecalhoPublico() {
   return (
     <header className="cabecalho-publico">
-      <p className="marca">
-        <Link href="/">IndicaMais</Link>
-      </p>
+      <LogoMarca />
       <nav aria-label="Conta">
         <ul>
           <li>

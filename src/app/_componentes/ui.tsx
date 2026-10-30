@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LogoMarca } from "./marca";
 import type { ReactNode } from "react";
 
 /** Aviso de erro (role=alert), sucesso/informação (role=status). */
@@ -6,7 +6,7 @@ export function Aviso({
   tipo,
   children,
 }: {
-  tipo: "erro" | "sucesso" | "info";
+  tipo: "erro" | "sucesso" | "info" | "atencao";
   children: ReactNode;
 }) {
   return (
@@ -22,16 +22,19 @@ export function BotaoEnviar({
   rotulo,
   rotuloEnviando = "Enviando...",
   secundario,
+  perigo,
 }: {
   enviando: boolean;
   rotulo: string;
   rotuloEnviando?: string;
   secundario?: boolean;
+  /** Ação destrutiva ou de rejeição: vermelho. */
+  perigo?: boolean;
 }) {
   return (
     <button
       type="submit"
-      className={secundario ? "botao botao-secundario" : "botao"}
+      className={perigo ? "botao botao-perigo" : secundario ? "botao botao-secundario" : "botao"}
       disabled={enviando}
       aria-disabled={enviando}
     >
@@ -51,12 +54,12 @@ export function CartaoPagina({
 }) {
   return (
     <main className="pagina">
-      <p className="marca">
-        <Link href="/">IndicaMais</Link>
-      </p>
-      <h1>{titulo}</h1>
-      {subtitulo ? <p className="subtitulo">{subtitulo}</p> : null}
-      {children}
+      <LogoMarca />
+      <div className="superficie">
+        <h1>{titulo}</h1>
+        {subtitulo ? <p className="subtitulo">{subtitulo}</p> : null}
+        {children}
+      </div>
     </main>
   );
 }
