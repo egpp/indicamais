@@ -104,6 +104,7 @@ describe("migrações: funções", () => {
       "catalogo_imagem_publica",
       "indicacoes_enviar_contato",
       "perfis_perfil_disponivel",
+      "pontos_beneficio_no_prazo",
     ]);
   });
 });
@@ -147,10 +148,8 @@ describe("migrações: visões", () => {
   });
 
   it("visões sem security_invoker são só as conhecidas, sem acesso a anon e travadas por quem chama", () => {
-    const definer = visoes
-      .filter((v) => !v.invoker)
-      .map((v) => v.nome)
-      .sort();
+    // Visão recriada em migração posterior aparece mais de uma vez: deduplica por nome.
+    const definer = [...new Set(visoes.filter((v) => !v.invoker).map((v) => v.nome))].sort();
     expect(definer).toEqual([
       "administracao_consulta_negocios",
       "administracao_fila_contatos",
@@ -309,9 +308,11 @@ describe("migrações: módulo pontos (IM-030 a IM-036, IM-078, IM-079, IM-086)"
       .map((s) => s.t)
       .join("\n"),
   );
+  // Função recriada em migração posterior: vale a ÚLTIMA definição.
   const corpoFuncao = (nome: string) =>
-    modulo.match(new RegExp(`create function public\\.${nome}\\(([\\s\\S]*?)\\$\\$;`, "i"))?.[0] ??
-    "";
+    [...modulo.matchAll(new RegExp(`create function public\\.${nome}\\(([\\s\\S]*?)\\$\\$;`, "gi"))]
+      .map((m) => m[0])
+      .at(-1) ?? "";
 
   it("tem as sete tabelas do módulo", () => {
     expect([...modulo.matchAll(/create table public\.(\w+)/gi)].map((m) => m[1]).sort()).toEqual([
@@ -351,10 +352,13 @@ describe("migrações: módulo pontos (IM-030 a IM-036, IM-078, IM-079, IM-086)"
   });
 
   it("nenhuma visão do módulo devolve id de conta nem dado do visitante", () => {
-    const visoes = [...modulo.matchAll(/create view public\.(\w+)[^;]*? as([\s\S]*?);/gi)].map(
-      (m) => ({ nome: m[1]!, corpo: m[2]! }),
-    );
-    expect(visoes.length).toBe(8);
+    // Visão recriada em migração posterior: vale a última definição de cada nome.
+    const ultimas = new Map<string, string>();
+    for (const m of modulo.matchAll(/create view public\.(\w+)[^;]*? as([\s\S]*?);/gi)) {
+      ultimas.set(m[1]!, m[2]!);
+    }
+    const visoes = [...ultimas].map(([nome, corpo]) => ({ nome, corpo }));
+    expect(visoes.length).toBe(9);
     for (const v of visoes) {
       const colunas = v.corpo.split(/\bfrom\b/i)[0]!.replace(/sha256\([\s\S]*?\), 'hex'\)/gi, "");
       expect(colunas, v.nome).not.toMatch(
@@ -371,6 +375,7 @@ describe("migrações: módulo pontos (IM-030 a IM-036, IM-078, IM-079, IM-086)"
       "pontos_reprocessar_pedido",
       "pontos_decidir_beneficio_versao",
       "pontos_admin_cadastrar_beneficio",
+      "pontos_admin_editar_proposta_beneficio",
       "pontos_admin_definir_beneficio_ativo",
     ]) {
       expect(corpoFuncao(f), f).toMatch(/insert into public\.administracao_auditoria/);
@@ -401,6 +406,22 @@ describe("migrações: módulo pontos (IM-030 a IM-036, IM-078, IM-079, IM-086)"
     expect(f).toMatch(/pontos_parametro_valor\('pontos_por_indicacao'\)/);
     expect(f).toMatch(/pontos_parametro_valor\('intervalo_dias'\)/);
     expect(f).not.toMatch(/\b30\b|:= 10\b/);
+  });
+
+  it("o indicador vê só a categoria da reversão, nunca a observação interna (D-012)", () => {
+    const todas = [
+      ...modulo.matchAll(/create view public\.pontos_meus_lancamentos as([\s\S]*?);/gi),
+    ];
+    const corpo = todas.at(-1)![1]!.split(/\bfrom\b/i)[0]!;
+    expect(corpo).toMatch(/l\.categoria/);
+    expect(corpo).not.toMatch(/motivo/);
+  });
+
+  it("benefício do administrador nasce aguardando aceite e nunca aprovado nem ativo (D-012)", () => {
+    const f = corpoFuncao("pontos_admin_cadastrar_beneficio");
+    expect(f).toMatch(/'aguardando_aceite'/);
+    expect(f).not.toMatch(/ativo = true|'aprovada'/);
+    expect(corpoFuncao("pontos_responder_proposta_beneficio")).toMatch(/responsavel_id = v_uid/);
   });
 
   it("não existe resgate, cupom nem sorteio (IM-037, IM-038 são futuros)", () => {

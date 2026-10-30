@@ -99,14 +99,14 @@ select is((select bool_or(has_table_privilege('anon', v, 'SELECT'))
     'public.administracao_pontos_saldos', 'public.administracao_pontos_decisoes', 'public.administracao_pontos_falhas']) v),
   false, 'anon não lê nenhuma visão de pontos');
 select columns_are('public', 'pontos_meu_saldo', array['saldo', 'total_creditado', 'total_revertido', 'ultimo_lancamento_em'], 'saldo sem id de conta');
-select columns_are('public', 'pontos_meus_lancamentos', array['id', 'tipo', 'pontos', 'situacao', 'destino_tipo', 'destino_id', 'destino_nome', 'motivo', 'original_id', 'criado_em'],
-  'lançamentos do indicador sem id de conta nem dado do visitante');
-select columns_are('public', 'administracao_pontos_lancamentos', array['id', 'indicador_ref', 'tipo', 'pontos', 'situacao', 'destino_tipo', 'destino_id', 'destino_nome', 'motivo', 'original_id', 'pedido_id', 'confirmou_saldo_negativo', 'criado_em'],
+select columns_are('public', 'pontos_meus_lancamentos', array['id', 'tipo', 'pontos', 'situacao', 'destino_tipo', 'destino_id', 'destino_nome', 'categoria', 'original_id', 'criado_em'],
+  'lançamentos do indicador: só a categoria da reversão (sem observação interna), sem id de conta nem dado do visitante');
+select columns_are('public', 'administracao_pontos_lancamentos', array['id', 'indicador_ref', 'tipo', 'pontos', 'situacao', 'destino_tipo', 'destino_id', 'destino_nome', 'categoria', 'motivo', 'original_id', 'pedido_id', 'confirmou_saldo_negativo', 'criado_em'],
   'visão do administrador: indicador opaco, pedido por id, sem WhatsApp nem nome do visitante');
 select columns_are('public', 'administracao_pontos_decisoes', array['id', 'pedido_id', 'pedido_criado_em', 'destino_tipo', 'destino_id', 'indicador_ref', 'pontuado', 'motivo', 'pontos', 'intervalo_dias', 'decidido_em'],
   'decisões do administrador sem WhatsApp nem chave de duplicidade');
 select is(has_function_privilege('anon', 'public.pontos_definir_parametro(text,integer,text)', 'EXECUTE')
-  or has_function_privilege('anon', 'public.pontos_reverter_credito(uuid,text,boolean)', 'EXECUTE')
+  or has_function_privilege('anon', 'public.pontos_reverter_credito(uuid,text,text,boolean)', 'EXECUTE')
   or has_function_privilege('anon', 'public.pontos_reprocessar_pedido(uuid,text)', 'EXECUTE')
   or has_function_privilege('anon', 'public.pontos_parametros_atuais()', 'EXECUTE'), false, 'anon não executa funções de pontos');
 select is(has_function_privilege('authenticated', 'public.pontos_avaliar_pedido(uuid)', 'EXECUTE')
@@ -323,7 +323,7 @@ select throws_ok($$insert into public.pontos_lancamento (indicador_id, tipo, pon
 select is((select count(*)::int from public.administracao_pontos_lancamentos), 0, 'C não vê a visão de administração (lançamentos)');
 select is((select count(*)::int from public.administracao_pontos_saldos), 0, 'C não vê a visão de administração (saldos)');
 select is((select count(*)::int from public.administracao_pontos_decisoes), 0, 'C não vê a visão de administração (decisões)');
-select throws_ok($$select public.pontos_reverter_credito(gen_random_uuid(), 'tentativa')$$, '42501', null, 'C não reverte pontos');
+select throws_ok($$select public.pontos_reverter_credito(gen_random_uuid(), 'outro', 'tentativa')$$, '42501', null, 'C não reverte pontos');
 select set_config('request.jwt.claims', '{"sub":"ffffffff-0000-0000-0000-00000000000f","role":"authenticated"}', true);
 select is((select saldo from public.pontos_meu_saldo), 40, 'F vê só o próprio saldo (4 lançamentos de 10)');
 select is((select count(*)::int from public.pontos_meus_lancamentos), 4, 'F vê só os próprios lançamentos');
@@ -348,12 +348,14 @@ reset role;
 select set_config('t.l1', (select id::text from public.pontos_lancamento where pedido_id = current_setting('t.p1')::uuid), true);
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
-select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, '')$$, '22023', null, 'reversão exige motivo');
-select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, null)$$, '22023', null, 'reversão com motivo nulo recusada');
-select throws_ok($$select public.pontos_reverter_credito(gen_random_uuid(), 'não existe')$$, 'P0002', null, 'lançamento inexistente');
-select set_config('t.rev1', (select public.pontos_reverter_credito(current_setting('t.l1')::uuid, 'Indicação inválida: teste de reversão')::text), true);
-select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, 'de novo')$$, 'P0409', null, 'um crédito só é revertido uma vez');
-select throws_ok($$select public.pontos_reverter_credito(current_setting('t.rev1')::uuid, 'estorno do estorno')$$, 'P0001', null, 'reversão não se reverte');
+select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, 'indicacao_invalida', '')$$, '22023', null, 'reversão exige observação interna');
+select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, 'indicacao_invalida', null)$$, '22023', null, 'reversão com observação nula recusada');
+select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, null, 'sem categoria')$$, '22023', null, 'reversão exige categoria');
+select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, 'texto_livre', 'categoria fora da lista')$$, '22023', null, 'categoria fora da lista fixa é recusada');
+select throws_ok($$select public.pontos_reverter_credito(gen_random_uuid(), 'outro', 'não existe')$$, 'P0002', null, 'lançamento inexistente');
+select set_config('t.rev1', (select public.pontos_reverter_credito(current_setting('t.l1')::uuid, 'indicacao_invalida', 'Indicação inválida: teste de reversão')::text), true);
+select throws_ok($$select public.pontos_reverter_credito(current_setting('t.l1')::uuid, 'outro', 'de novo')$$, 'P0409', null, 'um crédito só é revertido uma vez');
+select throws_ok($$select public.pontos_reverter_credito(current_setting('t.rev1')::uuid, 'outro', 'estorno do estorno')$$, 'P0001', null, 'reversão não se reverte');
 reset role;
 select is((select pontos from public.pontos_lancamento where id = current_setting('t.l1')::uuid), 10, 'o lançamento original foi preservado');
 select is((select tipo from public.pontos_lancamento where id = current_setting('t.l1')::uuid), 'credito', 'o original continua crédito');
@@ -369,9 +371,15 @@ select throws_ok($$update public.pontos_lancamento set pontos = 0 where id = cur
 select throws_ok($$delete from public.pontos_lancamento where id = current_setting('t.rev1')::uuid$$, '42501', null, 'lançamento não é apagado');
 select throws_ok($$update public.pontos_decisao set pontuado = false where pedido_id = current_setting('t.p1')::uuid$$, '42501', null, 'decisão não é alterada');
 select throws_ok($$delete from public.pontos_decisao$$, '42501', null, 'decisão não é apagada');
-select throws_ok($$insert into public.pontos_lancamento (indicador_id, tipo, pontos, original_id, destino_perfil_id, destino_nome, motivo, autor_id)
-  values ('cccccccc-0000-0000-0000-00000000000c', 'reversao', -5, current_setting('t.l1')::uuid, 'a0000000-0000-0000-0000-000000000001', 'Loja Um', 'm', 'dddddddd-0000-0000-0000-00000000000d')$$,
+select throws_ok($$insert into public.pontos_lancamento (indicador_id, tipo, pontos, original_id, destino_perfil_id, destino_nome, categoria, motivo, autor_id)
+  values ('cccccccc-0000-0000-0000-00000000000c', 'reversao', -5, current_setting('t.l1')::uuid, 'a0000000-0000-0000-0000-000000000001', 'Loja Um', 'outro', 'm', 'dddddddd-0000-0000-0000-00000000000d')$$,
   '23514', null, 'reversão de valor diferente do crédito original é recusada pelo banco');
+select is((select categoria from public.pontos_lancamento where id = current_setting('t.rev1')::uuid), 'indicacao_invalida', 'a reversão guarda a categoria');
+select is((select valor_novo ->> 'categoria' from public.administracao_auditoria where acao = 'reverter_pontos' and alvo_id = current_setting('t.l1')), 'indicacao_invalida', 'auditoria da reversão guarda a categoria');
+select is((select count(*)::int from public.administracao_pontos_lancamentos where id = current_setting('t.rev1')::uuid and motivo = 'Indicação inválida: teste de reversão' and categoria = 'indicacao_invalida'), 1, 'a visão do administrador traz categoria e observação interna');
+select throws_ok($$insert into public.pontos_lancamento (indicador_id, tipo, pontos, original_id, destino_perfil_id, destino_nome, motivo, autor_id)
+  values ('ffffffff-0000-0000-0000-00000000000f', 'reversao', -10, (select id from public.pontos_lancamento where tipo = 'credito' and indicador_id = 'ffffffff-0000-0000-0000-00000000000f' limit 1), 'a0000000-0000-0000-0000-000000000001', 'Loja Um', 'm', 'dddddddd-0000-0000-0000-00000000000d')$$,
+  '23514', null, 'reversão sem categoria é recusada pelo banco');
 set local role service_role;
 select throws_ok($$update public.pontos_lancamento set pontos = 0$$, '42501', null, 'service_role também não altera lançamento');
 select throws_ok($$delete from public.pontos_lancamento$$, '42501', null, 'service_role também não apaga lançamento');
@@ -382,7 +390,11 @@ select is((select saldo from public.pontos_meu_saldo), 40, 'C vê o saldo depois
 select is((select total_revertido from public.pontos_meu_saldo), -10, 'C vê o total revertido');
 select is((select situacao from public.pontos_meus_lancamentos where id = current_setting('t.l1')::uuid), 'revertido', 'o crédito aparece como revertido');
 select is((select situacao from public.pontos_meus_lancamentos where id = current_setting('t.rev1')::uuid), 'reversao', 'a reversão aparece como lançamento próprio');
-select is((select motivo from public.pontos_meus_lancamentos where id = current_setting('t.rev1')::uuid), 'Indicação inválida: teste de reversão', 'o indicador vê o motivo textual da reversão');
+select is((select categoria from public.pontos_meus_lancamentos where id = current_setting('t.rev1')::uuid), 'indicacao_invalida', 'o indicador vê a categoria da reversão');
+select throws_ok($$select motivo from public.pontos_meus_lancamentos$$, '42703', null, 'o indicador não tem a observação interna na visão');
+select throws_ok($$select motivo from public.pontos_lancamento$$, '42501', null, 'nem na tabela (sem privilégio)');
+select is((select categoria from public.pontos_meus_lancamentos where id = current_setting('t.l1')::uuid), null, 'crédito não tem categoria');
+select is((select count(*)::int from information_schema.columns where table_schema = 'public' and table_name = 'pontos_meus_lancamentos' and column_name ~* '(motivo|decisao|intervalo|pontuado)'), 0, 'a visão do indicador não tem coluna de motivo de não pontuação');
 select is((select count(*)::int from public.pontos_meus_lancamentos), 5, 'histórico preservado: 4 créditos + 1 reversão');
 select set_config('request.jwt.claims', '{"sub":"ffffffff-0000-0000-0000-00000000000f","role":"authenticated"}', true);
 select is((select count(*)::int from public.pontos_meus_lancamentos where tipo = 'reversao'), 0, 'a reversão de C não aparece para F');
@@ -393,7 +405,7 @@ select set_config('t.p19a', pg_temp.pedido('a0000000-0000-0000-0000-000000000001
 select is(pg_temp.motivo(current_setting('t.p19a')::uuid), 'pontuado', 'visitante novo pontua no dia 0');
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
-select lives_ok($$select public.pontos_reverter_credito((select id from public.administracao_pontos_lancamentos where pedido_id = current_setting('t.p19a')::uuid), 'Indicação inválida')$$, 'administrador reverte o crédito pela visão de administração');
+select lives_ok($$select public.pontos_reverter_credito((select id from public.administracao_pontos_lancamentos where pedido_id = current_setting('t.p19a')::uuid), 'contato_duplicado', 'Indicação inválida')$$, 'administrador reverte o crédito pela visão de administração');
 reset role;
 select set_config('t.p19', pg_temp.pedido('a0000000-0000-0000-0000-000000000001', null,
   pg_temp.lk('ffffffff-0000-0000-0000-00000000000f', 'a0000000-0000-0000-0000-000000000001', null), '+5511988880013', 19, 1)::text, true);

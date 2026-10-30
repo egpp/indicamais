@@ -43,10 +43,15 @@ select is((select bool_or(has_table_privilege(r, t, p))
   unnest(array['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p), false, 'nenhum papel de API escreve direto nas tabelas de benefício');
 select is(has_table_privilege('anon', 'public.pontos_beneficio_revisao', 'SELECT'), false, 'anon não lê revisões');
 select is(has_column_privilege('authenticated', 'public.pontos_beneficio_revisao', 'autor_id', 'SELECT'), false, 'ninguém lê o id real do administrador na revisão');
-select is(has_function_privilege('anon', 'public.pontos_criar_beneficio(uuid,text,text,integer,text,integer,integer,date,date)', 'EXECUTE')
+select is(has_function_privilege('anon', 'public.pontos_criar_beneficio(uuid,text,text,integer,text,integer,integer,date,integer)', 'EXECUTE')
   or has_function_privilege('anon', 'public.pontos_decidir_beneficio_versao(uuid,boolean,text)', 'EXECUTE')
-  or has_function_privilege('anon', 'public.pontos_admin_cadastrar_beneficio(uuid,text,text,integer,text,text,integer,integer,date,date)', 'EXECUTE'), false, 'anon não executa funções de benefício');
-select columns_are('public', 'pontos_beneficio_publico', array['id', 'perfil_id', 'nome', 'descricao', 'pontos_necessarios', 'condicoes', 'limite_total', 'limite_por_pessoa', 'prazo_resgate_ate', 'prazo_uso_ate', 'criado_em'],
+  or has_function_privilege('anon', 'public.pontos_responder_proposta_beneficio(uuid,boolean,text)', 'EXECUTE')
+  or has_function_privilege('anon', 'public.pontos_admin_editar_proposta_beneficio(uuid,text,text,integer,text,text,integer,integer,date,integer)', 'EXECUTE')
+  or has_function_privilege('anon', 'public.pontos_admin_cadastrar_beneficio(uuid,text,text,integer,text,text,integer,integer,date,integer)', 'EXECUTE'), false, 'anon não executa funções de benefício');
+select is((select count(*)::int from information_schema.columns where table_schema = 'public' and table_name = 'pontos_beneficio_versao' and column_name = 'prazo_uso_ate'), 0, 'prazo de uso não é mais data');
+select is((select data_type from information_schema.columns where table_schema = 'public' and table_name = 'pontos_beneficio_versao' and column_name = 'prazo_resgate_ate'), 'date', 'prazo de resgate é data');
+select is((select data_type from information_schema.columns where table_schema = 'public' and table_name = 'pontos_beneficio_versao' and column_name = 'prazo_uso_dias'), 'integer', 'prazo de uso é número de dias depois do resgate');
+select columns_are('public', 'pontos_beneficio_publico', array['id', 'perfil_id', 'nome', 'descricao', 'pontos_necessarios', 'condicoes', 'limite_total', 'limite_por_pessoa', 'prazo_resgate_ate', 'prazo_uso_dias', 'criado_em'],
   'visão pública sem conta, sem autor e sem ação de resgate');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname ~* '(resgat|cupom|sorteio)'), 0, 'não existe ação de resgate, cupom nem sorteio');
@@ -62,12 +67,12 @@ select throws_ok($$select * from public.pontos_criar_beneficio(p_perfil_id => 'a
   '23514', null, 'pontos necessários precisam ser positivos');
 select throws_ok($$select * from public.pontos_criar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Café', p_descricao => 'Um café', p_pontos_necessarios => 50, p_limite_total => 5, p_limite_por_pessoa => 6)$$,
   '23514', null, 'limite por pessoa não passa do limite total');
-select throws_ok($$select * from public.pontos_criar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Café', p_descricao => 'Um café', p_pontos_necessarios => 50, p_prazo_resgate_ate => current_date + 30, p_prazo_uso_ate => current_date + 10)$$,
-  '23514', null, 'prazo de uso não termina antes do prazo de resgate');
+select throws_ok($$select * from public.pontos_criar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Café', p_descricao => 'Um café', p_pontos_necessarios => 50, p_prazo_uso_dias => 0)$$,
+  '23514', null, 'prazo de uso precisa ser de pelo menos 1 dia depois do resgate');
 select set_config('t.b1', r.o_beneficio_id::text, true), set_config('t.v1', r.o_versao_id::text, true)
   from public.pontos_criar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Café grátis', p_descricao => 'Um café de cortesia',
     p_pontos_necessarios => 50, p_condicoes => 'Uma vez por visita', p_limite_total => 100, p_limite_por_pessoa => 2,
-    p_prazo_resgate_ate => current_date + 30, p_prazo_uso_ate => current_date + 60) r;
+    p_prazo_resgate_ate => current_date + 30, p_prazo_uso_dias => 15) r;
 select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v1')::uuid), 'rascunho', 'benefício nasce em rascunho');
 select is((select ativo from public.pontos_beneficio where id = current_setting('t.b1')::uuid), false, 'e inativo');
 select throws_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b1')::uuid, true)$$, 'P0001', null, 'sem versão aprovada não se ativa');
@@ -110,14 +115,14 @@ select is((select motivo from public.pontos_beneficio_revisao where versao_id = 
 select throws_ok($$select autor_id from public.pontos_beneficio_revisao$$, '42501', null, 'mas não lê quem decidiu');
 -- Nova proposta depois da rejeição: salvar cria nova versão em rascunho.
 select set_config('t.v2', (select public.pontos_salvar_beneficio(current_setting('t.b1')::uuid, 'Café grátis', 'Um café de cortesia, com bebida à escolha', 50,
-  'Uma vez por visita', 100, 2, current_date + 30, current_date + 60))::text, true);
+  'Uma vez por visita', 100, 2, current_date + 30, 15))::text, true);
 select isnt(current_setting('t.v2'), current_setting('t.v1'), 'nova versão em rascunho depois da rejeição');
 select set_config('t.v2b', (select public.pontos_salvar_beneficio(current_setting('t.b1')::uuid, 'Café grátis', 'Um café de cortesia, com bebida à escolha e acompanhamento', 50))::text, true);
 select is(current_setting('t.v2b'), current_setting('t.v2'), 'salvar de novo atualiza o mesmo rascunho');
 select lives_ok($$select public.pontos_enviar_beneficio_versao(current_setting('t.v2')::uuid)$$, 'reenvia');
 reset role;
-select is((select prazo_resgate_ate <> prazo_uso_ate from public.pontos_beneficio_versao where id = current_setting('t.v1')::uuid), true, 'prazo de resgate e prazo de uso são campos separados');
-select is((select prazo_resgate_ate is null and prazo_uso_ate is null and limite_total is null and condicoes is null from public.pontos_beneficio_versao where id = current_setting('t.v2')::uuid), true, 'prazos, limites e condições são opcionais');
+select is((select prazo_resgate_ate is not null and prazo_uso_dias = 15 from public.pontos_beneficio_versao where id = current_setting('t.v1')::uuid), true, 'prazo de resgate (data) e prazo de uso (dias depois do resgate) são campos separados');
+select is((select prazo_resgate_ate is null and prazo_uso_dias is null and limite_total is null and condicoes is null from public.pontos_beneficio_versao where id = current_setting('t.v2')::uuid), true, 'prazos, limites e condições são opcionais');
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
@@ -201,16 +206,107 @@ select throws_ok($$select * from public.pontos_admin_cadastrar_beneficio(p_perfi
   'P0002', null, 'perfil indisponível não recebe benefício');
 select set_config('t.b5', r.o_beneficio_id::text, true), set_config('t.v5', r.o_versao_id::text, true)
   from public.pontos_admin_cadastrar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Desconto de 10%', p_descricao => 'Desconto na próxima compra',
-    p_pontos_necessarios => 120, p_motivo => 'Parceria combinada com o responsável', p_condicoes => 'Compras acima de R$ 50') r;
+    p_pontos_necessarios => 120, p_motivo => 'Parceria combinada com o responsável', p_condicoes => 'Compras acima de R$ 50', p_prazo_uso_dias => 7) r;
+-- O administrador não publica sozinho: a proposta espera o aceite do responsável do perfil.
+select throws_ok($$select public.pontos_decidir_beneficio_versao(current_setting('t.v5')::uuid, true)$$, 'P0001', null, 'administrador não aprova a própria proposta (não está pendente de análise)');
+select throws_ok($$select public.pontos_admin_editar_proposta_beneficio(current_setting('t.v5')::uuid, 'Outro', 'Outro', 10, 'm')$$, 'P0001', null, 'administrador só edita o que o responsável propôs');
+select is((select count(*)::int from public.administracao_beneficios_aguardando_aceite), 1, 'administrador acompanha a proposta aguardando aceite');
 reset role;
-select is((select ativo from public.pontos_beneficio where id = current_setting('t.b5')::uuid), true, 'cadastro do administrador nasce aprovado e ativo');
-select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid), 'aprovada', 'versão aprovada pelo cadastro do administrador');
-select is((select decisao from public.pontos_beneficio_revisao where versao_id = current_setting('t.v5')::uuid), 'aprovada', 'a decisão ficou na revisão');
+select is((select ativo from public.pontos_beneficio where id = current_setting('t.b5')::uuid), false, 'cadastro do administrador nasce inativo');
+select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid), 'aguardando_aceite', 'e aguardando aceite do responsável');
+select is((select origem from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid), 'administrador', 'com origem administrador');
+select is((select versao_aprovada_id from public.pontos_beneficio where id = current_setting('t.b5')::uuid), null, 'sem versão aprovada');
+select is((select count(*)::int from public.pontos_beneficio_revisao where versao_id = current_setting('t.v5')::uuid), 0, 'ainda sem decisão');
 select is((select acao from public.administracao_auditoria where alvo_id = current_setting('t.b5')), 'cadastrar_beneficio', 'cadastro auditado');
 select is((select motivo from public.administracao_auditoria where alvo_id = current_setting('t.b5')), 'Parceria combinada com o responsável', 'com motivo');
+select is((select prazo_uso_dias from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid), 7, 'prazo de uso em dias depois do resgate');
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+select is((select count(*)::int from public.pontos_beneficio_publico), 1, 'proposta do administrador não aparece na vitrine antes do aceite');
+reset role;
+
+-- Aceite do responsável
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+select throws_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v5')::uuid, true)$$, '42501', null, 'outra conta não aceita proposta alheia');
+select is((select count(*)::int from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid), 0, 'outra conta não lê a proposta');
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select is((select count(*)::int from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid and situacao = 'aguardando_aceite'), 1, 'o responsável vê a proposta aguardando aceite');
+select throws_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v5')::uuid, false)$$, '22023', null, 'recusar exige motivo');
+select throws_ok($$select public.pontos_salvar_beneficio(current_setting('t.b5')::uuid, 'Mudei', 'Mudei', 10)$$, 'P0001', null, 'o responsável não edita a proposta do administrador: aceita ou recusa');
+select throws_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b5')::uuid, true)$$, 'P0001', null, 'sem aceite não se ativa');
+select lives_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v5')::uuid, true)$$, 'o responsável aceita');
+select throws_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v5')::uuid, true)$$, 'P0001', null, 'proposta já respondida não é respondida de novo');
+reset role;
+select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v5')::uuid), 'aprovada', 'aceite aprova a versão');
+select is((select versao_aprovada_id from public.pontos_beneficio where id = current_setting('t.b5')::uuid), current_setting('t.v5')::uuid, 'e a torna a versão aprovada');
+select is((select ativo from public.pontos_beneficio where id = current_setting('t.b5')::uuid), false, 'aceitar não liga o benefício');
+select is((select decisor from public.pontos_beneficio_revisao where versao_id = current_setting('t.v5')::uuid), 'responsavel', 'a revisão registra que o responsável decidiu');
+select is((select acao from public.administracao_auditoria where alvo_id = current_setting('t.v5')), 'aceitar_proposta_beneficio', 'aceite auditado');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select lives_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b5')::uuid, true)$$, 'o responsável liga o benefício aceito');
+reset role;
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select is((select count(*)::int from public.pontos_beneficio_publico), 2, 'visão pública com os dois benefícios');
+reset role;
+
+-- Administrador edita só o que o responsável propôs (vira contraproposta aguardando aceite)
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select set_config('t.b6', r.o_beneficio_id::text, true), set_config('t.v6', r.o_versao_id::text, true)
+  from public.pontos_criar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Brinde', p_descricao => 'Um brinde', p_pontos_necessarios => 30, p_prazo_uso_dias => 5) r;
+select lives_ok($$select public.pontos_enviar_beneficio_versao(current_setting('t.v6')::uuid)$$, 'responsável propõe outro benefício');
+select throws_ok($$select public.pontos_admin_editar_proposta_beneficio(current_setting('t.v6')::uuid, 'Brinde maior', 'Um brinde maior', 40, 'ajuste')$$, '42501', null, 'responsável não usa a edição do administrador');
+select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
+select throws_ok($$select public.pontos_admin_editar_proposta_beneficio(current_setting('t.v6')::uuid, 'Brinde maior', 'Um brinde maior', 40, '')$$, '22023', null, 'edição exige motivo');
+select throws_ok($$select public.pontos_admin_editar_proposta_beneficio(current_setting('t.v4')::uuid, 'X', 'Y', 40, 'm')$$, '42501', null, 'administrador não edita proposta do próprio perfil');
+select set_config('t.v7', (select public.pontos_admin_editar_proposta_beneficio(current_setting('t.v6')::uuid, 'Brinde maior', 'Um brinde maior', 40, 'Ajuste combinado', null, null, null, null, 9))::text, true);
+reset role;
+select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v6')::uuid), 'substituida', 'a proposta original fica como histórico (substituída)');
+select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v7')::uuid), 'aguardando_aceite', 'a edição vira contraproposta aguardando aceite');
+select is((select nome from public.pontos_beneficio_versao where id = current_setting('t.v6')::uuid), 'Brinde', 'a proposta original não foi alterada');
+select is((select decisao from public.pontos_beneficio_revisao where versao_id = current_setting('t.v6')::uuid), 'substituida', 'revisão registra a substituição');
+select is((select valor_anterior ->> 'nome' from public.administracao_auditoria where acao = 'editar_proposta_beneficio' and alvo_id = current_setting('t.v6')), 'Brinde', 'auditoria guarda o valor anterior');
+select is((select motivo from public.administracao_auditoria where acao = 'editar_proposta_beneficio' and alvo_id = current_setting('t.v6')), 'Ajuste combinado', 'e o motivo');
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+select is((select count(*)::int from public.pontos_beneficio_publico), 2, 'a contraproposta não aparece na vitrine');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select lives_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v7')::uuid, false, 'Prefiro o valor original')$$, 'o responsável recusa a contraproposta com motivo');
+reset role;
+select is((select situacao from public.pontos_beneficio_versao where id = current_setting('t.v7')::uuid), 'rejeitada', 'contraproposta recusada');
+select is((select versao_aprovada_id from public.pontos_beneficio where id = current_setting('t.b6')::uuid), null, 'nada foi publicado');
+
+-- Prazo de resgate é data: vencido sai da vitrine; vale até o fim do dia do prazo (America/Sao_Paulo)
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
+select set_config('t.b8', r.o_beneficio_id::text, true), set_config('t.v8', r.o_versao_id::text, true)
+  from public.pontos_admin_cadastrar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Vencido', p_descricao => 'Prazo vencido', p_pontos_necessarios => 10,
+    p_motivo => 'Teste de prazo', p_prazo_resgate_ate => ((now() at time zone 'America/Sao_Paulo')::date - 1), p_prazo_uso_dias => 10) r;
+select set_config('t.b9', r.o_beneficio_id::text, true), set_config('t.v9', r.o_versao_id::text, true)
+  from public.pontos_admin_cadastrar_beneficio(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_nome => 'Vence hoje', p_descricao => 'Prazo hoje', p_pontos_necessarios => 10,
+    p_motivo => 'Teste de prazo', p_prazo_resgate_ate => ((now() at time zone 'America/Sao_Paulo')::date), p_prazo_uso_dias => 10) r;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select lives_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v8')::uuid, true)$$, 'aceita o benefício de prazo vencido');
+select lives_ok($$select public.pontos_responder_proposta_beneficio(current_setting('t.v9')::uuid, true)$$, 'aceita o benefício que vence hoje');
+select lives_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b8')::uuid, true)$$, 'liga o vencido');
+select lives_ok($$select public.pontos_definir_beneficio_ativo(current_setting('t.b9')::uuid, true)$$, 'liga o que vence hoje');
+select is((select count(*)::int from public.pontos_beneficio where id = current_setting('t.b8')::uuid), 1, 'o responsável ainda enxerga o próprio benefício vencido');
+reset role;
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+select is((select count(*)::int from public.pontos_beneficio_publico where id = current_setting('t.b8')::uuid), 0, 'prazo de resgate vencido: fora da vitrine pública');
+select is((select count(*)::int from public.pontos_beneficio where id = current_setting('t.b8')::uuid), 0, 'e da tabela, para o visitante');
+select is((select count(*)::int from public.pontos_beneficio_versao where id = current_setting('t.v8')::uuid), 0, 'e a versão não é legível');
+select is((select count(*)::int from public.pontos_beneficio_publico where id = current_setting('t.b9')::uuid), 1, 'no dia do prazo ainda aparece');
+select is((select prazo_uso_dias from public.pontos_beneficio_publico where id = current_setting('t.b9')::uuid), 10, 'prazo de uso: N dias depois do resgate');
+select is((select count(*)::int from public.pontos_beneficio_publico), 3, 'vitrine: dois benefícios + o que vence hoje');
+select columns_are('public', 'pontos_beneficio_publico', array['id', 'perfil_id', 'nome', 'descricao', 'pontos_necessarios', 'condicoes', 'limite_total', 'limite_por_pessoa', 'prazo_resgate_ate', 'prazo_uso_dias', 'criado_em'],
+  'a vitrine tem prazo de resgate (data) e prazo de uso (dias)');
 reset role;
 
 set local role authenticated;
@@ -222,7 +318,8 @@ select is((select valor_anterior ->> 'ativo' from public.administracao_auditoria
 select is((select valor_novo ->> 'ativo' from public.administracao_auditoria where acao = 'definir_beneficio_ativo' and alvo_id = current_setting('t.b5')), 'false', 'e o novo');
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
-select is((select count(*)::int from public.pontos_beneficio_publico), 1, 'benefício desativado sai da vista pública');
+select is((select count(*)::int from public.pontos_beneficio_publico where id = current_setting('t.b5')::uuid), 0, 'benefício desativado sai da vista pública');
+select is((select count(*)::int from public.pontos_beneficio_publico), 2, 'os demais seguem na vitrine');
 reset role;
 
 -- ===== Benefício não mexe em pontos nem resgata =====
