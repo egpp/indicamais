@@ -1223,6 +1223,13 @@ export type Database = {
             foreignKeyName: "pontos_beneficio_versao_aprovada_fk"
             columns: ["versao_aprovada_id", "id"]
             isOneToOne: false
+            referencedRelation: "administracao_beneficios_aguardando_aceite"
+            referencedColumns: ["versao_id", "beneficio_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_aprovada_fk"
+            columns: ["versao_aprovada_id", "id"]
+            isOneToOne: false
             referencedRelation: "administracao_fila_beneficios"
             referencedColumns: ["versao_id", "beneficio_id"]
           },
@@ -1241,6 +1248,7 @@ export type Database = {
           beneficio_id: string
           decidida_em: string
           decisao: string
+          decisor: string
           id: string
           motivo: string | null
           versao_aprovada_anterior_id: string | null
@@ -1251,6 +1259,7 @@ export type Database = {
           beneficio_id: string
           decidida_em?: string
           decisao: string
+          decisor?: string
           id?: string
           motivo?: string | null
           versao_aprovada_anterior_id?: string | null
@@ -1261,6 +1270,7 @@ export type Database = {
           beneficio_id?: string
           decidida_em?: string
           decisao?: string
+          decisor?: string
           id?: string
           motivo?: string | null
           versao_aprovada_anterior_id?: string | null
@@ -1292,6 +1302,13 @@ export type Database = {
             foreignKeyName: "pontos_beneficio_revisao_versao_aprovada_anterior_id_fkey"
             columns: ["versao_aprovada_anterior_id"]
             isOneToOne: false
+            referencedRelation: "administracao_beneficios_aguardando_aceite"
+            referencedColumns: ["versao_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_aprovada_anterior_id_fkey"
+            columns: ["versao_aprovada_anterior_id"]
+            isOneToOne: false
             referencedRelation: "administracao_fila_beneficios"
             referencedColumns: ["versao_id"]
           },
@@ -1301,6 +1318,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "pontos_beneficio_versao"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_id_fkey"
+            columns: ["versao_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_beneficios_aguardando_aceite"
+            referencedColumns: ["versao_id"]
           },
           {
             foreignKeyName: "pontos_beneficio_revisao_versao_id_fkey"
@@ -1329,9 +1353,10 @@ export type Database = {
           limite_por_pessoa: number | null
           limite_total: number | null
           nome: string | null
+          origem: string
           pontos_necessarios: number | null
           prazo_resgate_ate: string | null
-          prazo_uso_ate: string | null
+          prazo_uso_dias: number | null
           situacao: string
         }
         Insert: {
@@ -1344,9 +1369,10 @@ export type Database = {
           limite_por_pessoa?: number | null
           limite_total?: number | null
           nome?: string | null
+          origem?: string
           pontos_necessarios?: number | null
           prazo_resgate_ate?: string | null
-          prazo_uso_ate?: string | null
+          prazo_uso_dias?: number | null
           situacao?: string
         }
         Update: {
@@ -1359,9 +1385,10 @@ export type Database = {
           limite_por_pessoa?: number | null
           limite_total?: number | null
           nome?: string | null
+          origem?: string
           pontos_necessarios?: number | null
           prazo_resgate_ate?: string | null
-          prazo_uso_ate?: string | null
+          prazo_uso_dias?: number | null
           situacao?: string
         }
         Relationships: [
@@ -1532,6 +1559,7 @@ export type Database = {
       pontos_lancamento: {
         Row: {
           autor_id: string | null
+          categoria: string | null
           confirmou_saldo_negativo: boolean
           criado_em: string
           destino_item_id: string | null
@@ -1547,6 +1575,7 @@ export type Database = {
         }
         Insert: {
           autor_id?: string | null
+          categoria?: string | null
           confirmou_saldo_negativo?: boolean
           criado_em?: string
           destino_item_id?: string | null
@@ -1562,6 +1591,7 @@ export type Database = {
         }
         Update: {
           autor_id?: string | null
+          categoria?: string | null
           confirmou_saldo_negativo?: boolean
           criado_em?: string
           destino_item_id?: string | null
@@ -1698,6 +1728,52 @@ export type Database = {
       }
     }
     Views: {
+      administracao_beneficios_aguardando_aceite: {
+        Row: {
+          beneficio_id: string | null
+          enviada_em: string | null
+          nome: string | null
+          perfil_id: string | null
+          versao_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       administracao_consulta_negocios: {
         Row: {
           alvo_id: string | null
@@ -1940,6 +2016,7 @@ export type Database = {
       }
       administracao_pontos_lancamentos: {
         Row: {
+          categoria: string | null
           confirmou_saldo_negativo: boolean | null
           criado_em: string | null
           destino_id: string | null
@@ -2203,7 +2280,7 @@ export type Database = {
           perfil_id: string | null
           pontos_necessarios: number | null
           prazo_resgate_ate: string | null
-          prazo_uso_ate: string | null
+          prazo_uso_dias: number | null
         }
         Relationships: [
           {
@@ -2240,12 +2317,12 @@ export type Database = {
       }
       pontos_meus_lancamentos: {
         Row: {
+          categoria: string | null
           criado_em: string | null
           destino_id: string | null
           destino_nome: string | null
           destino_tipo: string | null
           id: string | null
-          motivo: string | null
           original_id: string | null
           pontos: number | null
           situacao: string | null
@@ -2518,7 +2595,7 @@ export type Database = {
           p_perfil_id: string
           p_pontos_necessarios: number
           p_prazo_resgate_ate?: string
-          p_prazo_uso_ate?: string
+          p_prazo_uso_dias?: number
         }
         Returns: {
           o_beneficio_id: string
@@ -2529,7 +2606,26 @@ export type Database = {
         Args: { p_ativo: boolean; p_beneficio_id: string; p_motivo: string }
         Returns: undefined
       }
+      pontos_admin_editar_proposta_beneficio: {
+        Args: {
+          p_condicoes?: string
+          p_descricao: string
+          p_limite_por_pessoa?: number
+          p_limite_total?: number
+          p_motivo: string
+          p_nome: string
+          p_pontos_necessarios: number
+          p_prazo_resgate_ate?: string
+          p_prazo_uso_dias?: number
+          p_versao_id: string
+        }
+        Returns: string
+      }
       pontos_avaliar_pedido: { Args: { p_pedido_id: string }; Returns: number }
+      pontos_beneficio_no_prazo: {
+        Args: { p_versao_id: string }
+        Returns: boolean
+      }
       pontos_criar_beneficio: {
         Args: {
           p_condicoes?: string
@@ -2540,7 +2636,7 @@ export type Database = {
           p_perfil_id: string
           p_pontos_necessarios: number
           p_prazo_resgate_ate?: string
-          p_prazo_uso_ate?: string
+          p_prazo_uso_dias?: number
         }
         Returns: {
           o_beneficio_id: string
@@ -2583,8 +2679,13 @@ export type Database = {
         Args: { p_limite?: number }
         Returns: number
       }
+      pontos_responder_proposta_beneficio: {
+        Args: { p_aceitar: boolean; p_motivo?: string; p_versao_id: string }
+        Returns: undefined
+      }
       pontos_reverter_credito: {
         Args: {
+          p_categoria: string
           p_confirmar_saldo_negativo?: boolean
           p_lancamento_id: string
           p_motivo: string
@@ -2601,7 +2702,7 @@ export type Database = {
           p_nome: string
           p_pontos_necessarios: number
           p_prazo_resgate_ate?: string
-          p_prazo_uso_ate?: string
+          p_prazo_uso_dias?: number
         }
         Returns: string
       }
