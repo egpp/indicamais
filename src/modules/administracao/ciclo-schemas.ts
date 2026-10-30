@@ -79,23 +79,24 @@ export const denunciarSchema = z.object({
   alvoTipo: z.enum(ALVOS_DENUNCIA, { error: "Tipo de alvo inválido." }),
   alvoId: uuidSchema,
   tipo: z.enum(TIPOS_DENUNCIA, { error: "Escolha o motivo da denúncia." }),
-  texto: z
-    .preprocess(
-      (v) => (typeof v === "string" ? (v.trim() === "" ? undefined : v.trim()) : v),
-      z
-        .string({ error: "Texto inválido." })
-        .max(LIMITES_CICLO.textoDenunciaMax, {
-          error: `O texto deve ter até ${LIMITES_CICLO.textoDenunciaMax} caracteres.`,
-        })
-        .refine(semControle, { error: "O texto tem caracteres inválidos." }),
-    )
-    .optional(),
-  origem: z
-    .preprocess(
-      (v) => (v === "" || v === null ? undefined : v),
-      z.string().regex(/^[0-9a-f]{64}$/, { error: "Origem inválida." }),
-    )
-    .optional(),
+  texto: z.preprocess(
+    (v) =>
+      v === null ? undefined : typeof v === "string" ? (v.trim() === "" ? undefined : v.trim()) : v,
+    z
+      .string({ error: "Texto inválido." })
+      .max(LIMITES_CICLO.textoDenunciaMax, {
+        error: `O texto deve ter até ${LIMITES_CICLO.textoDenunciaMax} caracteres.`,
+      })
+      .refine(semControle, { error: "O texto tem caracteres inválidos." })
+      .optional(),
+  ),
+  origem: z.preprocess(
+    (v) => (v === "" || v === null || (typeof v === "string" && v.trim() === "") ? undefined : v),
+    z
+      .string()
+      .regex(/^[0-9a-f]{64}$/, { error: "Origem inválida." })
+      .optional(),
+  ),
   site: z.string().max(500).nullish(),
 });
 export type Denunciar = z.infer<typeof denunciarSchema>;
