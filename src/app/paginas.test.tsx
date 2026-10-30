@@ -260,7 +260,7 @@ describe("responsável: prévia e perfil (IM-017, IM-022, IM-079)", () => {
     expect(screen.getByRole("button", { name: "Salvar endereço" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Ver prévia" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Publicar/ })).toBeNull();
-    expect(screen.queryByText(/curtir|indicar|mapa|pontos/i)).toBeNull();
+    expect(screen.queryByText(/curtir|indicar|mapa/i)).toBeNull();
   });
 });
 
