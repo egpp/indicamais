@@ -47,15 +47,36 @@ const args = (params: Record<string, string> = {}, busca: Record<string, string>
 /** O HTML nunca pode conter dado privado (IM-029): nem em atributo, nem em texto, nem em metadados. */
 function conferirSemDadosPrivados(html: string) {
   for (const segredo of Object.values(SEGREDOS)) expect(html).not.toContain(segredo);
-  expect(html).not.toMatch(/whatsapp|wa\.me|responsavel|responsável|conta_id|owner|mailto:/i);
+  // O formulário de contato tem o rótulo "WhatsApp", mas nenhum número, wa.me, e-mail ou id do responsável.
+  expect(html).not.toMatch(
+    /wa\.me|\+55\d{8,}|\b\d{10,11}\b|responsavel_id|conta_id|owner|mailto:/i,
+  );
   expect(html).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.-]+/);
 }
 
-/** Fase 3 (IM-013) e IM-043: nenhum botão ou link de contato, indicar ou curtir. */
-function conferirSemAcoesDaFase3() {
-  const acoes = /contato|indicar|indique|curtir|curtida|whatsapp/i;
+/** IM-043 pendente: nenhuma tela pública tem "Curtir". */
+function conferirSemCurtir() {
+  const curtir = /curtir|curtida|curti/i;
+  expect(screen.queryAllByRole("button", { name: curtir })).toEqual([]);
+  expect(screen.queryAllByRole("link", { name: curtir })).toEqual([]);
+}
+
+/** IM-013: a home e a busca não têm ações de contato nem de indicar (só perfil e item têm). */
+function conferirSemAcoesNaListagem() {
+  conferirSemCurtir();
+  const acoes = /contato|indicar|indique/i;
   expect(screen.queryAllByRole("button", { name: acoes })).toEqual([]);
   expect(screen.queryAllByRole("link", { name: acoes })).toEqual([]);
+}
+
+/** IM-013: perfil e item têm "Quero entrar em contato" e "Indique ...", sem "Curtir". */
+function conferirAcoesDaFase3(rotuloIndicar: string) {
+  conferirSemCurtir();
+  expect(screen.getByRole("link", { name: "Quero entrar em contato" }).getAttribute("href")).toBe(
+    "#contato",
+  );
+  expect(screen.getByRole("button", { name: rotuloIndicar })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Enviar pedido de contato" })).toBeTruthy();
 }
 
 const cabecalho = () => document.body.innerHTML;
@@ -99,7 +120,7 @@ describe("página inicial pública (IM-019, IM-020)", () => {
     expect(screen.getAllByText(/Canoas - RS/).length).toBeGreaterThan(0);
 
     conferirSemDadosPrivados(cabecalho());
-    conferirSemAcoesDaFase3();
+    conferirSemAcoesNaListagem();
   });
 
   it("vazio: mensagens amigáveis, sem quebrar", async () => {
@@ -262,11 +283,11 @@ describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
     // Sem link externo (IM-012): site e redes são só texto.
     expect(
       Array.from(document.querySelectorAll("a")).every((a) =>
-        a.getAttribute("href")!.startsWith("/"),
+        /^[/#]/.test(a.getAttribute("href")!),
       ),
     ).toBe(true);
     conferirSemDadosPrivados(cabecalho());
-    conferirSemAcoesDaFase3();
+    conferirAcoesDaFase3("Indique esta empresa");
   });
 
   it("404 genérico para inexistente, rascunho, não aprovado, despublicado e slug inválido", async () => {
@@ -362,7 +383,7 @@ describe("item e anúncio particular públicos (IM-014, IM-015, IM-079)", () => 
     expect(screen.getByRole("img", { name: "Foto de Bicicleta aro 29" })).toBeTruthy();
     expect(screen.queryByText(/Oferecido por/)).toBeNull();
     conferirSemDadosPrivados(cabecalho());
-    conferirSemAcoesDaFase3();
+    conferirAcoesDaFase3("Indique este anúncio");
   });
 
   it("item de perfil: tipo, localização do perfil e link para o perfil; sob consulta e a partir de", async () => {
@@ -442,5 +463,61 @@ describe("item e anúncio particular públicos (IM-014, IM-015, IM-079)", () => 
     });
     const reserva = await metadadosItem(args({ id: sem.id }));
     expect(reserva.description).toBe("Violão. R$ 125,50 · Santos - SP.");
+  });
+});
+
+describe("ações da página e ?ind (IM-013, IM-024, IM-025)", () => {
+  const COD = "a1".repeat(16);
+  const campo = (nome: string) =>
+    document.querySelector<HTMLInputElement>(`input[type="hidden"][name="${nome}"]`);
+
+  it("perfil: ?ind vai só ao formulário de contato do perfil e nunca a links, cookies ou armazenamento", async () => {
+    m.novoPerfil({ nome: "Padaria da Ana", slug: "padaria-da-ana" });
+    render(await PaginaPerfil(args({ slug: "padaria-da-ana" }, { ind: COD })));
+    expect(campo("ind")?.value).toBe(COD);
+    expect(campo("slug")?.value).toBe("padaria-da-ana");
+    // Nenhum link da página leva o código a outro destino (IM-025).
+    const hrefs = Array.from(document.querySelectorAll("a")).map((a) => a.getAttribute("href"));
+    expect(hrefs.some((h) => h?.includes(COD))).toBe(false);
+    expect(document.cookie).toBe("");
+    expect(localStorage.length + sessionStorage.length).toBe(0);
+    conferirAcoesDaFase3("Indique esta empresa");
+    conferirSemDadosPrivados(cabecalho());
+  });
+
+  it("item: ?ind malformado é ignorado; sem ?ind não há campo; botão 'Indique este produto/serviço'", async () => {
+    const item = m.novoItem({ nome: "Bolo de cenoura", tipo: "produto" });
+    const a = render(await PaginaItem(args({ id: item.id }, { ind: "<script>x</script>" })));
+    expect(campo("ind")).toBeNull();
+    expect(campo("id")?.value).toBe(item.id);
+    conferirAcoesDaFase3("Indique este anúncio");
+    a.unmount();
+    const perfil = m.novoPerfil({ nome: "Loja", slug: "loja" });
+    const comPerfil = m.novoItem({ nome: "Serviço X", tipo: "servico", perfil_id: perfil.id });
+    render(await PaginaItem(args({ id: comPerfil.id }, { ind: COD })));
+    expect(campo("ind")?.value).toBe(COD);
+    expect(screen.getByRole("button", { name: "Indique este produto/serviço" })).toBeTruthy();
+  });
+
+  it("a chave de idempotência muda a cada página renderizada e tem o formato aceito pelo módulo", async () => {
+    m.novoPerfil({ nome: "Padaria da Ana", slug: "padaria-da-ana" });
+    const a = render(await PaginaPerfil(args({ slug: "padaria-da-ana" })));
+    const k1 = campo("chave")!.value;
+    a.unmount();
+    render(await PaginaPerfil(args({ slug: "padaria-da-ana" })));
+    const k2 = campo("chave")!.value;
+    expect(k1).toMatch(/^[A-Za-z0-9_-]{16,100}$/);
+    expect(k2).not.toBe(k1);
+  });
+
+  it("metadados da prévia continuam: título, descrição, noindex e imagem", async () => {
+    m.novoPerfil({ nome: "Padaria da Ana", slug: "padaria-da-ana" });
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://app.exemplo");
+    const meta = await metadadosPerfil(args({ slug: "padaria-da-ana" }, { ind: COD }));
+    expect(String(meta.title)).toContain("Padaria da Ana");
+    expect(meta.robots).toMatchObject({ index: false });
+    expect(JSON.stringify(meta)).toContain("/og/perfil/padaria-da-ana");
+    // O código de indicação não entra no endereço canônico nem na prévia.
+    expect(JSON.stringify(meta)).not.toContain(COD);
   });
 });

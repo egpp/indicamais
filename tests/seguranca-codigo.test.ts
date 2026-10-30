@@ -17,8 +17,12 @@ const fontes = arquivos(join(process.cwd(), "src")).map((c) => ({
 }));
 
 describe("código de produção (IM-086)", () => {
-  it("não lê variável de service_role em nenhum arquivo", () => {
-    const uso = fontes.filter(({ t }) => /process\.env\.[A-Z_]*SERVICE_ROLE/i.test(t));
+  it("não lê variável de service_role fora do cliente de serviço do servidor", () => {
+    const uso = fontes.filter(
+      ({ c, t }) =>
+        !c.endsWith(join("src", "shared", "supabase", "servico.ts")) &&
+        /process\.env\.[A-Z_]*SERVICE_ROLE/i.test(t),
+    );
     expect(uso.map((u) => u.c)).toEqual([]);
   });
 

@@ -3,15 +3,21 @@
 import { useActionState, useEffect, useMemo, useState, type FormEvent } from "react";
 import { ESTADO_INICIAL, type EstadoFormulario } from "../_lib/estado-formulario";
 
-type Acao = (estado: EstadoFormulario, dados: FormData) => Promise<EstadoFormulario>;
+type Acao<E extends EstadoFormulario> = (estado: E, dados: FormData) => Promise<E>;
 type Validador = (dados: Record<string, string>) => Record<string, string> | null;
 
 /**
  * Formulário com Server Action. Valida no navegador com o mesmo schema do servidor,
  * trava o botão durante o envio (IM-028) e foca o primeiro campo com erro.
  */
-export function useFormulario(acao: Acao, validar: Validador) {
-  const [estado, action, enviando] = useActionState(acao, ESTADO_INICIAL);
+export function useFormulario<E extends EstadoFormulario = EstadoFormulario>(
+  acao: Acao<E>,
+  validar: Validador,
+) {
+  const [estado, action, enviando] = useActionState<E, FormData>(
+    acao,
+    ESTADO_INICIAL as Awaited<E>,
+  );
   const [errosLocais, setErrosLocais] = useState<Record<string, string>>({});
   const [form, registrarForm] = useState<HTMLFormElement | null>(null);
 

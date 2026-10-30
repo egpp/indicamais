@@ -96,7 +96,7 @@ async function protegidoErro(f: () => PromiseLike<ErroBanco | null>) {
 }
 
 /** rpc administracao_eh_admin (sem parâmetros). Falha fechado: qualquer erro = não é administrador. */
-async function consultarAdmin(supabase: ClienteSupabaseFase2): Promise<boolean> {
+export async function consultarAdmin(supabase: ClienteSupabaseFase2): Promise<boolean> {
   try {
     const { data, error } = await supabase.rpc("administracao_eh_admin");
     return !error && data === true;

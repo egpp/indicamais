@@ -669,3 +669,41 @@ fieldset.grupo-imagens {
   width: 1.5rem;
   height: 1.5rem;
 }
+
+/* Fase 3: contato, indicação e pedidos. Celular primeiro, alvos de toque de 44px ou mais. */
+.acoes-pagina,
+.acoes-linha {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.acoes-linha {
+  margin: 0.5rem 0;
+}
+.secao-contato,
+.secao-indicar {
+  margin: 1.5rem 0;
+  scroll-margin-top: 1rem;
+}
+.link-gerado input[readonly] {
+  text-overflow: ellipsis;
+}
+.confirmacao-contato {
+  display: grid;
+  gap: 0.75rem;
+}
+.rotulo-provisorio {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+@media (min-width: 640px) {
+  .acoes-pagina,
+  .acoes-linha {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}

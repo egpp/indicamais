@@ -3,16 +3,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
+import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
 import { nomeDaCategoria } from "../../_lib/apresentacao";
-import { SEM_INDEXACAO } from "../../_lib/pagina";
+import { SEM_INDEXACAO, um } from "../../_lib/pagina";
 import { carregarItemPublico } from "../../_lib/paginas-publicas";
 import { metadadosPublicos, resumir } from "../../_lib/metadados-publicos";
 
 /**
  * Produto, serviço ou anúncio particular público (IM-014, IM-015, IM-079). Renderizado no servidor, com Open
  * Graph e Twitter para a prévia no WhatsApp. Só o que está aprovado, publicado e disponível; o resto é 404
- * genérico. Sem dados do dono (conta, WhatsApp, e-mail) e sem botão de contato, indicar ou curtir (Fase 3).
+ * genérico. Sem dados do dono (conta, WhatsApp, e-mail) no HTML. Ações da Fase 3 (IM-013): contato e indicar;
+ * sem curtir (IM-043). ?ind=<codigo> (IM-025) vai só ao formulário de contato deste item.
  */
 export const dynamic = "force-dynamic";
 
@@ -39,8 +41,9 @@ export async function generateMetadata({ params }: PageProps<"/item/[id]">): Pro
   });
 }
 
-export default async function PaginaItemPublico({ params }: PageProps<"/item/[id]">) {
+export default async function PaginaItemPublico({ params, searchParams }: PageProps<"/item/[id]">) {
   const { id } = await params;
+  const ind = um((await searchParams).ind);
   const d = await carregarItemPublico(id);
   if (!d) notFound();
   const { item, perfil, categorias, urls } = d;
@@ -80,6 +83,16 @@ export default async function PaginaItemPublico({ params }: PageProps<"/item/[id
           </p>
         ) : null}
       </article>
+
+      <AcoesDoDestino
+        tipo="item"
+        id={item.id}
+        rotuloIndicar={
+          item.anuncioParticular ? "Indique este anúncio" : "Indique este produto/serviço"
+        }
+        retorno={ROTAS_PUBLICAS.item(item.id)}
+        ind={ind}
+      />
       <p className="rodape-links">
         <Link href="/">Voltar para a página inicial</Link>
       </p>

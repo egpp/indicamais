@@ -24,6 +24,10 @@ const fontes = arquivos(join(process.cwd(), "src")).map((c) => ({
   t: semComentarios(readFileSync(c, "utf8")),
 }));
 
+/** Único arquivo que pode ler a chave de serviço (notificações do servidor, IM-027/IM-050). */
+const ARQUIVO_SERVICO = join("src", "shared", "supabase", "servico.ts");
+const eServico = (c: string) => c.endsWith(ARQUIVO_SERVICO);
+
 describe("varredura do app", () => {
   it("encontra arquivos para varrer", () => {
     expect(fontes.length).toBeGreaterThan(20);
@@ -36,9 +40,28 @@ describe("varredura do app", () => {
     expect(achados.map((a) => a.c)).toEqual([]);
   });
 
-  it("nenhum uso de service_role no app", () => {
-    const achados = fontes.filter(({ t }) => /service[_-]?role/i.test(t));
+  it("nenhum uso de service_role no app, exceto o cliente de serviço do servidor", () => {
+    const achados = fontes.filter(({ c, t }) => !eServico(c) && /service[_-]?role/i.test(t));
     expect(achados.map((a) => a.c)).toEqual([]);
+    expect(fontes.some(({ c }) => eServico(c))).toBe(true);
+  });
+
+  it("o cliente de serviço só é importado por notificacoes-contato.ts e nunca por código de cliente", () => {
+    const importadores = fontes.filter(
+      ({ c, t }) => !eServico(c) && /supabase\/servico["']/.test(t),
+    );
+    expect(importadores.map((i) => i.c.split(/[\\/]/).pop())).toEqual(["notificacoes-contato.ts"]);
+    const clientes = fontes.filter(({ t }) => /^\s*["']use client["']/.test(t));
+    expect(clientes.length).toBeGreaterThan(5);
+    for (const { t } of clientes) {
+      expect(t).not.toMatch(/notificacoes-contato|supabase\/servico|banco-indicacoes/);
+    }
+  });
+
+  it("o cliente de serviço recusa o navegador e não lê chave em NEXT_PUBLIC_", () => {
+    const f = fontes.find(({ c }) => eServico(c))!;
+    expect(f.t).toMatch(/typeof window !== "undefined"/);
+    expect(f.t).not.toMatch(/NEXT_PUBLIC_[A-Z_]*(SERVICE|SECRET)/);
   });
 
   it("nenhuma consulta nomeia colunas que ninguém lê", () => {

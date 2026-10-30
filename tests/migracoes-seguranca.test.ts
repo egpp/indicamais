@@ -102,6 +102,7 @@ describe("migrações: funções", () => {
       "busca_normalizar",
       "busca_publica",
       "catalogo_imagem_publica",
+      "indicacoes_enviar_contato",
       "perfis_perfil_disponivel",
     ]);
   });
@@ -118,11 +119,15 @@ describe("migrações: visões", () => {
     expect(visoes.map((v) => v.nome).sort()).toEqual(
       expect.arrayContaining([
         "administracao_consulta_negocios",
+        "administracao_fila_contatos",
         "administracao_fila_pendencias",
         "administracao_meus_resultados",
         "administracao_patrocinador_publico",
         "catalogo_item_publico",
         "catalogo_meus_itens",
+        "indicacoes_meus_links",
+        "indicacoes_meus_pedidos",
+        "indicacoes_minhas_indicacoes",
         "perfis_meus_perfis",
         "perfis_perfil_publico",
       ]),
@@ -148,9 +153,13 @@ describe("migrações: visões", () => {
       .sort();
     expect(definer).toEqual([
       "administracao_consulta_negocios",
+      "administracao_fila_contatos",
       "administracao_fila_pendencias",
       "administracao_meus_resultados",
       "catalogo_meus_itens",
+      "indicacoes_meus_links",
+      "indicacoes_meus_pedidos",
+      "indicacoes_minhas_indicacoes",
       "perfis_meus_perfis",
     ]);
     for (const v of visoes.filter((x) => !x.invoker)) {
@@ -176,6 +185,114 @@ describe("migrações: visões", () => {
     // autor_id só entra dentro do sha256; nunca como coluna da visão.
     const semHash = v.corpo.replace(/encode\(sha256\([\s\S]*?\), 'hex'\)/gi, "");
     expect(semHash).not.toMatch(/autor_id|decidida_por|email/i);
+  });
+});
+
+describe("migrações: módulo indicacoes (IM-024 a IM-029, IM-041, IM-050, IM-086)", () => {
+  const modulo = semComentario(
+    sql
+      .filter((s) => /indicacoes/.test(s.n))
+      .map((s) => s.t)
+      .join("\n"),
+  );
+  const visoesModulo = [...modulo.matchAll(/create view public\.(\w+) as([\s\S]*?);/gi)].map(
+    (m) => ({ nome: m[1]!, corpo: m[2]! }),
+  );
+  const tabelasModulo = [...modulo.matchAll(/create table public\.(\w+)/gi)].map((m) => m[1]!);
+
+  it("encontra as seis tabelas e as quatro visões do módulo", () => {
+    expect([...tabelasModulo].sort()).toEqual([
+      "indicacoes_evento",
+      "indicacoes_link",
+      "indicacoes_notificacao",
+      "indicacoes_notificacao_historico",
+      "indicacoes_parametro",
+      "indicacoes_pedido_contato",
+    ]);
+    expect(visoesModulo.map((v) => v.nome).sort()).toEqual([
+      "administracao_fila_contatos",
+      "indicacoes_meus_links",
+      "indicacoes_meus_pedidos",
+      "indicacoes_minhas_indicacoes",
+    ]);
+  });
+
+  it("a visão do indicador não tem dado do visitante (IM-029)", () => {
+    const v = visoesModulo.find((x) => x.nome === "indicacoes_minhas_indicacoes")!;
+    expect(v.corpo).not.toMatch(/p\.nome|whatsapp|email|mensagem|solicitante|chave_idempot/i);
+  });
+
+  it("nenhuma visão do módulo expõe id de conta (indicador, responsável, solicitante)", () => {
+    for (const v of visoesModulo) {
+      const colunas = v.corpo.split(/\bfrom\b/i)[0]!;
+      expect(colunas, v.nome).not.toMatch(
+        /indicador_id|responsavel_id|conta_id|solicitante_id|autor_id/i,
+      );
+    }
+  });
+
+  it("anon e authenticated não recebem privilégio direto em pedidos, links, notificações e histórico", () => {
+    for (const t of [
+      "indicacoes_pedido_contato",
+      "indicacoes_link",
+      "indicacoes_notificacao",
+      "indicacoes_notificacao_historico",
+    ]) {
+      expect(modulo, t).not.toMatch(
+        new RegExp(`grant [a-z, ()_]*on public\\.${t} to[^;]*\\b(anon|authenticated)\\b`, "i"),
+      );
+    }
+  });
+
+  it("funções do servidor só para service_role; internas sem grant", () => {
+    for (const f of ["indicacoes_notificacoes_pendentes", "indicacoes_notificacao_registrar"]) {
+      expect(modulo).toMatch(
+        new RegExp(`grant execute on function public\\.${f}\\([^)]*\\) to service_role;`, "i"),
+      );
+      expect(modulo).not.toMatch(
+        new RegExp(
+          `grant execute on function public\\.${f}\\([^)]*\\) to[^;]*\\b(anon|authenticated)\\b`,
+          "i",
+        ),
+      );
+    }
+    for (const f of ["indicacoes_resolver_destino", "indicacoes_parametro_valor"]) {
+      expect(modulo).not.toMatch(new RegExp(`grant execute on function public\\.${f}\\(`, "i"));
+    }
+  });
+
+  it("WhatsApp validado com [0-9], nunca com a classe de dígitos do regex", () => {
+    expect(modulo).toContain("^\\+55[0-9]{10,11}$");
+    expect(modulo).not.toContain("\\d");
+  });
+
+  it("pedidos, eventos, histórico e links têm gatilho de só inserção", () => {
+    for (const t of [
+      "indicacoes_pedido_contato",
+      "indicacoes_evento",
+      "indicacoes_notificacao_historico",
+      "indicacoes_link",
+    ]) {
+      expect(modulo, t).toMatch(
+        new RegExp(
+          `before update or delete on public\\.${t}\\s+for each row execute function public\\.administracao_registro_imutavel`,
+          "i",
+        ),
+      );
+    }
+  });
+
+  it("ações administrativas gravam auditoria", () => {
+    for (const f of [
+      "indicacoes_tratar_alerta",
+      "indicacoes_definir_parametro",
+      "indicacoes_solicitar_reenvio",
+    ]) {
+      const m = modulo.match(
+        new RegExp(`create function public\\.${f}\\(([\\s\\S]*?)\\$\\$;`, "i"),
+      );
+      expect(m?.[0], f).toMatch(/insert into public\.administracao_auditoria/);
+    }
   });
 });
 
