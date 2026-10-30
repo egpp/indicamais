@@ -70,17 +70,29 @@ export async function obterContextoRelacionamento(
   return ctx;
 }
 
-/** Estado do botão Curtir numa página pública. Qualquer falha vira "visitante": a página nunca quebra. */
-export type EstadoCurtida = { logado: boolean; curtiu: boolean };
+/**
+ * Estado do botão Curtir numa página pública. Qualquer falha vira "visitante": a página nunca quebra.
+ * `proprio`: o perfil é do próprio usuário logado (o botão Curtir não aparece; o banco também recusa, IM-043).
+ * A conferência é uma leitura de uma linha na visão perfis_meus_perfis, só para quem está logado.
+ */
+export type EstadoCurtida = { logado: boolean; curtiu: boolean; proprio: boolean };
 
 export async function lerEstadoCurtida(perfilId: string): Promise<EstadoCurtida> {
   try {
+    const supabase = await criarClienteServidor();
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return { logado: false, curtiu: false, proprio: false };
+    const meu = await supabase
+      .from("perfis_meus_perfis")
+      .select("id")
+      .eq("id", perfilId)
+      .maybeSingle();
+    if (meu.data) return { logado: true, curtiu: false, proprio: true };
     const ctx = await montar();
-    if (!ctx.logado) return { logado: false, curtiu: false };
     const r = await ctx.relacionamento.minhasParticipacoes();
     const curtiu = r.ok && r.valor.some((p) => p.perfilId === perfilId && p.curtiu);
-    return { logado: true, curtiu };
+    return { logado: true, curtiu, proprio: false };
   } catch {
-    return { logado: false, curtiu: false };
+    return { logado: false, curtiu: false, proprio: false };
   }
 }
