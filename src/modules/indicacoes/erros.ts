@@ -6,6 +6,7 @@ export const MENSAGENS_INDICACOES = {
   generica: "Não foi possível concluir agora. Tente novamente em instantes.",
   naoAutenticado: "Entre na sua conta para continuar.",
   semWhatsapp: "Cadastre seu WhatsApp na sua conta antes de indicar.",
+  contaSuspensa: "Sua conta está suspensa e não pode gerar links de indicação no momento.",
   autoindicacao: "Você não pode gerar link de indicação para o seu próprio perfil ou anúncio.",
   destinoIndisponivel: "Este perfil ou anúncio não está disponível no momento.",
   linkNaoEncontrado: "Link de indicação não encontrado.",
@@ -29,6 +30,7 @@ export type CodigoErroIndicacoes =
   | "VALIDACAO"
   | "NAO_AUTENTICADO"
   | "SEM_WHATSAPP"
+  | "CONTA_SUSPENSA"
   | "AUTOINDICACAO"
   | "INDISPONIVEL"
   | "NAO_ENCONTRADO"
@@ -106,4 +108,20 @@ export function mapearErroBancoIndicacoes(e: ErroBanco, op: OperacaoIndicacoes):
       return erroIndicacoes("ERRO_INTERNO", M.generica);
   }
   return erroIndicacoes("ERRO_INTERNO", M.generica);
+}
+
+/**
+ * IM-080, D-014: o banco responde P0412 tanto para "sem WhatsApp" quanto para conta suspensa (contas_pode_indicar).
+ * Quem tem o estado da conta (contas_meu_estado, módulo contas, lido na camada de interface) passa
+ * `acessoPermitido`; com `false`, o erro SEM_WHATSAPP vira CONTA_SUSPENSA, com mensagem própria. Qualquer outro erro,
+ * ou estado desconhecido, segue intacto (nunca troca a mensagem sem certeza).
+ */
+export function refinarErroPorEstadoDaConta(
+  erro: ErroIndicacoes,
+  estado: { acessoPermitido: boolean | null | undefined },
+): ErroIndicacoes {
+  if (erro.codigo === "SEM_WHATSAPP" && estado.acessoPermitido === false) {
+    return erroIndicacoes("CONTA_SUSPENSA", M.contaSuspensa);
+  }
+  return erro;
 }

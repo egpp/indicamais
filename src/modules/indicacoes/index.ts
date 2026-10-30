@@ -32,7 +32,11 @@ export type {
   ResultadoProcessamento,
   ServicoNotificacoesContato,
 } from "./notificacoes";
-export { MENSAGENS_INDICACOES, mapearErroBancoIndicacoes } from "./erros";
+export {
+  MENSAGENS_INDICACOES,
+  mapearErroBancoIndicacoes,
+  refinarErroPorEstadoDaConta,
+} from "./erros";
 export type { ErroIndicacoes, CodigoErroIndicacoes, OperacaoIndicacoes } from "./erros";
 export {
   enviarContatoSchema,
