@@ -20,6 +20,7 @@ export function PainelPagina({
     | "anuncios"
     | "pedidos"
     | "indicacoes"
+    | "pontos"
     | "revisoes"
     | "conta"
     | "administracao";
@@ -31,6 +32,7 @@ export function PainelPagina({
     { chave: "anuncios", href: "/meus-anuncios", texto: "Meus anúncios" },
     { chave: "pedidos", href: "/pedidos-de-contato", texto: "Pedidos de contato" },
     { chave: "indicacoes", href: "/minhas-indicacoes", texto: "Minhas indicações" },
+    { chave: "pontos", href: "/pontos", texto: "Meus pontos" },
     { chave: "revisoes", href: "/minhas-revisoes", texto: "Revisões" },
     { chave: "conta", href: "/minha-conta", texto: "Minha conta" },
   ];

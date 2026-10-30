@@ -63,6 +63,11 @@ export default async function PaginaPerfil({
         <SeloEstado rotulo={p.estado.rotulo} />
       </p>
       <p className="ajuda">Endereço da página: {p.slug}</p>
+      <p>
+        <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/beneficios`}>
+          Benefícios do perfil
+        </Link>
+      </p>
 
       {aviso === "criado" ? (
         <Aviso tipo="sucesso">
