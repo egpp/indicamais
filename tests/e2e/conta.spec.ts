@@ -44,7 +44,10 @@ test.describe("autenticado", () => {
     exigirConta("indicador");
     await entrar(page, "indicador", /\/minha-conta/);
 
-    const campo = page.getByLabel("WhatsApp");
+    // A seção também tem aria-labelledby="titulo-whatsapp"; o papel textbox escolhe só o campo.
+    // Número fictício exclusivo do papel indicador; regravar o mesmo número da própria conta
+    // é permitido, então o teste é idempotente entre rodadas.
+    const campo = page.getByRole("textbox", { name: "WhatsApp" });
     await campo.fill("");
     await campo.pressSequentially("11999990001");
     await expect(campo).toHaveValue("(11) 99999-0001");
