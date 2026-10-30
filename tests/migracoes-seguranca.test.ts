@@ -528,13 +528,25 @@ describe("migrações: relacionamento e notificações (IM-039 a IM-045, IM-047 
       expect(semHash, v.nome).not.toMatch(
         /\bas\s+(indicador_id|responsavel_id|conta_id|solicitante_id|autor_id|dono_id)\b/i,
       );
-      expect(v.corpo, v.nome).not.toMatch(/whatsapp|\bemail\b|mensagem|p\.nome\b|nome_exibicao/i);
+      expect(v.corpo, v.nome).not.toMatch(/whatsapp|\bemail\b|mensagem|p\.nome\b/i);
+      // nome_exibicao só entra como argumento da função que o reduz a "Maria S."
+      expect(
+        v.corpo.replace(/relacionamento_nome_publico\(\w+\.nome_exibicao\)/gi, ""),
+        v.nome,
+      ).not.toMatch(/nome_exibicao/i);
     }
   });
 
-  it("o nome de uma pessoa sai só por relacionamento_nome_publico (primeiro nome e inicial), sem grant", () => {
-    expect(corpoFuncao("relacionamento_nome_publico")).toMatch(/upper\(left\(/);
-    expect(modulo).not.toMatch(/grant execute on function public\.relacionamento_nome_publico\(/i);
+  it("o nome de uma pessoa sai só por relacionamento_nome_publico: função pura (texto), só authenticated", () => {
+    const f = corpoFuncao("relacionamento_nome_publico");
+    expect(f).toMatch(/upper\(left\(/);
+    expect(f).not.toMatch(/security definer|\bfrom\b/i);
+    expect(modulo).toMatch(
+      /grant execute on function public\.relacionamento_nome_publico\(text\) to authenticated;/i,
+    );
+    expect(modulo).not.toMatch(
+      /grant execute on function public\.relacionamento_nome_publico\([^)]*\) to[^;]*\banon\b/i,
+    );
   });
 
   it("nenhum privilégio de tabela a anon/authenticated nas tabelas de relacionamento; leitura só da própria", () => {

@@ -13,7 +13,7 @@ create view public.relacionamento_meus_membros as
 select m.id,
        m.perfil_id,
        pv.nome as perfil_nome,
-       public.relacionamento_nome_publico(m.conta_id) as pessoa_nome,
+       public.relacionamento_nome_publico(c.nome_exibicao) as pessoa_nome,
        (m.curtida_em is not null) as curtiu,
        m.curtida_em,
        (m.indicacoes_validas > 0) as indicou,
@@ -23,6 +23,7 @@ select m.id,
        m.indicacoes_validas + (case when m.curtida_em is not null then 1 else 0 end) as interacoes,
        m.entrou_em
 from public.relacionamento_membro m
+join public.contas_conta c on c.id = m.conta_id
 join public.perfis_perfil pf on pf.id = m.perfil_id
 left join public.perfis_perfil_versao pv on pv.id = pf.versao_aprovada_id
 where pf.responsavel_id = (select auth.uid());

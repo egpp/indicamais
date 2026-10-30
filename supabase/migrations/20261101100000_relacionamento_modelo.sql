@@ -182,15 +182,16 @@ create trigger relacionamento_membro_proteger before update on public.relacionam
 
 -- Nome público (IM-041, IM-050) -------------------------------------------------------------------------------------
 -- O que a empresa e os avisos mostram de uma pessoa: primeiro nome + inicial do último sobrenome ("Maria S."), a partir
--- do nome de exibição da conta. Nunca nome completo, e-mail nem telefone. Sem nome: "Pessoa". Uso interno (visões).
-create function public.relacionamento_nome_publico(p_conta uuid) returns text
-language plpgsql stable security definer set search_path = '' as $$
+-- do nome de exibição da conta. Nunca nome completo, e-mail nem telefone. Sem nome: "Pessoa".
+-- Função PURA sobre o texto (não lê tabela, não recebe id de conta): o PostgreSQL confere EXECUTE de funções chamadas por
+-- uma visão contra quem consulta, não contra o dono; por isso o grant a authenticated é seguro e necessário.
+create function public.relacionamento_nome_publico(p_nome text) returns text
+language plpgsql immutable set search_path = '' as $$
 declare
   v_nome text;
   v_partes text[];
 begin
-  select c.nome_exibicao into v_nome from public.contas_conta c where c.id = p_conta;
-  v_nome := btrim(regexp_replace(coalesce(v_nome, ''), '[[:space:]]+', ' ', 'g'));
+  v_nome := btrim(regexp_replace(coalesce(p_nome, ''), '[[:space:]]+', ' ', 'g'));
   if v_nome = '' then
     return 'Pessoa';
   end if;
@@ -200,7 +201,8 @@ begin
   end if;
   return left(v_partes[1], 30) || ' ' || upper(left(v_partes[array_length(v_partes, 1)], 1)) || '.';
 end $$;
-revoke all on function public.relacionamento_nome_publico(uuid) from public, anon, authenticated;
+revoke all on function public.relacionamento_nome_publico(text) from public, anon;
+grant execute on function public.relacionamento_nome_publico(text) to authenticated;
 
 -- Curtir (IM-043) ---------------------------------------------------------------------------------------------------
 -- CÓDIGOS DE ERRO (SQLSTATE): 42501 não autenticado; 22023 parâmetro inválido; P0002 perfil inexistente ou indisponível;

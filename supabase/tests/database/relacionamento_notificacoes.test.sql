@@ -112,9 +112,13 @@ select is(has_function_privilege('anon', 'public.relacionamento_curtir(uuid)', '
   or has_function_privilege('anon', 'public.notificacoes_marcar_lida(text,uuid)', 'EXECUTE')
   or has_function_privilege('anon', 'public.notificacoes_marcar_todas_lidas()', 'EXECUTE'), false, 'anon não executa nenhuma função nova');
 select is(has_function_privilege('authenticated', 'public.relacionamento_avaliar_pedido(uuid)', 'EXECUTE')
-  or has_function_privilege('authenticated', 'public.relacionamento_nome_publico(uuid)', 'EXECUTE')
   or has_function_privilege('authenticated', 'public.relacionamento_reprocessar_pendentes(integer)', 'EXECUTE'), false,
-  'avaliação, nome público e reprocessamento não são chamáveis por authenticated');
+  'avaliação e reprocessamento não são chamáveis por authenticated');
+select is(has_function_privilege('authenticated', 'public.relacionamento_nome_publico(text)', 'EXECUTE')
+  and not has_function_privilege('anon', 'public.relacionamento_nome_publico(text)', 'EXECUTE'), true, 'nome público: função pura, só authenticated (as visões a chamam em nome de quem consulta)');
+select is(public.relacionamento_nome_publico('  Maria   de Souza Lima '), 'Maria L.', 'nome público: primeiro nome e inicial do último sobrenome');
+select is(public.relacionamento_nome_publico('Fernanda'), 'Fernanda', 'nome público: nome único');
+select is(public.relacionamento_nome_publico(null), 'Pessoa', 'nome público: sem nome vira Pessoa');
 select is(has_function_privilege('service_role', 'public.relacionamento_reprocessar_pendentes(integer)', 'EXECUTE'), true, 'service_role executa o reprocessamento');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname ~* '^(relacionamento|notificacoes)_' and p.proname ~* '(comiss|remarket|campanha)'), 0,

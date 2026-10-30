@@ -14,7 +14,7 @@
 --   Nenhum aviso afirma compartilhamento externo: não existe tipo para isso.
 --
 -- PRIVACIDADE (IM-029, IM-041, IM-050)
---   * O ator (indicador/curtidor) aparece só como nome público (relacionamento_nome_publico: "Maria S.") e, nas abas, como
+--   * O ator (indicador/curtidor) aparece só como nome público (relacionamento_nome_publico: "Maria S.", função pura sobre o nome de exibição) e, nas abas, como
 --     referência opaca por responsável. Nunca WhatsApp, e-mail, nome completo nem conta_id. Dados do visitante (nome, WhatsApp,
 --     e-mail, mensagem) NÃO entram em nenhuma visão deste módulo.
 --   * Quem saiu da base do perfil (IM-045) deixa de aparecer pelo nome (ator_nome nulo) e deixa de receber avisos daquele perfil.
@@ -65,11 +65,12 @@ from (
          coalesce(pv.nome, iv.nome) as destino_nome,
          (case when exists (select 1 from public.relacionamento_saida s
                             where s.perfil_id = d.base_perfil_id and s.conta_id = l.indicador_id)
-               then null else public.relacionamento_nome_publico(l.indicador_id) end)::text as ator_nome,
+               then null else public.relacionamento_nome_publico(ci.nome_exibicao) end)::text as ator_nome,
          p.criado_em
   from public.relacionamento_entrada_decisao d
   join public.indicacoes_pedido_contato p on p.id = d.pedido_id
   join public.indicacoes_link l on l.id = p.link_id
+  join public.contas_conta ci on ci.id = l.indicador_id
   left join public.perfis_perfil pf on pf.id = p.perfil_id
   left join public.catalogo_item it on it.id = p.item_id
   left join public.perfis_perfil_versao pv on pv.id = pf.versao_aprovada_id
@@ -97,9 +98,10 @@ from (
   -- curtida, ao responsável do perfil (origem_id determinístico: descurtir e curtir de novo não cria aviso novo)
   select 'curtida'::text, md5('curtida:' || m.perfil_id::text || ':' || m.conta_id::text)::uuid, 'curtida'::text,
          'perfil'::text, m.perfil_id, pv.nome,
-         public.relacionamento_nome_publico(m.conta_id),
+         public.relacionamento_nome_publico(cc.nome_exibicao),
          m.curtida_em
   from public.relacionamento_membro m
+  join public.contas_conta cc on cc.id = m.conta_id
   join public.perfis_perfil pf on pf.id = m.perfil_id
   left join public.perfis_perfil_versao pv on pv.id = pf.versao_aprovada_id
   where m.curtida_em is not null and pf.responsavel_id = (select auth.uid())
@@ -126,7 +128,7 @@ select d.pedido_id as id,
        coalesce(pv.nome, iv.nome) as destino_nome,
        coalesce(p.perfil_id, it.perfil_id) as perfil_destino_id,
        coalesce(pv.nome, pvi.nome) as perfil_destino_nome,
-       (case when sx.perfil_id is not null then null else public.relacionamento_nome_publico(l.indicador_id) end)::text as indicador_nome,
+       (case when sx.perfil_id is not null then null else public.relacionamento_nome_publico(ci.nome_exibicao) end)::text as indicador_nome,
        (case when sx.perfil_id is not null then null
              else encode(sha256(convert_to('indicamais:indicador:' || l.indicador_id::text || ':' || (select auth.uid())::text, 'UTF8')), 'hex') end)::text as indicador_ref,
        (sx.perfil_id is not null) as indicador_saiu_da_base,
@@ -134,6 +136,7 @@ select d.pedido_id as id,
 from public.relacionamento_entrada_decisao d
 join public.indicacoes_pedido_contato p on p.id = d.pedido_id
 join public.indicacoes_link l on l.id = p.link_id
+join public.contas_conta ci on ci.id = l.indicador_id
 left join public.perfis_perfil pf on pf.id = p.perfil_id
 left join public.catalogo_item it on it.id = p.item_id
 left join public.perfis_perfil_versao pv on pv.id = pf.versao_aprovada_id
