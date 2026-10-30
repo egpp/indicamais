@@ -118,6 +118,16 @@ Aprovada pelo Emerson em 30/10/2026 ("siga as recomendações"), sobre proposta 
 - **Leitura dos avisos (IM-052):** sino com contador de não lidas, marcar como lida (uma ou todas) e abrir o item relacionado ao clicar.
 - Na Fase 5 os avisos aparecem só no app; e-mail depende de provedor (custo, decisão do Emerson).
 
+**Confirmações do Emerson em 30/10/2026 ("siga as recomendações", sobre o banco da Fase 5):**
+- O sino mostra só contato válido, curtida e resultado de revisão; contato sem link não aparece no sino (o e-mail do responsável continua cobrindo todos os pedidos quando houver provedor).
+- Contato válido repetido do mesmo visitante dentro de 30 dias conta como interação e gera aviso (o intervalo de 30 dias é regra dos pontos, não da base).
+- O responsável não pode curtir o próprio perfil.
+- Nome mostrado ao responsável: primeiro nome + inicial do último sobrenome ("Maria S."); sem nome, "Pessoa".
+- Quem saiu da base continua aparecendo como contato válido ao responsável, sem nome.
+- "Sair da base" é por perfil (sem "sair de todas").
+- Curtir/descurtir repetido tem limite simples por pessoa e perfil, para não inflar o histórico agregado. Valor inicial: 10 mudanças (curtir ou descurtir) em 24 horas por pessoa e perfil, configurável em `relacionamento_parametro`; excedido responde P0429 (mensagem neutra), sem gravar evento nem alterar a curtida.
+- Exclusão de conta de quem está na base fica junto da pendência de exclusão/LGPD antes do lançamento.
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)

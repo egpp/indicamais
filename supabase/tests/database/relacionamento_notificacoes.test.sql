@@ -72,17 +72,20 @@ $$;
 select is((select bool_and(relrowsecurity and relforcerowsecurity) from pg_class where oid = any(array[
   'public.relacionamento_membro'::regclass, 'public.relacionamento_saida'::regclass, 'public.relacionamento_evento'::regclass,
   'public.relacionamento_entrada_decisao'::regclass, 'public.relacionamento_falha'::regclass,
-  'public.notificacoes_leitura'::regclass])), true, 'RLS ativa e forçada nas 6 tabelas novas');
+  'public.notificacoes_leitura'::regclass, 'public.relacionamento_parametro'::regclass,
+  'public.relacionamento_alternancia'::regclass])), true, 'RLS ativa e forçada nas 8 tabelas novas');
 select is((select count(*)::int from pg_policies where schemaname = 'public'
   and tablename in ('relacionamento_membro', 'relacionamento_saida', 'relacionamento_evento', 'relacionamento_entrada_decisao',
-    'relacionamento_falha', 'notificacoes_leitura')), 24, '4 políticas (select, insert, update, delete) por tabela');
+    'relacionamento_falha', 'notificacoes_leitura', 'relacionamento_parametro', 'relacionamento_alternancia')), 32, '4 políticas (select, insert, update, delete) por tabela');
 select is((select bool_or(has_table_privilege('anon', t, p))
   from unnest(array['public.relacionamento_membro', 'public.relacionamento_saida', 'public.relacionamento_evento',
-    'public.relacionamento_entrada_decisao', 'public.relacionamento_falha', 'public.notificacoes_leitura']) t,
+    'public.relacionamento_entrada_decisao', 'public.relacionamento_falha', 'public.notificacoes_leitura',
+    'public.relacionamento_parametro', 'public.relacionamento_alternancia']) t,
   unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p), false, 'anon sem nenhum privilégio nas tabelas');
 select is((select bool_or(has_table_privilege('authenticated', t, p))
   from unnest(array['public.relacionamento_membro', 'public.relacionamento_saida', 'public.relacionamento_evento',
-    'public.relacionamento_entrada_decisao', 'public.relacionamento_falha']) t,
+    'public.relacionamento_entrada_decisao', 'public.relacionamento_falha',
+    'public.relacionamento_parametro', 'public.relacionamento_alternancia']) t,
   unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p), false, 'authenticated sem privilégio direto nas tabelas do relacionamento');
 select is((select bool_or(has_table_privilege('authenticated', 'public.notificacoes_leitura', p))
   from unnest(array['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p), false, 'authenticated só lê a leitura (e só a própria, por política)');
@@ -349,6 +352,26 @@ select is((select curtiu::text || '/' || indicou::text from public.relacionament
   'volta só com a curtida: o histórico de indicações não é restaurado');
 reset role;
 select is((select count(*)::int from public.relacionamento_saida where conta_id = 'cccccccc-0000-0000-0000-00000000000c'), 0, 'a marca de saída é removida pelo ato explícito');
+
+-- ===== Limite de alternância curtir/descurtir por pessoa e perfil (D-013) =====
+select is((select valor from public.relacionamento_parametro where chave = 'alternancia_limite'), 10, 'limite inicial: 10 alternâncias');
+select is((select valor from public.relacionamento_parametro where chave = 'alternancia_janela_horas'), 24, 'janela inicial: 24 horas');
+update public.relacionamento_parametro set valor = 5 where chave = 'alternancia_limite';
+select is((select count(*)::int from public.relacionamento_alternancia where conta_id = 'eeeeeeee-0000-0000-0000-00000000000e'), 3, 'E já alternou 3 vezes');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
+select is(public.relacionamento_descurtir('a0000000-0000-0000-0000-000000000001'), true, 'alternância 4');
+select is(public.relacionamento_curtir('a0000000-0000-0000-0000-000000000001'), true, 'alternância 5');
+reset role;
+select set_config('t.ev_desc', (select count(*)::text from public.relacionamento_evento where tipo = 'descurtida'), true);
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
+select throws_ok($$select public.relacionamento_descurtir('a0000000-0000-0000-0000-000000000001')$$, 'P0429', null, 'acima do limite: descurtir responde P0429');
+select is((select curtiu from public.relacionamento_minhas_participacoes where perfil_id = 'a0000000-0000-0000-0000-000000000001'), true, 'a curtida não foi alterada');
+reset role;
+select is((select count(*)::text from public.relacionamento_evento where tipo = 'descurtida'), current_setting('t.ev_desc'), 'nenhum evento gravado no bloqueio');
+select is((select count(*)::int from public.relacionamento_alternancia where conta_id = 'eeeeeeee-0000-0000-0000-00000000000e'), 5, 'bloqueio não conta como alternância');
+update public.relacionamento_parametro set valor = 10 where chave = 'alternancia_limite';
 
 -- ===== Falha não impede o pedido (IM-028) =====
 alter table public.relacionamento_membro add constraint falha_simulada

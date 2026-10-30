@@ -93,12 +93,38 @@ create table public.relacionamento_falha (
 );
 create index relacionamento_falha_pedido_idx on public.relacionamento_falha (pedido_id, criado_em desc);
 
+-- Limite de alternância curtir/descurtir (D-013): evita inflar o histórico agregado. Cada mudança real de estado grava uma
+-- linha (por pessoa e perfil); o histórico agregado segue anônimo. Só inserção; sem acesso de API.
+create table public.relacionamento_parametro (
+  chave text primary key,
+  valor integer not null,
+  minimo integer not null,
+  maximo integer not null,
+  descricao text not null,
+  constraint relacionamento_parametro_faixa check (minimo <= maximo and valor between minimo and maximo)
+);
+comment on table public.relacionamento_parametro is 'Parâmetros do módulo relacionamento. Só o administrador lê; valor muda por migração ou service_role.';
+insert into public.relacionamento_parametro (chave, valor, minimo, maximo, descricao) values
+  ('alternancia_limite', 10, 1, 1000, 'Máximo de mudanças curtir/descurtir por pessoa e perfil dentro da janela. Excedido: P0429, sem gravar evento nem alterar a curtida.'),
+  ('alternancia_janela_horas', 24, 1, 720, 'Janela do limite de alternância curtir/descurtir.');
+
+create table public.relacionamento_alternancia (
+  id bigint generated always as identity primary key,
+  perfil_id uuid not null references public.perfis_perfil (id) on delete restrict,
+  conta_id uuid not null references public.contas_conta (id) on delete restrict,
+  criado_em timestamptz not null default now()
+);
+create index relacionamento_alternancia_idx on public.relacionamento_alternancia (perfil_id, conta_id, criado_em desc);
+comment on table public.relacionamento_alternancia is 'Controle do limite de curtir/descurtir por pessoa e perfil (D-013). conta_id nunca é legível por API. Só inserção.';
+
 -- Privilégios e RLS -----------------------------------------------------------------------------------------------
 revoke all on public.relacionamento_membro from anon, authenticated;
 revoke all on public.relacionamento_saida from anon, authenticated;
 revoke all on public.relacionamento_evento from anon, authenticated;
 revoke all on public.relacionamento_entrada_decisao from anon, authenticated;
 revoke all on public.relacionamento_falha from anon, authenticated;
+revoke all on public.relacionamento_parametro from anon, authenticated;
+revoke all on public.relacionamento_alternancia from anon, authenticated;
 
 alter table public.relacionamento_membro enable row level security;
 alter table public.relacionamento_membro force row level security;
@@ -110,6 +136,10 @@ alter table public.relacionamento_entrada_decisao enable row level security;
 alter table public.relacionamento_entrada_decisao force row level security;
 alter table public.relacionamento_falha enable row level security;
 alter table public.relacionamento_falha force row level security;
+alter table public.relacionamento_parametro enable row level security;
+alter table public.relacionamento_parametro force row level security;
+alter table public.relacionamento_alternancia enable row level security;
+alter table public.relacionamento_alternancia force row level security;
 
 -- Escrita sempre negada ao cliente (só funções do banco escrevem). Leitura por política só do administrador, e sem
 -- privilégio de tabela o cliente lê apenas pelas visões definer.
@@ -158,10 +188,30 @@ create policy relacionamento_falha_update_negado on public.relacionamento_falha
 create policy relacionamento_falha_delete_negado on public.relacionamento_falha
   for delete to authenticated using (false);
 
+create policy relacionamento_parametro_select_admin on public.relacionamento_parametro
+  for select to authenticated using ((select public.administracao_eh_admin()));
+create policy relacionamento_parametro_insert_negado on public.relacionamento_parametro
+  for insert to authenticated with check (false);
+create policy relacionamento_parametro_update_negado on public.relacionamento_parametro
+  for update to authenticated using (false) with check (false);
+create policy relacionamento_parametro_delete_negado on public.relacionamento_parametro
+  for delete to authenticated using (false);
+
+create policy relacionamento_alternancia_select_admin on public.relacionamento_alternancia
+  for select to authenticated using ((select public.administracao_eh_admin()));
+create policy relacionamento_alternancia_insert_negado on public.relacionamento_alternancia
+  for insert to authenticated with check (false);
+create policy relacionamento_alternancia_update_negado on public.relacionamento_alternancia
+  for update to authenticated using (false) with check (false);
+create policy relacionamento_alternancia_delete_negado on public.relacionamento_alternancia
+  for delete to authenticated using (false);
+
 -- Gatilhos: histórico só de inserção (vale para service_role e donos) ------------------------------------------------
 create trigger relacionamento_evento_imutavel before update or delete on public.relacionamento_evento
   for each row execute function public.administracao_registro_imutavel();
 create trigger relacionamento_decisao_imutavel before update or delete on public.relacionamento_entrada_decisao
+  for each row execute function public.administracao_registro_imutavel();
+create trigger relacionamento_alternancia_imutavel before update or delete on public.relacionamento_alternancia
   for each row execute function public.administracao_registro_imutavel();
 create trigger relacionamento_falha_imutavel before update or delete on public.relacionamento_falha
   for each row execute function public.administracao_registro_imutavel();
@@ -204,9 +254,28 @@ end $$;
 revoke all on function public.relacionamento_nome_publico(text) from public, anon;
 grant execute on function public.relacionamento_nome_publico(text) to authenticated;
 
+-- Limite de alternância (D-013). Chamada dentro do lock da pessoa/perfil, depois de confirmar que haverá mudança de estado:
+-- se o limite da janela foi atingido, P0429 (nada é gravado); senão registra a alternância.
+create function public.relacionamento_checar_alternancia(p_perfil_id uuid, p_conta_id uuid) returns void
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_limite integer;
+  v_horas integer;
+begin
+  select valor into v_limite from public.relacionamento_parametro where chave = 'alternancia_limite';
+  select valor into v_horas from public.relacionamento_parametro where chave = 'alternancia_janela_horas';
+  if (select count(*) from public.relacionamento_alternancia a
+      where a.perfil_id = p_perfil_id and a.conta_id = p_conta_id
+        and a.criado_em > now() - make_interval(hours => v_horas)) >= v_limite then
+    raise exception 'muitas alterações em pouco tempo: tente novamente mais tarde' using errcode = 'P0429';
+  end if;
+  insert into public.relacionamento_alternancia (perfil_id, conta_id) values (p_perfil_id, p_conta_id);
+end $$;
+revoke all on function public.relacionamento_checar_alternancia(uuid, uuid) from public, anon, authenticated;
+
 -- Curtir (IM-043) ---------------------------------------------------------------------------------------------------
 -- CÓDIGOS DE ERRO (SQLSTATE): 42501 não autenticado; 22023 parâmetro inválido; P0002 perfil inexistente ou indisponível;
--- P0403 o responsável não curte o próprio perfil.
+-- P0403 o responsável não curte o próprio perfil; P0429 limite de curtir/descurtir por pessoa e perfil (D-013).
 -- Devolve true se a curtida foi criada agora; false se já existia (idempotente). Quem tinha saído da base e curte de novo
 -- volta por ato próprio. Sem pontos, sem comissão (IM-042).
 create function public.relacionamento_curtir(p_perfil_id uuid) returns boolean
@@ -237,6 +306,7 @@ begin
     return false;
   end if;
 
+  perform public.relacionamento_checar_alternancia(p_perfil_id, v_uid);
   delete from public.relacionamento_saida s where s.perfil_id = p_perfil_id and s.conta_id = v_uid;
   insert into public.relacionamento_membro (perfil_id, conta_id, curtida_em)
   values (p_perfil_id, v_uid, now())
@@ -266,6 +336,7 @@ begin
   if not found or v_curtida is null then
     return false;
   end if;
+  perform public.relacionamento_checar_alternancia(p_perfil_id, v_uid);
   if v_indicacoes = 0 then
     delete from public.relacionamento_membro m where m.perfil_id = p_perfil_id and m.conta_id = v_uid;
   else

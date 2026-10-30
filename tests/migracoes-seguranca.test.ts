@@ -503,13 +503,15 @@ describe("migrações: relacionamento e notificações (IM-039 a IM-045, IM-047 
   }));
   const tabelasModulo = [...modulo.matchAll(/create table public\.(\w+)/gi)].map((m) => m[1]!);
 
-  it("tem as seis tabelas e as cinco visões", () => {
+  it("tem as oito tabelas e as cinco visões", () => {
     expect([...tabelasModulo].sort()).toEqual([
       "notificacoes_leitura",
+      "relacionamento_alternancia",
       "relacionamento_entrada_decisao",
       "relacionamento_evento",
       "relacionamento_falha",
       "relacionamento_membro",
+      "relacionamento_parametro",
       "relacionamento_saida",
     ]);
     expect(visoes.map((v) => v.nome).sort()).toEqual([
@@ -564,6 +566,7 @@ describe("migrações: relacionamento e notificações (IM-039 a IM-045, IM-047 
       "relacionamento_evento",
       "relacionamento_entrada_decisao",
       "relacionamento_falha",
+      "relacionamento_alternancia",
       "notificacoes_leitura",
     ]) {
       expect(modulo, t).toMatch(
@@ -573,6 +576,21 @@ describe("migrações: relacionamento e notificações (IM-039 a IM-045, IM-047 
         ),
       );
     }
+  });
+
+  it("curtir e descurtir passam pelo limite de alternância (P0429), sem grant a API (D-013)", () => {
+    for (const f of ["relacionamento_curtir", "relacionamento_descurtir"]) {
+      expect(corpoFuncao(f), f).toMatch(/relacionamento_checar_alternancia\(/i);
+    }
+    const c = corpoFuncao("relacionamento_checar_alternancia");
+    expect(c).toMatch(/P0429/);
+    expect(c).toMatch(/alternancia_limite/);
+    expect(modulo).toMatch(
+      /revoke all on function public\.relacionamento_checar_alternancia\(uuid, uuid\) from public, anon, authenticated;/i,
+    );
+    expect(modulo).not.toMatch(
+      /grant execute on function public\.relacionamento_checar_alternancia/i,
+    );
   });
 
   it("o histórico agregado não tem coluna de pessoa (anônimo, IM-045)", () => {
