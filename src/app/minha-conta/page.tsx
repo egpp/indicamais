@@ -4,10 +4,14 @@ import { criarServicoContas } from "@/modules/contas";
 import { criarClienteServidor } from "@/shared/supabase/servidor";
 import { formatarE164BR } from "@/shared/formatacao/telefone";
 import { sair } from "../acoes-conta";
-import { FormNome, FormWhatsapp } from "../_componentes/formularios";
+import { FormNome, FormRedefinirSenha, FormWhatsapp } from "../_componentes/formularios";
+import { FormDesistirEncerramento, FormEncerrarConta } from "../_componentes/form-ciclo-vida";
 import Link from "next/link";
+import { NavAdministracao } from "../_componentes/nav-administracao";
 import { Aviso, CartaoPagina } from "../_componentes/ui";
 import { criarBancoContas } from "../_lib/banco-contas";
+import { formatarDataSP } from "../_lib/apresentacao";
+import { obterContextoCicloVida } from "../_lib/contexto-ciclo-vida";
 
 export const metadata: Metadata = { title: "Minha conta | IndicaMais", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -19,7 +23,18 @@ export default async function PaginaMinhaConta({ searchParams }: PageProps<"/min
 
   const params = await searchParams;
   const senhaAlterada = params.aviso === "senha";
-  const resultado = await criarServicoContas(criarBancoContas(supabase)).obterMinhaConta();
+  const ciclo = await obterContextoCicloVida("/minha-conta");
+  const [resultado, estado, permissoes, geral] = await Promise.all([
+    criarServicoContas(criarBancoContas(supabase)).obterMinhaConta(),
+    ciclo.conta.obterMeuEstado(),
+    ciclo.permissoes(),
+    ciclo.ehAdministradorGeral(),
+  ]);
+  const encerramentoAte =
+    estado.ok && estado.valor?.situacao === "encerramento_solicitado"
+      ? formatarDataSP(estado.valor.encerramentoExecutarApos)
+      : null;
+  const temAdministracao = geral || permissoes.length > 0;
 
   return (
     <CartaoPagina titulo="Minha conta">
@@ -79,6 +94,48 @@ export default async function PaginaMinhaConta({ searchParams }: PageProps<"/min
             <Link href="/minhas-revisoes">Revisões</Link>
           </li>
         </ul>
+      </section>
+
+      {temAdministracao ? (
+        <section aria-labelledby="titulo-administracao">
+          <h2 id="titulo-administracao">Administração</h2>
+          <NavAdministracao permissoes={permissoes} geral={geral} />
+        </section>
+      ) : null}
+
+      <section aria-labelledby="titulo-senha">
+        <h2 id="titulo-senha">Alterar senha</h2>
+        <FormRedefinirSenha />
+      </section>
+
+      <section aria-labelledby="titulo-encerrar">
+        <h2 id="titulo-encerrar">Encerrar conta</h2>
+        {encerramentoAte ? (
+          <>
+            <Aviso tipo="atencao">
+              Encerramento solicitado. Sua conta será encerrada em definitivo após {encerramentoAte}
+              . Até lá, você pode desistir.
+            </Aviso>
+            <FormDesistirEncerramento />
+          </>
+        ) : (
+          <>
+            <p>
+              Ao encerrar, há uma carência de 30 dias para você desistir. Enquanto isso e depois:
+            </p>
+            <ul>
+              <li>Seus perfis ficam despublicados, sem transferência para outra pessoa.</li>
+              <li>
+                Ao fim da carência, seus dados pessoais (nome, telefone e e-mail) são anonimizados.
+              </li>
+              <li>
+                Históricos necessários, como pontos e auditoria, são preservados sem identificar
+                você.
+              </li>
+            </ul>
+            <FormEncerrarConta />
+          </>
+        )}
       </section>
 
       <form action={sair}>
