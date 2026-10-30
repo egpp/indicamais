@@ -1172,8 +1172,608 @@ export type Database = {
           },
         ]
       }
+      pontos_beneficio: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          criado_em: string
+          id: string
+          perfil_id: string
+          versao_aprovada_id: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          perfil_id: string
+          versao_aprovada_id?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          perfil_id?: string
+          versao_aprovada_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_aprovada_fk"
+            columns: ["versao_aprovada_id", "id"]
+            isOneToOne: false
+            referencedRelation: "administracao_beneficios_aguardando_aceite"
+            referencedColumns: ["versao_id", "beneficio_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_aprovada_fk"
+            columns: ["versao_aprovada_id", "id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_beneficios"
+            referencedColumns: ["versao_id", "beneficio_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_aprovada_fk"
+            columns: ["versao_aprovada_id", "id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio_versao"
+            referencedColumns: ["id", "beneficio_id"]
+          },
+        ]
+      }
+      pontos_beneficio_revisao: {
+        Row: {
+          autor_id: string
+          beneficio_id: string
+          decidida_em: string
+          decisao: string
+          decisor: string
+          id: string
+          motivo: string | null
+          versao_aprovada_anterior_id: string | null
+          versao_id: string
+        }
+        Insert: {
+          autor_id: string
+          beneficio_id: string
+          decidida_em?: string
+          decisao: string
+          decisor?: string
+          id?: string
+          motivo?: string | null
+          versao_aprovada_anterior_id?: string | null
+          versao_id: string
+        }
+        Update: {
+          autor_id?: string
+          beneficio_id?: string
+          decidida_em?: string
+          decisao?: string
+          decisor?: string
+          id?: string
+          motivo?: string | null
+          versao_aprovada_anterior_id?: string | null
+          versao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_revisao_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_aprovada_anterior_id_fkey"
+            columns: ["versao_aprovada_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_beneficios_aguardando_aceite"
+            referencedColumns: ["versao_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_aprovada_anterior_id_fkey"
+            columns: ["versao_aprovada_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_beneficios"
+            referencedColumns: ["versao_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_aprovada_anterior_id_fkey"
+            columns: ["versao_aprovada_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio_versao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_id_fkey"
+            columns: ["versao_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_beneficios_aguardando_aceite"
+            referencedColumns: ["versao_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_id_fkey"
+            columns: ["versao_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_beneficios"
+            referencedColumns: ["versao_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_revisao_versao_id_fkey"
+            columns: ["versao_id"]
+            isOneToOne: true
+            referencedRelation: "pontos_beneficio_versao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pontos_beneficio_versao: {
+        Row: {
+          beneficio_id: string
+          condicoes: string | null
+          criado_em: string
+          descricao: string | null
+          enviada_em: string | null
+          id: string
+          limite_por_pessoa: number | null
+          limite_total: number | null
+          nome: string | null
+          origem: string
+          pontos_necessarios: number | null
+          prazo_resgate_ate: string | null
+          prazo_uso_dias: number | null
+          situacao: string
+        }
+        Insert: {
+          beneficio_id: string
+          condicoes?: string | null
+          criado_em?: string
+          descricao?: string | null
+          enviada_em?: string | null
+          id?: string
+          limite_por_pessoa?: number | null
+          limite_total?: number | null
+          nome?: string | null
+          origem?: string
+          pontos_necessarios?: number | null
+          prazo_resgate_ate?: string | null
+          prazo_uso_dias?: number | null
+          situacao?: string
+        }
+        Update: {
+          beneficio_id?: string
+          condicoes?: string | null
+          criado_em?: string
+          descricao?: string | null
+          enviada_em?: string | null
+          id?: string
+          limite_por_pessoa?: number | null
+          limite_total?: number | null
+          nome?: string | null
+          origem?: string
+          pontos_necessarios?: number | null
+          prazo_resgate_ate?: string | null
+          prazo_uso_dias?: number | null
+          situacao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pontos_decisao: {
+        Row: {
+          chave_hash: string
+          decidido_em: string
+          destino_ref_id: string
+          destino_ref_tipo: string
+          id: number
+          indicador_id: string | null
+          intervalo_dias: number
+          link_id: string | null
+          motivo: string
+          pedido_criado_em: string
+          pedido_id: string
+          pontos: number
+          pontuado: boolean
+        }
+        Insert: {
+          chave_hash: string
+          decidido_em?: string
+          destino_ref_id: string
+          destino_ref_tipo: string
+          id?: never
+          indicador_id?: string | null
+          intervalo_dias: number
+          link_id?: string | null
+          motivo: string
+          pedido_criado_em: string
+          pedido_id: string
+          pontos?: number
+          pontuado: boolean
+        }
+        Update: {
+          chave_hash?: string
+          decidido_em?: string
+          destino_ref_id?: string
+          destino_ref_tipo?: string
+          id?: never
+          indicador_id?: string | null
+          intervalo_dias?: number
+          link_id?: string | null
+          motivo?: string
+          pedido_criado_em?: string
+          pedido_id?: string
+          pontos?: number
+          pontuado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_decisao_indicador_id_fkey"
+            columns: ["indicador_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_link"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pontos_falha: {
+        Row: {
+          criado_em: string
+          erro: string
+          id: number
+          pedido_id: string
+        }
+        Insert: {
+          criado_em?: string
+          erro: string
+          id?: never
+          pedido_id: string
+        }
+        Update: {
+          criado_em?: string
+          erro?: string
+          id?: never
+          pedido_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pontos_lancamento: {
+        Row: {
+          autor_id: string | null
+          categoria: string | null
+          confirmou_saldo_negativo: boolean
+          criado_em: string
+          destino_item_id: string | null
+          destino_nome: string
+          destino_perfil_id: string | null
+          id: string
+          indicador_id: string
+          motivo: string | null
+          original_id: string | null
+          pedido_id: string | null
+          pontos: number
+          tipo: string
+        }
+        Insert: {
+          autor_id?: string | null
+          categoria?: string | null
+          confirmou_saldo_negativo?: boolean
+          criado_em?: string
+          destino_item_id?: string | null
+          destino_nome: string
+          destino_perfil_id?: string | null
+          id?: string
+          indicador_id: string
+          motivo?: string | null
+          original_id?: string | null
+          pedido_id?: string | null
+          pontos: number
+          tipo: string
+        }
+        Update: {
+          autor_id?: string | null
+          categoria?: string | null
+          confirmou_saldo_negativo?: boolean
+          criado_em?: string
+          destino_item_id?: string | null
+          destino_nome?: string
+          destino_perfil_id?: string | null
+          id?: string
+          indicador_id?: string
+          motivo?: string | null
+          original_id?: string | null
+          pedido_id?: string | null
+          pontos?: number
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_lancamento_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_item_id_fkey"
+            columns: ["destino_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_item_id_fkey"
+            columns: ["destino_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_item_id_fkey"
+            columns: ["destino_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_perfil_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_perfil_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_perfil_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_indicador_id_fkey"
+            columns: ["indicador_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_original_fk"
+            columns: ["original_id", "indicador_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_lancamento"
+            referencedColumns: ["id", "indicador_id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pontos_parametro: {
+        Row: {
+          atualizado_em: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          chave?: string
+          descricao?: string
+          maximo?: number
+          minimo?: number
+          valor?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
+      administracao_beneficios_aguardando_aceite: {
+        Row: {
+          beneficio_id: string | null
+          enviada_em: string | null
+          nome: string | null
+          perfil_id: string | null
+          versao_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       administracao_consulta_negocios: {
         Row: {
           alvo_id: string | null
@@ -1195,6 +1795,53 @@ export type Database = {
           versao_id: string | null
         }
         Relationships: []
+      }
+      administracao_fila_beneficios: {
+        Row: {
+          beneficio_id: string | null
+          eh_edicao: boolean | null
+          enviada_em: string | null
+          nome: string | null
+          perfil_id: string | null
+          versao_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_versao_beneficio_id_fkey"
+            columns: ["beneficio_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_beneficio_publico"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       administracao_fila_contatos: {
         Row: {
@@ -1282,6 +1929,148 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      administracao_pontos_decisoes: {
+        Row: {
+          decidido_em: string | null
+          destino_id: string | null
+          destino_tipo: string | null
+          id: number | null
+          indicador_ref: string | null
+          intervalo_dias: number | null
+          motivo: string | null
+          pedido_criado_em: string | null
+          pedido_id: string | null
+          pontos: number | null
+          pontuado: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_decisao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      administracao_pontos_falhas: {
+        Row: {
+          falhas: number | null
+          pedido_id: string | null
+          pendente: boolean | null
+          ultima_falha_em: string | null
+          ultimo_erro: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_falha_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      administracao_pontos_lancamentos: {
+        Row: {
+          categoria: string | null
+          confirmou_saldo_negativo: boolean | null
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          id: string | null
+          indicador_ref: string | null
+          motivo: string | null
+          original_id: string | null
+          pedido_id: string | null
+          pontos: number | null
+          situacao: string | null
+          tipo: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "administracao_fila_contatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_meus_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_minhas_indicacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "indicacoes_pedido_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      administracao_pontos_saldos: {
+        Row: {
+          indicador_ref: string | null
+          saldo: number | null
+          total_creditado: number | null
+          total_revertido: number | null
+          ultimo_lancamento_em: string | null
+        }
+        Relationships: []
       }
       catalogo_item_publico: {
         Row: {
@@ -1478,6 +2267,68 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pontos_beneficio_publico: {
+        Row: {
+          condicoes: string | null
+          criado_em: string | null
+          descricao: string | null
+          id: string | null
+          limite_por_pessoa: number | null
+          limite_total: number | null
+          nome: string | null
+          perfil_id: string | null
+          pontos_necessarios: number | null
+          prazo_resgate_ate: string | null
+          prazo_uso_dias: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pontos_meu_saldo: {
+        Row: {
+          saldo: number | null
+          total_creditado: number | null
+          total_revertido: number | null
+          ultimo_lancamento_em: string | null
+        }
+        Relationships: []
+      }
+      pontos_meus_lancamentos: {
+        Row: {
+          categoria: string | null
+          criado_em: string | null
+          destino_id: string | null
+          destino_nome: string | null
+          destino_tipo: string | null
+          id: string | null
+          original_id: string | null
+          pontos: number | null
+          situacao: string | null
+          tipo: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {
@@ -1732,6 +2583,128 @@ export type Database = {
       perfis_perfil_disponivel: {
         Args: { p_perfil_id: string }
         Returns: boolean
+      }
+      pontos_admin_cadastrar_beneficio: {
+        Args: {
+          p_condicoes?: string
+          p_descricao: string
+          p_limite_por_pessoa?: number
+          p_limite_total?: number
+          p_motivo: string
+          p_nome: string
+          p_perfil_id: string
+          p_pontos_necessarios: number
+          p_prazo_resgate_ate?: string
+          p_prazo_uso_dias?: number
+        }
+        Returns: {
+          o_beneficio_id: string
+          o_versao_id: string
+        }[]
+      }
+      pontos_admin_definir_beneficio_ativo: {
+        Args: { p_ativo: boolean; p_beneficio_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      pontos_admin_editar_proposta_beneficio: {
+        Args: {
+          p_condicoes?: string
+          p_descricao: string
+          p_limite_por_pessoa?: number
+          p_limite_total?: number
+          p_motivo: string
+          p_nome: string
+          p_pontos_necessarios: number
+          p_prazo_resgate_ate?: string
+          p_prazo_uso_dias?: number
+          p_versao_id: string
+        }
+        Returns: string
+      }
+      pontos_avaliar_pedido: { Args: { p_pedido_id: string }; Returns: number }
+      pontos_beneficio_no_prazo: {
+        Args: { p_versao_id: string }
+        Returns: boolean
+      }
+      pontos_criar_beneficio: {
+        Args: {
+          p_condicoes?: string
+          p_descricao: string
+          p_limite_por_pessoa?: number
+          p_limite_total?: number
+          p_nome: string
+          p_perfil_id: string
+          p_pontos_necessarios: number
+          p_prazo_resgate_ate?: string
+          p_prazo_uso_dias?: number
+        }
+        Returns: {
+          o_beneficio_id: string
+          o_versao_id: string
+        }[]
+      }
+      pontos_decidir_beneficio_versao: {
+        Args: { p_aprovar: boolean; p_motivo?: string; p_versao_id: string }
+        Returns: undefined
+      }
+      pontos_definir_beneficio_ativo: {
+        Args: { p_ativo: boolean; p_beneficio_id: string }
+        Returns: undefined
+      }
+      pontos_definir_parametro: {
+        Args: { p_chave: string; p_motivo: string; p_valor: number }
+        Returns: undefined
+      }
+      pontos_eh_dono_beneficio: {
+        Args: { p_beneficio_id: string }
+        Returns: boolean
+      }
+      pontos_enviar_beneficio_versao: {
+        Args: { p_versao_id: string }
+        Returns: undefined
+      }
+      pontos_parametro_valor: { Args: { p_chave: string }; Returns: number }
+      pontos_parametros_atuais: {
+        Args: never
+        Returns: {
+          o_intervalo_dias: number
+          o_pontos_por_indicacao: number
+        }[]
+      }
+      pontos_reprocessar_pedido: {
+        Args: { p_motivo: string; p_pedido_id: string }
+        Returns: number
+      }
+      pontos_reprocessar_pendentes: {
+        Args: { p_limite?: number }
+        Returns: number
+      }
+      pontos_responder_proposta_beneficio: {
+        Args: { p_aceitar: boolean; p_motivo?: string; p_versao_id: string }
+        Returns: undefined
+      }
+      pontos_reverter_credito: {
+        Args: {
+          p_categoria: string
+          p_confirmar_saldo_negativo?: boolean
+          p_lancamento_id: string
+          p_motivo: string
+        }
+        Returns: string
+      }
+      pontos_salvar_beneficio: {
+        Args: {
+          p_beneficio_id: string
+          p_condicoes?: string
+          p_descricao: string
+          p_limite_por_pessoa?: number
+          p_limite_total?: number
+          p_nome: string
+          p_pontos_necessarios: number
+          p_prazo_resgate_ate?: string
+          p_prazo_uso_dias?: number
+        }
+        Returns: string
       }
     }
     Enums: {

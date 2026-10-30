@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FormParametro } from "../../_componentes/form-indicacoes-admin";
+import { FormParametroPontos } from "../../_componentes/form-pontos";
 import { PainelPagina } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora } from "../../_lib/apresentacao";
 import { exigirAdministrador, obterContextoIndicacoes } from "../../_lib/contexto-indicacoes";
+import { exigirAdministradorPontos, obterContextoPontos } from "../../_lib/contexto-pontos";
 import { SEM_INDEXACAO } from "../../_lib/pagina";
 
 export const metadata: Metadata = { title: "Parâmetros | IndicaMais", ...SEM_INDEXACAO };
@@ -18,6 +20,9 @@ export default async function PaginaParametros() {
   const ctx = await obterContextoIndicacoes("/administracao/parametros");
   await exigirAdministrador(ctx);
   const r = await ctx.servico.listarParametros();
+  const ctxPontos = await obterContextoPontos("/administracao/parametros");
+  await exigirAdministradorPontos(ctxPontos);
+  const pontos = await ctxPontos.servico.parametrosAtuais();
   return (
     <PainelPagina
       titulo="Parâmetros"
@@ -63,6 +68,45 @@ export default async function PaginaParametros() {
           ))}
         </ul>
       )}
+
+      <section aria-labelledby="titulo-pontos">
+        <h2 id="titulo-pontos">Pontos</h2>
+        <p className="ajuda">
+          Quantos pontos vale uma indicação válida e o intervalo para o mesmo contato pontuar de
+          novo no mesmo destino. Alterações valem para os próximos pedidos. Cada alteração exige
+          motivo e fica na auditoria; valores fora da faixa permitida são recusados.
+        </p>
+        {!pontos.ok ? (
+          <Aviso tipo="erro">{pontos.erro.mensagem}</Aviso>
+        ) : (
+          <ul className="lista-cartoes">
+            <li className="cartao">
+              <h3>Pontos por indicação válida</h3>
+              <p>Valor atual: {pontos.valor.pontosPorIndicacao}</p>
+              <details>
+                <summary className="botao-texto">Alterar</summary>
+                <FormParametroPontos
+                  chave="pontos_por_indicacao"
+                  valor={pontos.valor.pontosPorIndicacao}
+                />
+              </details>
+            </li>
+            <li className="cartao">
+              <h3>Intervalo entre pontuações (dias)</h3>
+              <p>Valor atual: {pontos.valor.intervaloDias}</p>
+              <details>
+                <summary className="botao-texto">Alterar</summary>
+                <FormParametroPontos chave="intervalo_dias" valor={pontos.valor.intervaloDias} />
+              </details>
+            </li>
+          </ul>
+        )}
+        <p>
+          <Link className="botao botao-secundario" href="/administracao/pontos">
+            Ver lançamentos de pontos
+          </Link>
+        </p>
+      </section>
     </PainelPagina>
   );
 }

@@ -84,6 +84,22 @@ Aprovada pelo Emerson em 30/10/2026 ("sim"), sobre proposta do gestor, para redu
 - Julgamento de aparência e de uso no celular continua com o Emerson.
 - Nota de ambiente: no dev, "Confirm email" do Supabase está desligado para os testes. **Religar antes do lançamento.**
 
+## D-012 · 30/10/2026 · Parâmetros iniciais dos pontos (resolve IM-031)
+**IDs:** IM-030, IM-031
+Decidida pelo Emerson em 30/10/2026 ("10 pontos a cada 30 dias, mas isso será configurável no painel do admin posteriormente"):
+- Valores iniciais: **10 pontos por indicação válida** e **intervalo de 30 dias** entre pontuações do mesmo visitante no mesmo destino (IM-032, IM-033).
+- Os dois valores ficam em configuração central no banco (IM-030), nunca fixos no código. A edição pelo painel do administrador (com motivo e auditoria) vem depois; até lá, a alteração é feita pela mesma rotina auditada dos demais parâmetros.
+- O prazo de 15 dias citado no histórico fica descartado.
+- **Interpretação do gestor, a confirmar com o Emerson:** "indicação válida" = pedido de contato recebido pelo link do indicador, no destino do link, com perfil disponível, sem ser autoindicação (IM-034) e fora do intervalo do mesmo visitante e destino (IM-032, IM-033). Visita ou compartilhamento isolado não pontua (IM-025). Os pontos entram assim que o pedido é registrado, sem confirmação do responsável. Resgates seguem desativados (IM-037), então os pontos só acumulam saldo.
+
+**Confirmações do Emerson em 30/10/2026 ("siga as recomendações"):**
+- A interpretação de "indicação válida" acima fica **confirmada**: pontos entram ao registrar o pedido, sem confirmação do responsável.
+- Reversão de crédito **não reabre** o intervalo: o prazo de 30 dias segue contando desde o último pedido pontuado.
+- Benefícios: prazo de uso como "N dias depois do resgate"; prazo de resgate como data. Benefício com prazo de resgate vencido sai da vitrine pública.
+- Benefício cadastrado pelo administrador exige aceitação do responsável do perfil; o administrador só edita o que o responsável propôs.
+- Motivo da reversão visível ao indicador: categorias fixas (ex.: "contato duplicado", "indicação inválida"). A observação interna é só do administrador.
+- O indicador não vê por que um contato não pontuou (evita revelar que o visitante já contatou a empresa).
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)

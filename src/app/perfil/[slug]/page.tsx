@@ -2,9 +2,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { BeneficioPublico } from "@/modules/pontos";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { CabecalhoPublico, GradeCards, dadosDeItem, localTexto } from "../../_componentes/publico";
+import { AVISO_SEM_RESGATE, ListaBeneficiosPublicos } from "../../_componentes/pontos";
 import { nomeDaCategoria } from "../../_lib/apresentacao";
+import { obterServicoPontosPublico } from "../../_lib/contexto-pontos";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
 import { carregarPerfilPublico } from "../../_lib/paginas-publicas";
 import { DESCRICAO_PADRAO, metadadosPublicos, resumir } from "../../_lib/metadados-publicos";
@@ -49,6 +52,14 @@ export default async function PaginaPerfilPublico({
   const nome = perfil.nome ?? "Perfil sem nome";
   const local = localTexto(perfil.cidade, perfil.uf);
   const imagem = perfil.imagemPath ? urls[perfil.imagemPath] : undefined;
+  // IM-036: vitrine informativa; falha na leitura não derruba a página do perfil.
+  let beneficios: BeneficioPublico[] = [];
+  try {
+    const lista = await obterServicoPontosPublico().listarBeneficiosPublicos();
+    if (lista.ok) beneficios = lista.valor.filter((b) => b.perfilId === perfil.id);
+  } catch {
+    beneficios = [];
+  }
   const nomesCategorias = [perfil.categoriaPrincipalId, ...perfil.categoriasSecundariasIds]
     .filter((c): c is string => Boolean(c))
     .map((c) => nomeDaCategoria(c, categorias));
@@ -129,6 +140,13 @@ export default async function PaginaPerfilPublico({
           <GradeCards cards={itens.map((i) => dadosDeItem(i, categorias, local))} urls={urls} />
         )}
       </section>
+      {beneficios.length > 0 ? (
+        <section aria-labelledby="titulo-beneficios">
+          <h2 id="titulo-beneficios">Benefícios em pontos</h2>
+          <p className="ajuda">{AVISO_SEM_RESGATE}</p>
+          <ListaBeneficiosPublicos beneficios={beneficios} />
+        </section>
+      ) : null}
       <p className="rodape-links">
         <Link href="/">Voltar para a página inicial</Link>
       </p>

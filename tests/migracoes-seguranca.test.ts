@@ -104,6 +104,7 @@ describe("migrações: funções", () => {
       "catalogo_imagem_publica",
       "indicacoes_enviar_contato",
       "perfis_perfil_disponivel",
+      "pontos_beneficio_no_prazo",
     ]);
   });
 });
@@ -147,20 +148,24 @@ describe("migrações: visões", () => {
   });
 
   it("visões sem security_invoker são só as conhecidas, sem acesso a anon e travadas por quem chama", () => {
-    const definer = visoes
-      .filter((v) => !v.invoker)
-      .map((v) => v.nome)
-      .sort();
+    // Visão recriada em migração posterior aparece mais de uma vez: deduplica por nome.
+    const definer = [...new Set(visoes.filter((v) => !v.invoker).map((v) => v.nome))].sort();
     expect(definer).toEqual([
       "administracao_consulta_negocios",
       "administracao_fila_contatos",
       "administracao_fila_pendencias",
       "administracao_meus_resultados",
+      "administracao_pontos_decisoes",
+      "administracao_pontos_falhas",
+      "administracao_pontos_lancamentos",
+      "administracao_pontos_saldos",
       "catalogo_meus_itens",
       "indicacoes_meus_links",
       "indicacoes_meus_pedidos",
       "indicacoes_minhas_indicacoes",
       "perfis_meus_perfis",
+      "pontos_meu_saldo",
+      "pontos_meus_lancamentos",
     ]);
     for (const v of visoes.filter((x) => !x.invoker)) {
       expect(v.corpo, `${v.nome} sem filtro por auth.uid()/administrador`).toMatch(
@@ -296,6 +301,137 @@ describe("migrações: módulo indicacoes (IM-024 a IM-029, IM-041, IM-050, IM-0
   });
 });
 
+describe("migrações: módulo pontos (IM-030 a IM-036, IM-078, IM-079, IM-086)", () => {
+  const modulo = semComentario(
+    sql
+      .filter((s) => /pontos/.test(s.n))
+      .map((s) => s.t)
+      .join("\n"),
+  );
+  // Função recriada em migração posterior: vale a ÚLTIMA definição.
+  const corpoFuncao = (nome: string) =>
+    [...modulo.matchAll(new RegExp(`create function public\\.${nome}\\(([\\s\\S]*?)\\$\\$;`, "gi"))]
+      .map((m) => m[0])
+      .at(-1) ?? "";
+
+  it("tem as sete tabelas do módulo", () => {
+    expect([...modulo.matchAll(/create table public\.(\w+)/gi)].map((m) => m[1]).sort()).toEqual([
+      "pontos_beneficio",
+      "pontos_beneficio_revisao",
+      "pontos_beneficio_versao",
+      "pontos_decisao",
+      "pontos_falha",
+      "pontos_lancamento",
+      "pontos_parametro",
+    ]);
+  });
+
+  it("lançamentos, decisões, falhas e revisões são só de inserção (gatilho vale para service_role)", () => {
+    for (const t of [
+      "pontos_lancamento",
+      "pontos_decisao",
+      "pontos_falha",
+      "pontos_beneficio_revisao",
+    ]) {
+      expect(modulo, t).toMatch(
+        new RegExp(
+          `before update or delete on public\\.${t}\\s+for each row execute function public\\.administracao_registro_imutavel`,
+          "i",
+        ),
+      );
+    }
+  });
+
+  it("nenhum privilégio de tabela a anon/authenticated em lançamentos, decisões e falhas; sem escrita direta", () => {
+    for (const t of ["pontos_lancamento", "pontos_decisao", "pontos_falha"]) {
+      expect(modulo, t).not.toMatch(
+        new RegExp(`grant [a-z, ()_]*on public\\.${t} to[^;]*\\b(anon|authenticated)\\b`, "i"),
+      );
+    }
+    expect(modulo).not.toMatch(/grant (insert|update|delete)[^;]*on public\.pontos_/i);
+  });
+
+  it("nenhuma visão do módulo devolve id de conta nem dado do visitante", () => {
+    // Visão recriada em migração posterior: vale a última definição de cada nome.
+    const ultimas = new Map<string, string>();
+    for (const m of modulo.matchAll(/create view public\.(\w+)[^;]*? as([\s\S]*?);/gi)) {
+      ultimas.set(m[1]!, m[2]!);
+    }
+    const visoes = [...ultimas].map(([nome, corpo]) => ({ nome, corpo }));
+    expect(visoes.length).toBe(9);
+    for (const v of visoes) {
+      const colunas = v.corpo.split(/\bfrom\b/i)[0]!.replace(/sha256\([\s\S]*?\), 'hex'\)/gi, "");
+      expect(colunas, v.nome).not.toMatch(
+        /indicador_id|responsavel_id|conta_id|solicitante_id|autor_id|dono_id/i,
+      );
+      expect(v.corpo, v.nome).not.toMatch(/whatsapp|\bemail\b|mensagem|p\.nome/i);
+    }
+  });
+
+  it("ações administrativas gravam auditoria", () => {
+    for (const f of [
+      "pontos_definir_parametro",
+      "pontos_reverter_credito",
+      "pontos_reprocessar_pedido",
+      "pontos_decidir_beneficio_versao",
+      "pontos_admin_cadastrar_beneficio",
+      "pontos_admin_editar_proposta_beneficio",
+      "pontos_admin_definir_beneficio_ativo",
+    ]) {
+      expect(corpoFuncao(f), f).toMatch(/insert into public\.administracao_auditoria/);
+      expect(corpoFuncao(f), f).toMatch(/administracao_exigir_admin\(\)/);
+    }
+  });
+
+  it("funções internas não têm grant; reprocessamento em lote só para service_role", () => {
+    for (const f of ["pontos_avaliar_pedido", "pontos_parametro_valor", "pontos_pedido_pontuar"]) {
+      expect(modulo).not.toMatch(new RegExp(`grant execute on function public\\.${f}\\(`, "i"));
+    }
+    expect(modulo).toMatch(
+      /grant execute on function public\.pontos_reprocessar_pendentes\(integer\) to service_role;/i,
+    );
+  });
+
+  it("o gatilho de crédito nunca impede o pedido (captura exceção e registra a falha)", () => {
+    const g = corpoFuncao("pontos_pedido_pontuar");
+    expect(g).toMatch(/exception when others/i);
+    expect(g).toMatch(/insert into public\.pontos_falha/i);
+    expect(modulo).toMatch(
+      /create trigger pontos_pedido_pontuar after insert on public\.indicacoes_pedido_contato/i,
+    );
+  });
+
+  it("pontos e intervalo vêm dos parâmetros, nunca fixos na função de crédito (IM-030)", () => {
+    const f = corpoFuncao("pontos_avaliar_pedido");
+    expect(f).toMatch(/pontos_parametro_valor\('pontos_por_indicacao'\)/);
+    expect(f).toMatch(/pontos_parametro_valor\('intervalo_dias'\)/);
+    expect(f).not.toMatch(/\b30\b|:= 10\b/);
+  });
+
+  it("o indicador vê só a categoria da reversão, nunca a observação interna (D-012)", () => {
+    const todas = [
+      ...modulo.matchAll(/create view public\.pontos_meus_lancamentos as([\s\S]*?);/gi),
+    ];
+    const corpo = todas.at(-1)![1]!.split(/\bfrom\b/i)[0]!;
+    expect(corpo).toMatch(/l\.categoria/);
+    expect(corpo).not.toMatch(/motivo/);
+  });
+
+  it("benefício do administrador nasce aguardando aceite e nunca aprovado nem ativo (D-012)", () => {
+    const f = corpoFuncao("pontos_admin_cadastrar_beneficio");
+    expect(f).toMatch(/'aguardando_aceite'/);
+    expect(f).not.toMatch(/ativo = true|'aprovada'/);
+    const r = corpoFuncao("pontos_responder_proposta_beneficio");
+    expect(r).toMatch(/responsavel_id = v_uid/);
+    expect(r).toMatch(/ativo = true/); // aceite aprova e ativa (decisão de 30/10/2026)
+    expect(r).toMatch(/administracao_auditoria/);
+  });
+
+  it("não existe resgate, cupom nem sorteio (IM-037, IM-038 são futuros)", () => {
+    expect(modulo).not.toMatch(/create (?:function|table|view) public\.\w*(resgat|cupom|sorteio)/i);
+  });
+});
+
 describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
   it("anon e authenticated não recebem SELECT em responsavel_id, conta_id, autor_id e decidida_por", () => {
     const grants = [
@@ -320,6 +456,9 @@ describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
       "catalogo_item_versao",
       "perfis_perfil_publico",
       "perfis_perfil_versao",
+      "pontos_beneficio",
+      "pontos_beneficio_publico",
+      "pontos_beneficio_versao",
     ]);
   });
 

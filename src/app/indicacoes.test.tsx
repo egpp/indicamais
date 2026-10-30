@@ -29,6 +29,24 @@ vi.mock("./acoes-indicacoes", () => ({
   acaoDefinirParametro: (...a: unknown[]) => semAcao(...(a as [])),
 }));
 
+vi.mock("./acoes-pontos", () => ({
+  acaoDefinirParametroPontos: (...a: unknown[]) => semAcao(...(a as [])),
+}));
+// Fase 4: a página de parâmetros também lista os parâmetros de pontos (D-012), aqui com um serviço falso.
+vi.mock("./_lib/contexto-pontos", async (importar) => ({
+  ...(await importar<typeof import("./_lib/contexto-pontos")>()),
+  obterContextoPontos: async () => ({
+    logado: true,
+    ehAdministrador: async () => true,
+    servico: {
+      parametrosAtuais: async () => ({
+        ok: true,
+        valor: { pontosPorIndicacao: 10, intervaloDias: 30 },
+      }),
+    },
+  }),
+}));
+
 let contextoAtual: ContextoIndicacoes;
 vi.mock("./_lib/contexto-indicacoes", async (importar) => ({
   ...(await importar<typeof import("./_lib/contexto-indicacoes")>()),

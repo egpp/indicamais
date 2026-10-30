@@ -41,3 +41,17 @@ export function motivoParaExibir(motivo: string | null | undefined): string | nu
   if (!limpo) return null;
   return /[.!?…]$/.test(limpo) ? limpo : `${limpo}.`;
 }
+
+/** "2026-12-31" -> "31/12/2026". Data civil, sem conversão de fuso (não é um instante). */
+export function formatarDataCivil(iso: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? "");
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
+}
+
+/** "+10 pontos", "-10 pontos", "1 ponto". */
+export function formatarPontos(n: number, comSinal = false): string {
+  const abs = Math.abs(n);
+  const unidade = abs === 1 ? "ponto" : "pontos";
+  const sinal = comSinal && n > 0 ? "+" : n < 0 ? "-" : "";
+  return `${sinal}${abs.toLocaleString("pt-BR")} ${unidade}`;
+}
