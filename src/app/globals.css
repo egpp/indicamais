@@ -1037,3 +1037,123 @@ fieldset.grupo-imagens {
     scroll-behavior: auto !important;
   }
 }
+
+/* Fase 5: sino de avisos, abas, curtir e base de relacionamento. Alvos de toque de 44px ou mais. */
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.sino {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 999px;
+  color: var(--grafite);
+}
+.sino:hover {
+  background: var(--coral-fundo);
+}
+.sino-contador {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--primaria-texto);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.25rem;
+  text-align: center;
+}
+.cabecalho-publico nav li:last-child a.sino {
+  background: transparent;
+  color: var(--grafite);
+}
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+  margin: var(--e2) 0 var(--e4);
+  padding: 0;
+  list-style: none;
+}
+.abas a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e4);
+  border: 2px solid var(--grafite);
+  border-radius: 999px;
+  color: var(--grafite);
+  font-weight: 700;
+  text-decoration: none;
+}
+.abas a[aria-current="page"] {
+  background: var(--grafite);
+  color: #fff;
+}
+.aviso-nao-lido {
+  border-left: 4px solid var(--coral);
+}
+.secao-curtir {
+  margin: var(--e6) 0;
+}
+.titulo-curtir {
+  font-size: 1.125rem;
+}
+.confirmacao-saida {
+  display: grid;
+  gap: var(--e3);
+  padding: var(--e3) var(--e4);
+  border: 2px solid var(--erro);
+  border-radius: var(--raio);
+  background: var(--erro-fundo);
+  color: var(--erro-texto);
+}
+.confirmacao-saida p,
+.confirmacao-saida ul {
+  margin: 0;
+}
+.resumo-base {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--e3);
+  margin: var(--e4) 0;
+  padding: 0;
+}
+.resumo-base div {
+  padding: var(--e3);
+  background: var(--superficie);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio);
+}
+.resumo-base dt {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+.resumo-base dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+@media (min-width: 40rem) {
+  .resumo-base {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .acoes-linha-larga {
+    grid-auto-flow: column;
+    justify-content: start;
+  }
+}

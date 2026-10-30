@@ -3,8 +3,7 @@ import { FormContato } from "./form-contato";
 import { IndicarDestino } from "./indicar-destino";
 
 /**
- * Ações da página pública de perfil ou item (IM-013): "Quero entrar em contato" e "Indique ...". Sem "Curtir"
- * (IM-043 pendente). Renderizado no servidor: a chave de idempotência do contato nasce aqui, uma vez por
+ * Ações da página pública de perfil ou item (IM-013): "Quero entrar em contato" e "Indique ...". O "Curtir" fica em CurtirPerfil (só logado, IM-043). Renderizado no servidor: a chave de idempotência do contato nasce aqui, uma vez por
  * formulário renderizado, e o código `ind` da URL vai só para o formulário DESTE destino (IM-025). Nada do
  * responsável (WhatsApp, e-mail, conta) entra no HTML: o endereço do WhatsApp só sai depois do envio.
  */
