@@ -58,3 +58,19 @@ describe("/auth/callback (IM-007, IM-008)", () => {
     expect(destino(r)).toBe("/entrar?aviso=oauth");
   });
 });
+
+describe("/auth/callback conta suspensa (IM-080)", () => {
+  it("user_banned no code (Google) leva à página neutra", async () => {
+    auth.exchangeCodeForSession.mockResolvedValue({ error: { code: "user_banned" } });
+    expect(destino(await chamar("code=x"))).toBe("/conta-indisponivel");
+  });
+  it("user_banned no token_hash leva à página neutra", async () => {
+    auth.verifyOtp.mockResolvedValue({ error: { code: "user_banned" } });
+    expect(destino(await chamar("token_hash=a&type=recovery"))).toBe("/conta-indisponivel");
+  });
+  it("user_banned em error_code da URL leva à página neutra", async () => {
+    expect(destino(await chamar("error=access_denied&error_code=user_banned"))).toBe(
+      "/conta-indisponivel",
+    );
+  });
+});

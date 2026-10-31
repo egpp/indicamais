@@ -227,3 +227,40 @@ describe("Google (IM-007)", () => {
     await expect(entrarComGoogle({}, form({}))).rejects.toThrow(`REDIRECT:${url}`);
   });
 });
+
+describe("Conta suspensa (IM-080, IM-009)", () => {
+  const dados = () => {
+    const f = new FormData();
+    f.set("email", "a@b.com");
+    f.set("senha", "Senha-boa-123");
+    return f;
+  };
+
+  it("user_banned no login leva à página neutra", async () => {
+    auth.signInWithPassword.mockResolvedValue({
+      error: { code: "user_banned", status: 400, message: "User is banned" },
+    });
+    await expect(entrar({}, dados())).rejects.toThrow("REDIRECT:/conta-indisponivel");
+  });
+
+  it("credencial errada continua com a mensagem neutra, sem citar suspensão", async () => {
+    auth.signInWithPassword.mockResolvedValue({ error: { code: "invalid_credentials" } });
+    const r = await entrar({}, dados());
+    expect(r.erro).toBe(MENSAGEM_LOGIN_INVALIDO);
+    expect(JSON.stringify(r)).not.toMatch(/suspens|banid|indispon/i);
+  });
+
+  it("texto 'banned' sem o code não redireciona", async () => {
+    auth.signInWithPassword.mockResolvedValue({ error: { message: "User is banned" } });
+    const r = await entrar({}, dados());
+    expect(r.erro).toBeDefined();
+  });
+
+  it("recuperação de senha segue neutra mesmo com user_banned", async () => {
+    auth.resetPasswordForEmail.mockResolvedValue({ error: { code: "user_banned" } });
+    const f = new FormData();
+    f.set("email", "a@b.com");
+    const r = await solicitarRecuperacao({}, f);
+    expect(r.sucesso).toBe(MENSAGEM_RECUPERACAO_SOLICITADA);
+  });
+});

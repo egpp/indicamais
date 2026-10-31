@@ -1,6 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { criarClienteServidor } from "@/shared/supabase/servidor";
+import { ROTA_CONTA_INDISPONIVEL } from "@/shared/supabase/sessao";
 import { caminhoSeguro } from "../../_lib/destino";
 
 const TIPOS: ReadonlySet<string> = new Set([
@@ -26,10 +27,14 @@ export async function GET(request: NextRequest) {
 
   const falha = (aviso: string) => NextResponse.redirect(`${origin}/entrar?aviso=${aviso}`);
 
+  // Conta suspensa (IM-080, D-014): página neutra, sem motivo.
+  const contaIndisponivel = () => NextResponse.redirect(`${origin}${ROTA_CONTA_INDISPONIVEL}`);
+
   // Erro vindo do Supabase/provedor. Só chaves fixas; nada da URL vai para a tela.
   const erroUrl = searchParams.get("error");
   const codigoErro = searchParams.get("error_code");
   if (erroUrl || codigoErro) {
+    if (codigoErro === "user_banned") return contaIndisponivel();
     // Link de e-mail expirado ou já usado (o Supabase manda access_denied + error_code).
     if (codigoErro === "otp_expired" || (erroUrl === "access_denied" && codigoErro)) {
       return falha("link_expirado");
@@ -46,9 +51,11 @@ export async function GET(request: NextRequest) {
       type: tipo as EmailOtpType,
       token_hash: tokenHash,
     });
+    if (error?.code === "user_banned") return contaIndisponivel();
     if (error) return falha(error.code === "otp_expired" ? "link_expirado" : "link_invalido");
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error?.code === "user_banned") return contaIndisponivel();
     if (error) return falha(error.code === "otp_expired" ? "link_expirado" : "link_invalido");
     // Recuperação por PKCE chega com o destino pedido na ida.
     recuperacao = recuperacao || destinoPedido === "/redefinir-senha";
