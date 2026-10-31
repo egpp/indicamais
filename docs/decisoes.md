@@ -147,6 +147,10 @@ Aprovada pelo Emerson em 30/10/2026 ("siga as recomendações"), sobre proposta 
 - Invalidar indicação reverte só os pontos; não altera a base de relacionamento nem o pedido (IM-042).
 - Bloqueio de acesso: o servidor consulta `contas_meu_estado()` a cada requisição e aplica/desfaz `banned_until` pela Admin API ao suspender/reativar (sem custo novo). Rotina agendada de encerramentos e limpeza de tentativas de denúncia fica para o `devops`.
 
+**Decisão do Emerson em 31/10/2026 (opção A, "aceito suas recomendações"), sobre o login de conta suspensa:**
+- Quem tenta entrar com o e-mail de uma conta suspensa é levado a `/conta-indisponivel`. **Risco aceito:** a API do Supabase Auth recusa conta banida antes de conferir a senha, então esse redirecionamento confirma que "o e-mail tem conta e ela está suspensa" a quem digitar o e-mail com qualquer senha. Não revela senha, dado pessoal nem motivo. Senha errada e conta inexistente seguem com a mesma mensagem neutra. Reavaliar (opção C, conferir a senha no servidor) se o risco passar a pesar.
+- Testes manuais no dev (suspender, entrar bloqueado, reativar, entrar, Minha conta com alterar senha e encerrar conta) deram ok.
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)

@@ -5,6 +5,7 @@ export type TipoErroAuth =
   | "SENHA_FRACA"
   | "LIMITE"
   | "SEM_SESSAO"
+  | "BANIDO"
   | "OUTRO";
 
 type ErroAuthLike = { code?: string; status?: number; message?: string } | null | undefined;
@@ -16,6 +17,8 @@ export function classificarErroAuth(erro: ErroAuthLike): TipoErroAuth {
       return "CREDENCIAIS";
     case "email_not_confirmed":
       return "NAO_CONFIRMADO";
+    case "user_banned":
+      return "BANIDO";
     case "same_password":
       return "SENHA_IGUAL";
     case "weak_password":

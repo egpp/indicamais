@@ -13,6 +13,7 @@ import {
   solicitarRecuperacaoSchema,
 } from "@/modules/contas";
 import { criarClienteServidor } from "@/shared/supabase/servidor";
+import { ROTA_CONTA_INDISPONIVEL } from "@/shared/supabase/sessao";
 import { criarBancoContas } from "./_lib/banco-contas";
 import { caminhoSeguro } from "./_lib/destino";
 import { classificarErroAuth } from "./_lib/erro-auth";
@@ -84,6 +85,8 @@ export async function entrar(_: EstadoFormulario, f: FormData): Promise<EstadoFo
   });
   if (error) {
     const tipo = classificarErroAuth(error);
+    // Conta suspensa (IM-080, D-014): página neutra, sem motivo. O Auth checa o bloqueio antes da senha.
+    if (tipo === "BANIDO") redirect(ROTA_CONTA_INDISPONIVEL);
     // email_not_confirmed só ocorre com a senha correta; não revela e-mail a terceiros.
     if (tipo === "NAO_CONFIRMADO") return { erro: MENSAGEM_EMAIL_NAO_CONFIRMADO, valores };
     if (tipo === "LIMITE") return { erro: MENSAGEM_LIMITE_TENTATIVAS, valores };
