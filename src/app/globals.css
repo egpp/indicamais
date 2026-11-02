@@ -1172,3 +1172,24 @@ fieldset.grupo-imagens {
 .lista-cartoes .cartao details {
   margin-top: var(--e2);
 }
+
+.link-pagina-publica {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  color: var(--link);
+  font-weight: 600;
+  text-decoration: underline;
+}
+.link-pagina-publica:focus-visible {
+  outline: 3px solid var(--grafite);
+  outline-offset: 2px;
+}
+.link-pagina-publica-desativado {
+  color: var(--grafite);
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0.75;
+}

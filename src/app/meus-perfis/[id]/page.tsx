@@ -9,6 +9,7 @@ import {
   FormEnderecoPerfil,
   FormImagensPerfil,
 } from "../../_componentes/form-perfil";
+import { LinkPaginaPublica, hrefPerfilPublico } from "../../_componentes/link-pagina-publica";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora, motivoParaExibir } from "../../_lib/apresentacao";
@@ -63,6 +64,12 @@ export default async function PaginaPerfil({
         <SeloEstado rotulo={p.estado.rotulo} />
       </p>
       <p className="ajuda">Endereço da página: {p.slug}</p>
+      <p>
+        <LinkPaginaPublica
+          nome={c.nome ?? "Perfil sem nome"}
+          href={p.estado.noAr ? hrefPerfilPublico(p.slug) : null}
+        />
+      </p>
       <p>
         <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/beneficios`}>
           Benefícios do perfil

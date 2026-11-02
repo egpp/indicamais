@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Aviso } from "../_componentes/ui";
 import { EtiquetaRascunhoNaoEnviado } from "../_componentes/aviso-rascunho";
+import { LinkPaginaPublica, hrefPerfilPublico } from "../_componentes/link-pagina-publica";
 import { PainelPagina, SeloEstado } from "../_componentes/painel";
 import { obterContexto } from "../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../_lib/pagina";
@@ -56,6 +57,12 @@ export default async function PaginaMeusPerfis() {
                   {[p.conteudoEdicao.cidade, p.conteudoEdicao.uf].filter(Boolean).join(" - ")}
                 </p>
               ) : null}
+              <p>
+                <LinkPaginaPublica
+                  nome={p.conteudoEdicao.nome ?? "Perfil sem nome"}
+                  href={p.estado.noAr ? hrefPerfilPublico(p.slug) : null}
+                />
+              </p>
             </li>
           ))}
         </ul>
