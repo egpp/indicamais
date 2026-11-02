@@ -30,6 +30,7 @@ test.describe("menu do painel (dono)", () => {
       await expect(botao).toHaveAttribute("aria-expanded", "true");
       await expect(nav).toBeVisible();
       await expect(nav.getByText("Meu conteúdo", { exact: true })).toBeVisible();
+      await page.waitForTimeout(400); // fim da animação da gaveta
       await page.screenshot({ path: `test-results/menu/${projeto}-aberto.png` });
 
       await page.keyboard.press("Escape");

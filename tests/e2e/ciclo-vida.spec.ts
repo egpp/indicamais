@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { entrar, exigirConta } from "./contas";
-import { abrirMenuSeCelular, menuPrincipal } from "./menu";
+import { abrirMenuSeCelular, fecharMenuSeCelular, menuPrincipal } from "./menu";
 
 // Fase 6 (IM-076, IM-077, IM-080, IM-081): denúncia pública, telas por permissão e encerrar conta.
 // Só leitura contra o DEV: nenhum teste grava denúncia, suspensão nem encerramento (o caminho do robô não chega ao banco).
@@ -83,6 +83,7 @@ test.describe("papéis", () => {
     await expect(page.getByRole("heading", { name: "Encerrar conta" })).toBeVisible();
     await abrirMenuSeCelular(page);
     await expect(menuPrincipal(page).getByText("Administração", { exact: true })).toHaveCount(0);
+    await fecharMenuSeCelular(page);
     await expect(page.getByText("30 dias")).toBeVisible();
 
     // Palavra errada: erro no navegador, nada é enviado.

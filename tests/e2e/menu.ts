@@ -10,3 +10,8 @@ export async function abrirMenuSeCelular(page: Page) {
     await menuPrincipal(page).waitFor({ state: "visible" });
   }
 }
+
+export async function fecharMenuSeCelular(page: Page) {
+  const botao = page.getByRole("button", { name: "Fechar menu" });
+  if (await botao.isVisible()) await botao.click();
+}
