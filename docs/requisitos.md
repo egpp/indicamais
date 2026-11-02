@@ -184,11 +184,11 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-070 | D | Confirmação manual.** Até integração financeira, administrador confirma pagamentos com auditoria; sem cobrança ou repasse automático.
 
-- **IM-071 | P | Elegibilidade exata.** Qual assinatura habilita o indicador quando o negócio tiver várias ofertas.
+- **IM-071 | D | Elegibilidade exata.** Qual assinatura habilita o indicador quando o negócio tiver várias ofertas.
 
-- **IM-072 | P | Inadimplência operacional.** Início da contagem, avisos e destino dos vínculos encerrados.
+- **IM-072 | D | Inadimplência operacional.** Início da contagem, avisos e destino dos vínculos encerrados.
 
-- **IM-073 | P | Mudanças e reversões.** Vigência dos percentuais para assinaturas existentes, cancelamentos, estornos e efeitos da desativação.
+- **IM-073 | D | Mudanças e reversões.** Vigência dos percentuais para assinaturas existentes, cancelamentos, estornos e efeitos da desativação.
 
 - **IM-074 | F | Recebimentos Pix/cartão.** Integração futura; provedores, configuração e ativação por definir.
 
@@ -237,3 +237,9 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 - **IM-093 | D | Banner de topo rotativo.** Banner abaixo do menu, com imagens em rotação (pausável, acessível), inseridas pelo responsável e também pelo administrador geral na empresa selecionada. Imagem inserida pelo administrador só é publicada após **aceite do responsável**, como nos benefícios (D-012/D-014); tudo auditado.
 
 - **IM-094 | D | Troca de estilo e aprovação.** Decidido em 02/11/2026 (D-016): trocar o estilo não exige nova aprovação da página; o conteúdo segue IM-022.
+
+## Seções em carrossel na página inicial (D-018, 02/11/2026)
+
+- **IM-095 | D | Seções de destaque em carrossel.** A página inicial pública organiza os cards em seções de carrossel por critério de importância, inicialmente só de **perfis**, com o modelo preparado para acrescentar produtos e serviços depois. Seções iniciais: Novidades (publicados mais recentemente), Mais curtidos (curtidas ativas, IM-043), Mais indicados (contatos válidos por indicação, critério da D-012, sem autoindicação), Na sua cidade (cidade e UF da busca; com login, a cidade do perfil da pessoa; sem cidade, a seção não aparece) e Em alta na semana (contatos válidos e curtidas dos últimos 7 dias). Seção com poucos itens fica oculta; rankings contam pessoas distintas e nunca o dono do perfil; só dados públicos do perfil aparecem. Os patrocinados continuam como carrossel identificado escolhido pelo administrador (IM-020). Cards: 5 por linha em telas largas e 4 em médias (ajustar ao que ficar melhor), rolagem horizontal acessível no celular. "Mais visitados" não entra: exigiria contagem de visitas (nova coleta de dados, LGPD).
+
+- **IM-096 | D | Nomes das seções editáveis.** O administrador geral edita (com motivo e auditoria) o nome de cada seção de carrossel e pode ativá-la ou desativá-la e mudar sua ordem, sem nova publicação do sistema.
