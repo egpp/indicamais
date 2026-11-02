@@ -4,7 +4,6 @@ import {
   FormSincronizarAcesso,
   FormSuspenderConta,
 } from "../../_componentes/form-ciclo-vida";
-import { NavAdministracao } from "../../_componentes/nav-administracao";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora } from "../../_lib/apresentacao";
@@ -30,7 +29,7 @@ const ROTULO = {
  */
 export default async function PaginaContasAdmin() {
   const ctx = await obterContextoCicloVida("/administracao/contas");
-  const permissoes = await exigirPermissao(ctx, "suspender");
+  await exigirPermissao(ctx, "suspender");
   const [lista, geral] = await Promise.all([
     ctx.admin.listarContasCicloVida(),
     ctx.ehAdministradorGeral(),
@@ -39,10 +38,9 @@ export default async function PaginaContasAdmin() {
     <PainelPagina
       titulo="Contas"
       subtitulo="Contas suspensas e em encerramento. Nada é suspenso automaticamente."
-      admin
+      admin={geral}
       atual="administracao"
     >
-      <NavAdministracao permissoes={permissoes} geral={geral} atual="contas" />
       <section aria-labelledby="titulo-suspender">
         <h2 id="titulo-suspender">Suspender uma conta</h2>
         <FormSuspenderConta />

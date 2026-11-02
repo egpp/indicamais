@@ -30,11 +30,6 @@ export default async function PaginaParametros() {
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/revisao">
-          Voltar para a fila de revisão
-        </Link>
-      </p>
       {!r.ok ? (
         <Aviso tipo="erro">{r.erro.mensagem}</Aviso>
       ) : r.valor.length === 0 ? (

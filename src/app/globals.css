@@ -377,15 +377,6 @@ summary.botao-texto {
 .pagina-painel {
   max-width: 44rem;
 }
-.topo-painel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e2);
-}
-.topo-painel .marca {
-  margin: 0;
-}
 .nav-painel {
   display: flex;
   flex-wrap: wrap;
@@ -1192,4 +1183,224 @@ fieldset.grupo-imagens {
   font-weight: 400;
   text-decoration: none;
   opacity: 0.75;
+}
+
+/* Painel logado: menu lateral em cascata (D-015; IM-005, IM-014, IM-047). Celular primeiro: gaveta; ≥ 900px: barra fixa. */
+.painel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  flex: 1 0 auto;
+  width: 100%;
+}
+.painel-topo {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  min-height: 56px;
+  padding: var(--e1) var(--e3);
+  background: var(--superficie);
+  border-bottom: 1px solid var(--borda-suave);
+}
+.painel-topo-marca {
+  flex: 1;
+  min-width: 0;
+}
+.painel-topo-marca .marca,
+.painel-lateral-topo .marca {
+  margin: 0;
+}
+.painel-topo-acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--e1);
+}
+.painel-topo-sair {
+  display: none;
+}
+.painel-botao-menu,
+.painel-botao-fechar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--grafite);
+  cursor: pointer;
+}
+.painel-botao-menu:hover,
+.painel-botao-fechar:hover {
+  background: var(--coral-fundo);
+}
+.painel-sair,
+.menu-sair {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e3);
+  border: 0;
+  border-radius: var(--raio-p);
+  background: transparent;
+  color: var(--grafite);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.painel-sair:hover,
+.menu-sair:hover {
+  background: var(--coral-fundo);
+}
+.painel-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(25 24 29 / 0.55);
+}
+.painel-lateral {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  width: min(20rem, 88vw);
+  padding: var(--e3);
+  overflow-y: auto;
+  background: var(--superficie);
+  box-shadow: var(--sombra-2);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition:
+    transform 0.2s ease,
+    visibility 0.2s;
+}
+.painel-lateral[data-aberto="true"] {
+  transform: none;
+  visibility: visible;
+}
+.painel-lateral-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2);
+  margin-bottom: var(--e3);
+}
+.menu-grupo {
+  border-bottom: 1px solid var(--borda-suave);
+  padding: var(--e1) 0;
+}
+.menu-grupo summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 var(--e3);
+  border-radius: var(--raio-p);
+  color: var(--grafite);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.menu-grupo summary::-webkit-details-marker {
+  display: none;
+}
+.menu-grupo summary::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.25rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+.menu-grupo[open] > summary::after {
+  transform: rotate(-135deg);
+}
+.menu-grupo summary:hover {
+  background: var(--coral-fundo);
+}
+.menu-grupo ul {
+  margin: 0;
+  padding: 0 0 var(--e1) var(--e2);
+  list-style: none;
+}
+.menu-grupo li a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e3);
+  border-radius: var(--raio-p);
+  color: var(--grafite);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.menu-grupo li a:hover {
+  background: var(--coral-fundo);
+}
+.menu-grupo li a[aria-current="page"] {
+  background: var(--grafite);
+  color: #fff;
+}
+.menu-sair {
+  width: 100%;
+  font-size: 0.9375rem;
+  text-align: left;
+}
+.painel-conteudo {
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (min-width: 56.25rem) {
+  .painel {
+    grid-template-columns: 16.5rem minmax(0, 1fr);
+  }
+  .painel-botao-menu,
+  .painel-botao-fechar,
+  .painel-topo-marca {
+    display: none;
+  }
+  .painel-topo {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    padding: var(--e1) var(--e6);
+  }
+  .painel-topo-sair {
+    display: block;
+  }
+  .painel-fundo {
+    display: none;
+  }
+  .painel-lateral {
+    position: sticky;
+    bottom: auto;
+    align-self: start;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    z-index: auto;
+    width: auto;
+    height: 100vh;
+    height: 100dvh;
+    padding: var(--e4) var(--e3);
+    border-right: 1px solid var(--borda-suave);
+    box-shadow: none;
+    transform: none;
+    visibility: visible;
+    transition: none;
+  }
+  .painel-conteudo {
+    grid-column: 2;
+    grid-row: 2;
+    max-width: 48rem;
+    padding: var(--e6);
+  }
 }

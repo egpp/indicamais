@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { acaoDecidirBeneficio } from "../../acoes-pontos";
 import { FormAcao } from "../../_componentes/form-acao";
 import { FormBeneficio, FormMotivoDecisao } from "../../_componentes/form-pontos";
@@ -51,14 +50,6 @@ export default async function PaginaBeneficiosAdmin({
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/revisao">
-          Voltar para a fila de revisão
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/pontos">
-          Pontos
-        </Link>
-      </p>
       <Aviso tipo="info">
         O resgate de benefícios ainda não existe. Aqui só se cadastra e publica o que será oferecido
         no futuro.

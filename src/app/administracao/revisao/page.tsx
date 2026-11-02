@@ -25,29 +25,6 @@ export default async function PaginaFilaRevisao({
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/categorias">
-          Categorias e pedidos
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/patrocinadores">
-          Patrocinadores
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/negocios">
-          Perfis e itens
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/pedidos">
-          Pedidos de contato
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/parametros">
-          Parâmetros
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/pontos">
-          Pontos
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/beneficios">
-          Benefícios
-        </Link>
-      </p>
       {decidido === "aprovada" ? <Aviso tipo="sucesso">Aprovado.</Aviso> : null}
       {decidido === "rejeitada" ? <Aviso tipo="sucesso">Rejeitado.</Aviso> : null}
       {!fila.ok ? (

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   FormAlterarCategoria,
@@ -33,12 +32,6 @@ export default async function PaginaCategoriasAdmin() {
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/revisao">
-          Voltar para a fila de revisão
-        </Link>
-      </p>
-
       <section aria-labelledby="titulo-pedidos">
         <h2 id="titulo-pedidos">Pedidos de nova categoria</h2>
         {!pendentes.ok ? (

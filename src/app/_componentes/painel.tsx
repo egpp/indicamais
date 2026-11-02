@@ -1,9 +1,11 @@
-import Link from "next/link";
-import { LogoMarca } from "./marca";
-import { SinoAvisos } from "./sino-avisos";
+import { MenuPainel } from "./menu-painel";
+import type { AtualMenu } from "./menu-painel-dados";
 import type { ReactNode } from "react";
 
-/** Moldura das telas autenticadas: marca, navegação por teclado e título. */
+/**
+ * Moldura das telas autenticadas (D-015): menu lateral em cascata, cabeçalho com sino de avisos (IM-047) e título.
+ * O menu mostra só o que a pessoa pode usar; as rotas continuam conferindo a permissão no servidor.
+ */
 export function PainelPagina({
   titulo,
   subtitulo,
@@ -13,59 +15,20 @@ export function PainelPagina({
 }: {
   titulo: string;
   subtitulo?: string;
-  /** Mostra o atalho da administração (só para quem é administrador). */
+  /** Dica de que é administrador geral: o grupo Administração já vem na primeira renderização. */
   admin?: boolean;
-  /** Seção ativa, para aria-current. */
-  atual?:
-    | "perfis"
-    | "itens"
-    | "anuncios"
-    | "pedidos"
-    | "indicacoes"
-    | "pontos"
-    | "avisos"
-    | "participacoes"
-    | "revisoes"
-    | "conta"
-    | "administracao";
+  /** Seção ativa até o navegador informar o endereço (destaque e grupo aberto). */
+  atual?: AtualMenu;
   children: ReactNode;
 }) {
-  const links: { chave: NonNullable<typeof atual>; href: string; texto: string }[] = [
-    { chave: "perfis", href: "/meus-perfis", texto: "Meus perfis" },
-    { chave: "itens", href: "/meus-itens", texto: "Meus itens" },
-    { chave: "anuncios", href: "/meus-anuncios", texto: "Meus anúncios" },
-    { chave: "pedidos", href: "/pedidos-de-contato", texto: "Pedidos de contato" },
-    { chave: "indicacoes", href: "/minhas-indicacoes", texto: "Minhas indicações" },
-    { chave: "pontos", href: "/pontos", texto: "Meus pontos" },
-    { chave: "avisos", href: "/avisos", texto: "Avisos" },
-    { chave: "participacoes", href: "/minhas-participacoes", texto: "Minhas participações" },
-    { chave: "revisoes", href: "/minhas-revisoes", texto: "Revisões" },
-    { chave: "conta", href: "/minha-conta", texto: "Minha conta" },
-  ];
-  if (admin) {
-    links.push({ chave: "administracao", href: "/administracao/revisao", texto: "Administração" });
-  }
   return (
-    <main className="pagina pagina-painel">
-      <div className="topo-painel">
-        <LogoMarca />
-        <SinoAvisos />
-      </div>
-      <nav aria-label="Principal">
-        <ul className="nav-painel">
-          {links.map((l) => (
-            <li key={l.chave}>
-              <Link href={l.href} aria-current={l.chave === atual ? "page" : undefined}>
-                {l.texto}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <h1>{titulo}</h1>
-      {subtitulo ? <p className="subtitulo">{subtitulo}</p> : null}
-      {children}
-    </main>
+    <MenuPainel atual={atual} admin={admin}>
+      <main className="pagina pagina-painel painel-conteudo">
+        <h1>{titulo}</h1>
+        {subtitulo ? <p className="subtitulo">{subtitulo}</p> : null}
+        {children}
+      </main>
+    </MenuPainel>
   );
 }
 

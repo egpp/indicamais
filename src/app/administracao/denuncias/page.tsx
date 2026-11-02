@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ROTULOS_TIPO_DENUNCIA, type SituacaoDenuncia } from "@/modules/administracao";
 import { FormDecidirDenuncia } from "../../_componentes/form-ciclo-vida";
-import { NavAdministracao } from "../../_componentes/nav-administracao";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora } from "../../_lib/apresentacao";
@@ -45,10 +44,9 @@ export default async function PaginaDenunciasAdmin() {
     <PainelPagina
       titulo="Denúncias"
       subtitulo="Abertas e em análise primeiro. Decidir uma denúncia não suspende nenhuma conta."
-      admin
+      admin={geral}
       atual="administracao"
     >
-      <NavAdministracao permissoes={permissoes} geral={geral} atual="denuncias" />
       {!fila.ok ? (
         <Aviso tipo="erro">{fila.erro.mensagem}</Aviso>
       ) : fila.valor.length === 0 ? (

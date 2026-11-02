@@ -23,7 +23,7 @@ export default async function PaginaQuemMeIndicou() {
       titulo="Quem me indicou"
       subtitulo="Pessoas que indicaram seus perfis, produtos e serviços e resultaram em contato."
       admin={admin}
-      atual="avisos"
+      atual="quem"
     >
       <AbasAvisos atual="quem" />
       {!aba.ok ? (

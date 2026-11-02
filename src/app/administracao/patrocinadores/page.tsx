@@ -38,11 +38,6 @@ export default async function PaginaPatrocinadores({
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/revisao">
-          Voltar para a fila de revisão
-        </Link>
-      </p>
       {aviso === "criado" ? <Aviso tipo="sucesso">Patrocinador criado.</Aviso> : null}
 
       <section aria-labelledby="titulo-lista">

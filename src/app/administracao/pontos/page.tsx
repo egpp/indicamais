@@ -44,18 +44,6 @@ export default async function PaginaPontosAdmin({
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/revisao">
-          Voltar para a fila de revisão
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/parametros">
-          Parâmetros
-        </Link>{" "}
-        <Link className="botao botao-secundario" href="/administracao/beneficios">
-          Benefícios
-        </Link>
-      </p>
-
       <section aria-labelledby="titulo-falhas">
         <h2 id="titulo-falhas">Falhas de crédito</h2>
         {!falhas.ok ? (

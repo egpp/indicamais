@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { FormInvalidarIndicacao } from "../../_componentes/form-ciclo-vida";
-import { NavAdministracao } from "../../_componentes/nav-administracao";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora } from "../../_lib/apresentacao";
@@ -20,7 +19,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function PaginaIndicacoesAdmin() {
   const ctx = await obterContextoCicloVida("/administracao/indicacoes");
-  const permissoes = await exigirPermissao(ctx, "invalidar_indicacoes");
+  await exigirPermissao(ctx, "invalidar_indicacoes");
   const [lista, geral] = await Promise.all([
     ctx.admin.listarIndicacoesInvalidadas(),
     ctx.ehAdministradorGeral(),
@@ -29,10 +28,9 @@ export default async function PaginaIndicacoesAdmin() {
     <PainelPagina
       titulo="Invalidar indicações"
       subtitulo="Reverte os pontos de uma indicação indevida. A base de relacionamento não muda."
-      admin
+      admin={geral}
       atual="administracao"
     >
-      <NavAdministracao permissoes={permissoes} geral={geral} atual="indicacoes" />
       <section aria-labelledby="titulo-invalidar">
         <h2 id="titulo-invalidar">Invalidar uma indicação</h2>
         <FormInvalidarIndicacao />
