@@ -236,4 +236,4 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-093 | D | Banner de topo rotativo.** Banner abaixo do menu, com imagens em rotação (pausável, acessível), inseridas pelo responsável e também pelo administrador geral na empresa selecionada. Imagem inserida pelo administrador só é publicada após **aceite do responsável**, como nos benefícios (D-012/D-014); tudo auditado.
 
-- **IM-094 | P | Troca de estilo e aprovação.** Definir se trocar de estilo exige nova aprovação da página ou só a moderação do conteúdo (recomendação do gestor: estilo é só aparência e não exige reaprovação; conteúdo segue IM-022).
+- **IM-094 | D | Troca de estilo e aprovação.** Decidido em 02/11/2026 (D-016): trocar o estilo não exige nova aprovação da página; o conteúdo segue IM-022.

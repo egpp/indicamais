@@ -102,4 +102,4 @@ Regras:
 | IM-091 | D | Estilos de página | A fazer | Fase 8: estrutura, miniaturas, 5 estilos iniciais. | — | — | — |
 | IM-092 | D | Página como site | A fazer | Fase 8: menu no topo, seções, navegação. | IM-018 (mapa, pendente) | — | — |
 | IM-093 | D | Banner de topo rotativo | A fazer | Fase 8: banner, imagens do admin com aceite do responsável. | — | — | — |
-| IM-094 | P | Troca de estilo e aprovação | Aguardando decisão | — | Decisão do Emerson | — | — |
+| IM-094 | D | Troca de estilo e aprovação | Decidido: estilo fora da revisão (D-016); a fazer |  — | — | — | — |
