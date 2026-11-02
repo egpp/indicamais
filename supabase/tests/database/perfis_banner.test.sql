@@ -150,8 +150,8 @@ select set_config('request.jwt.claims', '{"sub":"99999999-0000-0000-0000-0000000
 select throws_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/adm-1.png')$$, '42501', null, 'conta sem permissão não envia imagem para a pasta alheia');
 select set_config('request.jwt.claims', '{"sub":"eeeeeeee-0000-0000-0000-00000000000e","role":"authenticated"}', true);
 select lives_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/adm-1.png')$$, 'quem tem aprovar envia a imagem para a pasta do perfil de outra conta');
-select throws_ok($insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/qualquer.png')$, '42501', null, 'o aprovador só envia arquivos com prefixo adm-');
-select throws_ok($insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/sub/pasta.png')$, '42501', null, 'subpastas continuam recusadas');
+select throws_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/qualquer.png')$$, '42501', null, 'o aprovador só envia arquivos com prefixo adm-');
+select throws_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/sub/pasta.png')$$, '42501', null, 'subpastas continuam recusadas');
 select throws_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/../x.png')$$, '42501', null, 'nem com caminho fora do formato');
 select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
 select throws_ok($$insert into storage.objects (bucket_id, name) values ('indicamais-imagens', 'perfil/a0000000-0000-0000-0000-000000000001/c-invadiu.png')$$, '42501', null, 'outra conta comum não envia imagem para a pasta de A');
