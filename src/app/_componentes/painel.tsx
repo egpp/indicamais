@@ -1,3 +1,4 @@
+import { ContaDoMenu } from "./conta-do-menu";
 import { MenuPainel } from "./menu-painel";
 import type { AtualMenu } from "./menu-painel-dados";
 import type { ReactNode } from "react";
@@ -22,7 +23,7 @@ export function PainelPagina({
   children: ReactNode;
 }) {
   return (
-    <MenuPainel atual={atual} admin={admin}>
+    <MenuPainel atual={atual} admin={admin} identificacao={<ContaDoMenu />}>
       <main className="pagina pagina-painel painel-conteudo">
         <h1>{titulo}</h1>
         {subtitulo ? <p className="subtitulo">{subtitulo}</p> : null}

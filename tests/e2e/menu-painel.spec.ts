@@ -4,7 +4,7 @@
  * Desktop: barra fixa, grupos em cascata e item ativo. Capturas em test-results/menu/.
  */
 import { expect, test } from "@playwright/test";
-import { entrar, exigirConta } from "./contas";
+import { credenciais, entrar, exigirConta } from "./contas";
 import { menuPrincipal } from "./menu";
 
 test.describe("menu do painel (dono)", () => {
@@ -83,5 +83,25 @@ test.describe("menu do painel (administrador)", () => {
     await expect(nav.getByText("Administração", { exact: true })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Fila de revisão" })).toBeVisible();
     await page.screenshot({ path: `test-results/menu/${info.project.name}-admin.png` });
+  });
+});
+
+test.describe("identificação da conta no menu (IM-005, IM-014)", () => {
+  test("dono vê o próprio e-mail no menu", async ({ page }, info) => {
+    exigirConta("dono");
+    await entrar(page, "dono");
+    await page.goto("/meus-perfis");
+    if (info.project.name === "celular")
+      await page.getByRole("button", { name: "Abrir menu" }).click();
+    const { email } = credenciais("dono");
+    const bloco = page.getByRole("group", { name: new RegExp(`^Conta: .*${email}$`, "i") });
+    await expect(bloco).toBeVisible();
+    await expect(bloco).toContainText(email);
+  });
+
+  test("anônimo não vê o painel nem a identificação", async ({ page }) => {
+    await page.goto("/meus-perfis");
+    await expect(page).toHaveURL(/\/entrar/);
+    await expect(page.getByRole("group", { name: /^Conta:/ })).toHaveCount(0);
   });
 });

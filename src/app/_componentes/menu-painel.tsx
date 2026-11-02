@@ -65,6 +65,7 @@ export function MenuPainel({
   admin,
   buscarAcesso = true,
   acessoInicial,
+  identificacao,
   children,
 }: {
   atual?: AtualMenu;
@@ -73,6 +74,8 @@ export function MenuPainel({
   /** Desligado nos testes dos componentes. */
   buscarAcesso?: boolean;
   acessoInicial?: Acesso;
+  /** Bloco com nome e e-mail da própria conta (montado no servidor), abaixo do logotipo do menu. */
+  identificacao?: ReactNode;
   /** Conteúdo da página, ao lado do menu. */
   children: ReactNode;
 }) {
@@ -240,6 +243,7 @@ export function MenuPainel({
             </svg>
           </button>
         </div>
+        {identificacao}
         <nav aria-label="Principal">
           {grupos.map((g) => (
             <details
