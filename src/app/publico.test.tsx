@@ -235,6 +235,25 @@ describe("página inicial pública (IM-019, IM-020)", () => {
     expect(screen.getByRole("link", { name: "Limpar filtros" }).getAttribute("href")).toBe("/");
   });
 
+  it("busca recolhida em uma linha: padrão, resumo com filtros e expansão (IM-019, IM-005)", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    render(await Home(args()));
+    const det = document.querySelector("details.busca-recolhida") as HTMLDetailsElement;
+    expect(det.open).toBe(false);
+    expect(det.querySelector("summary")?.textContent).toBe("Buscar e filtrar");
+    expect(det.querySelector("form")?.getAttribute("method")).toBe("get");
+    det.open = true;
+    fireEvent(det, new Event("toggle"));
+    expect(det.open).toBe(true);
+    cleanup();
+    render(await Home(args({}, { termo: "pizzaria", cidade: "Tramandaí", uf: "RS" })));
+    const det2 = document.querySelector("details.busca-recolhida") as HTMLDetailsElement;
+    expect(det2.open).toBe(false);
+    const resumo = det2.querySelector("summary")?.textContent ?? "";
+    expect(resumo).toContain("pizzaria · Tramandaí/RS");
+    expect(resumo).toContain("3 filtros");
+  });
+
   it("filtro inválido mostra mensagem em português e não quebra a página", async () => {
     render(await Home(args({}, { uf: "XX" })));
     expect(screen.getByRole("alert").textContent).toBe("Escolha uma UF válida.");
