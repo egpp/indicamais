@@ -18,6 +18,7 @@ const ler = (nome: RegExp) =>
 
 const estilo = ler(/perfis_estilo_pagina/);
 const banner = ler(/perfis_banner/);
+const avisoBanner = ler(/notificacoes_banner_aceite/);
 
 const corpo = (texto: string, nome: string) =>
   [
@@ -225,5 +226,35 @@ describe("Fase 8: banner rotativo (IM-093, IM-012)", () => {
         ),
       );
     }
+  });
+});
+
+describe("migração: aviso de banner aguardando aceite no sino (IM-047, IM-052, IM-053, IM-093, D-016)", () => {
+  it("é migração nova, sem tabela de aviso (IM-053) e com a origem no check de leitura", () => {
+    expect(avisoBanner).not.toMatch(/create table/i);
+    expect(avisoBanner).toMatch(
+      /check \(origem in \('contato_valido', 'indicacao_valida', 'curtida', 'revisao', 'banner_aceite'\)\)/,
+    );
+    expect(corpo(avisoBanner, "notificacoes_marcar_lida")).toMatch(/'revisao', 'banner_aceite'\)/);
+    expect(corpo(avisoBanner, "notificacoes_marcar_lida")).toMatch(/security definer/);
+  });
+
+  it("a visão lê só banner de administrador aguardando aceite do dono, sem autor e sem conta", () => {
+    const v = avisoBanner.slice(avisoBanner.indexOf("create or replace view"));
+    const ramo = v.slice(v.indexOf("'banner_aceite'::text"), v.indexOf(") x"));
+    expect(ramo).toMatch(/b\.situacao = 'aguardando_aceite'/);
+    expect(ramo).toMatch(/pf\.responsavel_id = \(select auth\.uid\(\)\)/);
+    expect(ramo).toMatch(/null::text,\s+b\.criado_em/);
+    expect(ramo).not.toMatch(/autor_admin_id|nome_exibicao|email|conta_id/i);
+    expect(v).not.toMatch(/security_invoker/);
+    expect(v).toMatch(/revoke all on public\.notificacoes_meus_avisos from anon, authenticated;/);
+    expect(v).toMatch(/grant select on public\.notificacoes_meus_avisos to authenticated;/);
+  });
+
+  it("nenhuma função concede execute a anon", () => {
+    expect(avisoBanner).not.toMatch(/grant execute[^;]*\banon\b/i);
+    expect(avisoBanner).toMatch(
+      /revoke all on function public\.notificacoes_marcar_lida\(text, uuid\) from public, anon;/,
+    );
   });
 });
