@@ -153,6 +153,16 @@ Aprovada pelo Emerson em 30/10/2026 ("siga as recomendações"), sobre proposta 
 
 ---
 
+## D-015 · 02/11/2026 · Painel com menu lateral em cascata (IM-005, IM-014, IM-047)
+**IDs:** IM-005, IM-014, IM-047
+Proposta do Emerson em 02/11/2026 ("já ir criando as dash no painel oficial em modelo de menus laterais, verticais que abrem em cascata"), registrada como decisão:
+- A documentação (requisitos.md) fala em "dashboard" e no ícone de notificações no topo (IM-047), mas não define o formato da navegação. O Emerson define: **painel com menu lateral vertical, com grupos que abrem em cascata**, no lugar da faixa de botões no topo.
+- Desktop: menu lateral fixo; celular: menu recolhível (botão de menu), com os mesmos grupos. O sino de avisos continua no topo (IM-047).
+- Os grupos mostram só o que a pessoa pode usar (papéis e permissões, D-014); páginas, rotas e regras não mudam.
+- Sugestão inicial de grupos (ajustável após ver na tela): Meu conteúdo (perfis, itens, anúncios, benefícios); Relacionamento (pedidos de contato, base, participações); Indicações e pontos (minhas indicações, pontos, avisos); Minha conta; Administração (revisão, denúncias, contas, permissões, pontos, benefícios, parâmetros, patrocinadores, categorias), por permissão.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

@@ -45,11 +45,6 @@ export default async function PaginaPedidosAdmin({
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/revisao">
-          Voltar para a fila de revisão
-        </Link>
-      </p>
       <nav aria-label="Filtro da fila">
         <ul className="nav-painel">
           <li>

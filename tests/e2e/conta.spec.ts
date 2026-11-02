@@ -52,6 +52,6 @@ test.describe("autenticado", () => {
     await campo.pressSequentially("11999990001");
     await expect(campo).toHaveValue("(11) 99999-0001");
     await page.getByRole("button", { name: "Salvar WhatsApp" }).click();
-    await expect(page.getByRole("status")).toContainText("ainda não foi verificado");
+    await expect(page.locator(".aviso[role='status']")).toContainText("ainda não foi verificado");
   });
 });

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ROTULOS_PERMISSAO } from "@/modules/administracao";
 import { FormConcederPermissao, FormRevogarPermissao } from "../../_componentes/form-ciclo-vida";
-import { NavAdministracao } from "../../_componentes/nav-administracao";
 import { PainelPagina } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora } from "../../_lib/apresentacao";
@@ -21,10 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function PaginaPermissoesAdmin() {
   const ctx = await obterContextoCicloVida("/administracao/permissoes");
   await exigirAdministradorGeral(ctx);
-  const [lista, permissoes] = await Promise.all([
-    ctx.admin.listarPermissoesConcedidas(),
-    ctx.permissoes(),
-  ]);
+  const lista = await ctx.admin.listarPermissoesConcedidas();
   return (
     <PainelPagina
       titulo="Permissões"
@@ -32,7 +28,6 @@ export default async function PaginaPermissoesAdmin() {
       admin
       atual="administracao"
     >
-      <NavAdministracao permissoes={permissoes} geral atual="permissoes" />
       <section aria-labelledby="titulo-conceder">
         <h2 id="titulo-conceder">Conceder permissão</h2>
         <FormConcederPermissao />

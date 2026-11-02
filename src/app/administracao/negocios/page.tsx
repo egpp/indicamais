@@ -52,12 +52,6 @@ export default async function PaginaNegociosAdmin({
       admin
       atual="administracao"
     >
-      <p>
-        <Link className="botao botao-secundario" href="/administracao/revisao">
-          Voltar para a fila de revisão
-        </Link>
-      </p>
-
       <form
         className="filtros-busca"
         method="get"

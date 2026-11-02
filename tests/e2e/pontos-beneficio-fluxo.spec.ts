@@ -103,7 +103,7 @@ test("proposta do admin: responsável vê, aceita (ativa) e a vitrine anônima o
       .getByRole("button", { name: "Desligar" })
       .click();
     await expect(
-      dono2.locator("li.cartao", { hasText: nome }).first().getByText("Desligado"),
+      dono2.locator("li.cartao", { hasText: nome }).first().getByText("Desligado", { exact: true }),
     ).toBeVisible({ timeout: 15_000 });
   }
   await dono2Ctx.close();

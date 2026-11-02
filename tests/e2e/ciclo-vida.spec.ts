@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { entrar, exigirConta } from "./contas";
+import { abrirMenuSeCelular, fecharMenuSeCelular, menuPrincipal } from "./menu";
 
 // Fase 6 (IM-076, IM-077, IM-080, IM-081): denúncia pública, telas por permissão e encerrar conta.
 // Só leitura contra o DEV: nenhum teste grava denúncia, suspensão nem encerramento (o caminho do robô não chega ao banco).
@@ -80,7 +81,9 @@ test.describe("papéis", () => {
     await noindex(page);
     await expect(page.getByRole("heading", { name: "Alterar senha" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Encerrar conta" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Administração" })).toHaveCount(0);
+    await abrirMenuSeCelular(page);
+    await expect(menuPrincipal(page).getByText("Administração", { exact: true })).toHaveCount(0);
+    await fecharMenuSeCelular(page);
     await expect(page.getByText("30 dias")).toBeVisible();
 
     // Palavra errada: erro no navegador, nada é enviado.
@@ -113,6 +116,7 @@ test.describe("papéis", () => {
     // A fila nunca mostra quem denunciou, só a referência opaca.
     await expect(page.getByText(/@[a-z0-9-]+\.[a-z]/i)).toHaveCount(0);
     await page.goto("/minha-conta");
-    await expect(page.getByRole("heading", { name: "Administração" })).toBeVisible();
+    await abrirMenuSeCelular(page);
+    await expect(menuPrincipal(page).getByText("Administração", { exact: true })).toBeVisible();
   });
 });
