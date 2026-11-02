@@ -1333,10 +1333,129 @@ export type Database = {
           },
         ]
       }
+      perfis_banner: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          autor_admin_id: string | null
+          criado_em: string
+          destino_secao: string | null
+          id: string
+          imagem_path: string
+          motivo_resposta: string | null
+          ordem: number
+          origem: string
+          perfil_id: string
+          respondido_em: string | null
+          situacao: string
+          texto_alternativo: string
+          versao_id: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          autor_admin_id?: string | null
+          criado_em?: string
+          destino_secao?: string | null
+          id?: string
+          imagem_path: string
+          motivo_resposta?: string | null
+          ordem?: number
+          origem: string
+          perfil_id: string
+          respondido_em?: string | null
+          situacao: string
+          texto_alternativo: string
+          versao_id?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          autor_admin_id?: string | null
+          criado_em?: string
+          destino_secao?: string | null
+          id?: string
+          imagem_path?: string
+          motivo_resposta?: string | null
+          ordem?: number
+          origem?: string
+          perfil_id?: string
+          respondido_em?: string | null
+          situacao?: string
+          texto_alternativo?: string
+          versao_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_banner_autor_admin_id_fkey"
+            columns: ["autor_admin_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_versao_fk"
+            columns: ["versao_id", "perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_versao"
+            referencedColumns: ["id", "perfil_id"]
+          },
+        ]
+      }
+      perfis_estilo_pagina: {
+        Row: {
+          habilitado: boolean
+          id: string
+          ordem: number
+          rotulo: string
+        }
+        Insert: {
+          habilitado?: boolean
+          id: string
+          ordem: number
+          rotulo: string
+        }
+        Update: {
+          habilitado?: boolean
+          id?: string
+          ordem?: number
+          rotulo?: string
+        }
+        Relationships: []
+      }
       perfis_perfil: {
         Row: {
           atualizado_em: string
           criado_em: string
+          estilo_pagina: string
           id: string
           publicado: boolean
           responsavel_id: string
@@ -1346,6 +1465,7 @@ export type Database = {
         Insert: {
           atualizado_em?: string
           criado_em?: string
+          estilo_pagina?: string
           id?: string
           publicado?: boolean
           responsavel_id: string
@@ -1355,6 +1475,7 @@ export type Database = {
         Update: {
           atualizado_em?: string
           criado_em?: string
+          estilo_pagina?: string
           id?: string
           publicado?: boolean
           responsavel_id?: string
@@ -1362,6 +1483,13 @@ export type Database = {
           versao_aprovada_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "perfis_perfil_estilo_pagina_fkey"
+            columns: ["estilo_pagina"]
+            isOneToOne: false
+            referencedRelation: "perfis_estilo_pagina"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "perfis_perfil_responsavel_id_fkey"
             columns: ["responsavel_id"]
@@ -2564,6 +2692,90 @@ export type Database = {
       }
     }
     Views: {
+      administracao_banners_empresa: {
+        Row: {
+          ativo: boolean | null
+          criado_em: string | null
+          destino_secao: string | null
+          id: string | null
+          imagem_path: string | null
+          motivo_resposta: string | null
+          ordem: number | null
+          origem: string | null
+          perfil_id: string | null
+          respondido_em: string | null
+          situacao: string | null
+          texto_alternativo: string | null
+          versao_id: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          destino_secao?: string | null
+          id?: string | null
+          imagem_path?: string | null
+          motivo_resposta?: string | null
+          ordem?: number | null
+          origem?: string | null
+          perfil_id?: string | null
+          respondido_em?: string | null
+          situacao?: string | null
+          texto_alternativo?: string | null
+          versao_id?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          destino_secao?: string | null
+          id?: string | null
+          imagem_path?: string | null
+          motivo_resposta?: string | null
+          ordem?: number | null
+          origem?: string | null
+          perfil_id?: string | null
+          respondido_em?: string | null
+          situacao?: string | null
+          texto_alternativo?: string | null
+          versao_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_versao_fk"
+            columns: ["versao_id", "perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_versao"
+            referencedColumns: ["id", "perfil_id"]
+          },
+        ]
+      }
       administracao_beneficios_aguardando_aceite: {
         Row: {
           beneficio_id: string | null
@@ -3320,10 +3532,129 @@ export type Database = {
           },
         ]
       }
+      perfis_banner_aguardando_aceite: {
+        Row: {
+          ativo: boolean | null
+          criado_em: string | null
+          destino_secao: string | null
+          id: string | null
+          imagem_path: string | null
+          ordem: number | null
+          perfil_id: string | null
+          texto_alternativo: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          destino_secao?: string | null
+          id?: string | null
+          imagem_path?: string | null
+          ordem?: number | null
+          perfil_id?: string | null
+          texto_alternativo?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          destino_secao?: string | null
+          id?: string | null
+          imagem_path?: string | null
+          ordem?: number | null
+          perfil_id?: string | null
+          texto_alternativo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      perfis_banner_publico: {
+        Row: {
+          destino_secao: string | null
+          id: string | null
+          imagem_path: string | null
+          ordem: number | null
+          perfil_id: string | null
+          texto_alternativo: string | null
+        }
+        Insert: {
+          destino_secao?: string | null
+          id?: string | null
+          imagem_path?: string | null
+          ordem?: number | null
+          perfil_id?: string | null
+          texto_alternativo?: string | null
+        }
+        Update: {
+          destino_secao?: string | null
+          id?: string | null
+          imagem_path?: string | null
+          ordem?: number | null
+          perfil_id?: string | null
+          texto_alternativo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
       perfis_meus_perfis: {
         Row: {
           atualizado_em: string | null
           criado_em: string | null
+          estilo_pagina: string | null
           id: string | null
           publicado: boolean | null
           slug: string | null
@@ -3332,6 +3663,7 @@ export type Database = {
         Insert: {
           atualizado_em?: string | null
           criado_em?: string | null
+          estilo_pagina?: string | null
           id?: string | null
           publicado?: boolean | null
           slug?: string | null
@@ -3340,12 +3672,20 @@ export type Database = {
         Update: {
           atualizado_em?: string | null
           criado_em?: string | null
+          estilo_pagina?: string | null
           id?: string | null
           publicado?: boolean | null
           slug?: string | null
           versao_aprovada_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "perfis_perfil_estilo_pagina_fkey"
+            columns: ["estilo_pagina"]
+            isOneToOne: false
+            referencedRelation: "perfis_estilo_pagina"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "perfis_perfil_versao_aprovada_fk"
             columns: ["versao_aprovada_id", "id"]
@@ -3365,6 +3705,7 @@ export type Database = {
           cidade: string | null
           descricao_breve: string | null
           endereco: string | null
+          estilo_pagina: string | null
           fotos_paths: string[] | null
           id: string | null
           imagem_path: string | null
@@ -3862,6 +4203,37 @@ export type Database = {
         Returns: boolean
       }
       notificacoes_marcar_todas_lidas: { Args: never; Returns: number }
+      perfis_admin_adicionar_banner: {
+        Args: {
+          p_destino_secao?: string
+          p_imagem_path: string
+          p_motivo: string
+          p_ordem?: number
+          p_perfil_id: string
+          p_texto_alternativo: string
+        }
+        Returns: string
+      }
+      perfis_admin_definir_estilo_habilitado: {
+        Args: { p_estilo: string; p_habilitado: boolean; p_motivo: string }
+        Returns: undefined
+      }
+      perfis_admin_remover_banner: {
+        Args: { p_banner_id: string; p_motivo: string }
+        Returns: undefined
+      }
+      perfis_banner_copiar: {
+        Args: { p_de: string; p_para: string }
+        Returns: undefined
+      }
+      perfis_banner_garantir_rascunho: {
+        Args: { p_perfil_id: string }
+        Returns: string
+      }
+      perfis_banner_total: {
+        Args: { p_perfil_id: string; p_versao_id: string }
+        Returns: number
+      }
       perfis_criar_rascunho: {
         Args: {
           p_areas_atendidas?: string[]
@@ -3887,6 +4259,14 @@ export type Database = {
         Args: { p_aprovar: boolean; p_motivo?: string; p_versao_id: string }
         Returns: undefined
       }
+      perfis_definir_banner_ativo: {
+        Args: { p_ativo: boolean; p_banner_id: string }
+        Returns: undefined
+      }
+      perfis_definir_estilo: {
+        Args: { p_estilo: string; p_perfil_id: string }
+        Returns: undefined
+      }
       perfis_eh_dono: { Args: { p_perfil_id: string }; Returns: boolean }
       perfis_eh_dono_da_versao: {
         Args: { p_versao_id: string }
@@ -3895,6 +4275,10 @@ export type Database = {
       perfis_enviar_versao: {
         Args: { p_versao_id: string }
         Returns: undefined
+      }
+      perfis_gravar_banners: {
+        Args: { p_banners: Json; p_perfil_id: string }
+        Returns: string
       }
       perfis_gravar_versao: {
         Args: {
@@ -3917,9 +4301,17 @@ export type Database = {
         }
         Returns: string
       }
+      perfis_pasta_para_aprovador: {
+        Args: { p_nome: string }
+        Returns: boolean
+      }
       perfis_perfil_disponivel: {
         Args: { p_perfil_id: string }
         Returns: boolean
+      }
+      perfis_responder_banner: {
+        Args: { p_aceitar: boolean; p_banner_id: string; p_motivo?: string }
+        Returns: undefined
       }
       pontos_admin_cadastrar_beneficio: {
         Args: {
