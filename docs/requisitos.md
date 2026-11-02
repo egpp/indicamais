@@ -64,7 +64,7 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-017 | D | Prévia.** Permitir conferir o conteúdo antes de enviar para aprovação.
 
-- **IM-018 | P | Mapa e rota.** Exibir quando configurados; confirmar fornecedor e configuração antes da ativação.
+- **IM-018 | D | Mapa e rota.** Exibir quando configurados; fornecedor decidido em 02/11/2026 (D-016): OpenStreetMap, gratuito e sem chave.
 
 ## Busca e publicação
 
