@@ -1457,6 +1457,7 @@ export type Database = {
           criado_em: string
           estilo_pagina: string
           id: string
+          mostrar_mapa: boolean
           publicado: boolean
           responsavel_id: string
           slug: string
@@ -1467,6 +1468,7 @@ export type Database = {
           criado_em?: string
           estilo_pagina?: string
           id?: string
+          mostrar_mapa?: boolean
           publicado?: boolean
           responsavel_id: string
           slug: string
@@ -1477,6 +1479,7 @@ export type Database = {
           criado_em?: string
           estilo_pagina?: string
           id?: string
+          mostrar_mapa?: boolean
           publicado?: boolean
           responsavel_id?: string
           slug?: string
@@ -1642,6 +1645,44 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "perfis_perfil_versao"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfis_perfil_versao_local: {
+        Row: {
+          endereco_ref: string
+          georreferenciado_em: string
+          latitude: number
+          longitude: number
+          origem: string
+          perfil_id: string
+          versao_id: string
+        }
+        Insert: {
+          endereco_ref: string
+          georreferenciado_em?: string
+          latitude: number
+          longitude: number
+          origem: string
+          perfil_id: string
+          versao_id: string
+        }
+        Update: {
+          endereco_ref?: string
+          georreferenciado_em?: string
+          latitude?: number
+          longitude?: number
+          origem?: string
+          perfil_id?: string
+          versao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_local_versao_fk"
+            columns: ["versao_id", "perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_versao"
+            referencedColumns: ["id", "perfil_id"]
           },
         ]
       }
@@ -3656,27 +3697,12 @@ export type Database = {
           criado_em: string | null
           estilo_pagina: string | null
           id: string | null
+          latitude: number | null
+          longitude: number | null
+          mostrar_mapa: boolean | null
           publicado: boolean | null
           slug: string | null
           versao_aprovada_id: string | null
-        }
-        Insert: {
-          atualizado_em?: string | null
-          criado_em?: string | null
-          estilo_pagina?: string | null
-          id?: string | null
-          publicado?: boolean | null
-          slug?: string | null
-          versao_aprovada_id?: string | null
-        }
-        Update: {
-          atualizado_em?: string | null
-          criado_em?: string | null
-          estilo_pagina?: string | null
-          id?: string | null
-          publicado?: boolean | null
-          slug?: string | null
-          versao_aprovada_id?: string | null
         }
         Relationships: [
           {
@@ -3710,6 +3736,9 @@ export type Database = {
           id: string | null
           imagem_path: string | null
           informacoes_sociais: string | null
+          latitude: number | null
+          longitude: number | null
+          mostrar_mapa: boolean | null
           nome: string | null
           site: string | null
           slug: string | null
@@ -4267,10 +4296,18 @@ export type Database = {
         Args: { p_estilo: string; p_perfil_id: string }
         Returns: undefined
       }
+      perfis_definir_mostrar_mapa: {
+        Args: { p_mostrar: boolean; p_perfil_id: string }
+        Returns: undefined
+      }
       perfis_eh_dono: { Args: { p_perfil_id: string }; Returns: boolean }
       perfis_eh_dono_da_versao: {
         Args: { p_versao_id: string }
         Returns: boolean
+      }
+      perfis_endereco_ref: {
+        Args: { p_cidade: string; p_endereco: string; p_uf: string }
+        Returns: string
       }
       perfis_enviar_versao: {
         Args: { p_versao_id: string }
@@ -4279,6 +4316,15 @@ export type Database = {
       perfis_gravar_banners: {
         Args: { p_banners: Json; p_perfil_id: string }
         Returns: string
+      }
+      perfis_gravar_coordenadas: {
+        Args: {
+          p_latitude: number
+          p_longitude: number
+          p_origem?: string
+          p_versao_id: string
+        }
+        Returns: undefined
       }
       perfis_gravar_versao: {
         Args: {
@@ -4300,6 +4346,10 @@ export type Database = {
           p_whatsapp_comercial: string
         }
         Returns: string
+      }
+      perfis_limpar_coordenadas: {
+        Args: { p_versao_id: string }
+        Returns: undefined
       }
       perfis_pasta_para_aprovador: {
         Args: { p_nome: string }
