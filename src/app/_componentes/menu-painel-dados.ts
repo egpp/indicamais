@@ -7,7 +7,7 @@ import type { Permissao } from "@/modules/administracao";
  */
 export type ItemMenu = { href: string; texto: string };
 export type GrupoMenu = {
-  id: "conteudo" | "relacionamento" | "indicacoes" | "conta" | "administracao";
+  id: "conteudo" | "aparencia" | "relacionamento" | "indicacoes" | "conta" | "administracao";
   titulo: string;
   itens: ItemMenu[];
 };
@@ -53,6 +53,11 @@ export function gruposDoMenu(acesso: AcessoAdministracao): GrupoMenu[] {
       ],
     },
     {
+      id: "aparencia",
+      titulo: "Aparência",
+      itens: [{ href: "/aparencia", texto: "Estilo da página" }],
+    },
+    {
       id: "relacionamento",
       titulo: "Relacionamento",
       itens: [
@@ -87,6 +92,7 @@ export function gruposDoMenu(acesso: AcessoAdministracao): GrupoMenu[] {
 /** Rota que cada valor de `atual` do PainelPagina representa (usado até o navegador informar o endereço real). */
 export const HREF_POR_ATUAL = {
   perfis: "/meus-perfis",
+  aparencia: "/aparencia",
   itens: "/meus-itens",
   anuncios: "/meus-anuncios",
   pedidos: "/pedidos-de-contato",
@@ -105,6 +111,8 @@ export type AtualMenu = keyof typeof HREF_POR_ATUAL;
 /** Item ativo: o de endereço igual ou o mais longo que é prefixo do caminho atual. */
 export function hrefAtivo(caminho: string, grupos: readonly GrupoMenu[]): string | null {
   let melhor: string | null = null;
+  // /meus-perfis/<id>/aparencia pertence ao grupo Aparência, não a Meus perfis.
+  if (/^\/meus-perfis\/[^/]+\/aparencia(\/|$)/.test(caminho)) return "/aparencia";
   for (const g of grupos) {
     for (const i of g.itens) {
       const casa = caminho === i.href || caminho.startsWith(`${i.href}/`);

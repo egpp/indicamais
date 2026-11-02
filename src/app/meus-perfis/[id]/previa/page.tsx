@@ -5,9 +5,11 @@ import { acaoEnviarPerfil } from "../../../acoes-conteudo";
 import { PerfilVisao } from "../../../_componentes/exibicao";
 import { FormAcao } from "../../../_componentes/form-acao";
 import { PainelPagina } from "../../../_componentes/painel";
+import { TEMAS, estiloLiberadoOuNulo } from "../../../_componentes/site/estilos";
+import { SiteNegocio } from "../../../_componentes/site/site-negocio";
 import { Aviso } from "../../../_componentes/ui";
 import { obterContexto } from "../../../_lib/contexto-sessao";
-import { SEM_INDEXACAO, caminhosDoPerfil, categoriasParaTela } from "../../../_lib/pagina";
+import { SEM_INDEXACAO, caminhosDoPerfil, categoriasParaTela, um } from "../../../_lib/pagina";
 
 export const metadata: Metadata = { title: "Prévia do perfil | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
@@ -15,8 +17,10 @@ export const dynamic = "force-dynamic";
 /** IM-017: o responsável confere o perfil como ele aparecerá, sem torná-lo público. */
 export default async function PaginaPreviaPerfil({
   params,
+  searchParams,
 }: PageProps<"/meus-perfis/[id]/previa">) {
   const { id } = await params;
+  const estilo = estiloLiberadoOuNulo(um((await searchParams).estilo));
   const ctx = await obterContexto(`/meus-perfis/${id}/previa`);
   const r = await ctx.perfis.previa(id);
   if (!r.ok) {
@@ -32,6 +36,40 @@ export default async function PaginaPreviaPerfil({
     categoriasParaTela(ctx),
     ctx.assinarImagens(caminhosDoPerfil(previa.perfil)),
   ]);
+
+  // D-016: prévia da página como site, num estilo escolhido na Aparência. Nada é gravado.
+  if (estilo) {
+    return (
+      <>
+        <div className="cabecalho-site">
+          <Aviso tipo="info">
+            Prévia do estilo {TEMAS[estilo].rotulo}: só você vê. Os botões de contato são
+            apresentados só na página publicada, e produtos e benefícios aparecem depois que o
+            perfil estiver no ar.
+          </Aviso>
+          <p>
+            <Link className="botao botao-secundario" href={`/meus-perfis/${id}/aparencia`}>
+              Voltar para Aparência
+            </Link>
+          </p>
+        </div>
+        <SiteNegocio
+          estilo={estilo}
+          perfil={previa.perfil}
+          itens={[]}
+          categorias={categorias}
+          urls={urls}
+          beneficios={[]}
+          contato={
+            <p className="ajuda">
+              Aqui ficam o pedido de contato, o botão Indique esta empresa e o Curtir. Eles
+              funcionam na página publicada.
+            </p>
+          }
+        />
+      </>
+    );
+  }
 
   return (
     <PainelPagina titulo="Prévia do perfil" atual="perfis">
