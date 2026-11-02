@@ -188,6 +188,19 @@ Aprovada pelo Emerson em 02/11/2026 ("siga as recomendações"), sobre proposta 
 
 ---
 
+## D-018 · 02/11/2026 · Seções em carrossel na página inicial (IM-095, IM-096)
+**IDs:** IM-019, IM-020, IM-095, IM-096
+Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções sugeridas pelo gestor:
+- A página inicial pública ganha **seções de carrossel por critério de importância**: Novidades, Mais curtidos, Mais indicados, Na sua cidade e Em alta na semana (critérios em IM-095). "Mais visitados" fica de fora (exigiria contar visitas: coleta nova de dados, LGPD, robôs).
+- **Nomes das seções editáveis no admin master** (IM-096): título, ativação e ordem, com motivo e auditoria.
+- **Inicialmente só perfis**; o modelo deve ficar preparado para acrescentar produtos e serviços depois (tipo de item da seção).
+- **"Na sua cidade":** com a busca, usa a cidade e UF escolhidas; com login, a cidade do perfil da pessoa (o Emerson aceitou a sugestão do gestor). Sem cidade conhecida, a seção não aparece.
+- **Cards:** 4 ou 5 por linha, conforme o que ficar melhor visualmente (decisão do `interface` com captura para o Emerson); no celular, rolagem horizontal acessível.
+- Seção com poucos itens fica oculta; rankings contam pessoas distintas e nunca o dono; só dados públicos do perfil; atualização em intervalos (cache), não a cada visita. Patrocinados (IM-020) continuam no topo.
+- Entra como **Fase 9** no roteiro; só avança depois do banco do mapa (mesma frente de banco).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

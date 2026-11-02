@@ -52,6 +52,12 @@ Sistema de design aplicado a todas as telas existentes: paleta, tipografia, espa
 - Menu "Aparência" no painel com miniaturas, prévia e escolha de estilo; 5 estilos iniciais (Minimalista, Gastronomia, Saúde e Bem-estar, Beleza e Estética, Construção e Reformas); depois os outros 15.
 - Pode ser feita antes ou depois da Fase 7, por decisão do Emerson; não depende de pontos nem de comissões.
 
+## Fase 9 — Seções em carrossel na página inicial (D-018)
+**IDs:** IM-095, IM-096 (e IM-019, IM-020 no que evoluem)
+- Banco: critérios dos rankings (Novidades, Mais curtidos, Mais indicados, Na sua cidade, Em alta na semana) em visões/RPCs públicas só com dados públicos, parâmetros editáveis (nome, ativa, ordem, mínimo de itens, limite) com auditoria.
+- Módulo e administração: editar nomes e ordem das seções (administrador geral).
+- Interface: carrosséis acessíveis na home, 4 ou 5 cards por linha, rolagem horizontal no celular, seções vazias ocultas.
+
 ## Antes do lançamento
 - Relatório com todos os IDs: verificados, bloqueados, adiados e não conferidos.
 - Revisão de segurança completa (RLS de todas as tabelas, segredos, isolamento entre responsáveis).
