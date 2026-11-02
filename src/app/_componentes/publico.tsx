@@ -204,69 +204,115 @@ export function FiltrosDaBusca({
   filtros: FiltrosDisponiveis | null;
   valores: ValoresFiltro;
 }) {
+  const partes: string[] = [];
+  if (valores.termo) partes.push(valores.termo);
+  if (valores.tipo && valores.tipo in ROTULO_TIPO_BUSCA)
+    partes.push(ROTULO_TIPO_BUSCA[valores.tipo as TipoBusca]);
+  if (valores.categoriaId) {
+    const cat = filtros?.categorias.find((c) => c.id === valores.categoriaId);
+    if (cat) partes.push(cat.nome);
+  }
+  const local = [valores.cidade, valores.uf].filter(Boolean).join("/");
+  if (local) partes.push(local);
+  const ativos = [
+    valores.termo,
+    valores.tipo,
+    valores.categoriaId,
+    valores.cidade,
+    valores.uf,
+  ].filter(Boolean).length;
+  const resumo = partes.length > 0 ? partes.join(" · ") : "Buscar e filtrar";
   return (
-    <form className="filtros-busca" method="get" action="/" role="search" aria-label="Buscar">
-      <div className="campo campo-largo">
-        <label htmlFor="f-termo">Buscar pelo nome</label>
-        <input
-          id="f-termo"
-          name="termo"
-          type="search"
-          defaultValue={valores.termo ?? ""}
-          maxLength={80}
-          autoComplete="off"
-          placeholder="Ex.: padaria, bicicleta, eletricista"
-        />
-      </div>
-      <div className="campo">
-        <label htmlFor="f-tipo">Tipo</label>
-        <select id="f-tipo" name="tipo" defaultValue={valores.tipo ?? ""}>
-          <option value="">Todos</option>
-          <option value="perfil">Empresas e profissionais</option>
-          <option value="produto">Produtos</option>
-          <option value="servico">Serviços</option>
-        </select>
-      </div>
-      <div className="campo">
-        <label htmlFor="f-categoria">Categoria</label>
-        <select id="f-categoria" name="categoriaId" defaultValue={valores.categoriaId ?? ""}>
-          <option value="">Todas</option>
-          {(filtros?.categorias ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nome}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="campo">
-        <label htmlFor="f-uf">UF</label>
-        <select id="f-uf" name="uf" defaultValue={valores.uf ?? ""}>
-          <option value="">Todas</option>
-          {(filtros?.ufs ?? []).map((u) => (
-            <option key={u} value={u}>
-              {u}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="campo">
-        <label htmlFor="f-cidade">Cidade</label>
-        <input
-          id="f-cidade"
-          name="cidade"
-          type="text"
-          defaultValue={valores.cidade ?? ""}
-          maxLength={80}
-          autoComplete="address-level2"
-        />
-      </div>
-      <div className="acoes">
-        <button type="submit" className="botao">
-          Buscar
-        </button>
-        <Link href="/">Limpar filtros</Link>
-      </div>
-    </form>
+    <details className="busca-recolhida">
+      <summary>
+        <svg className="busca-icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
+          <path
+            d="M16.5 16.5 21 21"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span className="busca-resumo">{resumo}</span>
+        {ativos > 0 ? (
+          <span className="busca-contagem">{ativos === 1 ? "1 filtro" : `${ativos} filtros`}</span>
+        ) : null}
+        <svg className="busca-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="m6 9 6 6 6-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </summary>
+      <form className="filtros-busca" method="get" action="/" role="search" aria-label="Buscar">
+        <div className="campo campo-largo">
+          <label htmlFor="f-termo">Buscar pelo nome</label>
+          <input
+            id="f-termo"
+            name="termo"
+            type="search"
+            defaultValue={valores.termo ?? ""}
+            maxLength={80}
+            autoComplete="off"
+            placeholder="Ex.: padaria, bicicleta, eletricista"
+          />
+        </div>
+        <div className="campo">
+          <label htmlFor="f-tipo">Tipo</label>
+          <select id="f-tipo" name="tipo" defaultValue={valores.tipo ?? ""}>
+            <option value="">Todos</option>
+            <option value="perfil">Empresas e profissionais</option>
+            <option value="produto">Produtos</option>
+            <option value="servico">Serviços</option>
+          </select>
+        </div>
+        <div className="campo">
+          <label htmlFor="f-categoria">Categoria</label>
+          <select id="f-categoria" name="categoriaId" defaultValue={valores.categoriaId ?? ""}>
+            <option value="">Todas</option>
+            {(filtros?.categorias ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="campo">
+          <label htmlFor="f-uf">UF</label>
+          <select id="f-uf" name="uf" defaultValue={valores.uf ?? ""}>
+            <option value="">Todas</option>
+            {(filtros?.ufs ?? []).map((u) => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="campo">
+          <label htmlFor="f-cidade">Cidade</label>
+          <input
+            id="f-cidade"
+            name="cidade"
+            type="text"
+            defaultValue={valores.cidade ?? ""}
+            maxLength={80}
+            autoComplete="address-level2"
+          />
+        </div>
+        <div className="acoes">
+          <button type="submit" className="botao">
+            Buscar
+          </button>
+          <Link href="/">Limpar filtros</Link>
+        </div>
+      </form>
+    </details>
   );
 }
 
