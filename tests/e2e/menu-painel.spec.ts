@@ -8,6 +8,28 @@ import { credenciais, entrar, exigirConta } from "./contas";
 import { menuPrincipal } from "./menu";
 
 test.describe("menu do painel (dono)", () => {
+  test("ícone 'ver como visitante' abre a página inicial em nova aba", async ({
+    page,
+    context,
+  }) => {
+    exigirConta("dono");
+    await entrar(page, "dono");
+    await page.goto("/meus-perfis");
+    const link = page.getByRole("link", { name: "Ver o site como visitante (abre em nova aba)" });
+    await expect(link).toBeVisible();
+    const caixa = await link.boundingBox();
+    expect(caixa?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(caixa?.height ?? 0).toBeGreaterThanOrEqual(44);
+    const folga = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(folga).toBeLessThanOrEqual(0);
+    const [nova] = await Promise.all([context.waitForEvent("page"), link.click()]);
+    await nova.waitForLoadState("domcontentloaded");
+    expect(new URL(nova.url()).pathname).toBe("/");
+    await expect(page).toHaveURL(/\/meus-perfis/);
+  });
+
   test("abre, fecha e navega", async ({ page }, info) => {
     exigirConta("dono");
     await entrar(page, "dono");

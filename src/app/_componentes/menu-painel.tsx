@@ -23,6 +23,7 @@ import {
   type GrupoMenu,
 } from "./menu-painel-dados";
 import { SinoAvisos } from "./sino-avisos";
+import { VerComoVisitante } from "./ver-como-visitante";
 
 /**
  * Menu lateral do painel, com grupos que abrem em cascata (D-015; IM-005, IM-014, IM-047).
@@ -198,6 +199,7 @@ export function MenuPainel({
           <LogoMarca />
         </div>
         <div className="painel-topo-acoes">
+          <VerComoVisitante />
           <SinoAvisos />
           <div className="painel-topo-sair">
             <BotaoSair className="botao-texto painel-sair" />
