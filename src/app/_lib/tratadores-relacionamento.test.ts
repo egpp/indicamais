@@ -88,6 +88,15 @@ describe("caminhoDoAviso (IM-052)", () => {
     } as never;
     expect(await caminhoDoAviso(b, slug)).toBe("/meus-itens/i1");
   });
+  it("banner aguardando aceite abre os banners do perfil (IM-093)", async () => {
+    const a = {
+      ...base,
+      origem: "banner_aceite",
+      tipo: "banner_aguardando_aceite",
+      destino: { tipo: "perfil", id: "p1", nome: "" },
+    } as never;
+    expect(await caminhoDoAviso(a, slug)).toBe("/meus-perfis/p1/banners");
+  });
   it("indicador abre a página pública", async () => {
     const a = {
       ...base,
