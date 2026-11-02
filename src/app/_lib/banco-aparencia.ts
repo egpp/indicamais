@@ -171,5 +171,14 @@ export function criarBancoAparencia(supabase: Cliente): ClienteBancoAparencia {
           .eq("perfil_id", perfilId);
         return { dados: data ?? [], erro: paraErro(error) };
       }),
+
+    listarBannersDoPerfil: (perfilId) =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("perfis_banner")
+          .select(COLUNAS_APARENCIA.bannerAdmin)
+          .eq("perfil_id", perfilId);
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
   };
 }

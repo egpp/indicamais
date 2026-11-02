@@ -67,11 +67,13 @@ describe("adaptador do banco de aparência", () => {
     await b.listarBannersPublicos("p");
     await b.listarBannersAguardandoAceite();
     await b.listarBannersAdmin("p");
+    await b.listarBannersDoPerfil("p");
     await b.lerEstiloPublico("s");
     expect(chamadas.selects.map((s) => s[0])).toEqual([
       "perfis_banner_publico",
       "perfis_banner_aguardando_aceite",
       "administracao_banners_empresa",
+      "perfis_banner",
       "perfis_perfil_publico",
     ]);
   });

@@ -25,6 +25,7 @@ function banco(sobre: Partial<Record<keyof ClienteBancoAparencia, unknown>> = {}
     listarBannersPublicos: vi.fn(async () => ({ dados: [], erro: null })),
     listarBannersAguardandoAceite: vi.fn(async () => ({ dados: [], erro: null })),
     listarBannersAdmin: vi.fn(async () => ({ dados: [], erro: null })),
+    listarBannersDoPerfil: vi.fn(async () => ({ dados: [], erro: null })),
     ...sobre,
   };
   return base as unknown as ClienteBancoAparencia & typeof base;

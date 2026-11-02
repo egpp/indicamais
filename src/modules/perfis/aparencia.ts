@@ -328,6 +328,8 @@ export interface ClienteBancoAparencia {
   listarBannersAguardandoAceite(): Promise<RespostaBanco<LinhaBannerAguardando[]>>;
   /** select de administracao_banners_empresa de um perfil (vazio sem permissão 'aprovar'). */
   listarBannersAdmin(perfilId: string): Promise<RespostaBanco<LinhaBannerAdmin[]>>;
+  /** select de perfis_banner do próprio perfil (política "proprio": só o dono vê; perfil alheio volta vazio). */
+  listarBannersDoPerfil(perfilId: string): Promise<RespostaBanco<LinhaBannerAdmin[]>>;
 }
 
 const falha = (erro: ErroPerfis): { ok: false; erro: ErroPerfis } => ({ ok: false, erro });
@@ -503,6 +505,14 @@ export function criarServicoAparencia(banco: ClienteBancoAparencia) {
       seguro(() =>
         listar(banco.listarBannersAguardandoAceite(), paraBannerAguardando, "responder"),
       ),
+
+    /** IM-093: todos os banners do PRÓPRIO perfil (a tela do responsável filtra o conjunto vigente). Perfil alheio: vazio. */
+    bannersDoMeuPerfil: (perfilId: unknown): Promise<Resultado<BannerAdmin[]>> =>
+      seguro(async () => {
+        const id = uuidSchema.safeParse(perfilId);
+        if (!id.success) return invalido(id.error);
+        return listar(banco.listarBannersDoPerfil(id.data), paraBannerAdmin, "responder");
+      }),
 
     /** IM-093: todos os banners de uma empresa, para o administrador (lista vazia sem permissão). */
     bannersDaEmpresa: (perfilId: unknown): Promise<Resultado<BannerAdmin[]>> =>
