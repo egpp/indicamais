@@ -31,6 +31,9 @@
 --   22023  coordenada fora da faixa, origem inválida, versão sem endereço ou fora de situação gravável, mostrar nulo
 
 -- Referência estável do endereço geocodificado (nome em minúsculas, espaços colapsados). Pura; sem dado de conta.
+-- anon PRECISA de EXECUTE: a visão pública perfis_perfil_publico é security_invoker e chama esta função no JOIN com a tabela de
+-- local; o PostgreSQL confere EXECUTE contra quem consulta (mesmo caso de pontos_beneficio_no_prazo). É segura: SQL puro,
+-- immutable, só recebe texto (não recebe id de conta, não lê tabela) e devolve um md5 do próprio texto que o chamador já deu.
 create function public.perfis_endereco_ref(p_endereco text, p_cidade text, p_uf text) returns text
 language sql immutable set search_path = '' as $$
   select md5(lower(regexp_replace(btrim(coalesce(p_endereco, '')), '\s+', ' ', 'g')) || '|'
