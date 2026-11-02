@@ -134,6 +134,17 @@ export default async function PaginaNegociosAdmin({
                     <LinkPaginaPublica nome={n.nome} href={n.hrefPublico} />
                   </p>
                 ) : null}
+                {n.tipo === "perfil" && n.chave.startsWith("perfil:") ? (
+                  <p>
+                    <Link
+                      className="botao botao-secundario"
+                      href={`/administracao/negocios/${n.chave.slice("perfil:".length)}/banners?nome=${encodeURIComponent(n.nome)}`}
+                    >
+                      Banners desta empresa
+                      <span className="sr-only">: {n.nome}</span>
+                    </Link>
+                  </p>
+                ) : null}
                 {n.categoria || n.local ? (
                   <p className="ajuda">{[n.categoria, n.local].filter(Boolean).join(" · ")}</p>
                 ) : null}

@@ -1,16 +1,19 @@
-/* eslint-disable @next/next/no-img-element -- URLs assinadas do Storage mudam a cada visita; next/image não as otimiza. */
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { BannerPublico } from "@/modules/perfis";
 import type { BeneficioPublico } from "@/modules/pontos";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
-import { CabecalhoPublico, GradeCards, dadosDeItem, localTexto } from "../../_componentes/publico";
-import { AVISO_SEM_RESGATE, ListaBeneficiosPublicos } from "../../_componentes/pontos";
+import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
+import { Aviso } from "../../_componentes/ui";
+import { SiteNegocio } from "../../_componentes/site/site-negocio";
+import { TEMAS } from "../../_componentes/site/estilos";
 import { FormDenunciar } from "../../_componentes/form-ciclo-vida";
 import { CurtirPerfil } from "../../_componentes/form-relacionamento";
-import { nomeDaCategoria } from "../../_lib/apresentacao";
 import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
+import { obterServicoAparenciaPublico } from "../../_lib/contexto-aparencia";
 import { obterServicoPontosPublico } from "../../_lib/contexto-pontos";
+import { obterContextoPublico } from "../../_lib/contexto-publico";
+import { estiloDaPaginaPublica } from "../../_lib/estilo-da-pagina";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
 import { carregarPerfilPublico } from "../../_lib/paginas-publicas";
 import { DESCRICAO_PADRAO, metadadosPublicos, resumir } from "../../_lib/metadados-publicos";
@@ -21,6 +24,7 @@ import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
  * para a prévia no WhatsApp. Só aparece o que está aprovado, publicado e disponível; o resto é 404 genérico.
  * Sem WhatsApp, responsável nem e-mail no HTML. Ações: contato e indicar (IM-013) e curtir só para quem está logado (IM-043).
  * ?ind=<codigo> (IM-025) vai só ao formulário de contato desta página.
+ * A página é um site de uma página (D-016; IM-091 a IM-093). ?estilo=<id> é só prévia para o responsável/administrador.
  */
 export const dynamic = "force-dynamic";
 
@@ -48,13 +52,11 @@ export default async function PaginaPerfilPublico({
   searchParams,
 }: PageProps<"/perfil/[slug]">) {
   const { slug } = await params;
-  const ind = um((await searchParams).ind);
+  const consulta = await searchParams;
+  const ind = um(consulta.ind);
   const d = await carregarPerfilPublico(slug);
   if (!d) notFound();
   const { perfil, itens, categorias, urls } = d;
-  const nome = perfil.nome ?? "Perfil sem nome";
-  const local = localTexto(perfil.cidade, perfil.uf);
-  const imagem = perfil.imagemPath ? urls[perfil.imagemPath] : undefined;
   // IM-036: vitrine informativa; falha na leitura não derruba a página do perfil.
   let beneficios: BeneficioPublico[] = [];
   try {
@@ -63,106 +65,64 @@ export default async function PaginaPerfilPublico({
   } catch {
     beneficios = [];
   }
+  // IM-093: banners no ar; falha na leitura cai na imagem principal, a página nunca quebra.
+  let banners: BannerPublico[] = [];
+  let urlsBanners: Record<string, string> = {};
+  try {
+    const lista = await obterServicoAparenciaPublico().bannersPublicos(perfil.id);
+    if (lista.ok) banners = lista.valor;
+    urlsBanners = await obterContextoPublico().assinarImagens(banners.map((b) => b.imagemPath));
+  } catch {
+    banners = [];
+  }
   const curtida = await lerEstadoCurtida(perfil.id);
-  const nomesCategorias = [perfil.categoriaPrincipalId, ...perfil.categoriasSecundariasIds]
-    .filter((c): c is string => Boolean(c))
-    .map((c) => nomeDaCategoria(c, categorias));
+  const { estilo, previa } = await estiloDaPaginaPublica(
+    perfil.id,
+    perfil.slug,
+    um(consulta.estilo),
+  );
+  const retorno = ROTAS_PUBLICAS.perfil(perfil.slug);
 
   return (
-    <main className="pagina pagina-publica">
-      <CabecalhoPublico />
-      <article className="visao-publica" aria-labelledby="titulo-perfil">
-        {perfil.bannersPaths.map((b, i) =>
-          urls[b] ? <img key={b} src={urls[b]} alt={`Banner ${i + 1} de ${nome}`} /> : null,
-        )}
-        {imagem ? (
-          <div className="imagem-principal">
-            <img src={imagem} alt={`Imagem de ${nome}`} />
-          </div>
+    <>
+      <div className="pagina-publica cabecalho-site">
+        <CabecalhoPublico />
+        {previa ? (
+          <Aviso tipo="info">
+            Prévia do estilo {TEMAS[estilo].rotulo}: só você vê. Os visitantes veem o estilo que
+            você salvou na Aparência.
+          </Aviso>
         ) : null}
-        <h1 id="titulo-perfil">{nome}</h1>
-        {nomesCategorias.length > 0 ? (
-          <p className="categorias">
-            <strong>{nomesCategorias[0]}</strong>
-            {nomesCategorias.slice(1).map((c) => (
-              <span key={c}> · {c}</span>
-            ))}
-          </p>
-        ) : null}
-        {local ? <p>{local}</p> : null}
-        {perfil.descricaoBreve ? <p className="texto-corrido">{perfil.descricaoBreve}</p> : null}
-        <dl className="lista-dados">
-          {perfil.endereco ? (
-            <>
-              <dt>Endereço</dt>
-              <dd>{perfil.endereco}</dd>
-            </>
-          ) : null}
-          {perfil.areasAtendidas.length > 0 ? (
-            <>
-              <dt>Áreas atendidas</dt>
-              <dd>{perfil.areasAtendidas.join(", ")}</dd>
-            </>
-          ) : null}
-          {perfil.site ? (
-            <>
-              <dt>Site</dt>
-              <dd>{perfil.site}</dd>
-            </>
-          ) : null}
-          {perfil.informacoesSociais ? (
-            <>
-              <dt>Redes sociais</dt>
-              <dd>{perfil.informacoesSociais}</dd>
-            </>
-          ) : null}
-        </dl>
-        {perfil.fotosPaths.length > 0 ? (
-          <div className="visao-fotos">
-            {perfil.fotosPaths.map((f, i) =>
-              urls[f] ? (
-                <img key={f} src={urls[f]} alt={`Foto ${i + 1} de ${nome}`} loading="lazy" />
-              ) : null,
+      </div>
+      <SiteNegocio
+        estilo={estilo}
+        perfil={perfil}
+        itens={itens}
+        categorias={categorias}
+        urls={{ ...urls, ...urlsBanners }}
+        banners={banners}
+        beneficios={beneficios}
+        contato={
+          <>
+            <AcoesDoDestino
+              tipo="perfil"
+              slug={perfil.slug}
+              rotuloIndicar="Indique esta empresa"
+              retorno={retorno}
+              ind={ind}
+            />
+            {curtida.proprio ? null : (
+              <CurtirPerfil
+                perfilId={perfil.id}
+                logado={curtida.logado}
+                curtiu={curtida.curtiu}
+                retorno={retorno}
+              />
             )}
-          </div>
-        ) : null}
-      </article>
-
-      <AcoesDoDestino
-        tipo="perfil"
-        slug={perfil.slug}
-        rotuloIndicar="Indique esta empresa"
-        retorno={ROTAS_PUBLICAS.perfil(perfil.slug)}
-        ind={ind}
+          </>
+        }
+        denunciar={<FormDenunciar alvoTipo="perfil" alvoId={perfil.id} />}
       />
-      {curtida.proprio ? null : (
-        <CurtirPerfil
-          perfilId={perfil.id}
-          logado={curtida.logado}
-          curtiu={curtida.curtiu}
-          retorno={ROTAS_PUBLICAS.perfil(perfil.slug)}
-        />
-      )}
-
-      <section aria-labelledby="titulo-itens">
-        <h2 id="titulo-itens">Produtos e serviços</h2>
-        {itens.length === 0 ? (
-          <p className="ajuda">Este perfil ainda não publicou produtos ou serviços.</p>
-        ) : (
-          <GradeCards cards={itens.map((i) => dadosDeItem(i, categorias, local))} urls={urls} />
-        )}
-      </section>
-      {beneficios.length > 0 ? (
-        <section aria-labelledby="titulo-beneficios">
-          <h2 id="titulo-beneficios">Benefícios em pontos</h2>
-          <p className="ajuda">{AVISO_SEM_RESGATE}</p>
-          <ListaBeneficiosPublicos beneficios={beneficios} />
-        </section>
-      ) : null}
-      <FormDenunciar alvoTipo="perfil" alvoId={perfil.id} />
-      <p className="rodape-links">
-        <Link href="/">Voltar para a página inicial</Link>
-      </p>
-    </main>
+    </>
   );
 }

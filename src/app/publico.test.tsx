@@ -278,20 +278,26 @@ describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
     expect(screen.getByText("Pães e bolos feitos todo dia.")).toBeTruthy();
     expect(screen.getAllByText("Alimentação").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Porto Alegre - RS").length).toBeGreaterThan(0);
-    expect(screen.getByText("Rua das Flores, 100")).toBeTruthy();
-    expect(screen.getByText("Centro, Moinhos")).toBeTruthy();
+    expect(screen.getAllByText("Rua das Flores, 100").length).toBeGreaterThan(0);
+    expect(screen.getByText("Centro")).toBeTruthy();
+    expect(screen.getByText("Moinhos")).toBeTruthy();
     expect(screen.getByText("padariadaana.com.br")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Produtos e serviços" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Bolo de cenoura" }).getAttribute("href")).toMatch(
       /^\/item\/[0-9a-f-]{36}$/,
     );
     expect(screen.getAllByRole("img").length).toBeGreaterThanOrEqual(3);
-    // Sem link externo (IM-012): site e redes são só texto.
-    expect(
-      Array.from(document.querySelectorAll("a")).every((a) =>
-        /^[/#]/.test(a.getAttribute("href")!),
-      ),
-    ).toBe(true);
+    // Sem link externo (IM-012): site e redes são só texto. Única exceção: "Como chegar" (D-016), um link simples ao endereço no mapa.
+    const externos = Array.from(document.querySelectorAll("a")).filter(
+      (a) => !/^[/#]/.test(a.getAttribute("href")!),
+    );
+    expect(externos).toHaveLength(1);
+    expect(externos[0].textContent).toContain("Como chegar");
+    expect(externos[0].getAttribute("href")).toMatch(
+      /^https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=/,
+    );
+    expect(externos[0].getAttribute("rel")).toContain("noopener");
+    expect(screen.getByRole("navigation", { name: /Seções de Padaria da Ana/ })).toBeTruthy();
     conferirSemDadosPrivados(cabecalho());
     conferirAcoesDaFase3("Indique esta empresa");
   });

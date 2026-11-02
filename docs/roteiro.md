@@ -45,6 +45,13 @@ Sistema de design aplicado a todas as telas existentes: paleta, tipografia, espa
 **IDs:** IM-061 a IM-070
 **Pendências:** IM-071, IM-072, IM-073.
 
+## Fase 8 — Páginas dos negócios como sites (D-016)
+**IDs:** IM-091, IM-092, IM-093 (e IM-011, IM-012 no que evoluem)
+**Pendências:** IM-018 (mapa: fornecedor), IM-094 (aprovação da troca de estilo).
+- Estrutura da página em seções com menu fixo no topo, banner rotativo (imagens do responsável e do admin com aceite), seção de localização (mapa quando IM-018 for decidida) e ações da página.
+- Menu "Aparência" no painel com miniaturas, prévia e escolha de estilo; 5 estilos iniciais (Minimalista, Gastronomia, Saúde e Bem-estar, Beleza e Estética, Construção e Reformas); depois os outros 15.
+- Pode ser feita antes ou depois da Fase 7, por decisão do Emerson; não depende de pontos nem de comissões.
+
 ## Antes do lançamento
 - Relatório com todos os IDs: verificados, bloqueados, adiados e não conferidos.
 - Revisão de segurança completa (RLS de todas as tabelas, segredos, isolamento entre responsáveis).

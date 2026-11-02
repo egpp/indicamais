@@ -64,7 +64,7 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-017 | D | Prévia.** Permitir conferir o conteúdo antes de enviar para aprovação.
 
-- **IM-018 | P | Mapa e rota.** Exibir quando configurados; confirmar fornecedor e configuração antes da ativação.
+- **IM-018 | D | Mapa e rota.** Exibir quando configurados; fornecedor decidido em 02/11/2026 (D-016): OpenStreetMap, gratuito e sem chave.
 
 ## Busca e publicação
 
@@ -227,3 +227,13 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 - **IM-089 | D | Limites.** Custos novos, exclusões irreversíveis não autorizadas e abertura pública exigem decisão; funções adiadas permanecem desativadas.
 
 - **IM-090 | D | Fora do escopo inicial.** Apps nativos, colaboradores, filiais, expansão internacional, integração Facebook, carrinho e processamento financeiro ativo. Revisar somente por nova decisão expressa.
+
+## Páginas dos negócios como sites (D-016, 02/11/2026)
+
+- **IM-091 | D | Estilos de página.** O responsável escolhe, em menu "Aparência" do painel (aba com miniaturas e prévia), um entre 20 estilos de página por segmento: Minimalista, Saúde e Bem-estar, Beleza e Estética, Gastronomia, Café e Padaria, Construção e Reformas, Automotivo, Jurídico e Contábil, Educação e Cursos, Pet, Moda e Lojas, Fitness e Esportes, Imobiliário, Tecnologia e Assistência, Casa e Decoração, Eventos e Fotografia, Serviços Rápidos, Agro e Campo, Turismo e Hospedagem, Premium. Estilo muda apenas aparência (paleta, tipografia, forma dos blocos), não o conteúdo. Primeira entrega: 5 estilos (Minimalista, Gastronomia, Saúde e Bem-estar, Beleza e Estética, Construção e Reformas); os demais 15 depois, com a estrutura estável.
+
+- **IM-092 | D | Página como site.** A página do negócio funciona como site de uma página, bonito, intuitivo e prático, com boas práticas de navegação: menu fixo no topo (Início, Sobre, Produtos e serviços, Benefícios, Localização, Contato) que leva às seções, ações da página (IM-013) sempre acessíveis, celular primeiro, acessibilidade e desempenho. Sem links externos de redes sociais nesta versão (IM-012).
+
+- **IM-093 | D | Banner de topo rotativo.** Banner abaixo do menu, com imagens em rotação (pausável, acessível), inseridas pelo responsável e também pelo administrador geral na empresa selecionada. Imagem inserida pelo administrador só é publicada após **aceite do responsável**, como nos benefícios (D-012/D-014); tudo auditado.
+
+- **IM-094 | D | Troca de estilo e aprovação.** Decidido em 02/11/2026 (D-016): trocar o estilo não exige nova aprovação da página; o conteúdo segue IM-022.

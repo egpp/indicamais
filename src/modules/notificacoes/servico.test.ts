@@ -83,6 +83,33 @@ describe("avisos (IM-047, IM-051, IM-052)", () => {
     expect(r.ok && r.valor).toEqual([]);
   });
 
+  it("aviso de banner aguardando aceite: texto sem dado do administrador (IM-093)", async () => {
+    const { servico } = fake({
+      listarMeusAvisos: ok([
+        aviso({
+          origem: "banner_aceite",
+          origem_id: ID,
+          tipo: "banner_aguardando_aceite",
+          destino_nome: "Padaria Boa",
+          ator_nome: "Admin Secreto",
+        }),
+      ]),
+    });
+    const r = await servico.meusAvisos();
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.valor[0]!.texto).toBe("Um banner novo aguarda o seu aceite no perfil Padaria Boa.");
+      expect(JSON.stringify([r.valor[0]!.titulo, r.valor[0]!.texto])).not.toContain("Admin");
+    }
+  });
+
+  it("marcarLida aceita a origem banner_aceite", async () => {
+    const { servico, banco } = fake();
+    const r = await servico.marcarLida({ origem: "banner_aceite", origemId: ID });
+    expect(r.ok).toBe(true);
+    expect(banco.marcarLida).toHaveBeenCalledWith({ origem: "banner_aceite", origemId: ID });
+  });
+
   it("nenhum texto de aviso afirma compartilhamento externo", () => {
     const proibidos = /compartilh|divulg|whatsapp|enviou o link|postou|publicou/i;
     for (const tipo of TIPOS_AVISO) {

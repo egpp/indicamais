@@ -5,7 +5,12 @@ import { fileURLToPath } from "node:url";
 const raiz = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  resolve: { alias: { "@": path.resolve(raiz, "src") } },
+  resolve: {
+    alias: {
+      "@": path.resolve(raiz, "src"),
+      "next/font/google": path.resolve(raiz, "tests/fixtures/next-font-google.ts"),
+    },
+  },
   test: {
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.ts"],

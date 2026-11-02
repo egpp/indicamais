@@ -70,6 +70,14 @@ export default async function PaginaPerfil({
           href={p.estado.noAr ? hrefPerfilPublico(p.slug) : null}
         />
       </p>
+      <p className="acoes-linha">
+        <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/aparencia`}>
+          Aparência da página
+        </Link>
+        <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/banners`}>
+          Banners da página
+        </Link>
+      </p>
       <p>
         <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/beneficios`}>
           Benefícios do perfil

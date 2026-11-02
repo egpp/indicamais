@@ -87,6 +87,9 @@ export async function caminhoDoAviso(
     const slug = await slugDoPerfil(d.id);
     return slug ? ROTAS_PUBLICAS.perfil(slug) : CAMINHO_DESTINO_INDISPONIVEL;
   }
+  if (aviso.tipo === "banner_aguardando_aceite") {
+    return d.tipo === "perfil" ? `/meus-perfis/${d.id}/banners` : "/avisos";
+  }
   return d.tipo === "perfil" ? `/meus-perfis/${d.id}` : `/meus-itens/${d.id}`;
 }
 

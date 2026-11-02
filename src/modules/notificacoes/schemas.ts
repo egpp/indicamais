@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-export const ORIGENS_AVISO = ["contato_valido", "indicacao_valida", "curtida", "revisao"] as const;
+export const ORIGENS_AVISO = [
+  "contato_valido",
+  "indicacao_valida",
+  "curtida",
+  "revisao",
+  "banner_aceite",
+] as const;
 export type OrigemAviso = (typeof ORIGENS_AVISO)[number];
 
 /**

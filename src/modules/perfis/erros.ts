@@ -34,6 +34,8 @@ export type CodigoErroPerfis =
   | "SLUG_INVALIDO"
   | "SLUG_CONGELADO"
   | "ESTADO_INVALIDO"
+  | "ESTILO_INDISPONIVEL"
+  | "LIMITE_BANNERS"
   | "ERRO_INTERNO";
 
 export type ErroPerfis = {

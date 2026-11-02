@@ -5,7 +5,12 @@
  * IM-050: o ator aparece só pelo nome público; sem ele, "Uma pessoa". Nunca há telefone, e-mail ou nome completo.
  */
 export type TipoAviso =
-  "contato_valido" | "indicacao_valida" | "curtida" | "revisao_aprovada" | "revisao_rejeitada";
+  | "contato_valido"
+  | "indicacao_valida"
+  | "curtida"
+  | "revisao_aprovada"
+  | "revisao_rejeitada"
+  | "banner_aguardando_aceite";
 
 export const TIPOS_AVISO: readonly TipoAviso[] = [
   "contato_valido",
@@ -13,6 +18,7 @@ export const TIPOS_AVISO: readonly TipoAviso[] = [
   "curtida",
   "revisao_aprovada",
   "revisao_rejeitada",
+  "banner_aguardando_aceite",
 ];
 
 export const ehTipoAviso = (v: string | null): v is TipoAviso =>
@@ -44,6 +50,11 @@ export function textoDoAviso(
       return {
         titulo: "Cadastro não aprovado",
         texto: `${destino} não foi aprovado. Abra para ver o que ajustar.`,
+      };
+    case "banner_aguardando_aceite":
+      return {
+        titulo: "Banner aguardando aceite",
+        texto: `Um banner novo aguarda o seu aceite no perfil ${destino}.`,
       };
   }
 }
