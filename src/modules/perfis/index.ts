@@ -32,3 +32,30 @@ export type {
   PreviaPerfil,
   VersaoParaRevisaoPerfil,
 } from "./servico";
+export {
+  criarServicoAparencia,
+  estiloEfetivo,
+  paraBannerPublico,
+  paraBannerAguardando,
+  paraBannerAdmin,
+  mapearErroBancoAparencia,
+  gravarBannersSchema,
+  definirEstiloSchema,
+  responderBannerSchema,
+  ESTILO_PADRAO,
+  DESTINOS_SECAO_BANNER,
+  LIMITE_BANNERS,
+  MENSAGENS_APARENCIA,
+} from "./aparencia";
+export type {
+  ServicoAparencia,
+  ClienteBancoAparencia,
+  EstiloPagina,
+  BannerPublico,
+  BannerAguardando,
+  BannerAdmin,
+  DestinoSecaoBanner,
+  LinhaBannerPublico,
+  LinhaBannerAguardando,
+  LinhaBannerAdmin,
+} from "./aparencia";

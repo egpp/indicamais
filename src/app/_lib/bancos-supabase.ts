@@ -111,7 +111,10 @@ const opc = <T>(v: T | null | undefined): T | undefined => v ?? undefined;
 // Conversões de linha (as visões têm colunas anuláveis nos tipos gerados; o banco garante os valores)
 // ---------------------------------------------------------------------------------------------------------
 
-type LinhaBrutaPerfil = Database["public"]["Views"]["perfis_meus_perfis"]["Row"];
+type LinhaBrutaPerfil = Omit<
+  Database["public"]["Views"]["perfis_meus_perfis"]["Row"],
+  "estilo_pagina"
+>;
 function paraPerfil(l: LinhaBrutaPerfil): LinhaPerfil {
   return {
     id: l.id as string,
