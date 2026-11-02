@@ -31,7 +31,7 @@ create function t.itemv(s text) returns uuid language sql stable security define
 -- ===== Contrato estático: colunas das visões e privilégios =====
 select columns_are('public', 'perfis_perfil_publico', array['id', 'slug', 'nome', 'descricao_breve', 'imagem_path',
   'categoria_principal_id', 'categoria_secundaria_1_id', 'categoria_secundaria_2_id', 'cidade', 'uf', 'endereco',
-  'areas_atendidas', 'banners_paths', 'fotos_paths', 'site', 'informacoes_sociais', 'estilo_pagina'], 'colunas da visão pública do perfil');
+  'areas_atendidas', 'banners_paths', 'fotos_paths', 'site', 'informacoes_sociais', 'estilo_pagina', 'latitude', 'longitude', 'mostrar_mapa'], 'colunas da visão pública do perfil');
 select columns_are('public', 'catalogo_item_publico', array['id', 'perfil_id', 'tipo', 'nome', 'descricao', 'foto_path',
   'categoria_principal_id', 'categoria_secundaria_1_id', 'categoria_secundaria_2_id', 'preco_modo', 'preco_centavos', 'criado_em', 'cidade', 'uf'],
   'colunas da visão pública do item');
