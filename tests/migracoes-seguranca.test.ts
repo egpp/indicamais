@@ -466,6 +466,8 @@ describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
       "catalogo_categoria",
       "catalogo_item_publico",
       "catalogo_item_versao",
+      "perfis_banner_publico",
+      "perfis_estilo_pagina",
       "perfis_perfil_publico",
       "perfis_perfil_versao",
       "pontos_beneficio",
