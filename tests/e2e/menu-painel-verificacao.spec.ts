@@ -186,3 +186,24 @@ test("celular: ao abrir a gaveta pelo teclado o foco vai para dentro dela", asyn
   await expect(menuPrincipal(page)).toBeVisible();
   await expect(page.getByRole("button", { name: "Fechar menu" })).toBeFocused();
 });
+
+test("celular: gaveta fechada fica fora do alcance do foco e do leitor de tela", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "celular", "Só há gaveta no celular.");
+  exigirConta("dono");
+  await entrar(page, "dono");
+  await page.goto("/meus-perfis");
+  // Fechada: sai da árvore de acessibilidade (getByRole não a encontra), visibility hidden, Tab não entra.
+  await expect(menuPrincipal(page)).toHaveCount(0);
+  const nav = page.locator('nav[aria-label="Principal"]');
+  const visib = await nav.evaluate((el) => getComputedStyle(el).visibility);
+  expect(visib).toBe("hidden");
+  for (let i = 0; i < 40; i++) {
+    await page.keyboard.press("Tab");
+    const dentro = await page.evaluate(
+      () => !!document.activeElement?.closest('nav[aria-label="Principal"]'),
+    );
+    expect(dentro, "foco não pode cair na gaveta fechada").toBe(false);
+  }
+});
