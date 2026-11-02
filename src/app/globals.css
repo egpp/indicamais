@@ -1283,6 +1283,10 @@ fieldset.grupo-imagens {
 .painel-lateral[data-aberto="true"] {
   transform: none;
   visibility: visible;
+  /* Visível já no primeiro quadro, para o foco poder entrar na gaveta ao abrir. */
+  transition:
+    transform 0.2s ease,
+    visibility 0s;
 }
 .painel-lateral-topo {
   display: flex;

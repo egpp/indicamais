@@ -42,6 +42,7 @@ function focaveis(raiz: HTMLElement): HTMLElement[] {
   return Array.from(
     raiz.querySelectorAll<HTMLElement>("summary, a[href], button:not([disabled])"),
   ).filter((el) => {
+    if (getComputedStyle(el).display === "none") return false;
     const pai = el.parentElement?.closest("details");
     if (!pai) return true;
     if (pai.open) return true;
