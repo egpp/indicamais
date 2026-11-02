@@ -14,6 +14,7 @@ import {
 import { SiteNegocio } from "../../../_componentes/site/site-negocio";
 import { Aviso } from "../../../_componentes/ui";
 import { bannersDaPrevia, separarBanners } from "../../../_lib/banners-do-perfil";
+import { obterServicoLocalizacao } from "../../../_lib/contexto-localizacao";
 import { obterContextoAparencia } from "../../../_lib/contexto-aparencia";
 import { obterContexto } from "../../../_lib/contexto-sessao";
 import { SEM_INDEXACAO, caminhosDoPerfil, categoriasParaTela, um } from "../../../_lib/pagina";
@@ -67,6 +68,18 @@ export default async function PaginaPreviaPerfil({
           )
         : [];
     const urlsBanners = await ctx.assinarImagens(banners.map((b) => b.imagemPath));
+    // IM-018: a prévia mostra o mapa só se ligado e com coordenada da versão aprovada (como na página pública).
+    let mapa = null;
+    if (!semConteudo) {
+      try {
+        const loc = await (
+          await obterServicoLocalizacao(`/meus-perfis/${id}/previa`)
+        ).lerMinhaLocalizacao(id);
+        if (loc.ok && loc.valor.mostrarMapa) mapa = loc.valor.urls;
+      } catch {
+        mapa = null;
+      }
+    }
     return (
       <>
         <div className="cabecalho-site">
@@ -91,6 +104,7 @@ export default async function PaginaPreviaPerfil({
           urls={{ ...urls, ...demo.urls, ...urlsBanners }}
           banners={banners}
           beneficios={demo.beneficios}
+          mapa={mapa}
           exemplo={{ perfil: semConteudo, itens: true, beneficios: true }}
           contato={<FormularioExemplo />}
         />

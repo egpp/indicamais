@@ -81,6 +81,7 @@ function CamposPerfil({
         autoComplete="street-address"
         valorInicial={v("endereco")}
         erro={erros.endereco}
+        ajuda="Aparece na sua página e é usado para marcar o local no mapa. O mapa é fornecido pelo OpenStreetMap e carrega conteúdo do site deles."
       />
       <CampoTextoLongo
         nome="areasAtendidas"
