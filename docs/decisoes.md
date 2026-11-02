@@ -163,6 +163,19 @@ Proposta do Emerson em 02/11/2026 ("já ir criando as dash no painel oficial em 
 
 ---
 
+## D-016 · 02/11/2026 · Páginas dos negócios como sites (IM-091, IM-092, IM-093; IM-094 e IM-018 pendentes)
+**IDs:** IM-011, IM-012, IM-091 a IM-094, IM-018
+Proposta do Emerson em 02/11/2026 e aprovada por ele ("aprovado, recomendo que sim"):
+- A página de cada negócio passa a funcionar como **site de uma página**, muito bonito, intuitivo e prático: menu no topo, banner de topo rotativo, mapa, ações da página e boas práticas de navegação (IM-092).
+- **20 estilos de página** por segmento, escolhidos pelo responsável em menu "Aparência" do painel (aba com miniaturas): lista aprovada em IM-091. **Primeira entrega com 5 estilos** (Minimalista, Gastronomia, Saúde e Bem-estar, Beleza e Estética, Construção e Reformas); os outros 15 depois, com a estrutura estável.
+- **Banner rotativo** (IM-093): imagens inseridas pelo responsável e pelo administrador geral na empresa selecionada; imagem inserida pelo administrador exige **aceite do responsável** antes de publicar (como nos benefícios), com auditoria.
+- Sem links externos de redes sociais nesta versão (IM-012).
+- **Mapa (IM-018) continua pendente:** o Emerson ainda não escolheu o fornecedor (OpenStreetMap, gratuito e sem chave, recomendado pelo gestor; ou Google Maps, que exige conta Google Cloud com chave e cobrança habilitada). Custo e conta dependem dele; a estrutura da página reserva a seção "Localização".
+- **IM-094 pendente:** se trocar de estilo exige nova aprovação (recomendação: não; estilo é só aparência e o conteúdo segue IM-022).
+- Entra como **Fase 8 — Páginas dos negócios** no roteiro, sem interromper as Fases 7 e do pré-lançamento já planejadas.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

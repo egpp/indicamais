@@ -99,3 +99,7 @@ Regras:
 | IM-088 | D | Validação e continuidade | Verificado (base Fase 0) | Testes de fluxos reais (Playwright) a partir da Fase 1. | — | Teste de fronteira (tests/fronteiras-modulos.test.ts, 10/10) verificado em 22/10/2026 com violador temporário; nesta data pnpm lint e pnpm typecheck: exit 0 (Node local 25.3, fora do Node 24; pnpm test local NÃO contado como evidência agora). EVIDÊNCIA DE TERCEIROS: CI verde e Deploy dev #2 (10 testes passando) relatados pelo Emerson/gestor; repositório privado, não consegui consultar. | 22/10/2026 |
 | IM-089 | D | Limites | A fazer | — | — | — | — |
 | IM-090 | D | Fora do escopo inicial | A fazer | — | — | — | — |
+| IM-091 | D | Estilos de página | A fazer | Fase 8: estrutura, miniaturas, 5 estilos iniciais. | — | — | — |
+| IM-092 | D | Página como site | A fazer | Fase 8: menu no topo, seções, navegação. | IM-018 (mapa, pendente) | — | — |
+| IM-093 | D | Banner de topo rotativo | A fazer | Fase 8: banner, imagens do admin com aceite do responsável. | — | — | — |
+| IM-094 | P | Troca de estilo e aprovação | Aguardando decisão | — | Decisão do Emerson | — | — |
