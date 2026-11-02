@@ -77,8 +77,14 @@ test.describe("logado", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Base de relacionamento" }),
     ).toBeVisible();
-    const html = await page.content();
-    expect(html).not.toMatch(/wa\.me|mailto:|\+55\d{8,}|[\w.+-]+@[\w-]+\.[\w.-]+/i);
+    // Texto visível e links (o HTML do modo dev traz caminhos de módulo "pacote@versão" no payload do React).
+    const visivel = await page.locator("body").innerText();
+    const links = await page
+      .locator("a[href]")
+      .evaluateAll((as) => as.map((a) => a.getAttribute("href")).join(" "));
+    expect(`${visivel} ${links}`).not.toMatch(
+      /wa\.me|mailto:|\+55\d{8,}|[\w.+-]+@[\w-]+\.[\w.-]+/i,
+    );
   });
 
   test("perfil público: logado vê Curtir ou Descurtir, sem promessa de ganho", async ({ page }) => {
