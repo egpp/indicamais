@@ -494,12 +494,13 @@ revoke all on public.administracao_banners_empresa from anon, authenticated;
 grant select on public.administracao_banners_empresa to authenticated;
 
 -- Storage --------------------------------------------------------------------------------------------------------
--- O aprovador envia a imagem do banner para a pasta do perfil de OUTRA conta (perfil/<id>/<arquivo>), no máximo 30 objetos
+-- O aprovador envia a imagem do banner para a pasta do perfil de OUTRA conta, SÓ com nome adm-<arquivo> (perfil/<id>/adm-<arquivo>:
+-- não mistura com os arquivos do responsável), no máximo 30 objetos
 -- por pasta (as imagens contam na cota de 100 do responsável). Só inserção: ele não troca nem apaga objetos de ninguém.
 create function public.perfis_pasta_para_aprovador(p_nome text) returns boolean
 language sql stable security definer set search_path = '' as $$
   select (select auth.uid()) is not null
-    and p_nome ~ '^perfil/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[A-Za-z0-9._-]{1,100}$'
+    and p_nome ~ '^perfil/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/adm-[A-Za-z0-9._-]{1,96}$'
     and public.administracao_permitido('aprovar')
     and exists (select 1 from public.perfis_perfil p
                 where p.id = split_part(p_nome, '/', 2)::uuid and p.responsavel_id <> (select auth.uid()))
