@@ -1295,6 +1295,28 @@ fieldset.grupo-imagens {
   gap: var(--e2);
   margin-bottom: var(--e3);
 }
+.menu-conta {
+  min-width: 0;
+  margin: 0 0 var(--e3);
+  padding: var(--e2);
+  border-radius: var(--raio-p);
+  background: var(--superficie);
+  border: 1px solid var(--borda-suave);
+}
+.menu-conta p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.menu-conta-nome {
+  font-weight: 600;
+  color: var(--texto);
+}
+.menu-conta-email {
+  font-size: 0.8125rem;
+  color: var(--texto-suave);
+}
 .menu-grupo {
   border-bottom: 1px solid var(--borda-suave);
   padding: var(--e1) 0;

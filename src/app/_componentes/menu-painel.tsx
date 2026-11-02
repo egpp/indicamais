@@ -23,6 +23,7 @@ import {
   type GrupoMenu,
 } from "./menu-painel-dados";
 import { SinoAvisos } from "./sino-avisos";
+import { VerComoVisitante } from "./ver-como-visitante";
 
 /**
  * Menu lateral do painel, com grupos que abrem em cascata (D-015; IM-005, IM-014, IM-047).
@@ -65,6 +66,7 @@ export function MenuPainel({
   admin,
   buscarAcesso = true,
   acessoInicial,
+  identificacao,
   children,
 }: {
   atual?: AtualMenu;
@@ -73,6 +75,8 @@ export function MenuPainel({
   /** Desligado nos testes dos componentes. */
   buscarAcesso?: boolean;
   acessoInicial?: Acesso;
+  /** Bloco com nome e e-mail da própria conta (montado no servidor), abaixo do logotipo do menu. */
+  identificacao?: ReactNode;
   /** Conteúdo da página, ao lado do menu. */
   children: ReactNode;
 }) {
@@ -195,6 +199,7 @@ export function MenuPainel({
           <LogoMarca />
         </div>
         <div className="painel-topo-acoes">
+          <VerComoVisitante />
           <SinoAvisos />
           <div className="painel-topo-sair">
             <BotaoSair className="botao-texto painel-sair" />
@@ -240,6 +245,7 @@ export function MenuPainel({
             </svg>
           </button>
         </div>
+        {identificacao}
         <nav aria-label="Principal">
           {grupos.map((g) => (
             <details
