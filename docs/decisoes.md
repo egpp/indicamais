@@ -177,6 +177,17 @@ Proposta do Emerson em 02/11/2026 e aprovada por ele ("aprovado, recomendo que s
 
 ---
 
+## D-017 · 02/11/2026 · Comissões mononível: decisões da Fase 7 (resolve IM-071, IM-072, IM-073)
+**IDs:** IM-061 a IM-073
+Aprovada pelo Emerson em 02/11/2026 ("siga as recomendações"), sobre proposta do gestor. Continua valendo: mononível, sem integração financeira, sem cobrança nem repasse automático; o administrador confirma pagamentos com auditoria (IM-070).
+- **Elegibilidade (IM-071):** o indicador fica elegível com **qualquer assinatura ativa e em dia dele naquele negócio** e recebe comissão sobre as indicações dele em todas as ofertas habilitadas do negócio.
+- **Inadimplência (IM-072):** a contagem começa no vencimento não pago da assinatura do indicador. Efeito imediato (IM-066): deixa de gerar novas comissões naquele negócio, preservando as geradas; se regularizar no prazo, volta a gerar as futuras, sem retroativas (IM-067). Avisos no app ao indicador no vencimento e a cada 15 dias; lista de inadimplentes para o administrador. **Prazo de encerramento do vínculo (IM-068): 90 dias**, configurável só pelo administrador; depois dele o vínculo encerra para comissões futuras, sem restaurar automaticamente. Clientes de vínculos encerrados ficam sem indicador, sem transferência automática (IM-069); nova indicação forma nova carteira.
+- **Mudanças e reversões (IM-073):** percentual novo vale só para mensalidades pagas depois da data de vigência, inclusive em assinaturas existentes; nada gerado é recalculado (IM-069). Cancelamento da assinatura do cliente encerra as comissões futuras dessa assinatura e preserva as geradas. Estorno de mensalidade: comissão gerada **pendente** é cancelada; comissão já **paga** gera reversão registrada pelo administrador, compensada em comissões futuras, tudo auditado. Desativação do módulo para um negócio para novas comissões e preserva histórico, saldos e redes.
+- **IM-082:** os efeitos do ciclo de vida sobre assinaturas e comissões entram na política real de privacidade e retenção, com revisão jurídica **antes de ativar comissões de verdade**.
+- A Fase 7 só começa quando o Emerson der o sinal (envolve dinheiro).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

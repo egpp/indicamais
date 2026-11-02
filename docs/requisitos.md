@@ -184,11 +184,11 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-070 | D | Confirmação manual.** Até integração financeira, administrador confirma pagamentos com auditoria; sem cobrança ou repasse automático.
 
-- **IM-071 | P | Elegibilidade exata.** Qual assinatura habilita o indicador quando o negócio tiver várias ofertas.
+- **IM-071 | D | Elegibilidade exata.** Qual assinatura habilita o indicador quando o negócio tiver várias ofertas.
 
-- **IM-072 | P | Inadimplência operacional.** Início da contagem, avisos e destino dos vínculos encerrados.
+- **IM-072 | D | Inadimplência operacional.** Início da contagem, avisos e destino dos vínculos encerrados.
 
-- **IM-073 | P | Mudanças e reversões.** Vigência dos percentuais para assinaturas existentes, cancelamentos, estornos e efeitos da desativação.
+- **IM-073 | D | Mudanças e reversões.** Vigência dos percentuais para assinaturas existentes, cancelamentos, estornos e efeitos da desativação.
 
 - **IM-074 | F | Recebimentos Pix/cartão.** Integração futura; provedores, configuração e ativação por definir.
 
