@@ -37,7 +37,17 @@ export function MenuSite({ nome, itens }: { nome: string; itens: ItemMenuSite[] 
       { rootMargin: "-30% 0px -60% 0px" },
     );
     secoes.forEach((s) => obs.observe(s));
-    return () => obs.disconnect();
+    // No fim da página a última seção pode ser curta demais para cruzar a faixa de leitura: ela vale como atual.
+    const ultima = itens[itens.length - 1]?.id;
+    const aoRolar = () => {
+      const fim = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4;
+      if (fim && ultima) setAtivo(ultima);
+    };
+    window.addEventListener("scroll", aoRolar, { passive: true });
+    return () => {
+      obs.disconnect();
+      window.removeEventListener("scroll", aoRolar);
+    };
   }, [itens]);
 
   useEffect(() => {
