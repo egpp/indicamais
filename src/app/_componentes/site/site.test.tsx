@@ -253,7 +253,10 @@ describe("carrossel de banner (IM-093)", () => {
 describe("menu Aparência do painel (D-015, D-016)", () => {
   it("existe o grupo Aparência e a rota por perfil o destaca", () => {
     const g = gruposDoMenu({ geral: false, permissoes: [] });
-    expect(g.find((x) => x.id === "aparencia")?.itens.map((i) => i.href)).toEqual(["/aparencia"]);
+    expect(g.find((x) => x.id === "aparencia")?.itens.map((i) => i.href)).toEqual([
+      "/aparencia",
+      "/aparencia/banners",
+    ]);
     expect(hrefAtivo("/meus-perfis/abc/aparencia", g)).toBe("/aparencia");
     expect(hrefAtivo("/meus-perfis/abc/previa", g)).toBe("/meus-perfis");
   });

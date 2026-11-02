@@ -6,8 +6,15 @@ import { PerfilVisao } from "../../../_componentes/exibicao";
 import { FormAcao } from "../../../_componentes/form-acao";
 import { PainelPagina } from "../../../_componentes/painel";
 import { TEMAS, estiloLiberadoOuNulo } from "../../../_componentes/site/estilos";
+import {
+  FormularioExemplo,
+  demonstracaoDoEstilo,
+  perfilSemConteudo,
+} from "../../../_componentes/site/demonstracao";
 import { SiteNegocio } from "../../../_componentes/site/site-negocio";
 import { Aviso } from "../../../_componentes/ui";
+import { bannersDaPrevia, separarBanners } from "../../../_lib/banners-do-perfil";
+import { obterContextoAparencia } from "../../../_lib/contexto-aparencia";
 import { obterContexto } from "../../../_lib/contexto-sessao";
 import { SEM_INDEXACAO, caminhosDoPerfil, categoriasParaTela, um } from "../../../_lib/pagina";
 
@@ -39,15 +46,38 @@ export default async function PaginaPreviaPerfil({
 
   // D-016: prévia da página como site, num estilo escolhido na Aparência. Nada é gravado.
   if (estilo) {
+    // Sem conteúdo próprio, a prévia usa um negócio de EXEMPLO (marcado na tela); produtos e benefícios reais só
+    // existem na página publicada, então aqui eles são sempre de exemplo.
+    const semConteudo = perfilSemConteudo(previa.perfil);
+    const demo = demonstracaoDoEstilo(estilo, semConteudo ? undefined : previa.perfil);
+    const perfilDaPagina = semConteudo ? demo.perfil : previa.perfil;
+    const [meu, aparencia] = await Promise.all([
+      ctx.perfis.obter(id),
+      obterContextoAparencia(`/meus-perfis/${id}/previa`),
+    ]);
+    const listaBanners = meu.ok ? await aparencia.servico.bannersDoMeuPerfil(id) : null;
+    const banners =
+      meu.ok && listaBanners && listaBanners.ok
+        ? bannersDaPrevia(
+            separarBanners(
+              listaBanners.valor,
+              meu.valor.versaoAbertaId,
+              meu.valor.versaoAprovadaId,
+            ),
+          )
+        : [];
+    const urlsBanners = await ctx.assinarImagens(banners.map((b) => b.imagemPath));
     return (
       <>
         <div className="cabecalho-site">
           <Aviso tipo="info">
-            Prévia do estilo {TEMAS[estilo].rotulo}: só você vê. Os botões de contato são
-            apresentados só na página publicada, e produtos e benefícios aparecem depois que o
-            perfil estiver no ar.
+            Prévia do estilo {TEMAS[estilo].rotulo}: só você vê.{" "}
+            {semConteudo
+              ? "Seu perfil ainda não tem nome e descrição, então a página mostra um negócio de exemplo."
+              : "Os produtos e os benefícios aparecem aqui como exemplo; os de verdade aparecem na página publicada."}{" "}
+            Os botões de contato funcionam só na página publicada.
           </Aviso>
-          <p>
+          <p className="acoes-linha">
             <Link className="botao botao-secundario" href={`/meus-perfis/${id}/aparencia`}>
               Voltar para Aparência
             </Link>
@@ -55,17 +85,14 @@ export default async function PaginaPreviaPerfil({
         </div>
         <SiteNegocio
           estilo={estilo}
-          perfil={previa.perfil}
-          itens={[]}
-          categorias={categorias}
-          urls={urls}
-          beneficios={[]}
-          contato={
-            <p className="ajuda">
-              Aqui ficam o pedido de contato, o botão Indique esta empresa e o Curtir. Eles
-              funcionam na página publicada.
-            </p>
-          }
+          perfil={perfilDaPagina}
+          itens={demo.itens}
+          categorias={semConteudo ? demo.categorias : categorias}
+          urls={{ ...urls, ...demo.urls, ...urlsBanners }}
+          banners={banners}
+          beneficios={demo.beneficios}
+          exemplo={{ perfil: semConteudo, itens: true, beneficios: true }}
+          contato={<FormularioExemplo />}
         />
       </>
     );

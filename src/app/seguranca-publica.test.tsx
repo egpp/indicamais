@@ -60,7 +60,8 @@ const XSS_DESC = `<svg onload=window.__xss=3> javascript:alert(1) <a href="javas
 
 function semMarcacaoInjetada() {
   expect(document.querySelector("script")).toBeNull();
-  expect(document.querySelector("svg")).toBeNull();
+  // Os SVG decorativos do próprio site (aria-hidden) são nossos; qualquer outro seria marcação injetada.
+  expect(document.querySelector('svg:not([aria-hidden="true"])')).toBeNull();
   expect(document.querySelector("[onerror]")).toBeNull();
   expect(document.querySelector("[onload]")).toBeNull();
   expect(document.querySelector('a[href^="javascript:"]')).toBeNull();

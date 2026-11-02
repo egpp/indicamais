@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import type { BannerPublico } from "@/modules/perfis";
 import type { BeneficioPublico } from "@/modules/pontos";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
@@ -9,7 +10,9 @@ import { TEMAS } from "../../_componentes/site/estilos";
 import { FormDenunciar } from "../../_componentes/form-ciclo-vida";
 import { CurtirPerfil } from "../../_componentes/form-relacionamento";
 import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
+import { obterServicoAparenciaPublico } from "../../_lib/contexto-aparencia";
 import { obterServicoPontosPublico } from "../../_lib/contexto-pontos";
+import { obterContextoPublico } from "../../_lib/contexto-publico";
 import { estiloDaPaginaPublica } from "../../_lib/estilo-da-pagina";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
 import { carregarPerfilPublico } from "../../_lib/paginas-publicas";
@@ -62,8 +65,22 @@ export default async function PaginaPerfilPublico({
   } catch {
     beneficios = [];
   }
+  // IM-093: banners no ar; falha na leitura cai na imagem principal, a página nunca quebra.
+  let banners: BannerPublico[] = [];
+  let urlsBanners: Record<string, string> = {};
+  try {
+    const lista = await obterServicoAparenciaPublico().bannersPublicos(perfil.id);
+    if (lista.ok) banners = lista.valor;
+    urlsBanners = await obterContextoPublico().assinarImagens(banners.map((b) => b.imagemPath));
+  } catch {
+    banners = [];
+  }
   const curtida = await lerEstadoCurtida(perfil.id);
-  const { estilo, previa } = await estiloDaPaginaPublica(perfil.id, um(consulta.estilo));
+  const { estilo, previa } = await estiloDaPaginaPublica(
+    perfil.id,
+    perfil.slug,
+    um(consulta.estilo),
+  );
   const retorno = ROTAS_PUBLICAS.perfil(perfil.slug);
 
   return (
@@ -72,8 +89,8 @@ export default async function PaginaPerfilPublico({
         <CabecalhoPublico />
         {previa ? (
           <Aviso tipo="info">
-            Prévia do estilo {TEMAS[estilo].rotulo}: só você vê. Os visitantes continuam vendo o
-            estilo padrão.
+            Prévia do estilo {TEMAS[estilo].rotulo}: só você vê. Os visitantes veem o estilo que
+            você salvou na Aparência.
           </Aviso>
         ) : null}
       </div>
@@ -82,7 +99,8 @@ export default async function PaginaPerfilPublico({
         perfil={perfil}
         itens={itens}
         categorias={categorias}
-        urls={urls}
+        urls={{ ...urls, ...urlsBanners }}
+        banners={banners}
         beneficios={beneficios}
         contato={
           <>

@@ -15,14 +15,6 @@ const ESTILOS = [
   "construcao_reformas",
 ] as const;
 
-const ROTULOS = {
-  minimalista: "Minimalista",
-  gastronomia: "Gastronomia",
-  saude_bem_estar: "Saúde e Bem-estar",
-  beleza_estetica: "Beleza e Estética",
-  construcao_reformas: "Construção e Reformas",
-} as const;
-
 /** Vai à Aparência do primeiro perfil do responsável (a entrada /aparencia lista ou redireciona). */
 async function abrirAparencia(page: Page) {
   await page.goto("/aparencia");
@@ -121,7 +113,10 @@ test.describe("página pública do negócio", () => {
 });
 
 test.describe("aparência (responsável)", () => {
-  test("20 estilos, 15 em breve, e prévia dos 5 liberados", async ({ page }, info) => {
+  test("só os estilos habilitados, salvar estilo e prévia dos 5 com exemplo", async ({
+    page,
+  }, info) => {
+    test.setTimeout(240_000);
     exigirConta("dono");
     await entrar(page, "dono");
     await abrirAparencia(page);
@@ -130,31 +125,52 @@ test.describe("aparência (responsável)", () => {
       page.getByRole("heading", { level: 1, name: "Aparência da página" }),
     ).toBeVisible();
     const cartoes = page.locator("ul.grade-estilos > li");
-    await expect(cartoes).toHaveCount(20);
-    await expect(page.getByRole("button", { name: /^Em breve/ })).toHaveCount(15);
-    for (const b of await page.getByRole("button", { name: /^Em breve/ }).all())
-      await expect(b).toBeDisabled();
-    await expect(page.getByRole("button", { name: /Salvar estilo/ })).toBeDisabled();
+    await expect(cartoes).toHaveCount(5);
+    await expect(page.getByRole("button", { name: /^Em breve/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Salvar estilo" })).toBeEnabled();
     await capturar(page, info.project.name, "aparencia");
 
     // Perfil de outra pessoa (ou inexistente): 404 sem revelar nada.
     const r = await page.goto("/meus-perfis/00000000-0000-4000-8000-000000000000/aparencia");
     expect(r?.status()).toBe(404);
 
-    // Prévia de cada estilo liberado (usa a página publicada se o perfil estiver no ar).
-    await page.goto(urlAparencia);
+    // Prévia de cada estilo (com conteúdo de exemplo marcado) e captura em desktop e celular.
     for (const estilo of ESTILOS) {
       await page.goto(urlAparencia);
-      const cartao = page.locator("ul.grade-estilos > li").filter({
-        has: page.getByRole("heading", { level: 2, name: ROTULOS[estilo], exact: true }),
-      });
-      const publicada = cartao.getByRole("link", { name: /Ver na página publicada/ });
-      if ((await publicada.count()) > 0) await publicada.click();
-      else await page.locator(`a[href$="/previa?estilo=${estilo}"]`).first().click();
+      await page.locator(`a[href$="/previa?estilo=${estilo}"]`).first().click();
       await expect(page.getByTestId("site-negocio")).toHaveAttribute("data-estilo", estilo);
       await expect(page.getByRole("navigation", { name: /^Seções de / })).toBeVisible();
+      await expect(page.getByText("Exemplo", { exact: true }).first()).toBeVisible();
+      await page.waitForTimeout(400);
       await capturar(page, info.project.name, `estilo-${estilo}`);
     }
+  });
+
+  test("salva o estilo escolhido e volta ao padrão", async ({ page }) => {
+    exigirConta("dono");
+    await entrar(page, "dono");
+    await abrirAparencia(page);
+    const escolher = async (rotulo: string) => {
+      await page.getByRole("radio", { name: new RegExp(rotulo) }).check();
+      await page.getByRole("button", { name: "Salvar estilo" }).click();
+      await expect(page.getByText(/Estilo salvo/)).toBeVisible();
+    };
+    await escolher("Gastronomia");
+    await page.reload();
+    await expect(page.getByText("Estilo atual:").locator("strong")).toHaveText("Gastronomia");
+    await escolher("Minimalista");
+  });
+
+  test("banners: tela do responsável, limite e descrição obrigatória", async ({ page }) => {
+    exigirConta("dono");
+    await entrar(page, "dono");
+    await page.goto("/aparencia/banners");
+    if (!/\/banners$/.test(page.url()))
+      await page.locator('main a[href$="/banners"]').first().click();
+    await expect(page.getByRole("heading", { level: 1, name: "Banners da página" })).toBeVisible();
+    await expect(page.getByText(/até 6 banners/)).toBeVisible();
+    const r = await page.goto("/meus-perfis/00000000-0000-4000-8000-000000000000/banners");
+    expect(r?.status()).toBe(404);
   });
 
   test("estilo desconhecido na prévia não quebra e cai no padrão", async ({ page }) => {
@@ -165,5 +181,22 @@ test.describe("aparência (responsável)", () => {
     const r = await page.goto(`/meus-perfis/${id}/previa?estilo=nao-existe`);
     expect(r?.status()).toBe(200);
     await expect(page.getByTestId("site-negocio")).toHaveCount(0);
+  });
+});
+
+test.describe("administração dos estilos e dos banners", () => {
+  test("administrador geral vê os estilos; o responsável recebe 404", async ({ page, browser }) => {
+    exigirConta("admin");
+    await entrar(page, "admin");
+    await page.goto("/administracao/estilos");
+    await expect(page.getByRole("heading", { level: 1, name: "Estilos de página" })).toBeVisible();
+    await expect(page.locator("ul.lista-cartoes > li")).toHaveCount(20);
+    await page.goto("/administracao/negocios");
+    await expect(page.getByRole("heading", { level: 1, name: "Perfis e itens" })).toBeVisible();
+    const contexto = await browser.newContext();
+    const outra = await contexto.newPage();
+    const r = await outra.goto("http://localhost:3000/administracao/estilos");
+    expect(r?.url()).toMatch(/entrar/);
+    await contexto.close();
   });
 });

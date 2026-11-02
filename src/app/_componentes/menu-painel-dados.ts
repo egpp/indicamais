@@ -36,6 +36,7 @@ export function itensAdministracao({ geral, permissoes }: AcessoAdministracao): 
     geral && { href: "/administracao/categorias", texto: "Categorias" },
     geral && { href: "/administracao/pedidos", texto: "Pedidos (administração)" },
     geral && { href: "/administracao/negocios", texto: "Perfis e itens" },
+    geral && { href: "/administracao/estilos", texto: "Estilos de página" },
   ];
   return itens.filter((i): i is ItemMenu => i !== false);
 }
@@ -55,7 +56,10 @@ export function gruposDoMenu(acesso: AcessoAdministracao): GrupoMenu[] {
     {
       id: "aparencia",
       titulo: "Aparência",
-      itens: [{ href: "/aparencia", texto: "Estilo da página" }],
+      itens: [
+        { href: "/aparencia", texto: "Estilo da página" },
+        { href: "/aparencia/banners", texto: "Banners da página" },
+      ],
     },
     {
       id: "relacionamento",
@@ -113,6 +117,7 @@ export function hrefAtivo(caminho: string, grupos: readonly GrupoMenu[]): string
   let melhor: string | null = null;
   // /meus-perfis/<id>/aparencia pertence ao grupo Aparência, não a Meus perfis.
   if (/^\/meus-perfis\/[^/]+\/aparencia(\/|$)/.test(caminho)) return "/aparencia";
+  if (/^\/meus-perfis\/[^/]+\/banners(\/|$)/.test(caminho)) return "/aparencia/banners";
   for (const g of grupos) {
     for (const i of g.itens) {
       const casa = caminho === i.href || caminho.startsWith(`${i.href}/`);

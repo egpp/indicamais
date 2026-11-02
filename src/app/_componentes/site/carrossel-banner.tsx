@@ -11,7 +11,32 @@ import { useCallback, useEffect, useId, useState, useSyncExternalStore } from "r
  *   dentro, e nunca começa com "reduzir movimento" ligado (prefers-reduced-motion);
  * - proporção fixa (sem salto de layout); a primeira imagem carrega com prioridade, as demais sob demanda.
  */
-export type ImagemBanner = { src: string; alt: string };
+export type ImagemBanner = {
+  src: string;
+  alt: string;
+  /** Âncora de uma seção da própria página (ex.: "#sobre"). Nunca link externo (IM-012). */
+  href?: string;
+};
+
+function Figura({ img, prioridade }: { img: ImagemBanner; prioridade: boolean }) {
+  const imagem = (
+    <img
+      src={img.src}
+      alt={img.alt}
+      className="st-banner-img"
+      loading={prioridade ? "eager" : "lazy"}
+      fetchPriority={prioridade ? "high" : "auto"}
+      decoding="async"
+    />
+  );
+  return img.href ? (
+    <a className="st-banner-link" href={img.href}>
+      {imagem}
+    </a>
+  ) : (
+    imagem
+  );
+}
 
 const INTERVALO_MS = 8000;
 const CONSULTA = "(prefers-reduced-motion: reduce)";
@@ -64,13 +89,7 @@ export function CarrosselBanner({ imagens, rotulo }: { imagens: ImagemBanner[]; 
     return (
       <div className="st-banner" role="region" aria-label={rotulo}>
         <div className="st-banner-quadro">
-          <img
-            src={imagens[0].src}
-            alt={imagens[0].alt}
-            fetchPriority="high"
-            decoding="async"
-            className="st-banner-img"
-          />
+          <Figura img={imagens[0]} prioridade />
         </div>
       </div>
     );
@@ -104,14 +123,7 @@ export function CarrosselBanner({ imagens, rotulo }: { imagens: ImagemBanner[]; 
             aria-hidden={i === atual ? undefined : true}
             inert={i === atual ? undefined : true}
           >
-            <img
-              src={img.src}
-              alt={img.alt}
-              className="st-banner-img"
-              loading={i === 0 ? "eager" : "lazy"}
-              fetchPriority={i === 0 ? "high" : "auto"}
-              decoding="async"
-            />
+            <Figura img={img} prioridade={i === 0} />
           </div>
         ))}
       </div>
@@ -139,6 +151,9 @@ export function CarrosselBanner({ imagens, rotulo }: { imagens: ImagemBanner[]; 
             <span aria-hidden="true">{pausado ? "▶" : "❚❚"}</span>
           </button>
         )}
+        <span className="st-contador" aria-hidden="true">
+          {atual + 1}/{total}
+        </span>
         <ul className="st-pontos">
           {imagens.map((img, i) => (
             <li key={img.src}>

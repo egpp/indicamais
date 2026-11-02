@@ -1,0 +1,1084 @@
+/*
+ * Estilos da página do negócio (D-016; IM-091). Cada bloco `.site-<id>` define as variáveis do tema E a composição
+ * própria das seções: o conteúdo é o mesmo, mas o desenho muda (IM-094: só aparência).
+ *
+ * Contraste (WCAG AA, medido com as cores abaixo; texto normal >= 4,5:1, ícones e bordas >= 3:1):
+ *   minimalista  texto #111 / fundo #fff 18,9:1 · suave #555 / #f6f6f4 7,0:1 · #fff sobre #111 18,9:1 · link #1d4ed8 6,7:1
+ *   gastronomia  texto #2b1a14 / #fbf4e8 14,6:1 · suave #5e463b / #f3e6d0 6,9:1 · #fbf4e8 sobre #6f1414 12,5:1
+ *                #2b1a14 sobre ouro #c8963e 6,4:1 · link #8f1d1d / #f3e6d0 7,4:1
+ *   saúde        texto #12323a / #f4fbf9 12,3:1 · suave #43636a / #e5f5f1 5,8:1 · #fff sobre #0f766e 5,5:1
+ *                #0b3a40 sobre #7bd3c6 7,9:1
+ *   beleza       texto #3b1f2b / #fff8f7 13,6:1 · suave #6b4a57 / #f9e7e9 6,0:1 · #fff8f7 sobre #8c2f5a 7,3:1
+ *                #3b1f2b sobre ouro #e0b865 8,0:1
+ *   construção   texto #1c2025 / #f2f2f0 14,5:1 · suave #4a5058 / #e4e4e0 6,2:1 · #1c2025 sobre #f5b800 9,0:1
+ *                #f5b800 sobre #1c2025 9,0:1 · #e4e4e0 sobre #1c2025 12,6:1
+ * Foco visível: contorno de 3px + halo, em cor que contrasta com o fundo da região (claro, escuro ou do banner).
+ */
+
+/* =====================================================================
+ * MINIMALISTA (padrão). Tipográfico: números nas seções, fios finos, lista de produtos em linhas.
+ * ===================================================================== */
+.site-minimalista {
+  --s-bg: #ffffff;
+  --s-alt: #f6f6f4;
+  --s-surface: #ffffff;
+  --s-text: #111111;
+  --s-titulo: #111111;
+  --s-suave: #555555;
+  --s-link: #1d4ed8;
+  --s-borda: #e0e0dc;
+  --s-borda-forte: #8a8a8a;
+  --s-botao-fundo: #111111;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #111111;
+  --s-foco: #1d4ed8;
+  --s-foco-halo: #ffffff;
+  --s-raio: 4px;
+  --s-raio-pequeno: 4px;
+  --s-raio-botao: 2px;
+  --s-raio-chip: 2px;
+  --s-raio-img: 2px;
+  --s-raio-avatar: 2px;
+  --s-sombra: none;
+  --s-sombra-forte: 0 8px 24px rgb(17 17 17 / 0.08);
+  --s-fonte-titulo: var(--f-inter);
+  --s-fonte-texto: var(--f-inter);
+  --s-peso-titulo: 600;
+  --s-tracking: -0.03em;
+  --s-tracking-botao: 0.01em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #ffffff;
+  --s-menu-texto: #111111;
+  --s-menu-borda: 1px solid #e0e0dc;
+  --s-menu-sombra: none;
+  --s-menu-foco: #1d4ed8;
+  --s-menu-foco-halo: #ffffff;
+  --s-menu-hover: #f6f6f4;
+  --s-menu-ativo-bg: #111111;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #f6f6f4 0%, #e4e4e0 100%);
+  --s-hero-texto: #111111;
+  --s-hero-foco: #1d4ed8;
+  --s-hero-foco-halo: #ffffff;
+  --s-acento: #111111;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #111111;
+  --s-destaque-fundo: #f6f6f4;
+  --s-destaque-icone: #111111;
+  --s-rodape-fundo: #111111;
+  --s-rodape-texto: #f6f6f4;
+}
+.site-minimalista .st-hero-imagem {
+  --s-hero-foco: #ffffff;
+  --s-hero-foco-halo: #000000;
+}
+.site-minimalista .st-hero-imagem .botao:not(.botao-secundario) {
+  background: #ffffff;
+  color: #111111;
+  border-color: #ffffff;
+}
+.site-minimalista .st-hero {
+  min-height: 26rem;
+}
+.site-minimalista .st-hero h1 {
+  font-size: clamp(2.5rem, 10vw, 5.5rem);
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+.site-minimalista .st-sobretitulo {
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+.site-minimalista .st-faixa {
+  border-top: 1px solid #111111;
+}
+.site-minimalista .st-cab {
+  display: grid;
+  gap: var(--e2);
+}
+.site-minimalista .st-numero {
+  display: block;
+  color: var(--s-suave);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+.site-minimalista .st-texto-destaque {
+  max-width: 34rem;
+  font-size: clamp(1.375rem, 3.6vw, 2.125rem);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.site-minimalista .st-destaques li {
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "rotulo valor";
+  padding: var(--e3) 0;
+  border: 0;
+  border-bottom: 1px solid var(--s-borda);
+  border-radius: 0;
+  background: transparent;
+}
+.site-minimalista .st-destaque-icone {
+  display: none;
+}
+.site-minimalista .st-destaque-rotulo {
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.site-minimalista .st-destaque-valor {
+  text-align: right;
+}
+.site-minimalista .st-fotos img {
+  filter: grayscale(0.15);
+}
+/* Produtos como lista tipográfica: imagem pequena, nome e descrição, preço à direita. */
+.site-minimalista .st-grade-cards {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+.site-minimalista .st-card {
+  display: grid;
+  grid-template-columns: 5.25rem minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  align-items: center;
+  gap: var(--e4);
+  padding: var(--e4) 0;
+  border: 0;
+  border-bottom: 1px solid var(--s-borda);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.site-minimalista .st-card-imagem {
+  display: contents;
+}
+.site-minimalista .st-card-imagem img,
+.site-minimalista .st-card-sem-imagem {
+  grid-column: 1;
+  grid-row: 1;
+  width: 5.25rem;
+  height: 5.25rem;
+  border-radius: 2px;
+  filter: grayscale(0.15);
+}
+.site-minimalista .st-card-corpo {
+  grid-column: 2;
+  grid-row: 1;
+  padding: 0;
+}
+.site-minimalista .st-card-corpo h3 {
+  font-size: 1.1875rem;
+}
+.site-minimalista .st-card-preco {
+  position: static;
+  grid-column: 3;
+  grid-row: 1;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.0625rem;
+  text-align: right;
+}
+.site-minimalista .st-card-tipo {
+  color: var(--s-suave);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+.site-minimalista .st-card:hover {
+  background: var(--s-alt);
+}
+.site-minimalista .st-local-cartao,
+.site-minimalista .st-contato-form {
+  border-width: 0;
+  border-top: 1px solid #111111;
+  border-radius: 0;
+  background: transparent;
+  padding-inline: 0;
+}
+.site-minimalista .st-local-pino {
+  border-radius: 2px;
+}
+.site-minimalista .st-beneficios .cartao {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: transparent;
+  padding-inline: 0;
+}
+
+/* =====================================================================
+ * GASTRONOMIA. Cardápio em cartões grandes, ouro e vinho, serifa clássica, faixa decorativa.
+ * ===================================================================== */
+.site-gastronomia {
+  --s-bg: #fbf4e8;
+  --s-alt: #f3e6d0;
+  --s-surface: #fffdf8;
+  --s-text: #2b1a14;
+  --s-titulo: #6f1414;
+  --s-suave: #5e463b;
+  --s-link: #8f1d1d;
+  --s-borda: #e3cfae;
+  --s-borda-forte: #8a6a4f;
+  --s-botao-fundo: #8f1d1d;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #8f1d1d;
+  --s-foco: #8f1d1d;
+  --s-foco-halo: #fffdf8;
+  --s-raio: 20px;
+  --s-raio-pequeno: 12px;
+  --s-raio-botao: 999px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 24px;
+  --s-raio-avatar: 50%;
+  --s-sombra: 0 2px 10px rgb(111 20 20 / 0.08);
+  --s-sombra-forte: 0 12px 30px rgb(111 20 20 / 0.16);
+  --s-fonte-titulo: var(--f-playfair);
+  --s-fonte-texto: var(--f-lato);
+  --s-peso-titulo: 700;
+  --s-tracking: -0.01em;
+  --s-tracking-botao: 0.02em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #2b1a14;
+  --s-menu-texto: #fbf4e8;
+  --s-menu-borda: 3px solid #c8963e;
+  --s-menu-sombra: 0 4px 16px rgb(43 26 20 / 0.25);
+  --s-menu-foco: #f0c36b;
+  --s-menu-foco-halo: #2b1a14;
+  --s-menu-hover: rgb(251 244 232 / 0.12);
+  --s-menu-ativo-bg: #c8963e;
+  --s-menu-ativo-texto: #2b1a14;
+  --s-hero-fundo: radial-gradient(circle at 78% 50%, #8f1d1d 0%, #5a0f0f 48%, #2b0808 100%);
+  --s-hero-texto: #fbf4e8;
+  --s-hero-foco: #f0c36b;
+  --s-hero-foco-halo: #2b1a14;
+  --s-acento: #c8963e;
+  --s-acento-texto: #2b1a14;
+  --s-preco-fundo: #c8963e;
+  --s-preco-texto: #2b1a14;
+  --s-destaque-fundo: #8f1d1d;
+  --s-destaque-icone: #fbf4e8;
+  --s-rodape-fundo: #2b1a14;
+  --s-rodape-texto: #fbf4e8;
+  font-size: 1.0625rem;
+}
+.site-gastronomia .st-hero {
+  min-height: 32rem;
+}
+.site-gastronomia .st-hero h1 {
+  font-style: italic;
+}
+.site-gastronomia .st-hero-imagem .st-hero-fundo::after {
+  background: linear-gradient(
+    to top,
+    rgb(43 8 8 / 0.92) 0%,
+    rgb(43 8 8 / 0.6) 45%,
+    rgb(43 8 8 / 0.25) 100%
+  );
+}
+.site-gastronomia .st-faixa-deco {
+  display: block;
+  height: 26px;
+  border-block: 3px solid #c8963e;
+  background-color: #2b1a14;
+  background-image:
+    linear-gradient(45deg, transparent 44%, #c8963e 44% 56%, transparent 56%),
+    linear-gradient(-45deg, transparent 44%, #c8963e 44% 56%, transparent 56%);
+  background-size: 20px 20px;
+}
+.site-gastronomia .st-cab {
+  flex-direction: column;
+  text-align: center;
+}
+.site-gastronomia .st-cab h2 {
+  position: relative;
+  padding-bottom: var(--e4);
+}
+.site-gastronomia .st-cab h2::after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 7rem;
+  height: 10px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(#c8963e, #c8963e) left center / calc(50% - 10px) 2px no-repeat,
+    linear-gradient(#c8963e, #c8963e) right center / calc(50% - 10px) 2px no-repeat,
+    linear-gradient(45deg, transparent 38%, #c8963e 38% 62%, transparent 62%) center / 10px 10px
+      no-repeat;
+  content: "";
+}
+.site-gastronomia .st-sobre {
+  grid-template-columns: 1fr;
+  max-width: 54rem;
+  margin: 0 auto;
+  text-align: center;
+}
+.site-gastronomia .st-texto {
+  margin-inline: auto;
+}
+.site-gastronomia .st-chips {
+  justify-content: center;
+}
+.site-gastronomia .st-chips li {
+  background: #fffdf8;
+  border-color: #c8963e;
+}
+.site-gastronomia .st-destaques {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+.site-gastronomia .st-destaques li {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "icone"
+    "valor"
+    "rotulo";
+  justify-items: center;
+  gap: var(--e1);
+  border: 2px solid #c8963e;
+  text-align: center;
+}
+.site-gastronomia .st-destaque-icone {
+  margin-bottom: var(--e1);
+}
+.site-gastronomia .st-fotos img {
+  border: 4px solid #fffdf8;
+  box-shadow: 0 0 0 2px #c8963e;
+}
+/* Cardápio: cartões grandes, imagem generosa e o preço num selo dourado. */
+.site-gastronomia .st-grade-cards {
+  gap: var(--e6);
+}
+@media (min-width: 560px) {
+  .site-gastronomia .st-grade-cards {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 820px) {
+  .site-gastronomia .st-grade-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+.site-gastronomia .st-card {
+  overflow: visible;
+  border: 0;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgb(111 20 20 / 0.14);
+}
+.site-gastronomia .st-card-imagem {
+  aspect-ratio: 16 / 10;
+}
+.site-gastronomia .st-card-imagem img,
+.site-gastronomia .st-card-sem-imagem {
+  border-radius: 28px 28px 0 0;
+}
+.site-gastronomia .st-card-preco {
+  right: var(--e4);
+  bottom: -1.2rem;
+  left: auto;
+  z-index: 2;
+  padding: 0.5rem 1.15rem;
+  border: 3px solid #fffdf8;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.25rem;
+}
+.site-gastronomia .st-card-corpo {
+  padding: 1.75rem var(--e6) var(--e6);
+}
+.site-gastronomia .st-card-corpo h3 {
+  font-size: clamp(1.5rem, 3.5vw, 1.875rem);
+}
+.site-gastronomia .st-card-tipo {
+  color: #8f1d1d;
+}
+.site-gastronomia .st-card:hover {
+  transform: translateY(-4px);
+}
+.site-gastronomia .st-beneficios .cartao {
+  border: 2px dashed #c8963e;
+  background: #fffdf8;
+  text-align: center;
+}
+.site-gastronomia .st-local-cartao {
+  border: 2px solid #c8963e;
+}
+.site-gastronomia .st-contato-info {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border-radius: 28px;
+  background: #2b1a14;
+  color: #fbf4e8;
+}
+.site-gastronomia .st-contato-info h3 {
+  color: #f0c36b;
+}
+.site-gastronomia .st-contato-endereco {
+  color: #e9d9bd;
+}
+.site-gastronomia .st-contato-form {
+  border-width: 2px;
+  border-color: #c8963e;
+  border-radius: 28px;
+}
+.site-gastronomia .st-rodape {
+  border-top: 4px solid #c8963e;
+}
+
+/* =====================================================================
+ * SAÚDE E BEM-ESTAR. Blocos arredondados e macios, ícones em círculos, verde-água e azul-petróleo.
+ * ===================================================================== */
+.site-saude_bem_estar {
+  --s-bg: #f4fbf9;
+  --s-alt: #e5f5f1;
+  --s-surface: #ffffff;
+  --s-text: #12323a;
+  --s-titulo: #0b4a52;
+  --s-suave: #43636a;
+  --s-link: #0b5f58;
+  --s-borda: #cfe8e2;
+  --s-borda-forte: #5f8a86;
+  --s-botao-fundo: #0f766e;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #0f766e;
+  --s-foco: #0b4a52;
+  --s-foco-halo: #ffffff;
+  --s-raio: 28px;
+  --s-raio-pequeno: 14px;
+  --s-raio-botao: 999px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 32px;
+  --s-raio-avatar: 50% 50% 50% 12px;
+  --s-sombra: 0 4px 18px rgb(15 118 110 / 0.1);
+  --s-sombra-forte: 0 14px 34px rgb(15 118 110 / 0.18);
+  --s-fonte-titulo: var(--f-nunito);
+  --s-fonte-texto: var(--f-nunito);
+  --s-peso-titulo: 800;
+  --s-tracking: -0.015em;
+  --s-tracking-botao: 0;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: rgb(255 255 255 / 0.94);
+  --s-menu-texto: #12323a;
+  --s-menu-borda: 1px solid #cfe8e2;
+  --s-menu-sombra: 0 6px 20px rgb(15 118 110 / 0.1);
+  --s-menu-foco: #0b4a52;
+  --s-menu-foco-halo: #ffffff;
+  --s-menu-hover: #e5f5f1;
+  --s-menu-ativo-bg: #0f766e;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(120deg, #0a3f46 0%, #0d5c5c 50%, #0f766e 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #ffffff;
+  --s-hero-foco-halo: #0a3f46;
+  --s-acento: #7bd3c6;
+  --s-acento-texto: #0b3a40;
+  --s-preco-fundo: #0f766e;
+  --s-preco-texto: #ffffff;
+  --s-destaque-fundo: #0f766e;
+  --s-destaque-icone: #ffffff;
+  --s-rodape-fundo: #0b4a52;
+  --s-rodape-texto: #e5f5f1;
+}
+.site-saude_bem_estar .st-menu {
+  backdrop-filter: blur(10px);
+}
+.site-saude_bem_estar .st-hero {
+  border-radius: 0 0 2.5rem 2.5rem;
+}
+/* Cada seção é um bloco arredondado solto sobre o fundo. */
+.site-saude_bem_estar .st-faixa {
+  margin: var(--e4) var(--e2);
+  padding-block: clamp(2rem, 6vw, 4rem);
+  border-radius: 2rem;
+  background: var(--s-surface);
+  box-shadow: var(--s-sombra);
+}
+.site-saude_bem_estar .st-faixa-alt {
+  background: var(--s-alt);
+  box-shadow: none;
+}
+@media (min-width: 900px) {
+  .site-saude_bem_estar .st-faixa {
+    margin-inline: auto;
+    max-width: 76rem;
+    border-radius: 3rem;
+  }
+}
+.site-saude_bem_estar .st-cab {
+  gap: var(--e3);
+}
+.site-saude_bem_estar .st-icone {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #0f766e;
+  color: #ffffff;
+}
+.site-saude_bem_estar .st-icone .st-svg {
+  width: 26px;
+  height: 26px;
+}
+.site-saude_bem_estar .st-destaques {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 480px) and (max-width: 899px) {
+  .site-saude_bem_estar .st-destaques {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.site-saude_bem_estar .st-destaques li {
+  border: 0;
+  border-radius: 22px;
+  background: var(--s-bg);
+}
+.site-saude_bem_estar .st-faixa-alt .st-destaques li {
+  background: #ffffff;
+}
+.site-saude_bem_estar .st-destaque-icone {
+  width: 48px;
+  height: 48px;
+}
+.site-saude_bem_estar .st-chips li {
+  border-color: transparent;
+  background: #e5f5f1;
+}
+.site-saude_bem_estar .st-faixa-alt .st-chips li {
+  background: #ffffff;
+}
+.site-saude_bem_estar .st-fotos img {
+  border-radius: 28px;
+}
+.site-saude_bem_estar .st-card {
+  border: 0;
+  border-radius: 28px;
+  background: var(--s-bg);
+  box-shadow: none;
+}
+.site-saude_bem_estar .st-faixa-alt .st-card {
+  background: #ffffff;
+}
+.site-saude_bem_estar .st-card-imagem {
+  margin: var(--e2) var(--e2) 0;
+  border-radius: 22px;
+  overflow: hidden;
+}
+.site-saude_bem_estar .st-card-tipo {
+  align-self: flex-start;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: #d3efe9;
+  color: #0b4a52;
+}
+.site-saude_bem_estar .st-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--s-sombra-forte);
+}
+.site-saude_bem_estar .st-beneficios .cartao,
+.site-saude_bem_estar .st-local-cartao,
+.site-saude_bem_estar .st-contato-form {
+  border: 0;
+}
+.site-saude_bem_estar .st-local-cartao {
+  background: var(--s-surface);
+}
+.site-saude_bem_estar .st-contato-form {
+  border-radius: 28px;
+  background: var(--s-bg);
+  box-shadow: none;
+}
+.site-saude_bem_estar .st-faixa-alt .st-contato-form {
+  background: #ffffff;
+}
+.site-saude_bem_estar .st-contato-info {
+  padding: var(--e2);
+}
+.site-saude_bem_estar .st-contato-linha .st-svg {
+  color: #0f766e;
+}
+
+/* =====================================================================
+ * BELEZA E ESTÉTICA. Tipografia fina e elegante, galeria em arcos, tons de rosé, ameixa e dourado.
+ * ===================================================================== */
+.site-beleza_estetica {
+  --s-bg: #fff8f7;
+  --s-alt: #f9e7e9;
+  --s-surface: #ffffff;
+  --s-text: #3b1f2b;
+  --s-titulo: #5e1d3f;
+  --s-suave: #6b4a57;
+  --s-link: #8c2f5a;
+  --s-borda: #f0d3d8;
+  --s-borda-forte: #8d6b78;
+  --s-botao-fundo: #8c2f5a;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #8c2f5a;
+  --s-foco: #5e1d3f;
+  --s-foco-halo: #ffffff;
+  --s-raio: 6px;
+  --s-raio-pequeno: 6px;
+  --s-raio-botao: 999px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 200px 200px 16px 16px;
+  --s-raio-avatar: 999px 999px 14px 14px;
+  --s-sombra: 0 2px 12px rgb(140 47 90 / 0.08);
+  --s-sombra-forte: 0 14px 34px rgb(140 47 90 / 0.18);
+  --s-fonte-titulo: var(--f-cormorant);
+  --s-fonte-texto: var(--f-jost);
+  --s-peso-titulo: 600;
+  --s-tracking: 0;
+  --s-tracking-botao: 0.12em;
+  --s-caixa: none;
+  --s-caixa-botao: uppercase;
+  --s-menu-bg: #fff8f7;
+  --s-menu-texto: #3b1f2b;
+  --s-menu-borda: 1px solid #e7c2ca;
+  --s-menu-sombra: none;
+  --s-menu-foco: #5e1d3f;
+  --s-menu-foco-halo: #ffffff;
+  --s-menu-hover: #f9e7e9;
+  --s-menu-ativo-bg: #8c2f5a;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #4a1632 0%, #6f2548 55%, #8c2f5a 100%);
+  --s-hero-texto: #fff8f7;
+  --s-hero-foco: #e0b865;
+  --s-hero-foco-halo: #4a1632;
+  --s-acento: #e0b865;
+  --s-acento-texto: #3b1f2b;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #8c2f5a;
+  --s-destaque-fundo: transparent;
+  --s-destaque-icone: #8c2f5a;
+  --s-rodape-fundo: #5e1d3f;
+  --s-rodape-texto: #fdeff1;
+}
+.site-beleza_estetica .st-menu-nome {
+  font-size: 1.375rem;
+  font-style: italic;
+}
+.site-beleza_estetica .st-hero h1 {
+  font-size: clamp(2.75rem, 10vw, 5.25rem);
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1;
+}
+.site-beleza_estetica .st-sobretitulo {
+  letter-spacing: 0.28em;
+}
+.site-beleza_estetica .botao {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.site-beleza_estetica .botao-secundario {
+  border-color: #8c2f5a;
+  color: #8c2f5a;
+}
+.site-beleza_estetica .st-cab {
+  flex-direction: column;
+  gap: var(--e2);
+  text-align: center;
+}
+.site-beleza_estetica .st-cab h2 {
+  font-size: clamp(2.25rem, 7vw, 3.5rem);
+  font-style: italic;
+}
+.site-beleza_estetica .st-cab h2::after {
+  display: block;
+  width: 5rem;
+  height: 1px;
+  margin: var(--e3) auto 0;
+  background: linear-gradient(90deg, transparent, #b8893b, transparent);
+  content: "";
+}
+.site-beleza_estetica .st-sobre {
+  grid-template-columns: 1fr;
+  max-width: 46rem;
+  margin: 0 auto;
+  text-align: center;
+}
+.site-beleza_estetica .st-texto {
+  margin-inline: auto;
+}
+.site-beleza_estetica .st-texto-destaque {
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 500;
+  line-height: 1.35;
+}
+.site-beleza_estetica .st-chips {
+  justify-content: center;
+}
+.site-beleza_estetica .st-chips li {
+  border-color: #b8893b;
+  background: transparent;
+}
+/* Destaques como linha fina, sem caixas. */
+.site-beleza_estetica .st-destaques {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e3) var(--e8);
+}
+.site-beleza_estetica .st-destaques li {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "valor"
+    "rotulo";
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+.site-beleza_estetica .st-destaque-icone {
+  display: none;
+}
+.site-beleza_estetica .st-destaque-valor {
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.625rem;
+  font-weight: 600;
+}
+.site-beleza_estetica .st-destaque-rotulo {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+/* Galeria: mosaico de arcos, com as colunas pares mais baixas. */
+.site-beleza_estetica .st-fotos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e4);
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+}
+.site-beleza_estetica .st-fotos img {
+  aspect-ratio: 3 / 4;
+  border-radius: 999px 999px 14px 14px;
+}
+@media (min-width: 720px) {
+  .site-beleza_estetica .st-fotos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--e6);
+  }
+  .site-beleza_estetica .st-fotos li:nth-child(even) {
+    margin-top: 2.5rem;
+  }
+}
+/* Serviços: arco, texto centralizado e preço em serifa. */
+.site-beleza_estetica .st-card {
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+.site-beleza_estetica .st-card-imagem {
+  display: contents;
+}
+.site-beleza_estetica .st-card-imagem img,
+.site-beleza_estetica .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  border-radius: 999px 999px 0 0;
+  box-shadow: 0 0 0 1px #b8893b;
+  outline: 6px solid var(--s-bg);
+  outline-offset: -6px;
+}
+.site-beleza_estetica .st-card-corpo {
+  order: 2;
+  align-items: center;
+  padding: var(--e4) var(--e2) 0;
+}
+.site-beleza_estetica .st-card-corpo h3 {
+  font-size: 1.625rem;
+  font-weight: 600;
+}
+.site-beleza_estetica .st-card-preco {
+  position: static;
+  order: 3;
+  padding: 0 var(--e2) var(--e2);
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.site-beleza_estetica .st-card-tipo {
+  color: var(--s-suave);
+  letter-spacing: 0.22em;
+}
+.site-beleza_estetica .st-card:hover {
+  transform: translateY(-4px);
+}
+.site-beleza_estetica .st-beneficios .cartao {
+  border-color: #b8893b;
+  text-align: center;
+}
+.site-beleza_estetica .st-local-cartao {
+  border-color: #b8893b;
+}
+.site-beleza_estetica .st-contato-info {
+  text-align: center;
+}
+.site-beleza_estetica .st-contato-linha {
+  justify-content: center;
+}
+.site-beleza_estetica .st-contato-form {
+  border-color: #b8893b;
+  border-radius: 200px 200px 16px 16px;
+  padding-top: clamp(2.5rem, 8vw, 4.5rem);
+}
+
+/* =====================================================================
+ * CONSTRUÇÃO E REFORMAS. Blocos fortes, números grandes, faixas de obra, cantos retos, caixa alta condensada.
+ * ===================================================================== */
+.site-construcao_reformas {
+  --s-bg: #f2f2f0;
+  --s-alt: #e4e4e0;
+  --s-surface: #ffffff;
+  --s-text: #1c2025;
+  --s-titulo: #1c2025;
+  --s-suave: #4a5058;
+  --s-link: #7a4f00;
+  --s-borda: #cfcfca;
+  --s-borda-forte: #6b7078;
+  --s-botao-fundo: #f5b800;
+  --s-botao-texto: #1c2025;
+  --s-botao-borda: #1c2025;
+  --s-foco: #1c2025;
+  --s-foco-halo: #f5b800;
+  --s-raio: 0;
+  --s-raio-pequeno: 0;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 0;
+  --s-sombra: 4px 4px 0 rgb(28 32 37 / 0.12);
+  --s-sombra-forte: 6px 6px 0 rgb(28 32 37 / 0.2);
+  --s-fonte-titulo: var(--f-barlow-cond);
+  --s-fonte-texto: var(--f-barlow);
+  --s-peso-titulo: 800;
+  --s-tracking: 0.02em;
+  --s-tracking-botao: 0.08em;
+  --s-caixa: uppercase;
+  --s-caixa-botao: uppercase;
+  --s-menu-bg: #1c2025;
+  --s-menu-texto: #ffffff;
+  --s-menu-borda: 0;
+  --s-menu-sombra: 0 4px 0 #f5b800;
+  --s-menu-foco: #f5b800;
+  --s-menu-foco-halo: #1c2025;
+  --s-menu-hover: rgb(255 255 255 / 0.12);
+  --s-menu-ativo-bg: #f5b800;
+  --s-menu-ativo-texto: #1c2025;
+  --s-hero-fundo: linear-gradient(110deg, #14171b 0%, #1c2025 60%, #2a3038 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #f5b800;
+  --s-hero-foco-halo: #14171b;
+  --s-acento: #f5b800;
+  --s-acento-texto: #1c2025;
+  --s-preco-fundo: #1c2025;
+  --s-preco-texto: #f5b800;
+  --s-destaque-fundo: #1c2025;
+  --s-destaque-icone: #f5b800;
+  --s-rodape-fundo: #1c2025;
+  --s-rodape-texto: #f2f2f0;
+  font-size: 1.0625rem;
+}
+.site-construcao_reformas .st-hero h1 {
+  font-size: clamp(2.75rem, 12vw, 6rem);
+  line-height: 0.95;
+}
+.site-construcao_reformas .st-sobretitulo {
+  display: inline-block;
+  padding: 0.25rem var(--e3);
+  background: #f5b800;
+  color: #1c2025;
+}
+.site-construcao_reformas .botao {
+  border-width: 3px;
+  font-weight: 700;
+}
+.site-construcao_reformas .botao-secundario {
+  background: transparent;
+  color: #1c2025;
+  border-color: #1c2025;
+}
+.site-construcao_reformas .st-hero .botao-secundario {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+.site-construcao_reformas .st-hero-imagem .st-hero-fundo::after {
+  background: linear-gradient(
+    100deg,
+    rgb(20 23 27 / 0.92) 0%,
+    rgb(20 23 27 / 0.7) 55%,
+    rgb(20 23 27 / 0.35) 100%
+  );
+}
+.site-construcao_reformas .st-faixa-deco {
+  display: block;
+  height: 16px;
+  background: repeating-linear-gradient(-45deg, #f5b800 0 16px, #1c2025 16px 32px);
+}
+.site-construcao_reformas .st-cab {
+  gap: var(--e4);
+  padding-bottom: var(--e3);
+  border-bottom: 4px solid #1c2025;
+}
+.site-construcao_reformas .st-numero {
+  display: inline-grid;
+  place-items: center;
+  min-width: 3.5rem;
+  height: 3.5rem;
+  background: #1c2025;
+  color: #f5b800;
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: 1.875rem;
+  font-weight: 800;
+}
+.site-construcao_reformas .st-cab h2 {
+  font-size: clamp(2rem, 7vw, 3.25rem);
+}
+.site-construcao_reformas .st-texto-destaque {
+  padding-left: var(--e4);
+  border-left: 8px solid #f5b800;
+}
+.site-construcao_reformas .st-chips li {
+  border: 2px solid #1c2025;
+  background: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+/* Números e diferenciais: blocos escuros com o valor em amarelo. */
+.site-construcao_reformas .st-destaques {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.site-construcao_reformas .st-destaques li {
+  display: block;
+  padding: var(--e4);
+  border: 0;
+  border-left: 8px solid #f5b800;
+  background: #1c2025;
+  color: #ffffff;
+  box-shadow: var(--s-sombra);
+}
+.site-construcao_reformas .st-destaque-icone {
+  display: none;
+}
+.site-construcao_reformas .st-destaque-valor {
+  display: block;
+  color: #f5b800;
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: clamp(1.75rem, 6vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.site-construcao_reformas .st-destaque-rotulo {
+  display: block;
+  margin-top: var(--e2);
+  color: #e4e4e0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@media (min-width: 900px) {
+  .site-construcao_reformas .st-destaques {
+    grid-template-columns: 1fr;
+  }
+}
+.site-construcao_reformas .st-fotos img {
+  border-bottom: 8px solid #f5b800;
+}
+/* Serviços como fichas de obra numeradas. */
+.site-construcao_reformas .st-grade-cards {
+  counter-reset: obra;
+}
+.site-construcao_reformas .st-card {
+  counter-increment: obra;
+  border: 3px solid #1c2025;
+  border-left-width: 12px;
+  border-left-color: #f5b800;
+}
+.site-construcao_reformas .st-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  padding: 0.125rem var(--e3);
+  background: #1c2025;
+  color: #f5b800;
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 800;
+  content: counter(obra, decimal-leading-zero);
+}
+.site-construcao_reformas .st-card-preco {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0.35rem var(--e4);
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: 1.625rem;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+.site-construcao_reformas .st-card-tipo {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0.125rem var(--e2);
+  background: #1c2025;
+  color: #f5b800;
+}
+.site-construcao_reformas .st-card:hover {
+  transform: translate(-2px, -2px);
+}
+.site-construcao_reformas .st-beneficios .cartao {
+  border: 0;
+  border-left: 8px solid #f5b800;
+  background: #1c2025;
+  color: #ffffff;
+}
+.site-construcao_reformas .st-beneficios .cartao h3 {
+  color: #f5b800;
+}
+.site-construcao_reformas .st-beneficios .cartao .ajuda,
+.site-construcao_reformas .st-beneficios .cartao p {
+  color: #e4e4e0;
+}
+.site-construcao_reformas .st-local-cartao {
+  border: 3px solid #1c2025;
+}
+.site-construcao_reformas .st-local-pino {
+  border-radius: 0;
+}
+.site-construcao_reformas .st-contato-info {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  background: #1c2025;
+  color: #ffffff;
+}
+.site-construcao_reformas .st-contato-info h3 {
+  color: #f5b800;
+}
+.site-construcao_reformas .st-contato-endereco {
+  color: #e4e4e0;
+}
+.site-construcao_reformas .st-contato-form {
+  border: 3px solid #1c2025;
+  box-shadow: 8px 8px 0 #f5b800;
+}
+.site-construcao_reformas .st-rodape {
+  border-top: 10px solid #f5b800;
+}
+.site-construcao_reformas .st-avatar {
+  border: 4px solid #f5b800;
+}
+.site-construcao_reformas .st-ctl {
+  border-width: 0;
+}

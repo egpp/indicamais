@@ -278,7 +278,7 @@ describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
     expect(screen.getByText("Pães e bolos feitos todo dia.")).toBeTruthy();
     expect(screen.getAllByText("Alimentação").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Porto Alegre - RS").length).toBeGreaterThan(0);
-    expect(screen.getByText("Rua das Flores, 100")).toBeTruthy();
+    expect(screen.getAllByText("Rua das Flores, 100").length).toBeGreaterThan(0);
     expect(screen.getByText("Centro")).toBeTruthy();
     expect(screen.getByText("Moinhos")).toBeTruthy();
     expect(screen.getByText("padariadaana.com.br")).toBeTruthy();

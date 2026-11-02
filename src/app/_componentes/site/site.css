@@ -1,21 +1,16 @@
 /*
- * Página do negócio como site (D-016; IM-091, IM-092, IM-093).
+ * Página do negócio como site (D-016; IM-091, IM-092, IM-093). ESTRUTURA COMUM, celular primeiro (360px).
  *
  * TUDO fica sob `.site`: nada aqui afeta o resto da plataforma. A estrutura (menu, banner, seções) é uma só; cada
- * estilo é UM bloco `.site-<id>` que só define variáveis (--s-*) e alguns detalhes de forma. Para acrescentar um
- * estilo novo: copie um bloco, troque o id e os valores, e libere o id em `estilos.ts`.
+ * estilo é um bloco em `site-estilos.css` que define as variáveis (--s-*) e a COMPOSIÇÃO própria das seções
+ * (Gastronomia com cardápio em cartões grandes, Saúde com blocos arredondados, Beleza com galeria, Construção com
+ * blocos e números, Minimalista tipográfico). Para um estilo novo: copie um bloco, troque o id e libere em `estilos.ts`.
  *
- * Contraste (WCAG AA, medido com as cores abaixo; texto normal >= 4,5:1):
- *   minimalista  texto #111 / fundo #fff 18,9:1 · suave #555 7,5:1 · botão #fff sobre #111 18,9:1 · link #1d4ed8 6,7:1
- *   gastronomia  texto #2b1a14 / #fbf4e8 14,6:1 · suave #5e463b / #f3e6d0 6,9:1 · #fff sobre #8f1d1d 9,1:1
- *   saúde        texto #12323a / #f4fbf9 12,3:1 · suave #43636a / #e5f5f1 5,8:1 · #fff sobre #0f766e 5,5:1
- *   beleza       texto #3b1f2b / #fff8f7 13,6:1 · suave #6b4a57 / #f9e7e9 6,0:1 · #fff sobre #8c2f5a 8,1:1
- *   construção   texto #1c2025 / #f2f2f0 14,5:1 · suave #4a5058 / #e4e4e0 6,2:1 · #1c2025 sobre #f5b800 9,0:1
+ * Contraste (WCAG AA, texto normal >= 4,5:1) está medido no cabeçalho de `site-estilos.css`.
  */
 
-/* ---------- Estrutura comum (celular primeiro, 360px) ---------- */
 .site {
-  /* Os componentes já existentes (campos, cards, botões) leem estes tokens globais; aqui eles passam a seguir o tema. */
+  /* Os componentes já existentes (campos, cartões, botões) leem estes tokens globais; aqui eles seguem o tema. */
   --fundo: var(--s-bg);
   --superficie: var(--s-surface);
   --texto: var(--s-text);
@@ -238,25 +233,303 @@ html:has(.site) {
   }
 }
 
-/* ---------- Seções ---------- */
-.st-secao {
+/* ---------- Banner de topo (hero) em largura total ---------- */
+/* O banner começa logo abaixo do menu, sem margem negativa: o menu fixo nunca o cobre pela borda. */
+.st-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  min-height: 30rem;
+  overflow: hidden;
+  background: var(--s-hero-fundo);
+  color: var(--s-hero-texto);
+}
+.st-hero-imagem {
+  background: #14161a;
+  color: #ffffff;
+}
+.st-hero-fundo {
+  position: absolute;
+  inset: 0;
+}
+.st-decor {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* Gradiente que garante o texto legível sobre qualquer imagem (texto branco sobre pelo menos 55% de preto). */
+.st-hero-imagem .st-hero-fundo::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(8 10 12 / 0.9) 0%,
+    rgb(8 10 12 / 0.62) 42%,
+    rgb(8 10 12 / 0.24) 100%
+  );
+  content: "";
+  pointer-events: none;
+}
+.st-hero-miolo {
+  position: relative;
+  z-index: 2;
+  width: 100%;
   max-width: 72rem;
   margin: 0 auto;
-  padding: clamp(2.25rem, 7vw, 4.5rem) var(--e4);
+  padding: 5rem var(--e4) 2.5rem;
+  pointer-events: none;
+}
+.st-hero-varios .st-hero-miolo {
+  padding-bottom: 5rem;
+}
+.st-hero-texto {
+  max-width: 42rem;
+}
+.st-hero-texto a,
+.st-hero-texto img {
+  pointer-events: auto;
+}
+.site .st-hero h1 {
+  margin: 0;
+  color: inherit;
+  font-size: clamp(2.375rem, 9vw, 4.75rem);
+  overflow-wrap: anywhere;
+}
+.st-hero-imagem h1 {
+  text-shadow: 0 2px 18px rgb(0 0 0 / 0.45);
+}
+.st-sobretitulo {
+  margin: 0 0 var(--e2);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.st-local {
+  margin: var(--e3) 0 0;
+  font-size: 1.125rem;
+  opacity: 0.95;
+}
+.st-avatar {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin-bottom: var(--e3);
+  object-fit: cover;
+  border: 3px solid #ffffff;
+  border-radius: var(--s-raio-avatar);
+  background: var(--s-alt);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.35);
+}
+.st-acoes-inicio {
+  display: grid;
+  gap: var(--e3);
+  max-width: 24rem;
+  margin: var(--e6) 0 0;
+}
+.site .st-hero .botao {
+  background: var(--s-acento);
+  color: var(--s-acento-texto);
+  border-color: var(--s-acento);
+}
+.site .st-hero .botao-secundario {
+  background: transparent;
+  color: inherit;
+  border-color: currentColor;
+}
+.site .st-hero .botao-secundario:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+.st-hero :focus-visible {
+  outline-color: var(--s-hero-foco);
+  box-shadow: 0 0 0 5px var(--s-hero-foco-halo);
+}
+@media (min-width: 640px) {
+  .st-acoes-inicio {
+    grid-template-columns: repeat(2, max-content);
+    max-width: none;
+  }
+  .st-acoes-inicio .botao {
+    width: auto;
+    min-width: 12rem;
+    padding-inline: var(--e6);
+  }
+}
+@media (min-width: 900px) {
+  .st-hero {
+    min-height: 36rem;
+  }
+  .st-hero-miolo {
+    padding: 7rem var(--e4) 3.5rem;
+  }
+  .st-hero-varios .st-hero-miolo {
+    padding-bottom: 5.5rem;
+  }
+  .st-avatar {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+/* O carrossel preenche o hero; os controles ficam numa pílula escura embaixo, sempre legível. */
+.st-hero .st-banner {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+.st-banner-quadro {
+  position: relative;
+  overflow: hidden;
+  background: var(--s-alt);
+}
+.st-hero .st-banner-quadro {
+  position: absolute;
+  inset: 0;
+}
+.st-slide {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.6s ease,
+    visibility 0s linear 0.6s;
+}
+.st-slide-ativo {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+.st-banner-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.st-banner-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-slide {
+    transition: none;
+  }
+}
+.st-banner-controles {
+  position: absolute;
+  right: var(--e4);
+  bottom: var(--e3);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgb(8 10 12 / 0.78);
+  color: #ffffff;
+}
+.st-ctl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.st-ctl:hover {
+  background: rgb(255 255 255 / 0.18);
+}
+.st-contador {
+  min-width: 3rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.st-pontos {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.st-ponto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.st-ponto span {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: transparent;
+  transition: width 0.2s;
+}
+.st-ponto[aria-current="true"] span {
+  width: 28px;
+  background: #ffffff;
+}
+@media (min-width: 640px) {
+  .st-pontos {
+    display: flex;
+  }
+  .st-contador {
+    display: none;
+  }
+}
+.st-banner-controles :focus-visible {
+  outline-color: #ffffff;
+  box-shadow: 0 0 0 5px #000000;
+}
+
+/* ---------- Seções ---------- */
+.st-faixa {
+  padding: clamp(3rem, 8vw, 5.5rem) 0;
+  background: var(--s-bg);
   scroll-margin-top: 4.5rem;
 }
-/* Faixa de fundo de ponta a ponta nas seções pares, sem estourar a largura. */
-.st-secao:nth-child(even) {
+.st-faixa-alt {
   background: var(--s-alt);
-  box-shadow: 0 0 0 100vmax var(--s-alt);
-  clip-path: inset(0 -100vmax);
 }
-.st-secao > h2 {
-  margin: 0 0 var(--e6);
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
+.st-miolo {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 var(--e4);
 }
-.st-secao h3 {
-  font-size: 1.0625rem;
+.st-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e3);
+  margin-bottom: clamp(1.5rem, 4vw, 2.75rem);
+}
+.st-cab h2 {
+  margin: 0;
+  font-size: clamp(1.9rem, 5.2vw, 2.875rem);
+}
+.st-icone,
+.st-numero {
+  display: none;
+}
+.st-svg {
+  display: block;
 }
 .st-texto {
   max-width: 44rem;
@@ -292,11 +565,80 @@ html:has(.site) {
   font-size: 0.9375rem;
   font-weight: 600;
 }
+.st-botao-auto {
+  width: auto;
+  max-width: 100%;
+}
+@media (min-width: 640px) {
+  .st-botao-auto {
+    display: inline-flex;
+    min-width: 12rem;
+  }
+}
+
+/* Sobre: texto e destaques lado a lado */
+.st-sobre {
+  display: grid;
+  gap: var(--e8);
+}
+.st-texto-destaque {
+  font-size: clamp(1.125rem, 2.6vw, 1.375rem);
+  line-height: 1.6;
+}
+.st-destaques {
+  display: grid;
+  gap: var(--e3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.st-destaques li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icone valor"
+    "icone rotulo";
+  column-gap: var(--e3);
+  align-items: center;
+  padding: var(--e4);
+  border: 1px solid var(--s-borda);
+  border-radius: var(--s-raio);
+  background: var(--s-surface);
+  box-shadow: var(--s-sombra);
+}
+.st-destaque-icone {
+  grid-area: icone;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--s-destaque-fundo);
+  color: var(--s-destaque-icone);
+}
+.st-destaque-valor {
+  grid-area: valor;
+  font-weight: 700;
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+.st-destaque-rotulo {
+  grid-area: rotulo;
+  color: var(--s-suave);
+  font-size: 0.875rem;
+}
+@media (min-width: 900px) {
+  .st-sobre {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 3.5rem;
+    align-items: start;
+  }
+}
 .st-fotos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--e3);
-  margin: var(--e6) 0 0;
+  margin: var(--e8) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -310,47 +652,226 @@ html:has(.site) {
 }
 @media (min-width: 720px) {
   .st-fotos {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-.st-botao-auto {
-  width: auto;
-  max-width: 100%;
-}
-@media (min-width: 640px) {
-  .st-botao-auto {
-    display: inline-flex;
-    min-width: 12rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
-/* Cartões do catálogo e blocos reaproveitados */
-.site .grade-cards {
+/* Produtos e serviços: grade de cartões com imagem e preço */
+.st-grade-cards {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--e4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.site .card-publico,
+@media (min-width: 560px) {
+  .st-grade-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 960px) {
+  .st-grade-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--e6);
+  }
+}
+.st-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--s-borda);
+  border-radius: var(--s-raio);
+  background: var(--s-surface);
+  box-shadow: var(--s-sombra);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.st-card:hover {
+  box-shadow: var(--s-sombra-forte);
+}
+.st-card:has(.card-link:focus-visible) {
+  outline: 3px solid var(--s-foco);
+  outline-offset: 2px;
+}
+.st-card-imagem {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--s-alt);
+}
+.st-card-imagem img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.st-card-sem-imagem {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--s-alt), var(--s-borda));
+  color: var(--s-suave);
+}
+.st-card-sem-imagem .st-svg {
+  width: 3rem;
+  height: 3rem;
+}
+.st-card-preco {
+  position: absolute;
+  bottom: var(--e3);
+  left: var(--e3);
+  margin: 0;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--s-raio-chip);
+  background: var(--s-preco-fundo);
+  color: var(--s-preco-texto);
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+.st-card-corpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e4) var(--e4) var(--e6);
+}
+.st-card-corpo h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+.st-card-tipo {
+  margin: 0;
+  color: var(--s-link);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.st-card-desc {
+  margin: 0;
+  color: var(--s-suave);
+}
+.st-card-meta {
+  margin: 0;
+  color: var(--s-suave);
+  font-size: 0.875rem;
+}
 .site .cartao {
   border: 1px solid var(--s-borda);
   border-radius: var(--s-raio);
   background: var(--s-surface);
   box-shadow: var(--s-sombra);
 }
-.site .card-publico:hover {
-  box-shadow: var(--s-sombra-forte);
+.st-beneficios .lista-cartoes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--e4);
+  padding: 0;
+  list-style: none;
 }
-.site .card-imagem img,
-.site .card-imagem .imagem-indisponivel {
-  background: var(--s-alt);
+.st-beneficios .cartao h3 {
+  margin: 0 0 var(--e2);
+  font-size: 1.25rem;
 }
-.site .card-corpo h3 {
+@media (min-width: 720px) {
+  .st-beneficios .lista-cartoes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1000px) {
+  .st-beneficios .lista-cartoes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Localização */
+.st-local-cartao {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e4);
+  padding: clamp(1.25rem, 4vw, 2.25rem);
+  border: 1px solid var(--s-borda);
+  border-radius: var(--s-raio);
+  background: var(--s-surface);
+  box-shadow: var(--s-sombra);
+}
+.st-local-pino {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--s-destaque-fundo);
+  color: var(--s-destaque-icone);
+}
+.st-local-pino .st-svg {
+  width: 28px;
+  height: 28px;
+}
+.st-local-cartao .st-texto {
+  margin-bottom: var(--e2);
   font-size: 1.1875rem;
+  font-weight: 600;
 }
-.site .preco-card {
-  font-size: 1.125rem;
+.st-local-cidade {
+  margin: 0 0 var(--e4);
+  color: var(--s-suave);
+}
+
+/* Contato em duas colunas: informações e formulário */
+.st-contato {
+  display: grid;
+  gap: var(--e6);
+}
+.st-contato-info h3 {
+  margin: 0 0 var(--e3);
+  font-size: clamp(1.5rem, 4vw, 2.125rem);
+}
+.st-contato-info p {
+  margin: 0 0 var(--e3);
+}
+.st-contato-linha {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  font-weight: 600;
+}
+.st-contato-linha .st-svg {
+  width: 20px;
+  height: 20px;
+}
+.st-contato-endereco {
+  color: var(--s-suave);
+  font-weight: 400;
+}
+.st-contato-form {
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid var(--s-borda);
+  border-radius: var(--s-raio);
+  background: var(--s-surface);
+  box-shadow: var(--s-sombra);
+}
+@media (min-width: 900px) {
+  .st-contato {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 3.5rem;
+    align-items: start;
+  }
 }
 .site .secao-curtir,
 .site .secao-contato {
   margin: var(--e6) 0;
+}
+.site .st-contato-form > :first-child,
+.site .st-contato-form .secao-contato:first-child {
+  margin-top: 0;
 }
 .site .secao-contato > h2,
 .site .secao-curtir > h2 {
@@ -366,173 +887,37 @@ html:has(.site) {
   margin-top: 0;
 }
 
-/* ---------- Início: banner e identidade ---------- */
-.st-inicio {
-  padding-top: var(--e4);
-  padding-bottom: clamp(1.5rem, 5vw, 3rem);
-}
-.st-banner {
-  margin: 0 0 var(--e6);
-}
-.st-banner-quadro {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  border-radius: var(--s-raio-img);
-  background: var(--s-alt);
-}
-@media (min-width: 720px) {
-  .st-banner-quadro {
-    aspect-ratio: 21 / 8;
-  }
-}
-.st-slide {
-  position: absolute;
-  inset: 0;
-  visibility: hidden;
-  opacity: 0;
-  transition:
-    opacity 0.6s ease,
-    visibility 0s linear 0.6s;
-}
-.st-slide-ativo {
-  visibility: visible;
-  opacity: 1;
-  transition-delay: 0s;
-}
-.st-banner-img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.st-banner > .st-banner-quadro:only-child .st-banner-img {
-  position: absolute;
-  inset: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .st-slide {
-    transition: none;
-  }
-}
-.st-banner-controles {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e1);
-  margin-top: var(--e2);
-}
-.st-ctl {
+/* Etiqueta de demonstração (prévia do painel) */
+.st-selo-exemplo {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--s-borda-forte);
-  border-radius: var(--s-raio-botao);
-  background: var(--s-surface);
-  color: var(--s-text);
-  font: inherit;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-}
-.st-ctl:hover {
-  background: var(--s-alt);
-}
-.st-pontos {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.st-ponto {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-.st-ponto span {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--s-text);
+  min-height: 1.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid #8a6d00;
   border-radius: 999px;
-  background: transparent;
-  transition: width 0.2s;
-}
-.st-ponto[aria-current="true"] span {
-  width: 28px;
-  background: var(--s-text);
-}
-.st-banner-vazio {
-  aspect-ratio: 16 / 7;
-  margin: 0 0 var(--e6);
-  border-radius: var(--s-raio-img);
-  background: var(--s-hero-fundo);
-}
-.st-identidade {
-  display: grid;
-  gap: var(--e4);
-}
-.st-avatar {
-  width: 88px;
-  height: 88px;
-  object-fit: cover;
-  border: 3px solid var(--s-surface);
-  border-radius: var(--s-raio-avatar);
-  background: var(--s-alt);
-  box-shadow: var(--s-sombra-forte);
-}
-.st-sobretitulo {
-  margin: 0 0 var(--e2);
-  color: var(--s-link);
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  background: #fff3b0;
+  color: #3d2f00;
+  font-family: system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.st-identidade h1 {
-  margin: 0;
-  font-size: clamp(2.125rem, 8vw, 3.75rem);
-  overflow-wrap: anywhere;
+.st-hero-texto > .st-selo-exemplo {
+  margin-bottom: var(--e3);
 }
-.st-local {
-  margin: var(--e2) 0 0;
+.st-form-exemplo {
+  opacity: 0.95;
+}
+.st-exemplo-nota {
+  margin: 0 0 var(--e3);
   color: var(--s-suave);
-  font-size: 1.0625rem;
+  font-size: 0.875rem;
 }
-.st-acoes-inicio {
-  display: grid;
-  gap: var(--e3);
-  margin: var(--e6) 0 0;
-}
-@media (min-width: 640px) {
-  .st-acoes-inicio {
-    grid-template-columns: repeat(2, max-content);
-  }
-  .st-acoes-inicio .botao {
-    width: auto;
-    min-width: 12rem;
-    padding-inline: var(--e6);
-  }
-  .st-identidade {
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: var(--e8);
-  }
-  .st-avatar {
-    width: 132px;
-    height: 132px;
-  }
+
+/* Faixa decorativa fina (só alguns estilos a mostram) */
+.st-faixa-deco {
+  display: none;
 }
 
 /* ---------- Rodapé do negócio ---------- */
@@ -582,508 +967,6 @@ html:has(.site) {
   color: var(--s-link);
 }
 
-/* =====================================================================
- * Estilo 1: MINIMALISTA (padrão). Branco, grafite, fios finos, muito respiro.
- * ===================================================================== */
-.site-minimalista {
-  --s-bg: #ffffff;
-  --s-alt: #f6f6f4;
-  --s-surface: #ffffff;
-  --s-text: #111111;
-  --s-titulo: #111111;
-  --s-suave: #555555;
-  --s-link: #1d4ed8;
-  --s-borda: #e4e4e0;
-  --s-borda-forte: #8a8a8a;
-  --s-botao-fundo: #111111;
-  --s-botao-texto: #ffffff;
-  --s-botao-borda: #111111;
-  --s-foco: #1d4ed8;
-  --s-foco-halo: #ffffff;
-  --s-raio: 4px;
-  --s-raio-pequeno: 4px;
-  --s-raio-botao: 2px;
-  --s-raio-chip: 2px;
-  --s-raio-img: 2px;
-  --s-raio-avatar: 2px;
-  --s-sombra: none;
-  --s-sombra-forte: 0 8px 24px rgb(17 17 17 / 0.08);
-  --s-fonte-titulo: var(--f-inter);
-  --s-fonte-texto: var(--f-inter);
-  --s-peso-titulo: 600;
-  --s-tracking: -0.03em;
-  --s-tracking-botao: 0.01em;
-  --s-caixa: none;
-  --s-caixa-botao: none;
-  --s-menu-bg: #ffffff;
-  --s-menu-texto: #111111;
-  --s-menu-borda: 1px solid #e4e4e0;
-  --s-menu-sombra: none;
-  --s-menu-foco: #1d4ed8;
-  --s-menu-foco-halo: #ffffff;
-  --s-menu-hover: #f6f6f4;
-  --s-menu-ativo-bg: #111111;
-  --s-menu-ativo-texto: #ffffff;
-  --s-hero-fundo: linear-gradient(135deg, #f6f6f4 0%, #e4e4e0 100%);
-  --s-rodape-fundo: #111111;
-  --s-rodape-texto: #f6f6f4;
-}
-.site-minimalista .st-secao > h2 {
-  padding-bottom: var(--e3);
-  border-bottom: 1px solid var(--s-text);
-}
-.site-minimalista .st-secao > h2::before {
-  display: block;
-  margin-bottom: var(--e2);
-  color: var(--s-suave);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  content: "—";
-}
-.site-minimalista .st-banner-quadro,
-.site-minimalista .st-fotos img {
-  filter: grayscale(0.1);
-}
-.site-minimalista .card-publico {
-  box-shadow: none;
-}
-.site-minimalista .card-publico:hover {
-  transform: none;
-  border-color: var(--s-text);
-}
-
-/* =====================================================================
- * Estilo 2: GASTRONOMIA. Creme, vinho e ouro; serifa clássica; cantos generosos.
- * ===================================================================== */
-.site-gastronomia {
-  --s-bg: #fbf4e8;
-  --s-alt: #f3e6d0;
-  --s-surface: #fffdf8;
-  --s-text: #2b1a14;
-  --s-titulo: #6f1414;
-  --s-suave: #5e463b;
-  --s-link: #8f1d1d;
-  --s-borda: #e3cfae;
-  --s-borda-forte: #8a6a4f;
-  --s-botao-fundo: #8f1d1d;
-  --s-botao-texto: #ffffff;
-  --s-botao-borda: #8f1d1d;
-  --s-foco: #8f1d1d;
-  --s-foco-halo: #fffdf8;
-  --s-raio: 20px;
-  --s-raio-pequeno: 12px;
-  --s-raio-botao: 999px;
-  --s-raio-chip: 999px;
-  --s-raio-img: 24px;
-  --s-raio-avatar: 50%;
-  --s-sombra: 0 2px 10px rgb(111 20 20 / 0.08);
-  --s-sombra-forte: 0 12px 30px rgb(111 20 20 / 0.16);
-  --s-fonte-titulo: var(--f-playfair);
-  --s-fonte-texto: var(--f-lato);
-  --s-peso-titulo: 700;
-  --s-tracking: -0.01em;
-  --s-tracking-botao: 0.02em;
-  --s-caixa: none;
-  --s-caixa-botao: none;
-  --s-menu-bg: #2b1a14;
-  --s-menu-texto: #fbf4e8;
-  --s-menu-borda: 3px solid #c8963e;
-  --s-menu-sombra: 0 4px 16px rgb(43 26 20 / 0.25);
-  --s-menu-foco: #f0c36b;
-  --s-menu-foco-halo: #2b1a14;
-  --s-menu-hover: rgb(251 244 232 / 0.12);
-  --s-menu-ativo-bg: #c8963e;
-  --s-menu-ativo-texto: #2b1a14;
-  --s-hero-fundo:
-    repeating-linear-gradient(45deg, rgb(255 255 255 / 0.06) 0 14px, transparent 14px 28px),
-    linear-gradient(135deg, #8f1d1d 0%, #5a0f0f 100%);
-  --s-rodape-fundo: #2b1a14;
-  --s-rodape-texto: #fbf4e8;
-}
-.site-gastronomia {
-  font-size: 1.0625rem;
-}
-.site-gastronomia .st-secao > h2 {
-  position: relative;
-  padding-bottom: var(--e4);
-  text-align: center;
-}
-/* Fio dourado com losango no centro, como cardápio impresso. */
-.site-gastronomia .st-secao > h2::after {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 7rem;
-  height: 10px;
-  transform: translateX(-50%);
-  background:
-    linear-gradient(#c8963e, #c8963e) left center / calc(50% - 10px) 2px no-repeat,
-    linear-gradient(#c8963e, #c8963e) right center / calc(50% - 10px) 2px no-repeat,
-    linear-gradient(45deg, transparent 38%, #c8963e 38% 62%, transparent 62%) center / 10px 10px
-      no-repeat;
-  content: "";
-}
-.site-gastronomia .st-identidade h1 {
-  color: #6f1414;
-}
-.site-gastronomia .st-banner-quadro {
-  border: 4px solid var(--s-surface);
-  box-shadow: 0 0 0 2px #c8963e;
-}
-.site-gastronomia .st-avatar {
-  border-color: #c8963e;
-}
-.site-gastronomia .card-publico {
-  border-color: #e3cfae;
-}
-.site-gastronomia .card-publico:hover {
-  transform: translateY(-4px);
-}
-.site-gastronomia .preco-card {
-  font-family: var(--s-fonte-titulo), serif;
-  font-size: 1.25rem;
-}
-.site-gastronomia .st-chips li {
-  background: #fffdf8;
-  border-color: #c8963e;
-}
-.site-gastronomia .st-rodape {
-  border-top: 4px solid #c8963e;
-}
-
-/* =====================================================================
- * Estilo 3: SAÚDE E BEM-ESTAR. Verde-água, azul-petróleo, blocos macios e muito ar.
- * ===================================================================== */
-.site-saude_bem_estar {
-  --s-bg: #f4fbf9;
-  --s-alt: #e5f5f1;
-  --s-surface: #ffffff;
-  --s-text: #12323a;
-  --s-titulo: #0b4a52;
-  --s-suave: #43636a;
-  --s-link: #0b5f58;
-  --s-borda: #cfe8e2;
-  --s-borda-forte: #5f8a86;
-  --s-botao-fundo: #0f766e;
-  --s-botao-texto: #ffffff;
-  --s-botao-borda: #0f766e;
-  --s-foco: #0b4a52;
-  --s-foco-halo: #ffffff;
-  --s-raio: 28px;
-  --s-raio-pequeno: 14px;
-  --s-raio-botao: 999px;
-  --s-raio-chip: 999px;
-  --s-raio-img: 32px;
-  --s-raio-avatar: 50% 50% 50% 12px;
-  --s-sombra: 0 4px 18px rgb(15 118 110 / 0.1);
-  --s-sombra-forte: 0 14px 34px rgb(15 118 110 / 0.18);
-  --s-fonte-titulo: var(--f-nunito);
-  --s-fonte-texto: var(--f-nunito);
-  --s-peso-titulo: 800;
-  --s-tracking: -0.015em;
-  --s-tracking-botao: 0;
-  --s-caixa: none;
-  --s-caixa-botao: none;
-  --s-menu-bg: rgb(255 255 255 / 0.94);
-  --s-menu-texto: #12323a;
-  --s-menu-borda: 1px solid #cfe8e2;
-  --s-menu-sombra: 0 6px 20px rgb(15 118 110 / 0.1);
-  --s-menu-foco: #0b4a52;
-  --s-menu-foco-halo: #ffffff;
-  --s-menu-hover: #e5f5f1;
-  --s-menu-ativo-bg: #0f766e;
-  --s-menu-ativo-texto: #ffffff;
-  --s-hero-fundo:
-    radial-gradient(circle at 18% 30%, rgb(255 255 255 / 0.55) 0 14%, transparent 15%),
-    radial-gradient(circle at 82% 70%, rgb(255 255 255 / 0.4) 0 22%, transparent 23%),
-    linear-gradient(135deg, #8fd8cb 0%, #4fb3a6 100%);
-  --s-rodape-fundo: #0b4a52;
-  --s-rodape-texto: #e5f5f1;
-}
-.site-saude_bem_estar .st-menu {
-  backdrop-filter: blur(10px);
-}
-.site-saude_bem_estar .st-secao > h2::before {
-  display: block;
-  width: 3.5rem;
-  height: 6px;
-  margin-bottom: var(--e3);
-  border-radius: 999px;
-  background: linear-gradient(90deg, #0f766e, #7bd3c6);
-  content: "";
-}
-/* Manchas suaves ao fundo das seções, só decoração. */
-.site-saude_bem_estar .st-secao {
-  position: relative;
-}
-.site-saude_bem_estar .st-secao:nth-child(odd):not(.st-inicio)::before {
-  position: absolute;
-  top: 1.5rem;
-  right: -3rem;
-  z-index: -1;
-  width: 14rem;
-  height: 14rem;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(143 216 203 / 0.35), transparent 70%);
-  content: "";
-  pointer-events: none;
-}
-.site-saude_bem_estar .st-chips li {
-  background: #e5f5f1;
-  border-color: transparent;
-}
-.site-saude_bem_estar .st-secao:nth-child(even) .st-chips li {
-  background: #ffffff;
-}
-.site-saude_bem_estar .card-publico {
-  border: 0;
-}
-.site-saude_bem_estar .card-imagem {
-  padding: var(--e2) var(--e2) 0;
-}
-.site-saude_bem_estar .card-imagem img,
-.site-saude_bem_estar .card-imagem .imagem-indisponivel {
-  border-radius: 20px;
-}
-.site-saude_bem_estar .st-banner-quadro {
-  box-shadow: var(--s-sombra-forte);
-}
-
-/* =====================================================================
- * Estilo 4: BELEZA E ESTÉTICA. Rosé, ameixa e dourado; serifa fina; imagens em arco.
- * ===================================================================== */
-.site-beleza_estetica {
-  --s-bg: #fff8f7;
-  --s-alt: #f9e7e9;
-  --s-surface: #ffffff;
-  --s-text: #3b1f2b;
-  --s-titulo: #5e1d3f;
-  --s-suave: #6b4a57;
-  --s-link: #8c2f5a;
-  --s-borda: #f0d3d8;
-  --s-borda-forte: #8d6b78;
-  --s-botao-fundo: #8c2f5a;
-  --s-botao-texto: #ffffff;
-  --s-botao-borda: #8c2f5a;
-  --s-foco: #5e1d3f;
-  --s-foco-halo: #ffffff;
-  --s-raio: 6px;
-  --s-raio-pequeno: 6px;
-  --s-raio-botao: 999px;
-  --s-raio-chip: 999px;
-  --s-raio-img: 200px 200px 16px 16px;
-  --s-raio-avatar: 999px 999px 14px 14px;
-  --s-sombra: 0 2px 12px rgb(140 47 90 / 0.08);
-  --s-sombra-forte: 0 14px 34px rgb(140 47 90 / 0.18);
-  --s-fonte-titulo: var(--f-cormorant);
-  --s-fonte-texto: var(--f-jost);
-  --s-peso-titulo: 600;
-  --s-tracking: 0;
-  --s-tracking-botao: 0.12em;
-  --s-caixa: none;
-  --s-caixa-botao: uppercase;
-  --s-menu-bg: #fff8f7;
-  --s-menu-texto: #3b1f2b;
-  --s-menu-borda: 1px solid #e7c2ca;
-  --s-menu-sombra: none;
-  --s-menu-foco: #5e1d3f;
-  --s-menu-foco-halo: #ffffff;
-  --s-menu-hover: #f9e7e9;
-  --s-menu-ativo-bg: #8c2f5a;
-  --s-menu-ativo-texto: #ffffff;
-  --s-hero-fundo:
-    radial-gradient(ellipse at 50% 120%, #e9b8c4 0 40%, transparent 41%),
-    linear-gradient(180deg, #f9e7e9 0%, #f3cdd5 100%);
-  --s-rodape-fundo: #5e1d3f;
-  --s-rodape-texto: #fdeff1;
-}
-.site-beleza_estetica {
-  font-weight: 400;
-}
-.site-beleza_estetica .st-secao > h2 {
-  font-size: clamp(2.125rem, 6vw, 3.25rem);
-  text-align: center;
-  font-style: italic;
-}
-.site-beleza_estetica .st-secao > h2::after {
-  display: block;
-  width: 5rem;
-  height: 1px;
-  margin: var(--e3) auto 0;
-  background: linear-gradient(90deg, transparent, #b8893b, transparent);
-  content: "";
-}
-.site-beleza_estetica .st-identidade h1 {
-  font-size: clamp(2.5rem, 9vw, 4.5rem);
-  font-weight: 600;
-}
-.site-beleza_estetica .st-sobretitulo {
-  letter-spacing: 0.22em;
-}
-.site-beleza_estetica .st-banner-quadro {
-  box-shadow:
-    0 0 0 6px var(--s-bg),
-    0 0 0 7px #b8893b;
-}
-.site-beleza_estetica .st-banner-vazio {
-  border-radius: 200px 200px 16px 16px;
-}
-.site-beleza_estetica .st-fotos img {
-  border-radius: 999px 999px 14px 14px;
-  aspect-ratio: 3 / 4;
-}
-.site-beleza_estetica .st-avatar {
-  border-color: #b8893b;
-}
-.site-beleza_estetica .st-chips li {
-  border-color: #b8893b;
-  background: transparent;
-}
-.site-beleza_estetica .botao {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-.site-beleza_estetica .botao-secundario {
-  border-color: #8c2f5a;
-  color: #8c2f5a;
-}
-.site-beleza_estetica .card-publico {
-  text-align: center;
-}
-.site-beleza_estetica .card-imagem img,
-.site-beleza_estetica .card-imagem .imagem-indisponivel {
-  aspect-ratio: 4 / 5;
-  border-radius: 999px 999px 0 0;
-}
-.site-beleza_estetica .card-corpo h3 {
-  font-size: 1.5rem;
-}
-.site-beleza_estetica .st-menu-nome {
-  font-size: 1.375rem;
-  font-style: italic;
-}
-
-/* =====================================================================
- * Estilo 5: CONSTRUÇÃO E REFORMAS. Aço, amarelo-obra, cantos retos, tipografia condensada em caixa alta.
- * ===================================================================== */
-.site-construcao_reformas {
-  --s-bg: #f2f2f0;
-  --s-alt: #e4e4e0;
-  --s-surface: #ffffff;
-  --s-text: #1c2025;
-  --s-titulo: #1c2025;
-  --s-suave: #4a5058;
-  --s-link: #7a4f00;
-  --s-borda: #cfcfca;
-  --s-borda-forte: #6b7078;
-  --s-botao-fundo: #f5b800;
-  --s-botao-texto: #1c2025;
-  --s-botao-borda: #1c2025;
-  --s-foco: #1c2025;
-  --s-foco-halo: #f5b800;
-  --s-raio: 0;
-  --s-raio-pequeno: 0;
-  --s-raio-botao: 0;
-  --s-raio-chip: 0;
-  --s-raio-img: 0;
-  --s-raio-avatar: 0;
-  --s-sombra: 4px 4px 0 rgb(28 32 37 / 0.12);
-  --s-sombra-forte: 6px 6px 0 rgb(28 32 37 / 0.2);
-  --s-fonte-titulo: var(--f-barlow-cond);
-  --s-fonte-texto: var(--f-barlow);
-  --s-peso-titulo: 800;
-  --s-tracking: 0.02em;
-  --s-tracking-botao: 0.08em;
-  --s-caixa: uppercase;
-  --s-caixa-botao: uppercase;
-  --s-menu-bg: #1c2025;
-  --s-menu-texto: #ffffff;
-  --s-menu-borda: 0;
-  --s-menu-sombra: 0 4px 0 #f5b800;
-  --s-menu-foco: #f5b800;
-  --s-menu-foco-halo: #1c2025;
-  --s-menu-hover: rgb(255 255 255 / 0.12);
-  --s-menu-ativo-bg: #f5b800;
-  --s-menu-ativo-texto: #1c2025;
-  --s-hero-fundo: repeating-linear-gradient(-45deg, #f5b800 0 22px, #1c2025 22px 44px);
-  --s-rodape-fundo: #1c2025;
-  --s-rodape-texto: #f2f2f0;
-}
-.site-construcao_reformas {
-  font-size: 1.0625rem;
-}
-.site-construcao_reformas .st-secao > h2 {
-  position: relative;
-  padding-left: var(--e4);
-  font-size: clamp(2rem, 7vw, 3rem);
-  border-left: 10px solid #f5b800;
-}
-.site-construcao_reformas .st-identidade h1 {
-  font-size: clamp(2.5rem, 10vw, 4.75rem);
-  line-height: 0.98;
-}
-.site-construcao_reformas .st-sobretitulo {
-  display: inline-block;
-  padding: 0.25rem var(--e3);
-  background: #1c2025;
-  color: #f5b800;
-}
-.site-construcao_reformas .botao {
-  border-width: 3px;
-  font-weight: 700;
-}
-.site-construcao_reformas .botao-secundario {
-  background: transparent;
-  color: #1c2025;
-  border-color: #1c2025;
-}
-.site-construcao_reformas .st-banner-quadro {
-  border-bottom: 10px solid #f5b800;
-}
-/* Faixa de obra entre o banner e o resto, só decoração. */
-.site-construcao_reformas .st-inicio::after {
-  display: block;
-  height: 12px;
-  margin-top: var(--e8);
-  background: repeating-linear-gradient(-45deg, #f5b800 0 16px, #1c2025 16px 32px);
-  content: "";
-}
-.site-construcao_reformas .card-publico {
-  border: 2px solid #1c2025;
-  border-left: 10px solid #f5b800;
-}
-.site-construcao_reformas .card-publico:hover {
-  transform: translate(-2px, -2px);
-}
-.site-construcao_reformas .card-tipo {
-  display: inline-block;
-  padding: 0.125rem var(--e2);
-  background: #1c2025;
-  color: #f5b800;
-}
-.site-construcao_reformas .preco-card {
-  font-family: var(--s-fonte-titulo), sans-serif;
-  font-size: 1.5rem;
-}
-.site-construcao_reformas .st-chips li {
-  border: 2px solid #1c2025;
-  background: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.site-construcao_reformas .st-ctl,
-.site-construcao_reformas .st-menu-botao {
-  border-width: 2px;
-}
-.site-construcao_reformas .st-rodape {
-  border-top: 10px solid #f5b800;
-}
-.site-construcao_reformas .st-avatar {
-  border: 4px solid #f5b800;
-}
-
 /* Cabeçalho da plataforma acima da página do negócio (rola junto; só o menu do negócio fica fixo). */
 .cabecalho-site {
   max-width: 72rem;
@@ -1091,12 +974,13 @@ html:has(.site) {
   padding: var(--e2) var(--e4);
 }
 
-/* ---------- Miniaturas da tela Aparência ---------- */
+/* ---------- Miniaturas da tela Aparência (usam as mesmas variáveis do tema real) ---------- */
 .st-mini {
+  position: relative;
   display: grid;
   grid-template-rows: auto auto 1fr;
-  overflow: hidden;
   aspect-ratio: 4 / 3;
+  overflow: hidden;
   border: 1px solid var(--s-borda, #ddd);
   border-radius: 12px;
   font-size: 0.75rem;
@@ -1120,44 +1004,79 @@ html:has(.site) {
   border-radius: 3px;
   background: var(--s-menu-ativo-bg);
 }
-.st-mini-banner {
-  height: 34%;
-  margin: 8px 10px 0;
-  border-radius: var(--s-raio-img);
+.st-mini-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 78px;
+  overflow: hidden;
+  padding: 10px;
   background: var(--s-hero-fundo);
+  color: var(--s-hero-texto);
 }
-.st-mini-corpo {
+.st-mini-hero-texto {
+  position: relative;
+  z-index: 1;
   display: grid;
-  align-content: start;
+  justify-items: start;
   gap: 5px;
-  padding: 8px 10px 10px;
 }
 .st-mini-titulo {
-  color: var(--s-titulo);
   font-family: var(--s-fonte-titulo), var(--s-fonte-texto), sans-serif;
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: var(--s-peso-titulo);
   text-transform: var(--s-caixa);
 }
-.st-mini-linha {
-  height: 5px;
-  border-radius: 3px;
-  background: var(--s-borda-forte);
-  opacity: 0.45;
-}
-.st-mini-linha-curta {
-  width: 60%;
-}
 .st-mini-botao {
-  justify-self: start;
   padding: 3px 12px;
   border-radius: var(--s-raio-botao);
-  background: var(--s-botao-fundo);
-  color: var(--s-botao-texto);
+  background: var(--s-acento);
+  color: var(--s-acento-texto);
   font-family: var(--s-fonte-texto), sans-serif;
   font-weight: 700;
   text-transform: var(--s-caixa-botao);
 }
+.st-mini-corpo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 6px;
+  padding: 8px 10px 10px;
+  background: var(--s-bg);
+}
+.st-mini-card {
+  display: grid;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--s-borda);
+  border-radius: var(--s-raio-pequeno);
+  background: var(--s-surface);
+  box-shadow: var(--s-sombra);
+}
+.st-mini-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: calc(var(--s-raio-pequeno) / 2);
+}
+.st-mini-card b {
+  color: var(--s-titulo);
+  font-family: var(--s-fonte-titulo), var(--s-fonte-texto), sans-serif;
+  font-size: 0.6875rem;
+}
+.st-mini-exemplo {
+  position: absolute;
+  top: 36px;
+  right: 8px;
+}
+.st-mini .st-selo-exemplo {
+  min-height: 1.25rem;
+  padding: 0 0.5rem;
+  font-size: 0.625rem;
+}
+
+/* Quadro neutro dos estilos ainda sem desenho */
 .st-mini-breve {
   align-content: center;
   gap: 8px;
@@ -1176,30 +1095,4 @@ html:has(.site) {
 }
 .st-mini-breve span:last-child {
   width: 50%;
-}
-
-/* Grade de estilos da tela Aparência */
-.grade-estilos {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--e4);
-  margin: var(--e4) 0;
-  padding: 0;
-  list-style: none;
-}
-.cartao-estilo h2 {
-  margin: var(--e3) 0 var(--e1);
-}
-.cartao-estilo .acoes-linha {
-  grid-template-columns: 1fr;
-}
-@media (min-width: 560px) {
-  .grade-estilos {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1100px) {
-  .grade-estilos {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
