@@ -380,3 +380,43 @@ describe("leituras de banner", () => {
     expect(JSON.stringify(r)).not.toContain("segredo");
   });
 });
+
+describe("bannersDoMeuPerfil (IM-093)", () => {
+  it("id inválido nem chega ao banco", async () => {
+    const b = banco();
+    const r = await criarServicoAparencia(b).bannersDoMeuPerfil("x");
+    expect(r.ok).toBe(false);
+    expect(b.listarBannersDoPerfil).not.toHaveBeenCalled();
+  });
+  it("devolve só campos nomeados, sem conta nem autor", async () => {
+    const linha = {
+      id: B,
+      perfil_id: P,
+      versao_id: null,
+      origem: "responsavel",
+      situacao: "aceito",
+      imagem_path: IMG,
+      texto_alternativo: "Fachada",
+      destino_secao: null,
+      ordem: 1,
+      ativo: true,
+      motivo_resposta: null,
+      respondido_em: null,
+      criado_em: "2026-11-02T10:00:00Z",
+      conta_id: "conta-secreta",
+      autor_admin_id: "admin-secreto",
+    };
+    const b = banco({ listarBannersDoPerfil: async () => ({ dados: [linha], erro: null }) });
+    const r = await criarServicoAparencia(b).bannersDoMeuPerfil(P);
+    expect(r.ok).toBe(true);
+    const txt = JSON.stringify(r);
+    for (const x of ["conta-secreta", "admin-secreto", "conta_id", "autor_admin"])
+      expect(txt).not.toContain(x);
+  });
+  it("erro do banco vira mensagem neutra", async () => {
+    const b = banco({ listarBannersDoPerfil: async () => ({ dados: null, ...err("42501") }) });
+    const r = await criarServicoAparencia(b).bannersDoMeuPerfil(P);
+    expect(r.ok).toBe(false);
+    expect(JSON.stringify(r)).not.toContain("segredo-interno");
+  });
+});
