@@ -662,6 +662,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "catalogo_item_revisao_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "catalogo_item_revisao_versao_aprovada_anterior_id_fkey"
             columns: ["versao_aprovada_anterior_id"]
             isOneToOne: false
@@ -679,55 +686,88 @@ export type Database = {
       }
       catalogo_item_versao: {
         Row: {
+          aceita_financiamento: boolean | null
+          area_m2: number | null
+          bairro: string | null
+          banheiros: number | null
           categoria_principal_id: string | null
           categoria_secundaria_1_id: string | null
           categoria_secundaria_2_id: string | null
           cidade: string | null
+          condominio_centavos: number | null
           criado_em: string
           descricao: string | null
           enviada_em: string | null
+          finalidade: string | null
           foto_path: string | null
+          fotos_extras_paths: string[]
           id: string
+          imovel_tipo: string | null
+          iptu_centavos: number | null
           item_id: string
           nome: string | null
           preco_centavos: number | null
           preco_modo: string | null
+          quartos: number | null
           situacao: string
           uf: string | null
+          vagas: number | null
         }
         Insert: {
+          aceita_financiamento?: boolean | null
+          area_m2?: number | null
+          bairro?: string | null
+          banheiros?: number | null
           categoria_principal_id?: string | null
           categoria_secundaria_1_id?: string | null
           categoria_secundaria_2_id?: string | null
           cidade?: string | null
+          condominio_centavos?: number | null
           criado_em?: string
           descricao?: string | null
           enviada_em?: string | null
+          finalidade?: string | null
           foto_path?: string | null
+          fotos_extras_paths?: string[]
           id?: string
+          imovel_tipo?: string | null
+          iptu_centavos?: number | null
           item_id: string
           nome?: string | null
           preco_centavos?: number | null
           preco_modo?: string | null
+          quartos?: number | null
           situacao?: string
           uf?: string | null
+          vagas?: number | null
         }
         Update: {
+          aceita_financiamento?: boolean | null
+          area_m2?: number | null
+          bairro?: string | null
+          banheiros?: number | null
           categoria_principal_id?: string | null
           categoria_secundaria_1_id?: string | null
           categoria_secundaria_2_id?: string | null
           cidade?: string | null
+          condominio_centavos?: number | null
           criado_em?: string
           descricao?: string | null
           enviada_em?: string | null
+          finalidade?: string | null
           foto_path?: string | null
+          fotos_extras_paths?: string[]
           id?: string
+          imovel_tipo?: string | null
+          iptu_centavos?: number | null
           item_id?: string
           nome?: string | null
           preco_centavos?: number | null
           preco_modo?: string | null
+          quartos?: number | null
           situacao?: string
           uf?: string | null
+          vagas?: number | null
         }
         Relationships: [
           {
@@ -770,6 +810,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_versao_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
             referencedColumns: ["id"]
           },
         ]
@@ -1050,6 +1097,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "indicacoes_link_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "indicacoes_link_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
@@ -1290,6 +1344,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "indicacoes_pedido_contato_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "indicacoes_pedido_contato_link_id_fkey"
             columns: ["link_id"]
             isOneToOne: false
@@ -1337,6 +1398,53 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contas_conta"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      loja_liberacao: {
+        Row: {
+          atualizado_em: string
+          liberada: boolean
+          perfil_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          liberada?: boolean
+          perfil_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          liberada?: boolean
+          perfil_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loja_liberacao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loja_liberacao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loja_liberacao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loja_liberacao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
           },
         ]
       }
@@ -2272,6 +2380,13 @@ export type Database = {
             columns: ["destino_item_id"]
             isOneToOne: false
             referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_item_id_fkey"
+            columns: ["destino_item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
             referencedColumns: ["id"]
           },
           {
@@ -3550,6 +3665,59 @@ export type Database = {
         }
         Relationships: []
       }
+      loja_item_publico: {
+        Row: {
+          aceita_financiamento: boolean | null
+          area_m2: number | null
+          bairro: string | null
+          banheiros: number | null
+          categoria_principal_id: string | null
+          categoria_secundaria_1_id: string | null
+          categoria_secundaria_2_id: string | null
+          cidade: string | null
+          condominio_centavos: number | null
+          criado_em: string | null
+          descricao: string | null
+          finalidade: string | null
+          foto_path: string | null
+          fotos_extras_paths: string[] | null
+          id: string | null
+          imovel_tipo: string | null
+          iptu_centavos: number | null
+          nome: string | null
+          perfil_id: string | null
+          perfil_slug: string | null
+          preco_centavos: number | null
+          preco_modo: string | null
+          quartos: number | null
+          tipo: string | null
+          uf: string | null
+          vagas: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalogo_item_versao_categoria_principal_id_fkey"
+            columns: ["categoria_principal_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_categoria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_versao_categoria_secundaria_1_id_fkey"
+            columns: ["categoria_secundaria_1_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_categoria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_versao_categoria_secundaria_2_id_fkey"
+            columns: ["categoria_secundaria_2_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_categoria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes_meus_avisos: {
         Row: {
           ator_nome: string | null
@@ -4325,6 +4493,50 @@ export type Database = {
       indicacoes_tratar_alerta: {
         Args: { p_motivo: string; p_pedido_id: string }
         Returns: undefined
+      }
+      loja_ativa: { Args: { p_perfil_id: string }; Returns: boolean }
+      loja_definir_liberacao: {
+        Args: { p_liberada: boolean; p_motivo: string; p_perfil_id: string }
+        Returns: undefined
+      }
+      loja_listar_imoveis: {
+        Args: {
+          p_bairro?: string
+          p_cidade?: string
+          p_finalidade?: string
+          p_imovel_tipo?: string
+          p_limite?: number
+          p_pagina?: number
+          p_perfil_id?: string
+          p_preco_max?: number
+          p_preco_min?: number
+          p_quartos_min?: number
+          p_uf?: string
+        }
+        Returns: {
+          o_aceita_financiamento: boolean
+          o_area_m2: number
+          o_bairro: string
+          o_banheiros: number
+          o_cidade: string
+          o_condominio_centavos: number
+          o_descricao: string
+          o_finalidade: string
+          o_foto_path: string
+          o_fotos_extras_paths: string[]
+          o_id: string
+          o_imovel_tipo: string
+          o_iptu_centavos: number
+          o_nome: string
+          o_perfil_id: string
+          o_perfil_slug: string
+          o_preco_centavos: number
+          o_preco_modo: string
+          o_quartos: number
+          o_total: number
+          o_uf: string
+          o_vagas: number
+        }[]
       }
       notificacoes_contar_nao_lidas: { Args: never; Returns: number }
       notificacoes_marcar_lida: {
