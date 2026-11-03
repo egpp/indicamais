@@ -40,17 +40,24 @@ const titulo = z.preprocess(
 const inteiro = (min: number, max: number, mensagem: string) =>
   z.preprocess(
     (v) => (typeof v === "string" && /^\d{1,9}$/.test(v.trim()) ? Number(v.trim()) : v),
-    z.number({ error: mensagem }).int({ error: mensagem }).min(min, { error: mensagem }).max(max, { error: mensagem }),
+    z
+      .number({ error: mensagem })
+      .int({ error: mensagem })
+      .min(min, { error: mensagem })
+      .max(max, { error: mensagem }),
   );
 
 /** Formulário manda "true"/"on"/"false"/"off"; qualquer outra coisa é recusada. */
-const booleano = z.preprocess((v) => {
-  if (typeof v !== "string") return v;
-  const t = v.trim().toLowerCase();
-  if (["true", "on", "1"].includes(t)) return true;
-  if (["false", "off", "0"].includes(t)) return false;
-  return v;
-}, z.boolean({ error: "Informe se a seção fica ativa." }));
+const booleano = z.preprocess(
+  (v) => {
+    if (typeof v !== "string") return v;
+    const t = v.trim().toLowerCase();
+    if (["true", "on", "1"].includes(t)) return true;
+    if (["false", "off", "0"].includes(t)) return false;
+    return v;
+  },
+  z.boolean({ error: "Informe se a seção fica ativa." }),
+);
 
 const motivo = z
   .string({ error: "Informe o motivo." })
@@ -65,7 +72,11 @@ export const alterarSecaoHomeSchema = z
     chave: z.enum(CHAVES_SECAO_HOME, { error: "Seção desconhecida." }),
     titulo,
     ativa: booleano,
-    ordem: inteiro(L.ordemMin, L.ordemMax, `A ordem deve ficar entre ${L.ordemMin} e ${L.ordemMax}.`),
+    ordem: inteiro(
+      L.ordemMin,
+      L.ordemMax,
+      `A ordem deve ficar entre ${L.ordemMin} e ${L.ordemMax}.`,
+    ),
     minimoItens: inteiro(
       L.minimoMin,
       L.minimoMax,

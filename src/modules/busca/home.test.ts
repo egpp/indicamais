@@ -164,7 +164,12 @@ describe("obterSecoesDaHome", () => {
 
   it("omite seção sem itens, abaixo do mínimo ou com falha, sem derrubar as outras", async () => {
     const f = fake(
-      [secao("novidades", 1), secao("mais_curtidos", 2), secao("mais_indicados", 3), secao("em_alta_semana", 4)],
+      [
+        secao("novidades", 1),
+        secao("mais_curtidos", 2),
+        secao("mais_indicados", 3),
+        secao("em_alta_semana", 4),
+      ],
       { novidades: [], mais_curtidos: [perfil(1)], em_alta_semana: [perfil(1), perfil(2)] },
     );
     f.listarPerfisDaSecao.mockImplementation(async (p) => {
@@ -189,7 +194,9 @@ describe("obterSecoesDaHome", () => {
     const f = fake([secao("novidades", 1), secao("na_sua_cidade", 4)]);
     const r = await criarServicoHome(f.banco).obterSecoesDaHome({});
     expect(r.ok && r.valor.map((s) => s.chave)).toEqual(["novidades"]);
-    expect(f.listarPerfisDaSecao.mock.calls.map((c) => c[0].p_chave)).not.toContain("na_sua_cidade");
+    expect(f.listarPerfisDaSecao.mock.calls.map((c) => c[0].p_chave)).not.toContain(
+      "na_sua_cidade",
+    );
     expect(f.listarSecoes).toHaveBeenCalledWith({});
   });
 
@@ -217,14 +224,21 @@ describe("obterSecoesDaHome", () => {
   });
 
   it("ignora chave desconhecida e tipo de item não suportado", async () => {
-    const f = fake([secao("mais_visitados", 1), secao("novidades", 2, { o_tipo_item: "produto" }), secao("mais_curtidos", 3)]);
+    const f = fake([
+      secao("mais_visitados", 1),
+      secao("novidades", 2, { o_tipo_item: "produto" }),
+      secao("mais_curtidos", 3),
+    ]);
     const r = await criarServicoHome(f.banco).obterSecoesDaHome({});
     expect(r.ok && r.valor.map((s) => s.chave)).toEqual(["mais_curtidos"]);
   });
 
   it("erro do banco na lista de seções vira mensagem neutra", async () => {
     const banco: ClienteBancoHome = {
-      listarSecoes: async () => ({ dados: null, erro: { code: "42P01", message: "tabela segredo" } }),
+      listarSecoes: async () => ({
+        dados: null,
+        erro: { code: "42P01", message: "tabela segredo" },
+      }),
       listarPerfisDaSecao: async () => ({ dados: [], erro: null }),
     };
     const r = await criarServicoHome(banco).obterSecoesDaHome({});

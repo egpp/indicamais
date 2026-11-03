@@ -30,7 +30,9 @@ const linha = (extra: Partial<LinhaSecaoHomeAdmin> = {}): LinhaSecaoHomeAdmin =>
   ...extra,
 });
 
-function fake(opcoes: { admin?: boolean; linhas?: LinhaSecaoHomeAdmin[]; erro?: { code: string } } = {}) {
+function fake(
+  opcoes: { admin?: boolean; linhas?: LinhaSecaoHomeAdmin[]; erro?: { code: string } } = {},
+) {
   const alterarSecao = vi.fn<ClienteBancoHomeAdmin["alterarSecao"]>(async () => ({
     erro: opcoes.erro ?? null,
   }));
@@ -59,12 +61,9 @@ describe("alterarSecaoHomeSchema", () => {
       minimoItens: "3",
       limitePadrao: "12",
     });
-    expect(r.success && [r.data.ativa, r.data.ordem, r.data.minimoItens, r.data.limitePadrao]).toEqual([
-      true,
-      2,
-      3,
-      12,
-    ]);
+    expect(
+      r.success && [r.data.ativa, r.data.ordem, r.data.minimoItens, r.data.limitePadrao],
+    ).toEqual([true, 2, 3, 12]);
   });
   it.each([
     ["título curto", { titulo: "ab" }, "titulo"],
@@ -92,7 +91,9 @@ describe("alterarSecaoHomeSchema", () => {
     if (!r.success) expect(r.error.issues.some((i) => i.path[0] === campo)).toBe(true);
   });
   it("limite igual ao mínimo é aceito (borda)", () => {
-    expect(alterarSecaoHomeSchema.safeParse({ ...valido, minimoItens: 5, limitePadrao: 5 }).success).toBe(true);
+    expect(
+      alterarSecaoHomeSchema.safeParse({ ...valido, minimoItens: 5, limitePadrao: 5 }).success,
+    ).toBe(true);
   });
 });
 

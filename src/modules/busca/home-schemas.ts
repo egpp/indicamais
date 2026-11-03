@@ -16,12 +16,7 @@ export type ChaveSecaoHome = (typeof CHAVES_SECAO_HOME)[number];
 /** Localização de uma seção: cidade e UF, sempre juntas. */
 export type LocalizacaoHome = { cidade: string; uf: string };
 
-const cidadeSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(LIMITES.busca.cidadeMax)
-  .refine(semControle);
+const cidadeSchema = z.string().trim().min(1).max(LIMITES.busca.cidadeMax).refine(semControle);
 const ufSchema = z.enum(UFS);
 
 /**
@@ -42,10 +37,6 @@ export function validarLocalizacaoHome(entrada: unknown): LocalizacaoHome | null
 /** Chave de cache por localização: sem acento nem caixa, para "São Paulo" e "sao paulo" dividirem a mesma entrada. */
 export function chaveCacheHome(loc: LocalizacaoHome | null): string {
   if (!loc) return "sem-cidade";
-  const cidade = loc.cidade
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ");
+  const cidade = loc.cidade.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ");
   return `${loc.uf}|${cidade}`;
 }
