@@ -4,7 +4,7 @@ import { LogoMarca } from "./marca";
 import { LinksConta } from "./sino-avisos";
 import type { CardBusca, FiltrosDisponiveis, TipoBusca } from "@/modules/busca";
 import type { PatrocinadorPublico } from "@/modules/administracao";
-import type { ItemExibicao } from "@/modules/catalogo";
+import type { ImovelExibicao, ItemExibicao } from "@/modules/catalogo";
 import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
 import { nomeDaCategoria, type CategoriaOpcao } from "../_lib/apresentacao";
 
@@ -47,7 +47,26 @@ export type DadosCard = {
   categoria: string | null;
   local: string;
   precoTexto: string | null;
+  /** Imóvel da Loja (IM-098): quartos, banheiros, vagas e área. Vazio nos demais. */
+  chips?: string[];
 };
+
+const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
+
+/** Resumo do imóvel em chips curtos para os cartões: quartos, banheiros, vagas e área (m²). */
+export function chipsDoImovel(i: ImovelExibicao | null | undefined): string[] {
+  if (!i) return [];
+  const area =
+    i.areaM2 === null
+      ? null
+      : `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(i.areaM2)} m²`;
+  return [
+    i.quartos === null ? null : plural(i.quartos, "quarto", "quartos"),
+    i.banheiros === null ? null : plural(i.banheiros, "banheiro", "banheiros"),
+    i.vagas === null ? null : plural(i.vagas, "vaga", "vagas"),
+    area,
+  ].filter((c): c is string => c !== null);
+}
 
 const CURTA = 200;
 const curta = (t: string | null): string | null => {
@@ -77,11 +96,14 @@ export function dadosDeItem(
   categorias: readonly CategoriaOpcao[],
   localDoPerfil: string,
 ): DadosCard {
+  const imovel = i.tipo === "imovel" ? i.imovel : null;
   const rotuloTipo = i.anuncioParticular
     ? "Anúncio particular"
-    : i.tipo === "produto"
-      ? "Produto"
-      : "Serviço";
+    : imovel
+      ? [imovel.tipoRotulo ?? "Imóvel", imovel.finalidadeRotulo].filter(Boolean).join(" · ")
+      : i.tipo === "produto"
+        ? "Produto"
+        : "Serviço";
   return {
     chave: `item-${i.id}`,
     rotuloTipo,
@@ -90,8 +112,10 @@ export function dadosDeItem(
     descricao: curta(i.descricao),
     imagemPath: i.fotoPath,
     categoria: i.categoriaPrincipalId ? nomeDaCategoria(i.categoriaPrincipalId, categorias) : null,
-    local: localTexto(i.cidade, i.uf) || localDoPerfil,
+    // Imóvel: só bairro e cidade (nunca endereço exato, IM-098).
+    local: imovel?.localTexto ?? (localTexto(i.cidade, i.uf) || localDoPerfil),
     precoTexto: i.precoTexto,
+    chips: chipsDoImovel(imovel),
   };
 }
 
@@ -114,6 +138,13 @@ export function CartaoPublico({ dados, urls }: { dados: DadosCard; urls: Urls })
           </Link>
         </h3>
         {dados.precoTexto ? <p className="preco-card">{dados.precoTexto}</p> : null}
+        {dados.chips && dados.chips.length > 0 ? (
+          <ul className="chips-imovel" aria-label="Características do imóvel">
+            {dados.chips.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+        ) : null}
         {dados.descricao ? <p className="card-descricao">{dados.descricao}</p> : null}
         {dados.categoria ? <p className="card-meta">{dados.categoria}</p> : null}
         {dados.local ? <p className="card-meta">{dados.local}</p> : null}

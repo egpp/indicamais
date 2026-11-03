@@ -2,6 +2,7 @@
 import type { ItemExibicao } from "@/modules/catalogo";
 import type { PerfilExibicao } from "@/modules/perfis";
 import { nomeDaCategoria, ROTULO_TIPO_ITEM, type CategoriaOpcao } from "../_lib/apresentacao";
+import { DetalhesImovel, GaleriaFotos } from "./loja";
 
 /**
  * Exibição de perfil e item no formato da página pública (IM-017): prévia do responsável e conferência do
@@ -128,8 +129,13 @@ export function ItemVisao({
         secundarias={item.categoriasSecundariasIds}
         categorias={categorias}
       />
-      {item.cidade || item.uf ? <p>{[item.cidade, item.uf].filter(Boolean).join(" - ")}</p> : null}
+      {item.imovel ? (
+        <DetalhesImovel imovel={item.imovel} />
+      ) : item.cidade || item.uf ? (
+        <p>{[item.cidade, item.uf].filter(Boolean).join(" - ")}</p>
+      ) : null}
       {item.descricao ? <p>{item.descricao}</p> : null}
+      <GaleriaFotos nome={item.nome ?? "item"} caminhos={item.fotosExtrasPaths} urls={urls} />
     </article>
   );
 }

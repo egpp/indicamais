@@ -36,5 +36,21 @@ export function valoresIniciaisItem(c: ConteudoItem): Record<string, string> {
     precoValor: c.preco && c.preco.centavos !== null ? semSimbolo(c.preco.centavos) : "",
     cidade: c.cidade ?? "",
     uf: c.uf ?? "",
+    imovelTipo: c.imovelTipo ?? "",
+    finalidade: c.finalidade ?? "",
+    areaM2: c.areaM2 === null || c.areaM2 === undefined ? "" : String(c.areaM2).replace(".", ","),
+    quartos: numeroOuVazio(c.quartos),
+    banheiros: numeroOuVazio(c.banheiros),
+    vagas: numeroOuVazio(c.vagas),
+    bairro: c.bairro ?? "",
+    condominio: reaisOuVazio(c.condominioCentavos),
+    iptu: reaisOuVazio(c.iptuCentavos),
+    aceitaFinanciamento:
+      c.aceitaFinanciamento === true ? "true" : c.aceitaFinanciamento === false ? "false" : "",
   };
 }
+
+const numeroOuVazio = (n: number | null | undefined) =>
+  n === null || n === undefined ? "" : String(n);
+const reaisOuVazio = (c: number | null | undefined) =>
+  c === null || c === undefined ? "" : semSimbolo(c);

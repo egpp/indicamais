@@ -74,21 +74,33 @@ export function CampoSelect({
   opcoes,
   valorInicial = "",
   vazio = "Selecione",
-}: Base & { opcoes: readonly OpcaoSelect[]; valorInicial?: string; vazio?: string }) {
+  valor,
+  aoMudar,
+}: Base & {
+  opcoes: readonly OpcaoSelect[];
+  valorInicial?: string;
+  vazio?: string;
+  /** Modo controlado (quando outros campos dependem desta escolha). */
+  valor?: string;
+  aoMudar?: (valor: string) => void;
+}) {
   const id = useId();
+  const controlado = valor !== undefined;
+  const atual = controlado ? valor : valorInicial;
   // Valor que não está mais na lista (ex.: categoria desativada) continua visível, não some em silêncio.
-  const ausente = valorInicial !== "" && !opcoes.some((o) => o.valor === valorInicial);
+  const ausente = atual !== "" && !opcoes.some((o) => o.valor === atual);
   return (
     <Moldura id={id} rotulo={rotulo} opcional={opcional} erro={erro} ajuda={ajuda}>
       <select
         id={id}
         name={nome}
-        defaultValue={valorInicial}
+        {...(controlado ? { value: valor } : { defaultValue: valorInicial })}
+        {...(aoMudar ? { onChange: (e) => aoMudar(e.target.value) } : {})}
         aria-invalid={erro ? true : undefined}
         aria-describedby={descrito(id, erro, ajuda)}
       >
         <option value="">{vazio}</option>
-        {ausente ? <option value={valorInicial}>Categoria indisponível</option> : null}
+        {ausente ? <option value={atual}>Categoria indisponível</option> : null}
         {opcoes.map((o) => (
           <option key={o.valor} value={o.valor}>
             {o.rotulo}
@@ -159,10 +171,13 @@ export function CamposPreco({
   modoInicial,
   valorInicial,
   erros,
+  imovel = false,
 }: {
   modoInicial?: string;
   valorInicial?: string;
   erros: Record<string, string>;
+  /** Imóvel (Loja): preço obrigatório; no aluguel o valor é mensal. */
+  imovel?: boolean;
 }) {
   const idValor = useId();
   return (
@@ -170,8 +185,8 @@ export function CamposPreco({
       <CampoSelect
         nome="precoModo"
         rotulo="Preço"
-        opcional
-        vazio="Sem preço"
+        opcional={!imovel}
+        vazio={imovel ? "Escolha como exibir o preço" : "Sem preço"}
         valorInicial={modoInicial}
         erro={erros.precoModo}
         opcoes={[
@@ -185,7 +200,11 @@ export function CamposPreco({
         rotulo="Valor (R$)"
         opcional
         erro={erros.precoValor}
-        ajuda="Preencha se escolheu preço fixo ou a partir de. Exemplo: 1.250,00"
+        ajuda={
+          imovel
+            ? "Preencha se escolheu preço fixo ou a partir de. No aluguel, informe o valor mensal. Exemplo: 350.000,00"
+            : "Preencha se escolheu preço fixo ou a partir de. Exemplo: 1.250,00"
+        }
       >
         <input
           id={idValor}

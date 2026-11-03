@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { acaoDespublicarItem, acaoEnviarItem, acaoPublicarItem } from "../../acoes-conteudo";
 import { AvisoRascunhoNaoEnviado } from "../../_componentes/aviso-rascunho";
 import { FormAcao } from "../../_componentes/form-acao";
-import { FormEditarItem, FormFotoItem } from "../../_componentes/form-item";
+import { TEXTO_LOJA_NAO_LIBERADA } from "../../_componentes/campos-imovel";
+import { FormEditarItem, FormFotoItem, FormFotosExtrasItem } from "../../_componentes/form-item";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { ROTULO_TIPO_ITEM, formatarDataHora, motivoParaExibir } from "../../_lib/apresentacao";
+import { obterServicoLojaDoDono } from "../../_lib/contexto-loja";
 import { obterContexto } from "../../_lib/contexto-sessao";
 import { SEM_INDEXACAO, categoriasParaTela, imagensDoCampo, um } from "../../_lib/pagina";
 import { valoresIniciaisItem } from "../../_lib/valores-iniciais";
@@ -30,10 +32,15 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
   const it = r.valor;
   const c = it.conteudoEdicao;
   const aviso = um((await searchParams).aviso);
-  const [{ categorias, erro: erroCategorias }, resultados, urls] = await Promise.all([
+  const imovel = it.tipo === "imovel";
+  const extras = c.fotosExtrasPaths ?? [];
+  const [{ categorias, erro: erroCategorias }, resultados, urls, lojaLiberada] = await Promise.all([
     categoriasParaTela(ctx),
     ctx.administracao.listarMeusResultados(),
-    ctx.assinarImagens(c.fotoPath ? [c.fotoPath] : []),
+    ctx.assinarImagens([...(c.fotoPath ? [c.fotoPath] : []), ...extras]),
+    imovel && it.perfilId
+      ? obterServicoLojaDoDono(`/meus-itens/${id}`).then((l) => l.lojaLiberada(it.perfilId!))
+      : Promise.resolve(true),
   ]);
   const rejeicao =
     it.estado.ultimaRejeitada && resultados.ok
@@ -60,6 +67,11 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
         </Aviso>
       ) : null}
       {erroCategorias ? <Aviso tipo="erro">{erroCategorias}</Aviso> : null}
+      {imovel && !lojaLiberada ? (
+        <Aviso tipo="info">
+          {TEXTO_LOJA_NAO_LIBERADA} Este imóvel não aparece ao público enquanto isso.
+        </Aviso>
+      ) : null}
       {it.versaoAprovadaId && it.estado.aberta ? (
         <Aviso tipo="info">
           {it.estado.noAr
@@ -147,6 +159,7 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
               inicial={valoresIniciaisItem(c)}
               categorias={categorias}
               anuncioParticular={it.anuncioParticular}
+              tipo={it.tipo}
             />
             <p className="rodape-links">
               Não encontrou a categoria? <Link href="/solicitar-categoria">Peça uma nova</Link>.
@@ -159,6 +172,12 @@ export default async function PaginaItem({ params, searchParams }: PageProps<"/m
               foto={imagensDoCampo(c.fotoPath ? [c.fotoPath] : [], urls)}
             />
           </section>
+          {imovel ? (
+            <section aria-labelledby="titulo-fotos-extras">
+              <h2 id="titulo-fotos-extras">Fotos adicionais</h2>
+              <FormFotosExtrasItem itemId={it.id} fotos={imagensDoCampo(extras, urls)} />
+            </section>
+          ) : null}
         </>
       )}
       <p className="rodape-links">

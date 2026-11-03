@@ -17,6 +17,7 @@ export const MENSAGENS_TELA_ITEM = {
   novaVersao:
     "Edição salva como rascunho. Ela ainda NÃO foi enviada: clique em Enviar para aprovação. A versão aprovada continua no ar até a nova ser aprovada.",
   fotoSalva: "Foto salva.",
+  fotosExtrasSalvas: "Fotos adicionais salvas.",
   enviado: "Enviado para aprovação. O resultado aparece em Minhas revisões.",
   publicado: "Publicado.",
   despublicado: "Despublicado. Saiu do ar agora.",
@@ -52,6 +53,20 @@ export async function salvarFotoItem(ctx: Contexto, f: FormData): Promise<Respos
     sucesso: r.valor.criouNovaVersao
       ? MENSAGENS_TELA_ITEM.novaVersao
       : MENSAGENS_TELA_ITEM.fotoSalva,
+  };
+}
+
+/** Fotos adicionais da Loja (até 8; IM-097). Lista vazia remove todas. */
+export async function salvarFotosExtrasItem(ctx: Contexto, f: FormData): Promise<Resposta> {
+  const fotosExtrasPaths = f
+    .getAll("fotosExtrasPaths")
+    .filter((v): v is string => typeof v === "string" && v !== "");
+  const r = await ctx.itens.editar(id(f), { fotosExtrasPaths });
+  if (!r.ok) return deErro(r.erro);
+  return {
+    sucesso: r.valor.criouNovaVersao
+      ? MENSAGENS_TELA_ITEM.novaVersao
+      : MENSAGENS_TELA_ITEM.fotosExtrasSalvas,
   };
 }
 

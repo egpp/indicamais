@@ -94,7 +94,44 @@ export const CAMPOS_ITEM = [
   "precoValor",
   "cidade",
   "uf",
+  "imovelTipo",
+  "finalidade",
+  "areaM2",
+  "quartos",
+  "banheiros",
+  "vagas",
+  "bairro",
+  "condominio",
+  "iptu",
+  "aceitaFinanciamento",
 ] as const;
+
+/**
+ * Valor extra em R$ (condomínio, IPTU; IM-098). Vazio = não informado (null); "0" e "0,00" valem R$ 0,00 (0 centavos,
+ * que o parser de preço recusa por ser preço, não por ser extra); ilegível vira NaN e o schema responde com a faixa.
+ */
+export function lerReaisExtra(texto: string): number | null {
+  const t = texto.replace(/^\s*R\$\s*/i, "").trim();
+  if (t === "") return null;
+  if (/^0+([,]0{1,2})?$/.test(t)) return 0;
+  return parsearReaisParaCentavos(t) ?? Number.NaN;
+}
+
+/** Campos do imóvel (D-020): só chegam ao módulo quando o formulário é de imóvel. Texto vazio vira "não informado" no schema. */
+function camposDoImovel(ler: Ler) {
+  return {
+    imovelTipo: ler("imovelTipo"),
+    finalidade: ler("finalidade"),
+    areaM2: ler("areaM2"),
+    quartos: ler("quartos"),
+    banheiros: ler("banheiros"),
+    vagas: ler("vagas"),
+    bairro: ler("bairro"),
+    condominioCentavos: lerReaisExtra(ler("condominio")),
+    iptuCentavos: lerReaisExtra(ler("iptu")),
+    aceitaFinanciamento: ler("aceitaFinanciamento"),
+  };
+}
 
 /** Preço: "" = sem preço; "sob_consulta" não leva valor; "fixo" e "a_partir_de" convertem R$ em centavos. */
 export function lerPreco(ler: Ler): unknown {
@@ -110,7 +147,10 @@ export function lerPreco(ler: Ler): unknown {
  * o formulário nem mostra os campos e eles nunca seguem para o módulo.
  */
 function localizacaoDoAnuncio(ler: Ler) {
-  return ler("origem") === "anuncio" ? { cidade: ler("cidade"), uf: ler("uf") } : {};
+  // Imóvel (Loja, D-020) tem cidade e UF próprias.
+  return ler("origem") === "anuncio" || ler("tipo") === "imovel"
+    ? { cidade: ler("cidade"), uf: ler("uf") }
+    : {};
 }
 
 export function lerCamposItem(ler: Ler) {
@@ -119,6 +159,7 @@ export function lerCamposItem(ler: Ler) {
     descricao: ler("descricao"),
     preco: lerPreco(ler),
     ...categorias(ler),
+    ...(ler("tipo") === "imovel" ? camposDoImovel(ler) : {}),
     ...localizacaoDoAnuncio(ler),
   };
 }

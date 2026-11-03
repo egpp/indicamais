@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FormNovoItem } from "../../_componentes/form-item";
 import { PainelPagina } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
+import { obterServicoLojaDoDono } from "../../_lib/contexto-loja";
 import { obterContexto } from "../../_lib/contexto-sessao";
 import { SEM_INDEXACAO, categoriasParaTela, um } from "../../_lib/pagina";
 
@@ -22,6 +23,13 @@ export default async function PaginaNovoItem({ searchParams }: PageProps<"/meus-
   const lista = perfis.ok
     ? perfis.valor.map((p) => ({ id: p.id, nome: p.conteudoEdicao.nome ?? "Perfil sem nome" }))
     : [];
+  // IM-099: só perfis com a Loja liberada oferecem o tipo Imóvel. Falha na consulta = sem Loja (falha fechada).
+  const liberadas = lista.length
+    ? await (
+        await obterServicoLojaDoDono("/meus-itens/novo")
+      ).lojasLiberadas(lista.map((p) => p.id))
+    : {};
+  const perfisComLoja = Object.keys(liberadas).filter((id) => liberadas[id]);
   return (
     <PainelPagina
       titulo="Novo produto ou serviço"
@@ -42,6 +50,7 @@ export default async function PaginaNovoItem({ searchParams }: PageProps<"/meus-
           categorias={categorias}
           perfis={lista}
           perfilInicial={perfilInicial}
+          perfisComLoja={perfisComLoja}
         />
       )}
       <p className="rodape-links">
