@@ -127,6 +127,10 @@ test.describe("Fase 10 · revisão do imóvel com fotos adicionais (DEV)", () =>
     await dono.getByLabel(/Valor \(R\$\)/).fill("1.800,00");
     await dono.getByLabel("Tipo do imóvel").selectOption("casa");
     await dono.getByLabel("Finalidade").selectOption("aluguel");
+    await dono.getByLabel("Área (m²)").fill("70");
+    await dono.getByLabel("Quartos").fill("2");
+    await dono.getByLabel("Banheiros").fill("1");
+    await dono.getByLabel("Vagas").fill("1");
     await dono.getByLabel("Bairro").fill("Centro");
     await dono.getByLabel("Cidade", { exact: true }).fill("Marília");
     await dono.getByLabel("UF", { exact: true }).selectOption("SP");
