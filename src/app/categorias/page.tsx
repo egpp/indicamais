@@ -6,6 +6,9 @@ import { Aviso } from "../_componentes/ui";
 import { obterContextoPublico } from "../_lib/contexto-publico";
 import { metadadosPublicos } from "../_lib/metadados-publicos";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 /** Todas as categorias ativas, cada uma levando à busca já filtrada (IM-019). */
 export const metadata: Metadata = metadadosPublicos({
   titulo: "Categorias | IndicaMais",

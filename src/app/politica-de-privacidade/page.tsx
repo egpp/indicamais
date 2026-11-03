@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { CartaoPagina } from "../_componentes/ui";
 import { SEM_INDEXACAO } from "../_lib/pagina";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Política de privacidade (provisória) | IndicaMais",
   ...SEM_INDEXACAO,

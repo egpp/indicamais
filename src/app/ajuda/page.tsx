@@ -3,6 +3,9 @@ import Link from "next/link";
 import { PaginaInstitucional } from "../_componentes/pagina-institucional";
 import { metadadosPublicos } from "../_lib/metadados-publicos";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 /** Dúvidas frequentes que o produto já responde hoje. Sem canal de atendimento inventado. */
 export const metadata: Metadata = metadadosPublicos({
   titulo: "Ajuda | IndicaMais",

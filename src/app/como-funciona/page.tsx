@@ -4,6 +4,9 @@ import { IconeHome } from "../_componentes/icones-home";
 import { PaginaInstitucional } from "../_componentes/pagina-institucional";
 import { metadadosPublicos } from "../_lib/metadados-publicos";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 /** Explica o que o IndicaMais faz hoje (IM-019, IM-021, IM-024, IM-026, IM-029). Sem prometer o que não existe. */
 export const metadata: Metadata = metadadosPublicos({
   titulo: "Como funciona | IndicaMais",

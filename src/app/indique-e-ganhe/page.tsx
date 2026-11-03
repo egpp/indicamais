@@ -4,6 +4,9 @@ import { IconeHome } from "../_componentes/icones-home";
 import { PaginaInstitucional } from "../_componentes/pagina-institucional";
 import { metadadosPublicos } from "../_lib/metadados-publicos";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 /**
  * Explica as regras vigentes dos pontos (IM-024, IM-025, IM-030 a IM-035, D-012). Valores iniciais da D-012;
  * ficam configuráveis, por isso o texto diz que podem mudar.
