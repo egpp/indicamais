@@ -76,6 +76,7 @@ describe("Fase 6: permissões granulares (IM-077)", () => {
         "contas_definir_parametro",
         "indicacoes_definir_parametro",
         "indicacoes_tratar_alerta",
+        "loja_definir_liberacao",
         "perfis_admin_definir_estilo_habilitado",
         "pontos_definir_parametro",
       ].sort(),
