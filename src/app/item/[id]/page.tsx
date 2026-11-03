@@ -6,7 +6,8 @@ import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { FormDenunciar } from "../../_componentes/form-ciclo-vida";
 import { CurtirPerfil } from "../../_componentes/form-relacionamento";
-import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
+import { DetalhesImovel, GaleriaFotos } from "../../_componentes/loja";
+import { CabecalhoPublico, chipsDoImovel, localTexto } from "../../_componentes/publico";
 import { nomeDaCategoria } from "../../_lib/apresentacao";
 import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
@@ -21,8 +22,14 @@ import { metadadosPublicos, resumir } from "../../_lib/metadados-publicos";
  */
 export const dynamic = "force-dynamic";
 
-const rotuloDoTipo = (anuncio: boolean, tipo: "produto" | "servico") =>
-  anuncio ? "Anúncio particular" : tipo === "produto" ? "Produto" : "Serviço";
+const rotuloDoTipo = (anuncio: boolean, tipo: "produto" | "servico" | "imovel") =>
+  anuncio
+    ? "Anúncio particular"
+    : tipo === "produto"
+      ? "Produto"
+      : tipo === "imovel"
+        ? "Imóvel"
+        : "Serviço";
 
 export async function generateMetadata({ params }: PageProps<"/item/[id]">): Promise<Metadata> {
   const { id } = await params;
@@ -30,8 +37,18 @@ export async function generateMetadata({ params }: PageProps<"/item/[id]">): Pro
   if (!d) return { title: "Página não encontrada | IndicaMais", ...SEM_INDEXACAO };
   const { item } = d;
   const nome = item.nome ?? "Item";
-  const local = localTexto(item.cidade, item.uf);
-  const partes = [item.precoTexto, local].filter(Boolean).join(" · ");
+  // Imóvel (Loja): só bairro e cidade; nunca endereço exato (IM-098, IM-029).
+  const local = item.imovel?.localTexto ?? localTexto(item.cidade, item.uf);
+  const partes = [
+    item.imovel
+      ? [item.imovel.tipoRotulo, item.imovel.finalidadeRotulo].filter(Boolean).join(" para ")
+      : null,
+    ...chipsDoImovel(item.imovel),
+    item.precoTexto,
+    local,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return metadadosPublicos({
     titulo: `${nome} | IndicaMais`,
     descricao:
@@ -51,7 +68,7 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
   if (!d) notFound();
   const { item, perfil, categorias, urls } = d;
   const nome = item.nome ?? "Item sem nome";
-  const local = localTexto(item.cidade, item.uf);
+  const local = item.imovel ? null : localTexto(item.cidade, item.uf);
   const foto = item.fotoPath ? urls[item.fotoPath] : undefined;
   const curtida = perfil ? await lerEstadoCurtida(perfil.id) : null;
   const nomesCategorias = [item.categoriaPrincipalId, ...item.categoriasSecundariasIds]
@@ -79,7 +96,15 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
           </p>
         ) : null}
         {local ? <p>{local}</p> : null}
+        {item.imovel ? <DetalhesImovel imovel={item.imovel} /> : null}
         {item.descricao ? <p className="texto-corrido">{item.descricao}</p> : null}
+        <GaleriaFotos nome={nome} caminhos={item.fotosExtrasPaths} urls={urls} />
+        {item.imovel ? (
+          <p className="ajuda">
+            O endereço exato não é divulgado. Esta página apresenta o imóvel: combine visita e
+            condições diretamente com o anunciante, pelo botão de contato abaixo.
+          </p>
+        ) : null}
         {perfil ? (
           <p>
             Oferecido por{" "}
@@ -92,7 +117,11 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
         tipo="item"
         id={item.id}
         rotuloIndicar={
-          item.anuncioParticular ? "Indique este anúncio" : "Indique este produto/serviço"
+          item.anuncioParticular
+            ? "Indique este anúncio"
+            : item.imovel
+              ? "Indique este imóvel"
+              : "Indique este produto/serviço"
         }
         retorno={ROTAS_PUBLICAS.item(item.id)}
         ind={ind}

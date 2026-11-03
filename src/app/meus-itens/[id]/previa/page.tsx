@@ -28,7 +28,10 @@ export default async function PaginaPreviaItem({ params }: PageProps<"/meus-iten
   const previa = r.valor;
   const [{ categorias }, urls] = await Promise.all([
     categoriasParaTela(ctx),
-    ctx.assinarImagens(previa.item.fotoPath ? [previa.item.fotoPath] : []),
+    ctx.assinarImagens([
+      ...(previa.item.fotoPath ? [previa.item.fotoPath] : []),
+      ...previa.item.fotosExtrasPaths,
+    ]),
   ]);
   return (
     <PainelPagina titulo="Prévia" atual={previa.item.anuncioParticular ? "anuncios" : "itens"}>

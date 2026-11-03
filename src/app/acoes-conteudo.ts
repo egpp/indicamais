@@ -22,6 +22,7 @@ import {
   enviarItem,
   publicarItem,
   salvarFotoItem,
+  salvarFotosExtrasItem,
 } from "./_lib/tratadores-itens";
 import {
   alterarEnderecoPerfil,
@@ -106,6 +107,9 @@ export async function acaoEditarItem(_: EstadoFormulario, f: FormData) {
 }
 export async function acaoSalvarFotoItem(_: EstadoFormulario, f: FormData) {
   return rodar("/meus-itens", salvarFotoItem, f);
+}
+export async function acaoSalvarFotosExtrasItem(_: EstadoFormulario, f: FormData) {
+  return rodar("/meus-itens", salvarFotosExtrasItem, f);
 }
 export async function acaoEnviarItem(_: EstadoFormulario, f: FormData) {
   return rodar("/meus-itens", enviarItem, f);

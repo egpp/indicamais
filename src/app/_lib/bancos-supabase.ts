@@ -48,7 +48,7 @@ export const COLUNAS = {
     "id, perfil_id, situacao, nome, descricao_breve, imagem_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, cidade, uf, endereco, areas_atendidas, banners_paths, fotos_paths, site, informacoes_sociais, criado_em, enviada_em",
   item: "id, perfil_id, tipo, publicado, versao_aprovada_id, criado_em, atualizado_em",
   versaoItem:
-    "id, item_id, situacao, nome, descricao, foto_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, preco_modo, preco_centavos, cidade, uf, criado_em, enviada_em",
+    "id, item_id, situacao, nome, descricao, foto_path, categoria_principal_id, categoria_secundaria_1_id, categoria_secundaria_2_id, preco_modo, preco_centavos, cidade, uf, imovel_tipo, finalidade, area_m2, quartos, banheiros, vagas, bairro, condominio_centavos, iptu_centavos, aceita_financiamento, fotos_extras_paths, criado_em, enviada_em",
   categoria: "id, nome, slug, ativa, ordem",
   solicitacao:
     "id, solicitante_id, nome_sugerido, justificativa, situacao, categoria_id, motivo_resposta, decidida_em, criado_em",
@@ -184,6 +184,17 @@ function paraVersaoItem(l: LinhaBrutaVersaoItem): LinhaItemVersao {
     preco_centavos: l.preco_centavos,
     cidade: l.cidade,
     uf: l.uf,
+    imovel_tipo: l.imovel_tipo,
+    finalidade: l.finalidade,
+    area_m2: l.area_m2,
+    quartos: l.quartos,
+    banheiros: l.banheiros,
+    vagas: l.vagas,
+    bairro: l.bairro,
+    condominio_centavos: l.condominio_centavos,
+    iptu_centavos: l.iptu_centavos,
+    aceita_financiamento: l.aceita_financiamento,
+    fotos_extras_paths: l.fotos_extras_paths ?? [],
     criado_em: l.criado_em,
     enviada_em: l.enviada_em,
   };
@@ -459,6 +470,17 @@ export function criarBancoItens(supabase: ClienteSupabaseFase2): ClienteBancoIte
             preco_centavos: c.preco_centavos,
             cidade: c.cidade,
             uf: c.uf,
+            imovel_tipo: c.imovel_tipo,
+            finalidade: c.finalidade,
+            area_m2: c.area_m2,
+            quartos: c.quartos,
+            banheiros: c.banheiros,
+            vagas: c.vagas,
+            bairro: c.bairro,
+            condominio_centavos: c.condominio_centavos,
+            iptu_centavos: c.iptu_centavos,
+            aceita_financiamento: c.aceita_financiamento,
+            fotos_extras_paths: c.fotos_extras_paths,
           })
           .select(COLUNAS.versaoItem)
           .maybeSingle();
@@ -480,6 +502,17 @@ export function criarBancoItens(supabase: ClienteSupabaseFase2): ClienteBancoIte
             preco_centavos: c.preco_centavos,
             cidade: c.cidade,
             uf: c.uf,
+            imovel_tipo: c.imovel_tipo,
+            finalidade: c.finalidade,
+            area_m2: c.area_m2,
+            quartos: c.quartos,
+            banheiros: c.banheiros,
+            vagas: c.vagas,
+            bairro: c.bairro,
+            condominio_centavos: c.condominio_centavos,
+            iptu_centavos: c.iptu_centavos,
+            aceita_financiamento: c.aceita_financiamento,
+            fotos_extras_paths: c.fotos_extras_paths,
           })
           .eq("id", versaoId)
           .select(COLUNAS.versaoItem)

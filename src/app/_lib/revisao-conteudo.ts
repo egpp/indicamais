@@ -26,7 +26,11 @@ export async function carregarConteudoRevisao(
     const r = await ctx.itens.obterVersaoParaRevisao(versaoId);
     if (!r.ok) return null;
     const item = r.valor.item;
-    return { tipo: "item", item, caminhos: item.fotoPath ? [item.fotoPath] : [] };
+    return {
+      tipo: "item",
+      item,
+      caminhos: [...(item.fotoPath ? [item.fotoPath] : []), ...item.fotosExtrasPaths],
+    };
   } catch {
     return null;
   }

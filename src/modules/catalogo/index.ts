@@ -50,3 +50,35 @@ export type {
   CategoriaAdmin,
   Solicitacao,
 } from "./servico-categorias";
+
+// Loja e imóveis (IM-097, IM-098, IM-099, D-020).
+export {
+  TIPOS_IMOVEL,
+  FINALIDADES_IMOVEL,
+  ROTULOS_TIPO_IMOVEL,
+  ROTULOS_FINALIDADE_IMOVEL,
+  formatarPrecoImovel,
+  imovelParaExibicao,
+  pendenciasDoImovel,
+} from "./imovel";
+export type { TipoImovel, FinalidadeImovel, ImovelExibicao, CamposImovelConteudo } from "./imovel";
+export {
+  criarServicoLoja,
+  filtrosImoveisSchema,
+  paraCartaoLoja,
+  paraCartaoImovel,
+  paraParamsListarImoveis,
+  mapearErroBancoLoja,
+} from "./loja-publica";
+export type {
+  ServicoLoja,
+  ClienteBancoLoja,
+  CartaoLoja,
+  FiltrosImoveis,
+  PaginaImoveis,
+  ParamsListarImoveis,
+  LinhaLojaItemPublico,
+  LinhaImovelListado,
+  LinhaLiberacaoLoja,
+  ResultadoLoja,
+} from "./loja-publica";

@@ -1154,3 +1154,19 @@ html:has(.site) {
   display: flex;
   align-items: center;
 }
+
+/* Loja (IM-097, IM-098): chips do imóvel e filtros nos temas do site. */
+.st-chips-imovel li {
+  padding: 0.2rem var(--e3);
+  font-size: 0.8125rem;
+}
+.site .filtros-loja {
+  border-color: var(--s-borda);
+  border-radius: var(--s-raio);
+  background: var(--s-surface);
+  box-shadow: var(--s-sombra);
+}
+.st-secao-produtos .ajuda,
+.st-secao-produtos .erro-campo {
+  margin: 0 0 var(--e4);
+}

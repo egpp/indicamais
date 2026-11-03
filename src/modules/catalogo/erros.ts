@@ -23,6 +23,15 @@ export const MENSAGENS_CATALOGO = {
     "Você já tem pedidos de categoria em análise. Aguarde a resposta antes de pedir outra.",
   solicitacaoDecidida: "Este pedido já foi respondido.",
   motivoObrigatorio: "Informe o motivo.",
+  lojaNaoLiberada: "A Loja não está liberada para este perfil.",
+  imovelInvalido: "Confira os dados do imóvel.",
+  imovelIncompleto:
+    "Preencha tipo, finalidade, preço, área, quartos, banheiros, vagas, bairro, cidade e UF antes de enviar.",
+  imovelSemPerfil: "O imóvel pertence a um perfil. Escolha o perfil.",
+  camposImovelForaDeImovel: "Os campos de imóvel só valem para itens do tipo imóvel.",
+  fotosExtrasLimite: "Envie no máximo 8 fotos adicionais.",
+  fotoRepetida: "Não repita a mesma foto.",
+  filtrosInvalidos: "Confira os filtros informados.",
 } as const;
 
 export type CodigoErroCatalogo =
@@ -30,6 +39,7 @@ export type CodigoErroCatalogo =
   | "INCOMPLETO"
   | "NAO_ENCONTRADO"
   | "SEM_PERMISSAO"
+  | "LOJA_NAO_LIBERADA"
   | "EM_ANALISE"
   | "NAO_APROVADO"
   | "CONFLITO"
@@ -68,6 +78,27 @@ export function mapearErroBancoCatalogo(e: ErroBanco): ErroCatalogo {
     return erroCatalogo("CONFLITO", M.conflito);
   }
   if (classe === "CHECK") {
+    // Loja e imóveis (IM-097, IM-098): checar antes dos padrões genéricos (a mensagem do imóvel cita preço/cidade).
+    if (/im[óo]vel exige/i.test(alvo)) return erroCatalogo("INCOMPLETO", M.imovelIncompleto);
+    if (/im[óo]vel pertence a um perfil/i.test(alvo)) {
+      return erroCatalogo("VALIDACAO", M.imovelSemPerfil);
+    }
+    if (/campos de im[óo]vel/i.test(alvo)) {
+      return erroCatalogo("VALIDACAO", M.camposImovelForaDeImovel);
+    }
+    if (/fotos_extras|foto adicional repetida/i.test(alvo)) {
+      return /repetida/i.test(alvo)
+        ? erroCatalogo("VALIDACAO", M.fotoRepetida)
+        : erroCatalogo("VALIDACAO", M.fotosExtrasLimite);
+    }
+    if (/foto adicional/i.test(alvo)) return erroCatalogo("VALIDACAO", M.imagemInvalida);
+    if (
+      /versao_(imovel_tipo|finalidade|area|quartos|banheiros|vagas|bairro|condominio|iptu)/i.test(
+        alvo,
+      )
+    ) {
+      return erroCatalogo("VALIDACAO", M.imovelInvalido);
+    }
     if (/versao_preco|preco/i.test(alvo)) return erroCatalogo("VALIDACAO", M.precoInvalido);
     if (/versao_completa/i.test(alvo)) return erroCatalogo("INCOMPLETO", M.incompleto);
     if (/publicado_exige_aprovada/i.test(alvo)) return erroCatalogo("NAO_APROVADO", M.naoAprovado);
@@ -84,6 +115,8 @@ export function mapearErroBancoCatalogo(e: ErroBanco): ErroCatalogo {
     return erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado);
   }
   if (classe === "PERMISSAO") {
+    // Loja não liberada (gatilhos de catalogo_item e catalogo_item_versao): sem revelar mais nada.
+    if (/loja/i.test(alvo)) return erroCatalogo("LOJA_NAO_LIBERADA", M.lojaNaoLiberada);
     // RLS/privilégio ou "versão não encontrada" (a função não revela se existe de outro dono).
     if (/imut|enviada|hist[óo]rico|identidade/i.test(alvo)) {
       return erroCatalogo("EM_ANALISE", M.emAnalise);

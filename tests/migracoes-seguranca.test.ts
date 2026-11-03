@@ -106,6 +106,7 @@ describe("migrações: funções", () => {
       "busca_publica",
       "catalogo_imagem_publica",
       "indicacoes_enviar_contato",
+      "loja_listar_imoveis",
       "perfis_endereco_ref",
       "perfis_perfil_disponivel",
       "pontos_beneficio_no_prazo",
@@ -143,6 +144,7 @@ describe("migrações: visões", () => {
     for (const nome of [
       "perfis_perfil_publico",
       "catalogo_item_publico",
+      "loja_item_publico",
       "administracao_patrocinador_publico",
     ]) {
       const v = visoes.find((x) => x.nome === nome)!;
@@ -469,6 +471,7 @@ describe("migrações: privacidade de colunas (IM-029, IM-086)", () => {
       "catalogo_categoria",
       "catalogo_item_publico",
       "catalogo_item_versao",
+      "loja_item_publico",
       "perfis_banner_publico",
       "perfis_estilo_pagina",
       "perfis_perfil_publico",

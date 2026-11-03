@@ -210,6 +210,15 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-020 · 03/11/2026 · Módulo Loja (catálogo) nas páginas (IM-097, IM-098, IM-099)
+**IDs:** IM-014, IM-097, IM-098, IM-099. Aceito pelo Emerson em 03/11/2026 ("aceito suas recomendações, e aceito").
+- **Catálogo, não venda:** a Loja não intermedeia venda; sem carrinho, checkout, pagamento ou repasse (IM-090). O negócio se conclui entre as partes pelo contato existente.
+- **Evolução do catálogo existente:** a Loja amplia os "Produtos e serviços" (IM-014); não há segundo cadastro. Quem não tem a Loja segue com o catálogo simples de hoje.
+- **Liberação sem plano:** o administrador geral libera ou retira a Loja por perfil, com motivo e auditoria, apenas para testes. Planos (IM-060) continuam futuros e, quando existirem, controlarão essa liberação. Nenhuma cobrança.
+- **Imóveis (IM-098):** tipo, finalidade (venda ou aluguel), preço, área, quartos, banheiros, vagas, bairro, cidade e UF, fotos. O endereço exato fica oculto; só bairro e cidade aparecem (padrão de privacidade do mapa). Campos extras (condomínio, IPTU, financiamento) aceitos como opcionais, por recomendação do gestor.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

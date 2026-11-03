@@ -64,4 +64,4 @@ Sistema de design aplicado a todas as telas existentes: paleta, tipografia, espa
 - Abertura pública só com decisão do Emerson (IM-089).
 
 ## Fase 10 — Módulo Loja (catálogo) nas páginas (IM-097, IM-098, IM-099)
-Só começa depois de o Emerson responder às dúvidas de IM-097 a IM-099 (relação com IM-014, liberação sem plano, campos). Sem checkout, carrinho ou pagamento. Imóveis como tipo de item com campos próprios.
+Decisões em D-020 (03/11/2026). Sem checkout, carrinho ou pagamento. Imóveis como tipo de item com campos próprios.

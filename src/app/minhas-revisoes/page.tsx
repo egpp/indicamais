@@ -5,6 +5,7 @@ import { Aviso } from "../_componentes/ui";
 import { formatarDataHora, motivoParaExibir } from "../_lib/apresentacao";
 import { obterContexto } from "../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../_lib/pagina";
+import { rotuloTipoItem } from "../_lib/tipo-item";
 
 export const metadata: Metadata = { title: "Minhas revisões | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
@@ -22,6 +23,8 @@ export default async function PaginaMinhasRevisoes() {
     ctx.administracao.ehAdministrador(),
     ctx.administracao.listarMeusResultados(),
   ]);
+  const meus = r.ok && r.valor.some((x) => x.alvo === "item") ? await ctx.itens.listarMeus() : null;
+  const tipos = new Map((meus?.ok ? meus.valor : []).map((i) => [i.id, i.tipo] as const));
   return (
     <PainelPagina
       titulo="Minhas revisões"
@@ -49,7 +52,7 @@ export default async function PaginaMinhasRevisoes() {
               <p>
                 <SeloEstado rotulo={ROTULO_SITUACAO[x.situacao]} />{" "}
                 <span className="ajuda">
-                  {x.alvo === "perfil" ? "Perfil" : "Produto ou serviço"}
+                  {x.alvo === "perfil" ? "Perfil" : rotuloTipoItem(tipos.get(x.alvoId))}
                 </span>
               </p>
               <p>{x.mensagem}</p>

@@ -1310,3 +1310,115 @@ fieldset.grupo-imagens {
     padding: var(--e6);
   }
 }
+/* Loja e imóveis (IM-097, IM-098, D-020): celular primeiro. */
+fieldset.grupo-imovel {
+  margin: 0 0 var(--e4);
+  padding: var(--e3);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+.grupo-imovel legend {
+  padding: 0 var(--e1);
+  font-weight: 600;
+}
+.linha-campos {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: var(--e3);
+}
+@media (min-width: 480px) {
+  .linha-campos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.chips-imovel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+  margin: var(--e2) 0;
+  padding: 0;
+  list-style: none;
+}
+.chips-imovel li {
+  padding: 0.25rem var(--e3);
+  border: 1px solid var(--borda-suave);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.detalhes-imovel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--e2);
+  margin: var(--e4) 0;
+}
+.detalhes-imovel > div {
+  padding: var(--e2) var(--e3);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+.detalhes-imovel dt {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+.detalhes-imovel dd {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 560px) {
+  .detalhes-imovel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.galeria-fotos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--e2);
+  margin: var(--e4) 0;
+  padding: 0;
+  list-style: none;
+}
+.galeria-fotos img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--raio);
+  background: #f1eeea;
+}
+.filtros-loja {
+  display: grid;
+  gap: var(--e1);
+  margin: 0 0 var(--e6);
+  padding: var(--e4);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+.filtros-loja .acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e3);
+}
+.filtros-loja .acoes .botao {
+  width: auto;
+  min-width: 8rem;
+}
+@media (min-width: 640px) {
+  .filtros-loja {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--e3);
+  }
+  .filtros-loja .acoes {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 960px) {
+  .filtros-loja {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

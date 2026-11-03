@@ -27,7 +27,11 @@ export function nomeDaCategoria(id: string | null, categorias: readonly Categori
   return categorias.find((c) => c.id === id)?.nome ?? "Categoria indisponível";
 }
 
-export const ROTULO_TIPO_ITEM = { produto: "Produto", servico: "Serviço" } as const;
+export const ROTULO_TIPO_ITEM = {
+  produto: "Produto",
+  servico: "Serviço",
+  imovel: "Imóvel",
+} as const;
 
 export const ROTULO_MODO_PRECO = {
   fixo: "Preço fixo",

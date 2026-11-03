@@ -118,6 +118,7 @@ function rotuloTipo(tipo: "perfil" | "item", itemTipo: string | null): string {
   if (tipo === "perfil") return "Perfil";
   if (itemTipo === "servico") return "Serviço";
   if (itemTipo === "produto") return "Produto";
+  if (itemTipo === "imovel") return "Imóvel";
   return "Produto ou serviço";
 }
 

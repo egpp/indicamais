@@ -38,6 +38,7 @@ export function itensAdministracao({ geral, permissoes }: AcessoAdministracao): 
     geral && { href: "/administracao/pedidos", texto: "Pedidos (administração)" },
     geral && { href: "/administracao/negocios", texto: "Perfis e itens" },
     geral && { href: "/administracao/estilos", texto: "Estilos de página" },
+    geral && { href: "/administracao/loja", texto: "Loja (administração)" },
   ];
   return itens.filter((i): i is ItemMenu => i !== false);
 }

@@ -1,5 +1,14 @@
 import { categoriasParaColunas, colunasParaCategorias } from "@/shared/conteudo/categorias";
 import type { SituacaoVersao } from "@/shared/conteudo/ciclo-versao";
+import {
+  finalidadeOuNula,
+  formatarPrecoImovel,
+  imovelParaExibicao,
+  numeroOuNulo,
+  tipoImovelOuNulo,
+  type CamposImovelConteudo,
+  type ImovelExibicao,
+} from "./imovel";
 import { precoDeColunas, precoParaColunas, formatarPreco, type Preco } from "./preco";
 import type { TipoItem } from "./schemas";
 
@@ -32,6 +41,18 @@ export type LinhaItemVersao = {
    */
   cidade?: string | null;
   uf?: string | null;
+  /** Extras da Loja (IM-097, IM-098). Opcionais no contrato; ausente = null / vazio. */
+  imovel_tipo?: string | null;
+  finalidade?: string | null;
+  area_m2?: number | string | null;
+  quartos?: number | null;
+  banheiros?: number | null;
+  vagas?: number | null;
+  bairro?: string | null;
+  condominio_centavos?: number | string | null;
+  iptu_centavos?: number | string | null;
+  aceita_financiamento?: boolean | null;
+  fotos_extras_paths?: string[] | null;
   criado_em: string;
   enviada_em: string | null;
 };
@@ -76,7 +97,7 @@ export type LinhaSolicitacao = {
 };
 
 /** Conteúdo editável de uma versão de item, em forma de domínio. */
-export type ConteudoItem = {
+export type ConteudoItem = CamposImovelConteudo & {
   nome: string | null;
   descricao: string | null;
   fotoPath: string | null;
@@ -86,6 +107,8 @@ export type ConteudoItem = {
   /** Só do anúncio particular (D-008); item de perfil herda do perfil e fica null. */
   cidade?: string | null;
   uf?: string | null;
+  /** Galeria da Loja (até 8). */
+  fotosExtrasPaths?: string[];
 };
 
 export const CONTEUDO_ITEM_VAZIO: ConteudoItem = {
@@ -97,6 +120,17 @@ export const CONTEUDO_ITEM_VAZIO: ConteudoItem = {
   preco: null,
   cidade: null,
   uf: null,
+  imovelTipo: null,
+  finalidade: null,
+  areaM2: null,
+  quartos: null,
+  banheiros: null,
+  vagas: null,
+  bairro: null,
+  condominioCentavos: null,
+  iptuCentavos: null,
+  aceitaFinanciamento: null,
+  fotosExtrasPaths: [],
 };
 
 export function conteudoDeVersao(v: LinhaItemVersao): ConteudoItem {
@@ -110,6 +144,17 @@ export function conteudoDeVersao(v: LinhaItemVersao): ConteudoItem {
     preco: precoDeColunas(v.preco_modo, v.preco_centavos),
     cidade: v.cidade ?? null,
     uf: v.uf ?? null,
+    imovelTipo: tipoImovelOuNulo(v.imovel_tipo),
+    finalidade: finalidadeOuNula(v.finalidade),
+    areaM2: numeroOuNulo(v.area_m2),
+    quartos: numeroOuNulo(v.quartos),
+    banheiros: numeroOuNulo(v.banheiros),
+    vagas: numeroOuNulo(v.vagas),
+    bairro: v.bairro ?? null,
+    condominioCentavos: numeroOuNulo(v.condominio_centavos),
+    iptuCentavos: numeroOuNulo(v.iptu_centavos),
+    aceitaFinanciamento: v.aceita_financiamento ?? null,
+    fotosExtrasPaths: [...(v.fotos_extras_paths ?? [])],
   };
 }
 
@@ -125,6 +170,17 @@ export function colunasDeConteudo(c: ConteudoItem) {
     ...precoParaColunas(c.preco),
     cidade: c.cidade ?? null,
     uf: c.uf ?? null,
+    imovel_tipo: c.imovelTipo ?? null,
+    finalidade: c.finalidade ?? null,
+    area_m2: c.areaM2 ?? null,
+    quartos: c.quartos ?? null,
+    banheiros: c.banheiros ?? null,
+    vagas: c.vagas ?? null,
+    bairro: c.bairro ?? null,
+    condominio_centavos: c.condominioCentavos ?? null,
+    iptu_centavos: c.iptuCentavos ?? null,
+    aceita_financiamento: c.aceitaFinanciamento ?? null,
+    fotos_extras_paths: [...(c.fotosExtrasPaths ?? [])],
   };
 }
 export type ColunasVersaoItem = ReturnType<typeof colunasDeConteudo>;
@@ -148,8 +204,12 @@ export type ItemExibicao = {
   /** Localização do anúncio particular (null em item de perfil: vale a do perfil). */
   cidade: string | null;
   uf: string | null;
-  /** "R$ 10,00", "A partir de R$ 10,00", "Sob consulta" ou null. */
+  /** "R$ 10,00", "A partir de R$ 10,00", "Sob consulta" ou null. No aluguel de imóvel: "... por mês". */
   precoTexto: string | null;
+  /** Só item do tipo imóvel (IM-098). */
+  imovel: ImovelExibicao | null;
+  /** Galeria da Loja (IM-097): fotos adicionais, além de fotoPath. */
+  fotosExtrasPaths: string[];
 };
 
 export function paraItemExibicao(
@@ -169,7 +229,13 @@ export function paraItemExibicao(
     preco: conteudo.preco,
     cidade: conteudo.cidade ?? null,
     uf: conteudo.uf ?? null,
-    precoTexto: formatarPreco(conteudo.preco),
+    precoTexto:
+      base.tipo === "imovel"
+        ? formatarPrecoImovel(conteudo.preco, conteudo.finalidade)
+        : formatarPreco(conteudo.preco),
+    imovel:
+      base.tipo === "imovel" ? imovelParaExibicao(conteudo, conteudo.cidade, conteudo.uf) : null,
+    fotosExtrasPaths: [...(conteudo.fotosExtrasPaths ?? [])],
   };
 }
 
@@ -202,7 +268,23 @@ export function paraItemPublico(l: LinhaItemPublico): ItemExibicao {
  * `cidade`/`uf` (D-008) viram `p_cidade`/`p_uf`, parâmetros NOVOS ao final da função. Até a migração ser aplicada,
  * o adaptador só os envia quando não forem null (anúncio particular).
  */
-export type DadosCriarItem = Omit<ColunasVersaoItem, "foto_path" | "cidade" | "uf"> & {
+export type DadosCriarItem = Omit<
+  ColunasVersaoItem,
+  | "foto_path"
+  | "cidade"
+  | "uf"
+  | "imovel_tipo"
+  | "finalidade"
+  | "area_m2"
+  | "quartos"
+  | "banheiros"
+  | "vagas"
+  | "bairro"
+  | "condominio_centavos"
+  | "iptu_centavos"
+  | "aceita_financiamento"
+  | "fotos_extras_paths"
+> & {
   cidade?: string | null;
   uf?: string | null;
   tipo: TipoItem;

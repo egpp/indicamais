@@ -9,6 +9,7 @@ import { obterContextoCicloVida } from "../../_lib/contexto-ciclo-vida";
 import { exigirAdministrador, obterContextoIndicacoes } from "../../_lib/contexto-indicacoes";
 import { provedorEmailConfigurado } from "../../_lib/notificacoes-contato";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
+import { tiposDeItensParaAdmin } from "../../_lib/tipo-item";
 
 export const metadata: Metadata = {
   title: "Pedidos de contato (administração) | IndicaMais",
@@ -29,6 +30,10 @@ export default async function PaginaPedidosAdmin({
   const somenteAlertas = um((await searchParams).alertas) === "abertos";
   const r = await ctx.servico.filaContatosAdmin({ somenteAlertasAbertos: somenteAlertas });
   const emailConfigurado = provedorEmailConfigurado();
+  const tipos =
+    r.ok && r.valor.some((p) => p.destinoTipo === "item")
+      ? await tiposDeItensParaAdmin("/administracao/pedidos")
+      : new Map<string, string>();
   // IM-077: o botão de invalidar só aparece para quem tem a permissão (o banco confere de novo).
   let podeInvalidar = false;
   try {
@@ -75,6 +80,7 @@ export default async function PaginaPedidosAdmin({
               key={p.id}
               pedido={p}
               administracao={p}
+              tipoItem={tipos.get(p.destinoId)}
               emailConfigurado={emailConfigurado}
             >
               <details>

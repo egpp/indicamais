@@ -3,11 +3,13 @@ import { LIMITES } from "@/shared/config/limites";
 import { formatoDeCaminhoValido } from "@/shared/conteudo/imagens";
 import { textoOpcional, uuidSchema } from "@/shared/conteudo/zod-util";
 import { ufSchema } from "@/shared/conteudo/ufs";
+import { camposImovelShape, fotosExtrasPathsSchema } from "./imovel";
 import { precoSchema } from "./preco";
 
 /** Entradas do módulo catalogo (IM-014, IM-015, IM-016). Campos desconhecidos são descartados. */
 
-export const TIPOS_ITEM = ["produto", "servico"] as const;
+/** "imovel" só existe em perfil com a Loja liberada (IM-097, IM-098, D-020); o banco confere. */
+export const TIPOS_ITEM = ["produto", "servico", "imovel"] as const;
 export type TipoItem = (typeof TIPOS_ITEM)[number];
 
 const fotoPathSchema = z
@@ -52,17 +54,32 @@ export const camposItemSchema = z.object({
     `A cidade deve ter até ${LIMITES.perfil.cidadeMax} caracteres.`,
   ),
   uf: ufSchema.optional(),
+  /** Campos do imóvel (IM-098): só em item do tipo imóvel. */
+  ...camposImovelShape,
+  /** Galeria da Loja: até 8 fotos adicionais em item/<id>/ (IM-097). */
+  fotosExtrasPaths: fotosExtrasPathsSchema,
 });
 export type CamposItem = z.infer<typeof camposItemSchema>;
 
 /** Novo item (sem foto: o item precisa existir antes do upload): tipo obrigatório; `perfilId` ausente = anúncio particular da conta (IM-015). */
 export const novoItemSchema = camposItemSchema
-  .omit({ fotoPath: true })
+  .omit({ fotoPath: true, fotosExtrasPaths: true })
   .extend({
-    tipo: z.enum(TIPOS_ITEM, { error: "Escolha produto ou serviço." }),
+    tipo: z.enum(TIPOS_ITEM, { error: "Escolha produto, serviço ou imóvel." }),
     perfilId: uuidSchema.nullable().optional(),
   })
   .superRefine((v, ctx) => {
+    if (v.tipo === "imovel") {
+      // Imóvel pertence a um perfil com a Loja (IM-098); cidade e UF são do próprio imóvel.
+      if (!v.perfilId) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["perfilId"],
+          message: "O imóvel pertence a um perfil. Escolha o perfil.",
+        });
+      }
+      return;
+    }
     if (v.perfilId) {
       // Item de perfil: a localização é a do perfil.
       if (v.cidade) {

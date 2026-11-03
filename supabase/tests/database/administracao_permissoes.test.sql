@@ -36,7 +36,7 @@ select is((select array_agg(p.proname::text order by p.proname) from pg_proc p j
   where n.nspname = 'public' and p.prosrc like '%public.administracao_exigir_admin()%' and p.proname <> 'administracao_exigir_admin'),
   array['administracao_alterar_home_secao', 'administracao_alterar_patrocinador', 'administracao_conceder_permissao', 'administracao_criar_patrocinador',
         'administracao_definir_parametro', 'administracao_definir_patrocinador_ativo', 'administracao_revogar_permissao',
-        'contas_definir_parametro', 'indicacoes_definir_parametro', 'indicacoes_tratar_alerta', 'perfis_admin_definir_estilo_habilitado', 'pontos_definir_parametro'],
+        'contas_definir_parametro', 'indicacoes_definir_parametro', 'indicacoes_tratar_alerta', 'loja_definir_liberacao', 'perfis_admin_definir_estilo_habilitado', 'pontos_definir_parametro'],
   'só as RPCs sem permissão específica seguem exigindo administrador geral');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname in ('perfis_decidir_versao', 'catalogo_decidir_item_versao', 'pontos_decidir_beneficio_versao',

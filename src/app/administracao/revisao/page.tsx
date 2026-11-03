@@ -6,6 +6,7 @@ import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora } from "../../_lib/apresentacao";
 import { obterContexto } from "../../_lib/contexto-sessao";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
+import { rotuloTipoItem, tiposDeItensParaAdmin } from "../../_lib/tipo-item";
 
 export const metadata: Metadata = { title: "Revisão | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
@@ -18,6 +19,10 @@ export default async function PaginaFilaRevisao({
   if (!(await ctx.administracao.ehAdministrador())) notFound();
   const decidido = um((await searchParams).decidido);
   const fila = await ctx.administracao.listarFila();
+  const tipos =
+    fila.ok && fila.valor.some((i) => i.alvo === "item")
+      ? await tiposDeItensParaAdmin("/administracao/revisao")
+      : new Map<string, string>();
   return (
     <PainelPagina
       titulo="Fila de revisão"
@@ -41,7 +46,11 @@ export default async function PaginaFilaRevisao({
                 </Link>
               </h2>
               <p>
-                <SeloEstado rotulo={i.alvo === "perfil" ? "Perfil" : "Produto ou serviço"} />{" "}
+                <SeloEstado
+                  rotulo={
+                    i.alvo === "perfil" ? "Perfil" : (tipos.get(i.alvoId) ?? rotuloTipoItem(null))
+                  }
+                />{" "}
                 {i.ehEdicao ? <SeloEstado rotulo="Edição de conteúdo aprovado" /> : null}{" "}
                 {i.proprio ? <SeloEstado rotulo="Seu conteúdo" /> : null}
               </p>
