@@ -113,7 +113,7 @@ const opc = <T>(v: T | null | undefined): T | undefined => v ?? undefined;
 
 type LinhaBrutaPerfil = Omit<
   Database["public"]["Views"]["perfis_meus_perfis"]["Row"],
-  "estilo_pagina"
+  "estilo_pagina" | "latitude" | "longitude" | "mostrar_mapa"
 >;
 function paraPerfil(l: LinhaBrutaPerfil): LinhaPerfil {
   return {

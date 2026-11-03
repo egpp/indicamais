@@ -114,7 +114,14 @@ test.describe("papéis", () => {
     await page.goto("/administracao/denuncias");
     await expect(page.getByRole("heading", { level: 1, name: "Denúncias" })).toBeVisible();
     // A fila nunca mostra quem denunciou, só a referência opaca.
-    await expect(page.getByText(/@[a-z0-9-]+\.[a-z]/i)).toHaveCount(0);
+    // O e-mail da PRÓPRIA conta aparece no bloco "Conta:" do menu (UX 02/11/2026); fora dele não pode haver e-mail.
+    await page.evaluate(() =>
+      document
+        .querySelectorAll<HTMLElement>('[aria-label^="Conta:"]')
+        .forEach((e) => (e.style.display = "none")),
+    );
+    const textoSemMenuConta = await page.locator("body").innerText();
+    expect(textoSemMenuConta).not.toMatch(/@[a-z0-9-]+\.[a-z]/i);
     await page.goto("/minha-conta");
     await abrirMenuSeCelular(page);
     await expect(menuPrincipal(page).getByText("Administração", { exact: true })).toBeVisible();

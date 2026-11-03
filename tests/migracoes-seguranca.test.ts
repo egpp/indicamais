@@ -104,6 +104,7 @@ describe("migrações: funções", () => {
       "busca_publica",
       "catalogo_imagem_publica",
       "indicacoes_enviar_contato",
+      "perfis_endereco_ref",
       "perfis_perfil_disponivel",
       "pontos_beneficio_no_prazo",
     ]);

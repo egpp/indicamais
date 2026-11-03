@@ -3,13 +3,14 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { BeneficioPublico } from "@/modules/pontos";
 import type { ItemExibicao } from "@/modules/catalogo";
-import type { BannerPublico, DestinoSecaoBanner, PerfilExibicao } from "@/modules/perfis";
+import type { BannerPublico, DestinoSecaoBanner, MapaUrls, PerfilExibicao } from "@/modules/perfis";
 import { AVISO_SEM_RESGATE, ListaBeneficiosPublicos } from "../pontos";
 import { dadosDeItem, localTexto, type DadosCard } from "../publico";
 import { nomeDaCategoria, type CategoriaOpcao } from "../../_lib/apresentacao";
 import { CarrosselBanner, type ImagemBanner } from "./carrossel-banner";
 import type { EstiloId } from "./estilos";
 import { classeDeFontes } from "./fontes";
+import { MapaLocalizacao } from "./mapa-localizacao";
 import { Decoracao, FaixaDecorativa, Icone, type NomeIcone } from "./icones";
 import { MenuSite, type ItemMenuSite } from "./menu-site";
 import "./site.css";
@@ -35,6 +36,8 @@ export type PropsSiteNegocio = {
   /** Ações de contato: pedido de contato, Indique e Curtir (IM-013). */
   contato: ReactNode;
   denunciar?: ReactNode;
+  /** Mapa do OpenStreetMap (IM-018): URLs prontas do módulo perfis. Sem isso, só endereço e "Como chegar" por busca. */
+  mapa?: MapaUrls | null;
   /** Partes que são demonstração (prévia): ganham a etiqueta "Exemplo" e não viram links. */
   exemplo?: { perfil?: boolean; itens?: boolean; beneficios?: boolean };
 };
@@ -172,6 +175,7 @@ export function SiteNegocio({
   banners = [],
   contato,
   denunciar,
+  mapa = null,
   exemplo = {},
 }: PropsSiteNegocio) {
   const nome = perfil.nome ?? "Perfil sem nome";
@@ -426,7 +430,7 @@ export function SiteNegocio({
                   <p>
                     <a
                       className="botao botao-secundario st-botao-auto"
-                      href={linkComoChegar(perfil.endereco, local)}
+                      href={mapa ? mapa.comoChegar : linkComoChegar(perfil.endereco, local)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -437,6 +441,7 @@ export function SiteNegocio({
                 ) : null}
               </div>
             </div>
+            {mapa && perfil.endereco ? <MapaLocalizacao nome={nome} urls={mapa} /> : null}
           </Secao>
         ) : null}
 

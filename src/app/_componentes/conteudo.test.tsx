@@ -175,7 +175,7 @@ describe("FormNovoPerfil", () => {
       "(11) 99999-0001",
     );
     // Futuros e fora de escopo não aparecem.
-    expect(screen.queryByText(/curtir|indicar|mapa|pontos/i)).toBeNull();
+    expect(screen.queryByText(/curtir|indicar|pontos/i)).toBeNull();
   });
 
   it("aplica a máscara brasileira no WhatsApp ao digitar", async () => {

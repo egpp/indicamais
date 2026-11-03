@@ -78,6 +78,12 @@ test.describe("logado", () => {
       page.getByRole("heading", { level: 1, name: "Base de relacionamento" }),
     ).toBeVisible();
     // Texto visível e links (o HTML do modo dev traz caminhos de módulo "pacote@versão" no payload do React).
+    // Exclui o bloco "Conta:" do menu, que mostra o e-mail da PRÓPRIA conta (UX 02/11/2026).
+    await page.evaluate(() =>
+      document
+        .querySelectorAll<HTMLElement>('[aria-label^="Conta:"]')
+        .forEach((e) => (e.style.display = "none")),
+    );
     const visivel = await page.locator("body").innerText();
     const links = await page
       .locator("a[href]")

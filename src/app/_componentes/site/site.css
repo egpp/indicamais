@@ -825,6 +825,44 @@ html:has(.site) {
   color: var(--s-suave);
 }
 
+/* Mapa incorporado (OpenStreetMap, IM-018) */
+.st-mapa {
+  margin-top: var(--e4);
+  min-width: 0;
+}
+.st-mapa-quadro {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 15rem;
+  overflow: hidden;
+  border: 1px solid var(--s-borda);
+  border-radius: var(--s-raio);
+  background: var(--s-alt);
+  box-shadow: var(--s-sombra);
+}
+.st-mapa-quadro iframe {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.st-mapa-acoes {
+  margin: var(--e3) 0 0;
+}
+.st-mapa-credito {
+  margin: var(--e2) 0 0;
+  font-size: 0.875rem;
+}
+@media (min-width: 640px) {
+  .st-mapa-quadro {
+    aspect-ratio: 16 / 7;
+    min-height: 18rem;
+  }
+}
+
 /* Contato em duas colunas: informações e formulário */
 .st-contato {
   display: grid;
@@ -1095,4 +1133,24 @@ html:has(.site) {
 }
 .st-mini-breve span:last-child {
   width: 50%;
+}
+
+/* Seção "Mapa" do painel (IM-018): a prévia usa as cores do painel, não as do estilo da página */
+.secao-mapa .st-mapa-quadro {
+  border: 1px solid #c9ced6;
+  border-radius: 8px;
+  box-shadow: none;
+}
+.secao-mapa > form,
+.secao-mapa > .mapa-manual {
+  margin-block: 0.75rem;
+}
+.mapa-situacao {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.mapa-manual summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }

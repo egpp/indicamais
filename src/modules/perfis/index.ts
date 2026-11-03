@@ -63,3 +63,24 @@ export type {
   LinhaBannerAguardando,
   LinhaBannerAdmin,
 } from "./aparencia";
+export {
+  criarServicoLocalizacao,
+  montarMapaUrls,
+  coordenadasSchema,
+  foraDoBrasil,
+  paraMapaPublico,
+  paraLocalizacaoMeuPerfil,
+  mapearErroBancoLocalizacao,
+  LIMITES_BRASIL,
+  MENSAGENS_LOCALIZACAO,
+} from "./localizacao";
+export type {
+  ServicoLocalizacao,
+  ClienteBancoLocalizacao,
+  DependenciasLocalizacao,
+  MapaUrls,
+  MapaPublico,
+  LocalizacaoMeuPerfil,
+  LinhaLocalizacao,
+  Coordenadas,
+} from "./localizacao";

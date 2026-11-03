@@ -1082,3 +1082,17 @@
 .site-construcao_reformas .st-ctl {
   border-width: 0;
 }
+
+/* Mapa por estilo (IM-018): só moldura; o conteúdo do mapa é do OpenStreetMap */
+.site-minimalista .st-mapa-quadro {
+  border-radius: 0;
+  border-color: #111111;
+  box-shadow: none;
+}
+.site-gastronomia .st-mapa-quadro {
+  border: 2px solid #c8963e;
+}
+.site-construcao_reformas .st-mapa-quadro {
+  border: 3px solid #1c2025;
+  border-radius: 0;
+}

@@ -19,6 +19,7 @@ const ler = (nome: RegExp) =>
 const estilo = ler(/perfis_estilo_pagina/);
 const banner = ler(/perfis_banner/);
 const avisoBanner = ler(/notificacoes_banner_aceite/);
+const mapa = ler(/perfis_mapa_coordenadas/);
 
 const corpo = (texto: string, nome: string) =>
   [
@@ -256,5 +257,106 @@ describe("migração: aviso de banner aguardando aceite no sino (IM-047, IM-052,
     expect(avisoBanner).toMatch(
       /revoke all on function public\.notificacoes_marcar_lida\(text, uuid\) from public, anon;/,
     );
+  });
+});
+
+describe("Fase 8: mapa do OpenStreetMap, coordenadas do endereço (IM-018, IM-092, D-016)", () => {
+  const rpcs = [
+    "perfis_gravar_coordenadas",
+    "perfis_limpar_coordenadas",
+    "perfis_definir_mostrar_mapa",
+  ];
+
+  it("tabela de coordenadas: RLS forçada, política por operação, sem escrita direta", () => {
+    expect(mapa).toMatch(
+      /alter table public\.perfis_perfil_versao_local enable row level security/i,
+    );
+    expect(mapa).toMatch(
+      /alter table public\.perfis_perfil_versao_local force row level security/i,
+    );
+    for (const op of ["select", "insert", "update", "delete"]) {
+      expect(mapa).toMatch(new RegExp(`for ${op} to`, "i"));
+    }
+    expect(mapa).toMatch(
+      /revoke all on public\.perfis_perfil_versao_local from anon, authenticated/i,
+    );
+    expect(mapa).not.toMatch(
+      /grant (insert|update|delete|all)[^;]*on public\.perfis_perfil_versao_local/i,
+    );
+  });
+
+  it("faixa válida e origem restrita", () => {
+    expect(mapa).toMatch(/latitude between -90 and 90/);
+    expect(mapa).toMatch(/longitude between -180 and 180/);
+    expect(mapa).toMatch(/origem in \('geocodificado', 'informado'\)/);
+  });
+
+  it("nenhum papel lê conta_id/responsavel_id nem recebe dado de contato", () => {
+    const tabela = mapa.match(
+      /create table public\.perfis_perfil_versao_local \([\s\S]*?\n\);/i,
+    )![0];
+    expect(tabela).not.toMatch(/responsavel_id|conta_id|autor_id|whatsapp|email|telefone/i);
+    // o filtro fixo por dono (where responsavel_id = auth.uid()) não expõe a coluna; só a lista de saída é conferida
+    const visoes = mapa
+      .slice(mapa.indexOf("create or replace view"))
+      .replace(/where p\.responsavel_id = \(select auth\.uid\(\)\)/i, "");
+    expect(visoes).not.toMatch(/responsavel_id|conta_id|whatsapp|email/i);
+    for (const g of mapa.matchAll(/grant select\s*\(([^)]*)\)/gi)) {
+      expect(g[1]).not.toMatch(/responsavel_id|conta_id|autor_id/i);
+    }
+  });
+
+  it("RPCs: security definer, search_path vazio, sem execute para anon, conta suspensa bloqueada", () => {
+    for (const r of rpcs) {
+      const m = mapa.match(
+        new RegExp(`create function public\\.${r}\\([\\s\\S]*?\\$\\$;`, "i"),
+      )![0];
+      expect(m, r).toMatch(/security definer set search_path = ''/);
+      expect(m, r).toMatch(/contas_acesso_permitido\(v_uid\)/);
+      expect(m, r).toMatch(/administracao_auditoria/);
+      expect(m, r).toMatch(/responsavel_id = v_uid/);
+    }
+    expect(mapa).not.toMatch(
+      /grant execute on function public\.perfis_(gravar|limpar|definir)\w*\([^)]*\) to[^;]*\banon\b/i,
+    );
+    for (const r of rpcs) {
+      expect(mapa).toMatch(
+        new RegExp(`revoke all on function public\\.${r}\\([^)]*\\) from public, anon;`),
+      );
+    }
+  });
+
+  it("gravação valida faixa, NaN, origem e exige endereço preenchido", () => {
+    const m = mapa.match(/create function public\.perfis_gravar_coordenadas\([\s\S]*?\$\$;/i)![0];
+    expect(m).toMatch(/'NaN'/);
+    expect(m).toMatch(/not between -90 and 90/);
+    expect(m).toMatch(/not between -180 and 180/);
+    expect(m).toMatch(/coordenadas exigem endereço, cidade e UF/);
+    expect(m).toMatch(/valor_anterior/);
+  });
+
+  it("endereço que muda zera a coordenada (gatilho) e a visão compara a referência do endereço", () => {
+    expect(mapa).toMatch(/after update of endereco, cidade, uf on public\.perfis_perfil_versao/);
+    expect(mapa).toMatch(
+      /delete from public\.perfis_perfil_versao_local where versao_id = new\.id/,
+    );
+    const v = mapa.match(/create or replace view public\.perfis_perfil_publico[\s\S]*?;/i)![0];
+    expect(v).toMatch(
+      /l\.endereco_ref = public\.perfis_endereco_ref\(v\.endereco, v\.cidade, v\.uf\)/,
+    );
+    expect(v).toMatch(/p\.mostrar_mapa and/);
+    expect(v).toMatch(/security_invoker = true/);
+    expect(v).toMatch(/where p\.publicado/);
+  });
+
+  it("política pública exige perfil disponível e versão aprovada", () => {
+    const pol = mapa.match(/create policy perfis_local_select_publico[\s\S]*?;/i)![0];
+    expect(pol).toMatch(/perfis_perfil_disponivel\(perfil_id\)/);
+    expect(pol).toMatch(/versao_aprovada_id = perfis_perfil_versao_local\.versao_id/);
+  });
+
+  it("mostrar_mapa nasce ligado e não é gravável pelo cliente", () => {
+    expect(mapa).toMatch(/add column mostrar_mapa boolean not null default true/);
+    expect(mapa).not.toMatch(/grant update[^;]*mostrar_mapa/i);
   });
 });

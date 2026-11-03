@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import type { BannerPublico } from "@/modules/perfis";
+import type { BannerPublico, MapaUrls } from "@/modules/perfis";
 import type { BeneficioPublico } from "@/modules/pontos";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
@@ -12,6 +12,7 @@ import { CurtirPerfil } from "../../_componentes/form-relacionamento";
 import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
 import { obterServicoAparenciaPublico } from "../../_lib/contexto-aparencia";
 import { obterServicoPontosPublico } from "../../_lib/contexto-pontos";
+import { obterServicoLocalizacaoPublico } from "../../_lib/contexto-localizacao";
 import { obterContextoPublico } from "../../_lib/contexto-publico";
 import { estiloDaPaginaPublica } from "../../_lib/estilo-da-pagina";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
@@ -75,6 +76,14 @@ export default async function PaginaPerfilPublico({
   } catch {
     banners = [];
   }
+  // IM-018: mapa do OpenStreetMap só se ligado e com coordenada da versão aprovada; falha na leitura = sem mapa.
+  let mapa: MapaUrls | null = null;
+  try {
+    const m = await obterServicoLocalizacaoPublico().lerMapaPublico(perfil.id);
+    if (m.ok && m.valor) mapa = m.valor.urls;
+  } catch {
+    mapa = null;
+  }
   const curtida = await lerEstadoCurtida(perfil.id);
   const { estilo, previa } = await estiloDaPaginaPublica(
     perfil.id,
@@ -102,6 +111,7 @@ export default async function PaginaPerfilPublico({
         urls={{ ...urls, ...urlsBanners }}
         banners={banners}
         beneficios={beneficios}
+        mapa={mapa}
         contato={
           <>
             <AcoesDoDestino

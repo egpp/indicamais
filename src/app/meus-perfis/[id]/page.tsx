@@ -9,10 +9,12 @@ import {
   FormEnderecoPerfil,
   FormImagensPerfil,
 } from "../../_componentes/form-perfil";
+import { SecaoMapa } from "../../_componentes/form-mapa";
 import { LinkPaginaPublica, hrefPerfilPublico } from "../../_componentes/link-pagina-publica";
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora, motivoParaExibir } from "../../_lib/apresentacao";
+import { obterServicoLocalizacao } from "../../_lib/contexto-localizacao";
 import { obterContexto } from "../../_lib/contexto-sessao";
 import {
   SEM_INDEXACAO,
@@ -49,6 +51,11 @@ export default async function PaginaPerfil({
     ctx.administracao.listarMeusResultados(),
     ctx.assinarImagens(caminhosDoPerfil(c)),
   ]);
+  // IM-018: estado do mapa; falha na leitura mostra a seção como "sem coordenadas", sem derrubar a tela.
+  const loc = await obterServicoLocalizacao(`/meus-perfis/${id}`)
+    .then((svc) => svc.lerMinhaLocalizacao(id))
+    .catch(() => null);
+  const mapa = loc && loc.ok ? loc.valor : null;
   const rejeicao =
     p.estado.ultimaRejeitada && resultados.ok
       ? resultados.valor.find(
@@ -176,6 +183,19 @@ export default async function PaginaPerfil({
             Adicionar produto ou serviço
           </Link>
         </p>
+      </section>
+
+      <section aria-labelledby="titulo-mapa">
+        <h2 id="titulo-mapa">Mapa</h2>
+        <SecaoMapa
+          perfilId={p.id}
+          nome={c.nome ?? "Perfil sem nome"}
+          mostrarMapa={mapa?.mostrarMapa ?? false}
+          latitude={mapa?.latitude ?? null}
+          longitude={mapa?.longitude ?? null}
+          urls={mapa?.urls ?? null}
+          temEndereco={Boolean(c.endereco?.trim() && c.cidade?.trim() && c.uf?.trim())}
+        />
       </section>
 
       {emAnalise ? null : (
