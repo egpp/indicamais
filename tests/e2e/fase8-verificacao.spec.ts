@@ -3,8 +3,7 @@
  * ambiente de DESENVOLVIMENTO. Só leitura e negativos: toda escrita tentada é recusada ou desfeita (a RPC falha na
  * mesma transação). Sem service_role; credenciais só de variáveis de ambiente (D-011).
  *
- * O fluxo completo de envio de imagem e aceite do administrador NÃO está aqui: exige imagem real no Storage e um
- * perfil publicado com dois papéis; fica no test.fixme abaixo, sem inventar evidência.
+ * O fluxo completo (imagem real, aceite do administrador, aprovação) está em fase9-banners.spec.ts e fase9-mapa-banner-proprio.spec.ts.
  */
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { credenciais, entrar, exigirConta, nomesFaltando, type Papel } from "./contas";
@@ -373,8 +372,7 @@ test.describe("Fase 8 · telas e HTML", () => {
     expect(r404?.status()).toBe(404);
   });
 
-  test.fixme("fluxo ponta a ponta: administrador envia banner, sino do dono avisa, dono aceita e a página publica; recusa exige motivo", async () => {
-    // Pendente de dados: precisa de imagem real no Storage, perfil publicado e duas contas operando em sequência
-    // (E2E_ADMIN com permissão 'aprovar' + E2E_DONO). Ver docs/acompanhamento.md (Próxima ação).
-  });
+  // O antigo test.fixme do fluxo ponta a ponta virou testes reais: tests/e2e/fase9-banners.spec.ts (administrador envia,
+  // sino avisa, recusa exige motivo, aceite; B6.3b registra o defeito da imagem do banner do administrador) e
+  // tests/e2e/fase9-mapa-banner-proprio.spec.ts (banner próprio, limite de 6, aprovação e página pública).
 });

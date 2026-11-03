@@ -105,27 +105,6 @@ test.describe("logado", () => {
   });
 });
 
-// Fluxo de duas contas (IM-039, IM-041, IM-043, IM-045, IM-047). Pulado de propósito: a conta E2E_DONO_* do dev
-// ainda não tem perfil publicado, então não há base real para conferir. Ao criar o perfil, trocar test.fixme por test.
-test.describe("duas contas", () => {
-  test.fixme("indicador curte o perfil do dono; dono vê nome reduzido na base e aviso no sino; indicador descurte e sai", async ({
-    browser,
-  }) => {
-    exigirConta("dono");
-    exigirConta("indicador");
-    const ind = await (await browser.newContext()).newPage();
-    await entrar(ind, "indicador");
-    await ind.goto("/");
-    await ind.locator('a[href^="/perfil/"]').first().click();
-    await ind.getByRole("button", { name: "Curtir", exact: true }).click();
-    await expect(ind.getByRole("button", { name: "Descurtir" })).toBeVisible();
-    const dono = await (await browser.newContext()).newPage();
-    await entrar(dono, "dono");
-    await dono.goto("/avisos");
-    await expect(dono.getByText(/curtiu/i).first()).toBeVisible();
-    const html = await dono.content();
-    expect(html).not.toMatch(/wa\.me|mailto:|\+55\d{8,}/i);
-    await ind.getByRole("button", { name: "Descurtir" }).click();
-    await expect(ind.getByRole("button", { name: "Curtir", exact: true })).toBeVisible();
-  });
-});
+// Fluxo de duas contas (IM-039, IM-041, IM-043, IM-045, IM-047, IM-052): o antigo test.fixme virou testes reais em
+// tests/e2e/fase9-fluxos.spec.ts (B2.x e B5a, curtir, sino, avisos, base, sair da base) e tests/e2e/fase9-limite-curtir.spec.ts
+// (limite P0429, opt-in por bloquear a conta por 24 h).

@@ -15,7 +15,20 @@ const EXTENSOES = Object.values(LIMITES.imagem.extensaoPorTipo).join("|");
  */
 export type PastaImagem = "perfil" | "item" | "patrocinador";
 
-const CAMINHO = new RegExp(`^(perfil|item|patrocinador)/(${UUID})/(${UUID})\\.(${EXTENSOES})$`);
+const CAMINHO = new RegExp(
+  `^(perfil|item|patrocinador)/(${UUID})/(adm-)?(${UUID})\\.(${EXTENSOES})$`,
+);
+
+/**
+ * O prefixo `adm-` (banner enviado pelo administrador; política do Storage da migração 20261102170000) só vale
+ * em `perfil/<perfil_id>/adm-<uuid>.<ext>` (IM-093). Em item/patrocinador é recusado.
+ */
+function casar(caminho: string) {
+  const m = CAMINHO.exec(caminho);
+  if (!m) return null;
+  if (m[3] !== undefined && m[1] !== "perfil") return null;
+  return m;
+}
 
 export function validarImagem(entrada: {
   tipoMime: string;
@@ -54,12 +67,12 @@ export function gerarCaminhoImagem(
 
 /** O caminho tem o formato certo e está na pasta deste perfil/item? Impede usar imagem de outro. */
 export function caminhoDaPasta(pasta: PastaImagem, donoId: string, caminho: string): boolean {
-  const m = CAMINHO.exec(caminho);
+  const m = casar(caminho);
   return !!m && m[1] === pasta && m[2] === donoId.toLowerCase();
 }
 
 /** Só o formato (sem conferir a pasta): valida a entrada antes de saber a quem pertence. */
 export function formatoDeCaminhoValido(caminho: string, pasta?: PastaImagem): boolean {
-  const m = CAMINHO.exec(caminho);
+  const m = casar(caminho);
   return !!m && (pasta === undefined || m[1] === pasta);
 }
