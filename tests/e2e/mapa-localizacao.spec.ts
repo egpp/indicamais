@@ -71,8 +71,8 @@ test.describe("mapa na página pública", () => {
 
 test.describe("responsável: seção Mapa e prévia dos estilos", () => {
   test("painel mostra o estado, os avisos e alvos de toque de 44px", async ({ page }) => {
-    exigirConta("DONO");
-    await entrar(page, "DONO");
+    exigirConta("dono");
+    await entrar(page, "dono");
     await page.goto("/aparencia");
     if (!/\/meus-perfis\//.test(page.url()))
       await page.locator('main a[href$="/aparencia"]').first().click();
@@ -92,8 +92,8 @@ test.describe("responsável: seção Mapa e prévia dos estilos", () => {
 
   for (const estilo of ESTILOS) {
     test(`captura da seção Localização no estilo ${estilo}`, async ({ page }, info) => {
-      exigirConta("DONO");
-      await entrar(page, "DONO");
+      exigirConta("dono");
+      await entrar(page, "dono");
       await page.goto("/aparencia");
       if (!/\/meus-perfis\//.test(page.url()))
         await page.locator('main a[href$="/aparencia"]').first().click();
