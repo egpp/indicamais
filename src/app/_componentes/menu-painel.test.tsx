@@ -162,7 +162,7 @@ describe("dados do menu", () => {
         permissoes: ["analisar_denuncias", "invalidar_indicacoes"],
       }).map((i) => i.href),
     ).toEqual(["/administracao/denuncias", "/administracao/indicacoes"]);
-    expect(itensAdministracao({ geral: true, permissoes: [] }).length).toBe(10);
+    expect(itensAdministracao({ geral: true, permissoes: [] }).length).toBe(11);
   });
 
   it("hrefAtivo escolhe o prefixo mais longo e ignora rotas fora do menu", () => {
