@@ -189,6 +189,16 @@ select is((select count(*)::int from public.loja_listar_imoveis()), 0, 'e a list
 select is((select count(*)::int from public.catalogo_item_publico where tipo = 'produto'), 1, 'produto segue no catálogo simples');
 select is(public.catalogo_imagem_publica(format('item/%s/e1.jpg', t.item('a0000000-0000-0000-0000-000000000001', 'produto'))), false, 'foto adicional deixa de ser pública');
 select is(public.catalogo_imagem_publica(format('item/%s/p.jpg', t.item('a0000000-0000-0000-0000-000000000001', 'produto'))), true, 'a foto principal do catálogo simples segue pública');
+select is((select count(*)::int from public.catalogo_item_versao v join public.catalogo_item i on i.id = v.item_id where i.tipo = 'imovel'), 0, 'leitura direta da tabela de versões: anon não lê imóvel sem a Loja');
+select is((select count(*)::int from public.catalogo_item_versao v join public.catalogo_item i on i.id = v.item_id where i.tipo = 'produto'), 1, 'e o produto segue legível (retirar não despublica)');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+select is((select count(*)::int from public.catalogo_item_versao v join public.catalogo_item i on i.id = v.item_id where i.tipo = 'imovel'), 0, 'usuário que não é dono também não lê imóvel sem a Loja');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select is((select count(*)::int from public.catalogo_item_versao v join public.catalogo_item i on i.id = v.item_id where i.tipo = 'imovel' and i.perfil_id = 'a0000000-0000-0000-0000-000000000001'), 1, 'o dono segue lendo o próprio imóvel sem a Loja');
 reset role;
 
 set local role authenticated;

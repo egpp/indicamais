@@ -185,7 +185,11 @@ test.describe("aparência (responsável)", () => {
 });
 
 test.describe("administração dos estilos e dos banners", () => {
-  test("administrador geral vê os estilos; o responsável recebe 404", async ({ page, browser }) => {
+  test("administrador geral vê os estilos; o responsável recebe 404", async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
     exigirConta("admin");
     await entrar(page, "admin");
     await page.goto("/administracao/estilos");
@@ -193,9 +197,9 @@ test.describe("administração dos estilos e dos banners", () => {
     await expect(page.locator("ul.lista-cartoes > li")).toHaveCount(20);
     await page.goto("/administracao/negocios");
     await expect(page.getByRole("heading", { level: 1, name: "Perfis e itens" })).toBeVisible();
-    const contexto = await browser.newContext();
+    const contexto = await browser.newContext({ baseURL: baseURL! });
     const outra = await contexto.newPage();
-    const r = await outra.goto("http://localhost:3000/administracao/estilos");
+    const r = await outra.goto("/administracao/estilos");
     expect(r?.url()).toMatch(/entrar/);
     await contexto.close();
   });

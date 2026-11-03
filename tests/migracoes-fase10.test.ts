@@ -13,6 +13,7 @@ const ler = (n: string) =>
 const liberacao = ler("20261103130000_loja_liberacao.sql");
 const itens = ler("20261103140000_loja_itens_imovel.sql");
 const leitura = ler("20261103150000_loja_leitura_publica.sql");
+const direta = ler("20261103160000_loja_leitura_direta_imovel.sql");
 
 describe("Loja: liberação por perfil (IM-099, D-020)", () => {
   it("tabela com RLS forçada, política por operação e sem privilégio de escrita", () => {
@@ -115,5 +116,20 @@ describe("Loja: leitura pública (IM-029, IM-079)", () => {
     expect(leitura).toMatch(
       /grant execute on function public\.loja_listar_imoveis\([^)]*\) to anon, authenticated;/,
     );
+  });
+});
+
+describe("Loja: leitura direta da tabela de versões (IM-097, IM-098)", () => {
+  it("a política pública exige Loja liberada para imóvel, sem abrir loja_ativa a papéis de API", () => {
+    expect(direta).toMatch(/drop policy catalogo_item_versao_select_publica/);
+    expect(direta).toMatch(
+      /create policy catalogo_item_versao_select_publica[\s\S]*to anon, authenticated/,
+    );
+    expect(direta).toMatch(/i\.tipo <> 'imovel' or exists/);
+    expect(direta).toMatch(
+      /from public\.loja_liberacao l where l\.perfil_id = i\.perfil_id and l\.liberada/,
+    );
+    expect(direta).not.toMatch(/grant execute/i);
+    expect(direta).not.toMatch(/publicado\s*=\s*(true|false)/);
   });
 });

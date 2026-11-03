@@ -100,10 +100,11 @@ test.describe("indicador gera e compartilha o link (IM-024)", () => {
   test("gera link com ?ind=, copia e oferece compartilhar no WhatsApp", async ({
     page,
     context,
+    baseURL,
   }) => {
     exigirConta("indicador");
     await context
-      .grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://localhost:3000" })
+      .grantPermissions(["clipboard-read", "clipboard-write"], { origin: baseURL! })
       .catch(() => undefined);
     await entrar(page, "indicador");
     await abrirPerfil(page);

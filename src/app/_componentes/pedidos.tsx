@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { ContatoAdmin, PedidoContato } from "@/modules/indicacoes";
 import { formatarE164BR } from "@/shared/formatacao/telefone";
 import { formatarDataHora } from "../_lib/apresentacao";
+import { rotuloTipoItem } from "../_lib/tipo-item";
 import { SeloEstado } from "./painel";
 
 /**
@@ -32,12 +33,15 @@ export function CartaoPedido({
   pedido,
   emailConfigurado,
   administracao,
+  tipoItem,
   children,
 }: {
   pedido: PedidoContato | ContatoAdmin;
   emailConfigurado: boolean;
   /** Dados extras da administração (suspeita, tentativas, alerta). */
   administracao?: ContatoAdmin;
+  /** Tipo do item de destino (produto, servico, imovel), quando conhecido. */
+  tipoItem?: string | null;
   children?: ReactNode;
 }) {
   const wa = urlWhatsappDoPedido(pedido.visitanteWhatsapp);
@@ -45,7 +49,9 @@ export function CartaoPedido({
     <li className="cartao">
       <h2>{pedido.visitanteNome}</h2>
       <p>
-        <SeloEstado rotulo={pedido.destinoTipo === "perfil" ? "Perfil" : "Produto ou serviço"} />{" "}
+        <SeloEstado
+          rotulo={pedido.destinoTipo === "perfil" ? "Perfil" : rotuloTipoItem(tipoItem)}
+        />{" "}
         {pedido.destinoNome}
       </p>
       <dl className="lista-dados">

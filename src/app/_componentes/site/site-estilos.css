@@ -182,6 +182,31 @@
   font-size: 1.0625rem;
   text-align: right;
 }
+/* Celular estreito: imagem acima, texto e preço abaixo, em largura total (a coluna ao lado da miniatura ficava estreita). */
+@media (max-width: 400px) {
+  .site-minimalista .st-card {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .site-minimalista .st-card-imagem img,
+  .site-minimalista .st-card-sem-imagem {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  .site-minimalista .st-card-corpo {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .site-minimalista .st-card-preco {
+    grid-column: 1;
+    grid-row: 3;
+    text-align: left;
+  }
+}
 .site-minimalista .st-card-tipo {
   color: var(--s-suave);
   font-weight: 500;

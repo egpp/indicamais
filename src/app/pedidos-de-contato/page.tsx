@@ -6,6 +6,7 @@ import { Aviso } from "../_componentes/ui";
 import { acaoPedirReenvio } from "../acoes-indicacoes";
 import { obterContextoIndicacoes } from "../_lib/contexto-indicacoes";
 import { provedorEmailConfigurado } from "../_lib/notificacoes-contato";
+import { obterContexto } from "../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../_lib/pagina";
 
 export const metadata: Metadata = { title: "Pedidos de contato | IndicaMais", ...SEM_INDEXACAO };
@@ -19,6 +20,11 @@ export default async function PaginaPedidosDeContato() {
   const ctx = await obterContextoIndicacoes("/pedidos-de-contato");
   const [admin, r] = await Promise.all([ctx.ehAdministrador(), ctx.servico.listarMeusPedidos()]);
   const emailConfigurado = provedorEmailConfigurado();
+  const meus =
+    r.ok && r.valor.some((p) => p.destinoTipo === "item")
+      ? await (await obterContexto("/pedidos-de-contato")).itens.listarMeus()
+      : null;
+  const tipos = new Map((meus?.ok ? meus.valor : []).map((i) => [i.id, i.tipo] as const));
   return (
     <PainelPagina
       titulo="Pedidos de contato"
@@ -33,7 +39,12 @@ export default async function PaginaPedidosDeContato() {
       ) : (
         <ul className="lista-cartoes">
           {r.valor.map((p) => (
-            <CartaoPedido key={p.id} pedido={p} emailConfigurado={emailConfigurado}>
+            <CartaoPedido
+              key={p.id}
+              pedido={p}
+              tipoItem={tipos.get(p.destinoId)}
+              emailConfigurado={emailConfigurado}
+            >
               {p.notificacaoEstado === "falhou" ? (
                 <FormAcao
                   acao={acaoPedirReenvio}
