@@ -100,6 +100,8 @@ describe("migrações: funções", () => {
       .sort();
     expect(concedidas).toEqual([
       "administracao_denunciar",
+      "busca_home_secao_perfis",
+      "busca_home_secoes",
       "busca_normalizar",
       "busca_publica",
       "catalogo_imagem_publica",

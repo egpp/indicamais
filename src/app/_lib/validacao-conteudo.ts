@@ -8,7 +8,7 @@ import {
   solicitarCategoriaSchema,
 } from "@/modules/catalogo";
 import { camposPerfilSchema, novoPerfilSchema } from "@/modules/perfis";
-import { decidirRevisaoSchema } from "@/modules/administracao";
+import { alterarSecaoHomeSchema, decidirRevisaoSchema } from "@/modules/administracao";
 import { validarCategorias } from "@/shared/conteudo/categorias";
 import { errosPorCampo as errosDoZod } from "@/shared/conteudo/zod-util";
 import {
@@ -139,6 +139,20 @@ export const validarAlteracaoCategoria = (d: Dados): Erros =>
       nome: d.nome ?? "",
       ativa: d.ativa === "sim",
       ordem: Number(d.ordem ?? "0"),
+      motivo: d.motivo ?? "",
+    }),
+  );
+
+/** Edição de uma seção da home (IM-096): o mesmo schema do servidor; os números chegam como texto e o schema os converte. */
+export const validarAlteracaoSecaoHome = (d: Dados): Erros =>
+  resultado(
+    alterarSecaoHomeSchema.safeParse({
+      chave: d.chave ?? "",
+      titulo: d.titulo ?? "",
+      ativa: d.ativa ?? "",
+      ordem: d.ordem ?? "",
+      minimoItens: d.minimoItens ?? "",
+      limitePadrao: d.limitePadrao ?? "",
       motivo: d.motivo ?? "",
     }),
   );
