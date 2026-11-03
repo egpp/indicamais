@@ -21,8 +21,14 @@ import { metadadosPublicos, resumir } from "../../_lib/metadados-publicos";
  */
 export const dynamic = "force-dynamic";
 
-const rotuloDoTipo = (anuncio: boolean, tipo: "produto" | "servico") =>
-  anuncio ? "Anúncio particular" : tipo === "produto" ? "Produto" : "Serviço";
+const rotuloDoTipo = (anuncio: boolean, tipo: "produto" | "servico" | "imovel") =>
+  anuncio
+    ? "Anúncio particular"
+    : tipo === "produto"
+      ? "Produto"
+      : tipo === "imovel"
+        ? "Imóvel"
+        : "Serviço";
 
 export async function generateMetadata({ params }: PageProps<"/item/[id]">): Promise<Metadata> {
   const { id } = await params;

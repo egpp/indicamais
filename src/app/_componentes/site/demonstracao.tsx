@@ -350,6 +350,8 @@ export function demonstracaoDoEstilo(estilo: EstiloId, base?: PerfilExibicao): D
     cidade: null,
     uf: null,
     precoTexto: i.preco,
+    imovel: null,
+    fotosExtrasPaths: [],
   }));
   const beneficios: BeneficioPublico[] = r.beneficios.map((b, n) => ({
     id: `demo-beneficio-${n + 1}`,

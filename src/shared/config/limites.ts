@@ -29,6 +29,15 @@ export const LIMITES = {
   categorias: { secundariasMax: 2 },
   item: { nomeMax: 100, descricaoMax: 1500, cidadeMin: 2 },
   preco: { minCentavos: 1, maxCentavos: 100_000_000 },
+  /** Loja e imóveis (IM-097, IM-098, D-020): espelham os CHECKs de catalogo_item_versao. */
+  imovel: {
+    areaMaxM2: 100_000_000,
+    contagemMax: 50,
+    bairroMin: 2,
+    bairroMax: 80,
+    extraMaxCentavos: 100_000_000,
+    fotosExtrasMax: 8,
+  },
   categoria: { nomeMin: 2, nomeMax: 60, justificativaMax: 300, pendentesMaxPorConta: 5 },
   revisao: { motivoMax: 500 },
   /** Patrocinadores do carrossel (IM-020, D-008). Sem preço nem cobrança. */

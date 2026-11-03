@@ -30,6 +30,7 @@ import {
   type LinhaItem,
   type LinhaItemVersao,
 } from "./modelos";
+import { temCampoDeImovel } from "./imovel";
 import { aplicarCamposItem, pendenciasDoItem, validarConteudoItem } from "./regras";
 import { camposItemSchema, novoItemSchema, type TipoItem } from "./schemas";
 
@@ -140,7 +141,7 @@ export function montarMeuItem(item: LinhaItem, versoes: LinhaItemVersao[]): MeuI
     versaoAbertaId: aberta?.id ?? null,
     conteudoEdicao,
     conteudoNoAr: aprovada ? conteudoDeVersao(aprovada) : null,
-    pendencias: pendenciasDoItem(conteudoEdicao, item.perfil_id === null),
+    pendencias: pendenciasDoItem(conteudoEdicao, item.perfil_id === null, item.tipo),
     criadoEm: item.criado_em,
   };
 }
@@ -215,7 +216,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         }
         const { tipo, perfilId, ...campos } = p.data;
         const conteudo = aplicarCamposItem(CONTEUDO_ITEM_VAZIO, campos);
-        const incoerencias = validarConteudoItem(conteudo, null, !perfilId);
+        const incoerencias = validarConteudoItem(conteudo, null, !perfilId, tipo);
         if (Object.keys(incoerencias).length > 0) {
           return falha(
             erroCatalogo("VALIDACAO", Object.values(incoerencias)[0]!, { campos: incoerencias }),
@@ -224,6 +225,23 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         const criado = await banco.criarItem(dadosDeCriacao(conteudo, tipo, perfilId ?? null));
         if (criado.erro) return falha(mapearErroBancoCatalogo(criado.erro));
         if (!criado.dados) return falha(interno());
+        // A função de criação só leva os campos básicos; os campos do imóvel (IM-098) entram no rascunho recém-criado.
+        if (tipo === "imovel" && temCampoDeImovel(conteudo)) {
+          const cols = colunasDeConteudo(conteudo);
+          const r = await banco.atualizarVersao(criado.dados.versao_id, {
+            imovel_tipo: cols.imovel_tipo,
+            finalidade: cols.finalidade,
+            area_m2: cols.area_m2,
+            quartos: cols.quartos,
+            banheiros: cols.banheiros,
+            vagas: cols.vagas,
+            bairro: cols.bairro,
+            condominio_centavos: cols.condominio_centavos,
+            iptu_centavos: cols.iptu_centavos,
+            aceita_financiamento: cols.aceita_financiamento,
+          });
+          if (r.erro) return falha(mapearErroBancoCatalogo(r.erro));
+        }
         const c = await carregar(criado.dados.item_id);
         if (!c.ok) return c;
         return { ok: true, valor: montarMeuItem(c.valor.item, c.valor.versoes) };
@@ -261,7 +279,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
               : undefined;
         const base = baseLinha ? conteudoDeVersao(baseLinha) : CONTEUDO_ITEM_VAZIO;
         const novo = aplicarCamposItem(base, p.data);
-        const incoerencias = validarConteudoItem(novo, itemId, item.perfil_id === null);
+        const incoerencias = validarConteudoItem(novo, itemId, item.perfil_id === null, item.tipo);
         if (Object.keys(incoerencias).length > 0) {
           return falha(
             erroCatalogo("VALIDACAO", Object.values(incoerencias)[0]!, { campos: incoerencias }),
@@ -325,7 +343,7 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         const aberta = versaoAberta(versoes);
         const linha = aberta ?? maisRecenteDecidida(versoes);
         const conteudo = linha ? conteudoDeVersao(linha) : CONTEUDO_ITEM_VAZIO;
-        const pendencias = pendenciasDoItem(conteudo, item.perfil_id === null);
+        const pendencias = pendenciasDoItem(conteudo, item.perfil_id === null, item.tipo);
         return {
           ok: true,
           valor: {
@@ -346,7 +364,11 @@ export function criarServicoItens(banco: ClienteBancoItens) {
         const aberta = versaoAberta(versoes);
         if (!aberta) return falha(erroCatalogo("ESTADO_INVALIDO", M.nenhumRascunho));
         if (aberta.situacao === "pendente") return falha(erroCatalogo("EM_ANALISE", M.emAnalise));
-        const pendencias = pendenciasDoItem(conteudoDeVersao(aberta), item.perfil_id === null);
+        const pendencias = pendenciasDoItem(
+          conteudoDeVersao(aberta),
+          item.perfil_id === null,
+          item.tipo,
+        );
         if (pendencias.length > 0) {
           return falha(erroCatalogo("INCOMPLETO", M.incompleto, { pendencias }));
         }
