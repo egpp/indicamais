@@ -201,6 +201,15 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-019 · 03/11/2026 · Ajustes da Fase 9 (IM-095, IM-096)
+**IDs:** IM-095, IM-096. Aceitos pelo Emerson em 03/11/2026 ("aceito suas sugestões"); substitui os pontos correspondentes da D-018.
+- **Cards por linha:** 4 (o contêiner público tem 64rem; com 5 o selo e o texto ficam apertados). Constante `CARDS_POR_LINHA_LARGA`.
+- **"Na sua cidade":** os carrosséis aparecem só na home sem filtro. Com login usa a cidade do perfil da pessoa; a cidade escolhida na busca não alimenta a seção (a busca já mostra os resultados da cidade). Isso substitui o trecho "com a busca, usa a cidade escolhida" da D-018.
+- **"Em alta na semana":** atividade (curtir ou indicar) de pessoas distintas nos últimos 7 dias, não crescimento. "Mais indicados" conta pessoas distintas que indicaram.
+- **Cache:** memória de 60 s por instância; cache incremental compartilhado do OpenNext (R2/KV, possível custo) fica para quando houver tráfego (IM-089).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
