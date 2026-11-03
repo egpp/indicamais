@@ -4,6 +4,7 @@
  *  - Bloco 3: link, contato de visitante anônimo, +10 pontos, reversão, parâmetro (IM-030, IM-035, IM-078)
  *  - Bloco 4: benefício proposto pelo administrador, aceite do dono, vitrine anônima (IM-036, IM-079)
  *  - Bloco 5: sair da base (IM-045)
+ATENÇÃO: depois de rodar fase9-limite-curtir.spec.ts, B2.1 (curtir) falha por até 24 h com a conta E2E_INDICADOR no perfil-1 (P0429 é esperado).
  * O limite de curtir (P0429) fica em fase9-limite-curtir.spec.ts, opt-in, porque bloqueia a conta por 24 h.
  * Sem service_role. Dados criados têm prefixo "E2E ". Só no projeto desktop e em ordem (serial), porque cada etapa
  * depende da anterior. Credenciais só por variáveis E2E_* (nunca impressas). Capturas em test-results/fase9/.
@@ -295,6 +296,26 @@ test.describe("Fase 9 · blocos 2 a 5 (DEV)", () => {
     await expect(pedido).toContainText("Veio por indicação");
     const html = await dono.locator("main").innerText();
     expect(html).not.toMatch(/indicador@example|99999-?0001/);
+  });
+
+  test("B2.7 Abrir um aviso leva ao painel do perfil e, se estava novo, marca como lido", async () => {
+    const dono = S("dono");
+    await dono.goto("/avisos");
+    const cartao = dono
+      .locator("li.cartao", { has: dono.getByRole("button", { name: "Abrir" }) })
+      .first();
+    await expect(cartao).toBeVisible();
+    const eraNovo = /aviso-nao-lido/.test((await cartao.getAttribute("class")) ?? "");
+    const novosAntes = await dono.locator("li.cartao.aviso-nao-lido").count();
+    await cartao.getByRole("button", { name: "Abrir" }).click();
+    await expect(dono).toHaveURL(/\/(meus-perfis|meus-itens|perfil|item)\//, { timeout: 45_000 });
+    await dono.screenshot({ path: FOTO("b2-avisos-abrir-destino") });
+    if (eraNovo) {
+      await dono.goto("/avisos");
+      await expect(dono.locator("li.cartao.aviso-nao-lido")).toHaveCount(novosAntes - 1, {
+        timeout: 30_000,
+      });
+    }
   });
 
   test("B2.2 /avisos: marcar uma como lida e depois todas; o sino acompanha", async () => {
