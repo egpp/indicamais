@@ -78,6 +78,24 @@ export type {
   FiltroNegociosEntrada,
 } from "./consulta-negocios";
 
+// Seções em carrossel da home: edição pelo administrador geral (IM-096, D-018).
+export { alterarSecaoHomeSchema, LIMITES_HOME } from "./home-schemas";
+export type { AlterarSecaoHome } from "./home-schemas";
+export {
+  criarServicoHomeAdmin,
+  mapearErroBancoHomeAdmin,
+  paraSecaoHomeAdmin,
+  MENSAGENS_HOME_ADMIN,
+} from "./home-servico";
+export type {
+  ServicoHomeAdmin,
+  ClienteBancoHomeAdmin,
+  LinhaSecaoHomeAdmin,
+  SecaoHomeAdmin,
+  ParamsAlterarSecaoHome,
+  ResultadoHomeAdm,
+} from "./home-servico";
+
 // Permissões, denúncias, suspensão e invalidação de indicações (Fase 6, D-014: IM-076, IM-077, IM-080).
 export {
   PERMISSOES,
