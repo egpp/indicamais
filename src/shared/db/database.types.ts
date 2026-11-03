@@ -419,6 +419,42 @@ export type Database = {
           },
         ]
       }
+      busca_home_secao: {
+        Row: {
+          ativa: boolean
+          atualizado_em: string
+          chave: string
+          criado_em: string
+          limite_padrao: number
+          minimo_itens: number
+          ordem: number
+          tipo_item: string
+          titulo: string
+        }
+        Insert: {
+          ativa?: boolean
+          atualizado_em?: string
+          chave: string
+          criado_em?: string
+          limite_padrao?: number
+          minimo_itens?: number
+          ordem: number
+          tipo_item?: string
+          titulo: string
+        }
+        Update: {
+          ativa?: boolean
+          atualizado_em?: string
+          chave?: string
+          criado_em?: string
+          limite_padrao?: number
+          minimo_itens?: number
+          ordem?: number
+          tipo_item?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       catalogo_categoria: {
         Row: {
           ativa: boolean
@@ -3939,6 +3975,18 @@ export type Database = {
       }
     }
     Functions: {
+      administracao_alterar_home_secao: {
+        Args: {
+          p_ativa: boolean
+          p_chave: string
+          p_limite_padrao: number
+          p_minimo_itens: number
+          p_motivo: string
+          p_ordem: number
+          p_titulo: string
+        }
+        Returns: undefined
+      }
       administracao_alterar_patrocinador: {
         Args: {
           p_fim_em: string
@@ -4040,6 +4088,58 @@ export type Database = {
       administracao_tem_permissao: {
         Args: { p_conta: string; p_permissao: string }
         Returns: boolean
+      }
+      busca_home_candidatos: {
+        Args: { p_chave: string; p_cidade: string; p_uf: string }
+        Returns: {
+          o_categoria_id: string
+          o_categoria_nome: string
+          o_categoria_slug: string
+          o_cidade: string
+          o_descricao: string
+          o_id: string
+          o_imagem_path: string
+          o_metrica: number
+          o_nome: string
+          o_posicao: number
+          o_slug: string
+          o_uf: string
+        }[]
+      }
+      busca_home_secao_perfis: {
+        Args: {
+          p_chave: string
+          p_cidade?: string
+          p_limite?: number
+          p_uf?: string
+        }
+        Returns: {
+          o_categoria_id: string
+          o_categoria_nome: string
+          o_categoria_slug: string
+          o_cidade: string
+          o_descricao: string
+          o_id: string
+          o_imagem_path: string
+          o_metrica: number
+          o_nome: string
+          o_posicao: number
+          o_slug: string
+          o_uf: string
+        }[]
+      }
+      busca_home_secoes: {
+        Args: { p_cidade?: string; p_uf?: string }
+        Returns: {
+          o_chave: string
+          o_exibir: boolean
+          o_limite_padrao: number
+          o_minimo_itens: number
+          o_ordem: number
+          o_tipo_item: string
+          o_titulo: string
+          o_total_itens: number
+        }[]
       }
       busca_normalizar: { Args: { p_texto: string }; Returns: string }
       busca_publica: {
