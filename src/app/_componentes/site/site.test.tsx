@@ -15,20 +15,6 @@ import { MenuSite } from "./menu-site";
 import { MiniaturaEstilo } from "./miniatura-estilo";
 import { linkComoChegar } from "./site-negocio";
 
-vi.mock("next/font/google", () => {
-  const f = (o: { variable: string }) => ({ variable: o.variable, className: o.variable });
-  return {
-    Barlow: f,
-    Barlow_Condensed: f,
-    Cormorant_Garamond: f,
-    Inter: f,
-    Jost: f,
-    Lato: f,
-    Nunito: f,
-    Playfair_Display: f,
-  };
-});
-
 afterEach(() => {
   cleanup();
   vi.useRealTimers();

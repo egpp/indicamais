@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(raiz, "src"),
-      "next/font/google": path.resolve(raiz, "tests/fixtures/next-font-google.ts"),
+      "next/font/local": path.resolve(raiz, "tests/fixtures/next-font-local.ts"),
     },
   },
   test: {

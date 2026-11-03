@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { RodapeSite } from "./_componentes/marca";
 import "./globals.css";
 
-/** Sans geométrica livre, próxima do logotipo. Servida pelo próprio site (sem pedido a terceiros no navegador). */
-const fonteCorpo = Plus_Jakarta_Sans({
-  subsets: ["latin"],
+/** Sans geométrica livre, próxima do logotipo. Hospedada no projeto (OFL, variável, latin): sem rede no build nem pedido a terceiros. */
+const fonteCorpo = localFont({
+  src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+  weight: "200 800",
   display: "swap",
   variable: "--fonte-corpo",
 });

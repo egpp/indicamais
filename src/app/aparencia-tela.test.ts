@@ -15,20 +15,6 @@ import {
   salvarEstilo,
 } from "./_lib/tratadores-aparencia";
 
-vi.mock("next/font/google", () => {
-  const f = (o: { variable: string }) => ({ variable: o.variable });
-  return {
-    Barlow: f,
-    Barlow_Condensed: f,
-    Cormorant_Garamond: f,
-    Inter: f,
-    Jost: f,
-    Lato: f,
-    Nunito: f,
-    Playfair_Display: f,
-  };
-});
-
 const P = "11111111-1111-4111-8111-111111111111";
 const B = "22222222-2222-4222-8222-222222222222";
 const ok = { erro: null };
