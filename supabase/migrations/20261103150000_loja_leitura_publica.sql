@@ -138,7 +138,8 @@ end $$;
 revoke all on function public.loja_listar_imoveis(text, text, bigint, bigint, integer, text, text, text, uuid, integer, integer) from public;
 grant execute on function public.loja_listar_imoveis(text, text, bigint, bigint, integer, text, text, text, uuid, integer, integer) to anon, authenticated;
 
--- Storage: a foto adicional de item no ar é pública; em rascunho/pendente/no ar não pode ser apagada ----------------------
+-- Storage: a foto adicional de item no ar é pública; em rascunho/pendente/no ar não pode ser apagada. As duas funções repetem a
+-- definição VIGENTE (20261102170000: perfis, catálogo, patrocinador e banner) e só acrescentam a Loja ----------------------
 create or replace function public.catalogo_imagem_publica(p_nome text) returns boolean
 language sql stable security definer set search_path = '' as $$
   select exists (
@@ -146,6 +147,10 @@ language sql stable security definer set search_path = '' as $$
     where v.imagem_path = p_nome or p_nome = any (v.banners_paths) or p_nome = any (v.fotos_paths)
   ) or exists (
     select 1 from public.catalogo_item_publico v where v.foto_path = p_nome
+  ) or exists (
+    select 1 from public.administracao_patrocinador_publico v where v.imagem_path = p_nome
+  ) or exists (
+    select 1 from public.perfis_banner_publico v where v.imagem_path = p_nome
   ) or exists (
     select 1 from public.loja_item_publico v where v.foto_path = p_nome or p_nome = any (v.fotos_extras_paths)
   );
@@ -163,5 +168,12 @@ language sql stable security definer set search_path = '' as $$
     left join public.catalogo_item i on i.versao_aprovada_id = v.id
     where (v.situacao in ('rascunho', 'pendente') or i.id is not null)
       and (v.foto_path = p_nome or p_nome = any (v.fotos_extras_paths))
+  ) or exists (
+    select 1 from public.perfis_banner b
+    left join public.perfis_perfil_versao v on v.id = b.versao_id
+    left join public.perfis_perfil p on p.versao_aprovada_id = b.versao_id
+    where b.imagem_path = p_nome
+      and ((b.origem = 'responsavel' and (v.situacao in ('rascunho', 'pendente') or p.id is not null))
+           or (b.origem = 'administrador' and b.situacao in ('aguardando_aceite', 'aceito')))
   );
 $$;
