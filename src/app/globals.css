@@ -1479,3 +1479,98 @@ fieldset.grupo-imagens {
     padding: var(--e6);
   }
 }
+
+/* Fase 9: seções em carrossel da home (IM-095, D-018). Celular primeiro; 4 ou 5 cards por linha em tela larga. */
+.secoes-home {
+  margin: var(--e4) 0;
+}
+.secao-home {
+  margin: var(--e6) 0;
+}
+.secao-home-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e3);
+}
+.secao-home-topo h2 {
+  margin: 0;
+}
+.secao-home-botoes {
+  display: flex;
+  gap: var(--e2);
+}
+.botao-carrossel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--grafite);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.botao-carrossel:hover {
+  background: var(--coral-fundo);
+}
+.botao-carrossel[aria-disabled="true"] {
+  color: var(--texto-suave);
+  border-color: var(--borda-suave);
+  background: var(--fundo);
+  cursor: default;
+  opacity: 0.6;
+}
+.carrossel-home {
+  margin-top: var(--e2);
+  padding: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 6px;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+.carrossel-home:focus-visible {
+  outline: 3px solid var(--grafite);
+  outline-offset: 0;
+  border-radius: var(--raio);
+}
+.carrossel-home > ul {
+  display: flex;
+  gap: var(--e3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Celular: card de largura fixa; o próximo aparece pela metade para indicar que há mais. */
+.carrossel-home > ul > li {
+  flex: 0 0 min(72%, 15rem);
+  scroll-snap-align: start;
+}
+.carrossel-home .card-publico:hover {
+  transform: none;
+}
+@media (min-width: 640px) {
+  .carrossel-home > ul > li {
+    flex-basis: calc((100% - 2 * var(--e3)) / 3);
+  }
+}
+@media (min-width: 720px) {
+  .carrossel-home > ul > li {
+    flex-basis: calc((100% - (var(--cards-media) - 1) * var(--e3)) / var(--cards-media));
+  }
+}
+@media (min-width: 1024px) {
+  .carrossel-home > ul > li {
+    flex-basis: calc((100% - (var(--cards-larga) - 1) * var(--e3)) / var(--cards-larga));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carrossel-home {
+    scroll-behavior: auto;
+  }
+}

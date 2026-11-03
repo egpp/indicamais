@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { PaginaBusca } from "@/modules/busca";
+import type { PaginaBusca, SecaoHome } from "@/modules/busca";
+import { SecoesDaHome } from "./_componentes/secoes-home";
+import { obterSecoesDaHomeEmCache } from "./_lib/cache-home";
+import { obterLocalizacaoDaHome } from "./_lib/contexto-home";
 import {
   CabecalhoPublico,
   CarrosselPatrocinados,
@@ -57,7 +60,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   const filtrada = haFiltro(valores);
   const ctx = obterContextoPublico();
 
-  const [filtros, patrocinadores, resultado, perfis, secao] = await Promise.all([
+  const [filtros, patrocinadores, resultado, perfis, secao, secoesHome] = await Promise.all([
     ctx.busca.listarFiltros(),
     filtrada ? Promise.resolve(null) : ctx.patrocinadores.listarPatrocinadoresPublicos(),
     filtrada
@@ -75,6 +78,10 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       ? Promise.resolve(null)
       : ctx.busca.buscar({ tipo: "perfil", pagina: 1, limite: NA_SECAO }),
     filtrada ? Promise.resolve(null) : ctx.busca.secaoProdutosEServicos(NA_SECAO),
+    // Seções em carrossel (IM-095, D-018): só na home sem filtro; vêm do cache em intervalos. Falha = lista vazia.
+    filtrada
+      ? Promise.resolve([] as SecaoHome[])
+      : obterLocalizacaoDaHome(valores).then(obterSecoesDaHomeEmCache),
   ]);
 
   const listaPatrocinados = patrocinadores?.ok ? patrocinadores.valor : [];
@@ -83,7 +90,13 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   const produtos = secao?.ok ? secao.valor.produtos : [];
   const servicos = secao?.ok ? secao.valor.servicos : [];
 
-  const todos = [...(paginaBusca?.cards ?? []), ...cardsPerfis, ...produtos, ...servicos];
+  const todos = [
+    ...(paginaBusca?.cards ?? []),
+    ...cardsPerfis,
+    ...produtos,
+    ...servicos,
+    ...secoesHome.flatMap((s) => s.itens),
+  ];
   const urls = await ctx.assinarImagens([
     ...todos.flatMap((c) => (c.imagemPath ? [c.imagemPath] : [])),
     ...listaPatrocinados.map((p) => p.imagemPath),
@@ -143,6 +156,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           {erroSecoes ? (
             <Aviso tipo="erro">Não foi possível carregar a lista agora. Tente novamente.</Aviso>
           ) : null}
+          <SecoesDaHome secoes={secoesHome} urls={urls} />
           <section aria-labelledby="titulo-perfis">
             <h2 id="titulo-perfis">Empresas e profissionais</h2>
             {cardsPerfis.length === 0 && !erroSecoes ? (
