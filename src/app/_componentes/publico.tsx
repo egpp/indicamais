@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-img-element -- URLs assinadas do Storage mudam a cada visita; next/image não as otimiza. */
 import Link from "next/link";
 import { LogoMarca } from "./marca";
+import { CarrosselHome } from "./carrossel-home";
 import { LinksConta } from "./sino-avisos";
-import type { CardBusca, FiltrosDisponiveis, TipoBusca } from "@/modules/busca";
+import type { CardBusca, TipoBusca } from "@/modules/busca";
 import type { PatrocinadorPublico } from "@/modules/administracao";
 import type { ImovelExibicao, ItemExibicao } from "@/modules/catalogo";
 import { ROTAS_PUBLICAS } from "@/shared/config/rotas-publicas";
@@ -119,35 +120,62 @@ export function dadosDeItem(
   };
 }
 
+/** Imagem do card: proporção fixa e `object-fit: cover`; sem imagem, o mesmo espaço com um texto (nunca uma caixa vazia). */
+function ImagemDoCard({ url }: { url: string | undefined }) {
+  return (
+    <div className="card-imagem">
+      {url ? (
+        <img src={url} alt="" loading="lazy" />
+      ) : (
+        <span className="imagem-indisponivel">Sem imagem</span>
+      )}
+    </div>
+  );
+}
+
+const PIN_LOCAL = (
+  <svg
+    viewBox="0 0 24 24"
+    width="14"
+    height="14"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>
+);
+
+/**
+ * Card público: TODOS têm o mesmo tamanho. Cinco linhas fixas (tipo, nome em até 2 linhas, preço ou categoria,
+ * descrição em até 2 linhas, local), cada uma com altura reservada e reticências; o local fica sempre na base.
+ * Sem botão de curtir: a curtida (IM-013) vive na página do perfil e do item, não nos cards.
+ */
 export function CartaoPublico({ dados, urls }: { dados: DadosCard; urls: Urls }) {
   const url = dados.imagemPath ? urls[dados.imagemPath] : undefined;
   return (
     <article className="card-publico">
-      <div className="card-imagem">
-        {url ? (
-          <img src={url} alt="" loading="lazy" />
-        ) : (
-          <span className="imagem-indisponivel">Sem imagem</span>
-        )}
-      </div>
+      <ImagemDoCard url={url} />
       <div className="card-corpo">
         <p className="card-tipo">{dados.rotuloTipo}</p>
-        <h3>
+        <h3 className="card-nome">
           <Link className="card-link" href={dados.link}>
             {dados.nome}
           </Link>
         </h3>
-        {dados.precoTexto ? <p className="preco-card">{dados.precoTexto}</p> : null}
-        {dados.chips && dados.chips.length > 0 ? (
-          <ul className="chips-imovel" aria-label="Características do imóvel">
-            {dados.chips.map((c) => (
-              <li key={c}>{c}</li>
-            ))}
-          </ul>
-        ) : null}
-        {dados.descricao ? <p className="card-descricao">{dados.descricao}</p> : null}
-        {dados.categoria ? <p className="card-meta">{dados.categoria}</p> : null}
-        {dados.local ? <p className="card-meta">{dados.local}</p> : null}
+        <p className={dados.precoTexto ? "card-linha preco-card" : "card-linha card-meta"}>
+          {dados.precoTexto ?? dados.categoria ?? " "}
+        </p>
+        <p className="card-descricao">{dados.descricao ?? " "}</p>
+        <p className="card-linha card-meta card-local">
+          {dados.local ? PIN_LOCAL : null}
+          <span>{dados.local || " "}</span>
+        </p>
       </div>
     </article>
   );
@@ -178,44 +206,38 @@ export function CarrosselPatrocinados({
 }) {
   if (patrocinadores.length === 0) return null;
   return (
-    <section aria-labelledby="titulo-patrocinados">
-      <h2 id="titulo-patrocinados">Em destaque</h2>
-      <div className="carrossel-regiao" role="region" aria-label="Patrocinados" tabIndex={0}>
-        <ul className="carrossel">
-          {patrocinadores.map((p) => {
-            const url = urls[p.imagemPath];
-            return (
-              <li key={p.id}>
-                <article className="card-patrocinado">
-                  <div className="card-imagem">
-                    {url ? (
-                      <img src={url} alt="" loading="lazy" />
-                    ) : (
-                      <span className="imagem-indisponivel">Sem imagem</span>
-                    )}
-                  </div>
-                  <div className="card-corpo">
-                    <p>
-                      <span className="selo-patrocinado">{p.identificacao}</span>
-                    </p>
-                    <h3>{p.titulo}</h3>
-                    {p.destino.tipo === "perfil" ? (
-                      <p>
-                        <Link className="botao botao-secundario" href={p.destino.link}>
-                          Ver perfil
-                        </Link>
-                      </p>
-                    ) : (
-                      <p className="card-descricao">{p.destino.texto}</p>
-                    )}
-                  </div>
-                </article>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </section>
+    <div className="secoes-catalogo">
+      <CarrosselHome titulo="Em destaque" icone="destaque" rotuloRegiao="Patrocinados">
+        {patrocinadores.map((p) => (
+          <li key={p.id}>
+            <article className="card-publico card-patrocinado">
+              <ImagemDoCard url={urls[p.imagemPath]} />
+              <div className="card-corpo">
+                <p className="card-tipo">
+                  <span className="selo-patrocinado">{p.identificacao}</span>
+                </p>
+                <h3 className="card-nome">{p.titulo}</h3>
+                <p className="card-linha">
+                  {p.destino.tipo === "perfil" ? (
+                    <Link className="card-link card-link-acao" href={p.destino.link}>
+                      Ver perfil
+                    </Link>
+                  ) : (
+                    " "
+                  )}
+                </p>
+                <p className="card-descricao">
+                  {p.destino.tipo === "texto" ? p.destino.texto : " "}
+                </p>
+                <p className="card-linha card-meta card-local">
+                  <span>{" "}</span>
+                </p>
+              </div>
+            </article>
+          </li>
+        ))}
+      </CarrosselHome>
+    </div>
   );
 }
 
@@ -226,126 +248,6 @@ export type ValoresFiltro = {
   uf?: string;
   cidade?: string;
 };
-
-/** Filtros por GET: funcionam sem JavaScript e geram links que dá para compartilhar. */
-export function FiltrosDaBusca({
-  filtros,
-  valores,
-}: {
-  filtros: FiltrosDisponiveis | null;
-  valores: ValoresFiltro;
-}) {
-  const partes: string[] = [];
-  if (valores.termo) partes.push(valores.termo);
-  if (valores.tipo && valores.tipo in ROTULO_TIPO_BUSCA)
-    partes.push(ROTULO_TIPO_BUSCA[valores.tipo as TipoBusca]);
-  if (valores.categoriaId) {
-    const cat = filtros?.categorias.find((c) => c.id === valores.categoriaId);
-    if (cat) partes.push(cat.nome);
-  }
-  const local = [valores.cidade, valores.uf].filter(Boolean).join("/");
-  if (local) partes.push(local);
-  const ativos = [
-    valores.termo,
-    valores.tipo,
-    valores.categoriaId,
-    valores.cidade,
-    valores.uf,
-  ].filter(Boolean).length;
-  const resumo = partes.length > 0 ? partes.join(" · ") : "Buscar e filtrar";
-  return (
-    <details className="busca-recolhida">
-      <summary>
-        <svg className="busca-icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
-          <path
-            d="M16.5 16.5 21 21"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
-        <span className="busca-resumo">{resumo}</span>
-        {ativos > 0 ? (
-          <span className="busca-contagem">{ativos === 1 ? "1 filtro" : `${ativos} filtros`}</span>
-        ) : null}
-        <svg className="busca-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path
-            d="m6 9 6 6 6-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </summary>
-      <form className="filtros-busca" method="get" action="/" role="search" aria-label="Buscar">
-        <div className="campo campo-largo">
-          <label htmlFor="f-termo">Buscar pelo nome</label>
-          <input
-            id="f-termo"
-            name="termo"
-            type="search"
-            defaultValue={valores.termo ?? ""}
-            maxLength={80}
-            autoComplete="off"
-            placeholder="Ex.: padaria, bicicleta, eletricista"
-          />
-        </div>
-        <div className="campo">
-          <label htmlFor="f-tipo">Tipo</label>
-          <select id="f-tipo" name="tipo" defaultValue={valores.tipo ?? ""}>
-            <option value="">Todos</option>
-            <option value="perfil">Empresas e profissionais</option>
-            <option value="produto">Produtos</option>
-            <option value="servico">Serviços</option>
-          </select>
-        </div>
-        <div className="campo">
-          <label htmlFor="f-categoria">Categoria</label>
-          <select id="f-categoria" name="categoriaId" defaultValue={valores.categoriaId ?? ""}>
-            <option value="">Todas</option>
-            {(filtros?.categorias ?? []).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nome}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="campo">
-          <label htmlFor="f-uf">UF</label>
-          <select id="f-uf" name="uf" defaultValue={valores.uf ?? ""}>
-            <option value="">Todas</option>
-            {(filtros?.ufs ?? []).map((u) => (
-              <option key={u} value={u}>
-                {u}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="campo">
-          <label htmlFor="f-cidade">Cidade</label>
-          <input
-            id="f-cidade"
-            name="cidade"
-            type="text"
-            defaultValue={valores.cidade ?? ""}
-            maxLength={80}
-            autoComplete="address-level2"
-          />
-        </div>
-        <div className="acoes">
-          <button type="submit" className="botao">
-            Buscar
-          </button>
-          <Link href="/">Limpar filtros</Link>
-        </div>
-      </form>
-    </details>
-  );
-}
 
 /** Paginação por links (sem JavaScript), preservando os filtros. */
 export function Paginacao({

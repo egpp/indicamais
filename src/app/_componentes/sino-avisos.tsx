@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { IconeHome } from "./icones-home";
 
 /**
  * Sino de avisos (IM-047, IM-052). Aparece só para quem está logado. O contador vem de /avisos/contador (só um
@@ -88,6 +89,30 @@ export function SinoAvisos() {
   const estado = useContador();
   if (!estado?.logado) return null;
   return <Sino naoLidas={estado.naoLidas} />;
+}
+
+/**
+ * Ações de conta do cabeçalho da página inicial: com login, sino e botão "Minha conta"; sem login, "Entrar" (botão)
+ * e "Criar conta" (link). Renderiza no servidor como visitante e troca depois, como `LinksConta`.
+ */
+export function AcoesContaHome() {
+  const estado = useContador();
+  const logado = estado?.logado === true;
+  return (
+    <div className="home-conta">
+      {logado ? (
+        <Sino naoLidas={estado.naoLidas} />
+      ) : (
+        <Link className="home-criar-conta" href="/cadastro">
+          Criar conta
+        </Link>
+      )}
+      <Link className="home-botao-conta" href={logado ? "/minha-conta" : "/entrar"}>
+        <IconeHome nome="usuario" tamanho={18} />
+        <span>{logado ? "Minha conta" : "Entrar"}</span>
+      </Link>
+    </div>
+  );
 }
 
 /**

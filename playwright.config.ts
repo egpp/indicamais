@@ -11,6 +11,9 @@ if (existsSync(".env.local")) {
   }
 }
 
+// Porta do servidor local: padrão 3000; E2E_PORTA permite rodar em paralelo a outro servidor (ex.: outra branch).
+const porta = process.env.E2E_PORTA ?? "3000";
+
 // Testes ponta a ponta contra o ambiente de DESENVOLVIMENTO (D-011, D-003).
 // Nunca apontar para producao. O CI nao roda e2e por enquanto: precisa de
 // contas de teste (E2E_*) e de servidor com Supabase de dev.
@@ -21,7 +24,7 @@ export default defineConfig({
   fullyParallel: true,
   retries: 0,
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: `http://localhost:${porta}`,
     locale: "pt-BR",
     timezoneId: "America/Sao_Paulo",
     trace: "retain-on-failure",
@@ -33,8 +36,8 @@ export default defineConfig({
     { name: "celular", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:3000",
+    command: `pnpm dev --port ${porta}`,
+    url: `http://localhost:${porta}`,
     reuseExistingServer: true,
     timeout: 120_000,
   },

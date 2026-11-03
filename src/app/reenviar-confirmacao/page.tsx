@@ -3,6 +3,9 @@ import Link from "next/link";
 import { FormReenviarConfirmacao } from "../_componentes/formularios";
 import { CartaoPagina } from "../_componentes/ui";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Reenviar confirmação | IndicaMais" };
 
 export default function PaginaReenviarConfirmacao() {

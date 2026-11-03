@@ -3,6 +3,9 @@ import Link from "next/link";
 import { FormCadastro } from "../_componentes/formularios";
 import { Aviso, CartaoPagina } from "../_componentes/ui";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Criar conta | IndicaMais" };
 
 export default function PaginaCadastro() {

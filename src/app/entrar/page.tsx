@@ -5,6 +5,9 @@ import { Aviso, CartaoPagina } from "../_componentes/ui";
 import { caminhoSeguro } from "../_lib/destino";
 import { AVISOS_COM_NOVO_LINK, AVISOS_ENTRADA } from "../_lib/mensagens-auth";
 
+/** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Entrar | IndicaMais" };
 
 export default async function PaginaEntrar({ searchParams }: PageProps<"/entrar">) {

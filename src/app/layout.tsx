@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { RodapeSite } from "./_componentes/marca";
 import "./globals.css";
+import "./home.css";
 
 /** Sans geométrica livre, próxima do logotipo. Hospedada no projeto (OFL, variável, latin): sem rede no build nem pedido a terceiros. */
 const fonteCorpo = localFont({
