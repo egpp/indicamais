@@ -786,6 +786,8 @@
 /* Celular: largura fixa; o próximo card aparece pela metade para indicar que há mais. */
 .carrossel-home > ul > li {
   flex: 0 0 min(72%, 15rem);
+  min-width: 0;
+  max-width: 100%;
   scroll-snap-align: start;
 }
 @media (min-width: 640px) {
@@ -840,6 +842,7 @@
 .carrossel-home > ul > li,
 .grade-cards > li {
   display: flex;
+  min-width: 0;
 }
 .card-publico {
   position: relative;
@@ -881,6 +884,7 @@
   flex: 1;
   flex-direction: column;
   gap: var(--e1);
+  min-width: 0;
   padding: var(--e3) var(--e3) var(--e3);
 }
 .card-corpo p,
@@ -898,6 +902,8 @@
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
 }
 .card-nome {
   display: -webkit-box;
@@ -918,6 +924,8 @@
   line-height: 1.375rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
 }
 .card-meta {
   color: var(--texto-suave);
@@ -949,10 +957,14 @@
   flex: none;
   color: var(--laranja-escuro);
 }
+.card-local {
+  min-width: 0;
+}
 .card-local span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* O link do título cobre o card inteiro: alvo de toque grande e um só foco por card. */
 .card-link {

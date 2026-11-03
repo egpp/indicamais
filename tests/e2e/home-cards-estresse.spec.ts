@@ -3,11 +3,6 @@
  * texto longo e sem imagem. Os cards reais do DEV são alterados no DOM (texto enorme, sem imagem, vazios) e medidos
  * em vários viewports. Só leitura contra o DEV (nada é gravado). Rode com --project=desktop --workers=1
  * (os viewports são definidos aqui).
- *
- * DEFEITO CONHECIDO (verificador, 03/11/2026): as linhas sem quebra (.card-linha: categoria/preço e local, .card-tipo)
- * alargam o <li> do carrossel quando o texto passa de ~40 caracteres, porque o item flex tem min-width automático.
- * O teste de "linha sem quebra" está marcado com test.fail() para documentar; remova a marca quando corrigir
- * (correção sugerida: min-width: 0 em `.carrossel-home > ul > li`).
  */
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
@@ -138,10 +133,6 @@ test.describe("cards de tamanho único sob estresse", () => {
     test(`carrossel ${largura}px: linha sem quebra de 80 caracteres (local, categoria, tipo) não alarga o card`, async ({
       browser,
     }) => {
-      test.fail(
-        true,
-        "Defeito: <li> do carrossel alarga com linha sem quebra longa (min-width automático).",
-      );
       const { ctx, page } = await abrir(
         browser,
         { width: largura, height: 800 },
