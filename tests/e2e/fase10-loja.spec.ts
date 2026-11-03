@@ -10,6 +10,7 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { credenciais, exigirConta } from "./contas";
 import { gerarPng } from "./png";
+import { limparItensDeTestePorNome } from "../suporte/limpar-imagens-item";
 
 const SLUG = "perfil-1";
 const SUFIXO = Date.now().toString(36);
@@ -114,6 +115,7 @@ test.describe("Fase 10 · Loja (DEV)", () => {
           await expect(s.dono.getByRole("button", { name: "Publicar", exact: true })).toBeVisible();
         }
       }
+      if (estado.itemNome) await limparItensDeTestePorNome(estado.itemNome);
       if (s.admin && estado.perfilNome) await definirLoja(s.admin, estado.lojaInicial);
     } finally {
       for (const c of s.ctxs) await c.close();

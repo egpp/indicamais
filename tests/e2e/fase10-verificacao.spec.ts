@@ -12,6 +12,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { credenciais, exigirConta } from "./contas";
 import { gerarPng } from "./png";
+import { limparItensDeTestePorNome } from "../suporte/limpar-imagens-item";
 
 const SLUG = "perfil-1";
 const BUCKET = "indicamais-imagens";
@@ -124,6 +125,7 @@ test.describe("Fase 10 · verificação de telas da Loja (DEV)", () => {
   test.afterAll(async () => {
     if (st.itemId)
       await dono.from("catalogo_item").update({ publicado: false }).eq("id", st.itemId);
+    await limparItensDeTestePorNome(nome);
     if (st.perfilId) await definirLoja(st.lojaInicial, "E2E verificação: restaurar estado inicial");
   });
 

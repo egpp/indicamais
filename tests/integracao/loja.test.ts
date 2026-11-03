@@ -2,6 +2,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { gerarPng } from "../e2e/png";
+import { registrarLeituraDireta } from "./loja-leitura-direta";
+import { limparImagensDoItem } from "../suporte/limpar-imagens-item";
 
 /**
  * Integração real contra o Supabase de DESENVOLVIMENTO: Loja (IM-097, IM-098, IM-099, D-020), privacidade (IM-029),
@@ -552,9 +554,16 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
     });
   });
 
-  it("restaura a Loja do perfil ao estado inicial", async () => {
+  it("restaura a Loja do perfil ao estado inicial (antes apaga as próprias imagens)", async () => {
+    if (itemId) {
+      expect((await definir(true, "Teste: limpeza de imagens")).error).toBeNull();
+      expect(await limparImagensDoItem(dono, admin, itemId)).toBeNull();
+    }
     expect((await definir(lojaInicial, "Teste: restaurar estado inicial")).error).toBeNull();
     const lib = await dono.from("loja_liberacao").select("liberada").eq("perfil_id", perfilId);
     expect(Boolean(lib.data?.[0]?.liberada)).toBe(lojaInicial);
   });
 });
+
+// Mesmo arquivo de propósito: as duas suítes alteram a Loja do mesmo perfil e não podem rodar em paralelo.
+registrarLeituraDireta();

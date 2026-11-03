@@ -8,6 +8,7 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { credenciais, exigirConta } from "./contas";
 import { gerarPng } from "./png";
+import { limparItensDeTestePorNome } from "../suporte/limpar-imagens-item";
 
 const SLUG = "perfil-1";
 const SUFIXO = Date.now().toString(36);
@@ -85,6 +86,7 @@ test.describe("Fase 10 · revisão do imóvel com fotos adicionais (DEV)", () =>
   test.afterAll(async () => {
     test.setTimeout(240_000);
     try {
+      if (estado.itemNome) await limparItensDeTestePorNome(estado.itemNome);
       if (admin && estado.perfilNome) await definirLoja(admin, estado.lojaInicial);
     } finally {
       for (const c of ctxs) await c.close();
@@ -171,6 +173,11 @@ test.describe("Fase 10 · revisão do imóvel com fotos adicionais (DEV)", () =>
         .poll(() => img.evaluate((el) => (el as HTMLImageElement).naturalWidth > 0))
         .toBe(true);
     }
+
+    await admin.screenshot({
+      path: `test-results/fase10-revisao/revisao-${test.info().project.name}.png`,
+      fullPage: true,
+    });
 
     // Rejeita com motivo: nada vai ao ar.
     await admin.getByLabel("Motivo da rejeição").fill("E2E: teste de revisão, rejeitado.");
