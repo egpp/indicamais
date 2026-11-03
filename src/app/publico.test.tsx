@@ -61,12 +61,23 @@ function conferirSemCurtir() {
   expect(screen.queryAllByRole("link", { name: curtir })).toEqual([]);
 }
 
-/** IM-013: a home e a busca não têm ações de contato nem de indicar (só perfil e item têm). */
+/**
+ * IM-013: a home e a busca não têm ações de contato nem de indicar (só perfil e item têm). Única exceção: os links
+ * informativos para /indique-e-ganhe (menu e chamada "Quero indicar agora"), que só explicam o programa.
+ */
 function conferirSemAcoesNaListagem() {
   conferirSemCurtir();
   const acoes = /contato|indicar|indique/i;
   expect(screen.queryAllByRole("button", { name: acoes })).toEqual([]);
-  expect(screen.queryAllByRole("link", { name: acoes })).toEqual([]);
+  expect(
+    screen
+      .queryAllByRole("link", { name: acoes })
+      .filter((l) => l.getAttribute("href") !== "/indique-e-ganhe"),
+  ).toEqual([]);
+  // Nenhum card da listagem tem ação de contato ou de indicar.
+  for (const c of document.querySelectorAll(".card-publico")) {
+    expect(c.querySelectorAll("button").length).toBe(0);
+  }
 }
 
 /** IM-013: perfil e item têm "Quero entrar em contato" e "Indique ..."; visitante não tem botão de curtir. */
@@ -235,23 +246,37 @@ describe("página inicial pública (IM-019, IM-020)", () => {
     expect(screen.getByRole("link", { name: "Limpar filtros" }).getAttribute("href")).toBe("/");
   });
 
-  it("busca recolhida em uma linha: padrão, resumo com filtros e expansão (IM-019, IM-005)", async () => {
+  it("busca em barra: campos visíveis, mais filtros recolhidos, resumo e limpar (IM-019, IM-005)", async () => {
     const { fireEvent } = await import("@testing-library/react");
     render(await Home(args()));
+    const form = document.querySelector("form.hero-busca") as HTMLFormElement;
+    expect(form.getAttribute("method")).toBe("get");
+    expect(form.getAttribute("action")).toBe("/");
+    // Texto, cidade, UF e Buscar ficam sempre à vista; tipo e categoria ficam em "Mais filtros" (recolhido).
+    expect(form.querySelector("details.busca-recolhida > summary")?.textContent).toBe(
+      "Mais filtros",
+    );
     const det = document.querySelector("details.busca-recolhida") as HTMLDetailsElement;
     expect(det.open).toBe(false);
-    expect(det.querySelector("summary")?.textContent).toBe("Buscar e filtrar");
-    expect(det.querySelector("form")?.getAttribute("method")).toBe("get");
+    expect(det.contains(screen.getByLabelText("Tipo"))).toBe(true);
+    expect(det.contains(screen.getByLabelText("Categoria"))).toBe(true);
+    expect(det.contains(screen.getByLabelText("Buscar pelo nome"))).toBe(false);
+    expect(screen.queryByText(/Buscando por:/)).toBeNull();
     det.open = true;
     fireEvent(det, new Event("toggle"));
     expect(det.open).toBe(true);
     cleanup();
     render(await Home(args({}, { termo: "pizzaria", cidade: "Tramandaí", uf: "RS" })));
-    const det2 = document.querySelector("details.busca-recolhida") as HTMLDetailsElement;
-    expect(det2.open).toBe(false);
-    const resumo = det2.querySelector("summary")?.textContent ?? "";
-    expect(resumo).toContain("pizzaria · Tramandaí/RS");
+    const resumo = document.querySelector(".hero-resumo")?.textContent ?? "";
+    expect(resumo).toContain("Buscando por: pizzaria · Tramandaí/RS");
     expect(resumo).toContain("3 filtros");
+    expect(screen.getByRole("link", { name: "Limpar filtros" }).getAttribute("href")).toBe("/");
+    // Tipo ou categoria na busca abrem "Mais filtros" para o filtro não ficar escondido.
+    cleanup();
+    render(await Home(args({}, { tipo: "produto" })));
+    expect((document.querySelector("details.busca-recolhida") as HTMLDetailsElement).open).toBe(
+      true,
+    );
   });
 
   it("filtro inválido mostra mensagem em português e não quebra a página", async () => {
