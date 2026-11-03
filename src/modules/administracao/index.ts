@@ -154,3 +154,25 @@ export type {
   ClienteBancoCicloVida,
   AplicadorBloqueioAcesso,
 } from "./servico-ciclo-vida";
+
+// Liberação da Loja por perfil pelo administrador geral (IM-097, IM-099, D-020).
+export {
+  criarServicoLojaAdmin,
+  definirLiberacaoLojaSchema,
+  filtroPerfisLojaSchema,
+  mapearErroBancoLojaAdmin,
+  paraPerfilComLoja,
+  MENSAGENS_LOJA_ADMIN,
+  SITUACOES_LOJA_FILTRO,
+} from "./loja-admin";
+export type {
+  ServicoLojaAdmin,
+  ClienteBancoLojaAdmin,
+  ConsultaPerfisLoja,
+  DefinirLiberacaoLoja,
+  FiltroPerfisLojaEntrada,
+  LinhaLiberacaoLojaAdmin,
+  PaginaPerfisLoja,
+  PerfilComLoja,
+  ResultadoLojaAdm,
+} from "./loja-admin";
