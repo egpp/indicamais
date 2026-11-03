@@ -83,6 +83,29 @@ describe("imagens (D-006, IM-011, IM-014)", () => {
     expect(formatoDeCaminhoValido(`perfil/${CONTA}/${U}.png`, "item")).toBe(false);
     expect(formatoDeCaminhoValido(`${CONTA}/${U}.png`)).toBe(false);
   });
+  it("aceita adm- só em perfil/<perfil>/adm-<uuid>.<ext> (IM-093)", () => {
+    const U = "55555555-5555-4555-8555-555555555555";
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-${U}.webp`)).toBe(true);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-${U}.webp`, "perfil")).toBe(true);
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/adm-${U}.jpg`)).toBe(true);
+    // outro perfil
+    expect(caminhoDaPasta("perfil", CONTA, `perfil/${OUTRA}/adm-${U}.jpg`)).toBe(false);
+    // outras pastas
+    expect(formatoDeCaminhoValido(`item/${CONTA}/adm-${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`patrocinador/${CONTA}/adm-${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-${U}.jpg`, "item")).toBe(false);
+    // extensão inválida, traversal, prefixos e repetição
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-${U}.gif`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-${U}.svg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/../${OUTRA}/adm-${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-../${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-adm-${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/admin-${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/x-${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-x.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`perfil/${CONTA}/a/adm-${U}.jpg`)).toBe(false);
+    expect(formatoDeCaminhoValido(`/perfil/${CONTA}/adm-${U}.jpg`)).toBe(false);
+  });
   it("gera caminho opaco com uuid injetável e extensão do tipo", () => {
     const U = "44444444-4444-4444-8444-444444444444";
     const c = gerarCaminhoImagem("perfil", CONTA, "image/webp", U);

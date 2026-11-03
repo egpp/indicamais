@@ -166,17 +166,8 @@ test.describe("Fase 9 · estilo e banners (DEV)", () => {
     ).toBeVisible();
   });
 
-  // DEFEITO DE PRODUTO (encontrado em 02/11/2026): o assinador de URLs (criarAssinadorImagens em imagens-servidor.ts) filtra
-  // caminhos com formatoDeCaminhoValido(), cuja regex CAMINHO (src/shared/conteudo/imagens.ts) só aceita
-  // `perfil/<uuid>/<uuid>.<ext>` e rejeita `perfil/<uuid>/adm-<uuid>.<ext>` (o formato que o administrador envia, exigido pela
-  // política de Storage). Resultado: o banner do administrador nunca ganha URL, aparece como "Imagem sem prévia" para o
-  // administrador e para o dono e é descartado na página pública (imagensDoBanner pula banner sem src). Enquanto o defeito
-  // existir este teste FALHA de propósito (test.fail); quando for corrigido ele passa e o Playwright avisa para remover o test.fail.
+  // Defeito IM-093 (regex de caminho rejeitava adm-<uuid>) corrigido em src/shared/conteudo/imagens.ts.
   test("B6.3b banner aceito do administrador tem prévia para o dono e aparece na página pública (IM-094)", async () => {
-    test.fail(
-      true,
-      "Defeito: caminho adm-<uuid> rejeitado pelo assinador de URLs (ver comentário acima).",
-    );
     const dono = sessoes.dono!;
     await dono.goto(`/meus-perfis/${perfilId}/banners`);
     await expect(dono.locator("li.cartao", { hasText: ALT_ACEITO }).locator("img")).toHaveCount(1, {
