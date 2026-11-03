@@ -66,6 +66,7 @@ describe("Fase 6: permissões granulares (IM-077)", () => {
       .map(([nome]) => nome);
     expect([...geral].sort()).toEqual(
       [
+        "administracao_alterar_home_secao",
         "administracao_alterar_patrocinador",
         "administracao_conceder_permissao",
         "administracao_criar_patrocinador",

@@ -37,6 +37,7 @@ select is((select count(*)::int from storage.objects where name = 'perfil/a00000
 update storage.objects set name = 'perfil/a0000000-0000-0000-0000-000000000001/meu.png' where name = 'perfil/a0000000-0000-0000-0000-000000000001/adm-1.png';
 reset role;
 select is((select count(*)::int from storage.objects where name = 'perfil/a0000000-0000-0000-0000-000000000001/adm-1.png'), 1, 'o responsável não renomeia o objeto adm-* (a linha nem passa pelo USING)');
+select set_config('storage.allow_delete_query', 'true', true);
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 delete from storage.objects where name = 'perfil/a0000000-0000-0000-0000-000000000001/adm-1.png';
