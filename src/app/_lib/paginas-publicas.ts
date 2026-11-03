@@ -1,5 +1,6 @@
 import { cache } from "react";
 import type { CategoriaOpcao } from "./apresentacao";
+import { obterServicoLojaPublica } from "./contexto-loja";
 import { obterContextoPublico } from "./contexto-publico";
 import type { ItemDaPagina, PerfilDaPagina } from "./leitura-publica";
 import { caminhosDoPerfil } from "./pagina";
@@ -40,13 +41,32 @@ export const carregarPerfilPublico = cache(
 
 export type ItemCarregado = ItemDaPagina & { categorias: CategoriaOpcao[]; urls: Urls };
 
+/**
+ * Item da Loja que o catálogo simples não enxerga (imóvel; IM-097, IM-098, D-020). `loja_item_publico` só devolve
+ * se o item está no ar E a Loja do perfil está liberada. Falha na leitura = não existe (404 genérico).
+ */
+async function itemDaLoja(ctx: ReturnType<typeof obterContextoPublico>, id: string) {
+  try {
+    const r = await obterServicoLojaPublica().buscarItem(id);
+    if (!r.ok || !r.valor || !r.valor.perfilId) return null;
+    const item = r.valor;
+    const perfil = await ctx.leitura.perfilPorId(item.perfilId!);
+    return perfil ? ({ item, perfil } satisfies ItemDaPagina) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const carregarItemPublico = cache(async (id: string): Promise<ItemCarregado | null> => {
   const ctx = obterContextoPublico();
-  const dados = await ctx.leitura.itemPorId(id);
+  const dados = (await ctx.leitura.itemPorId(id)) ?? (await itemDaLoja(ctx, id));
   if (!dados) return null;
   const [categorias, urls] = await Promise.all([
     categoriasPublicas(ctx),
-    ctx.assinarImagens(dados.item.fotoPath ? [dados.item.fotoPath] : []),
+    ctx.assinarImagens([
+      ...(dados.item.fotoPath ? [dados.item.fotoPath] : []),
+      ...dados.item.fotosExtrasPaths,
+    ]),
   ]);
   return { ...dados, categorias, urls };
 });

@@ -46,10 +46,24 @@ export async function imagemPreviaPerfil(ctx: ContextoPublico, slug: string): Pr
   return redirecionar(await destinoDaImagem(ctx, dados.perfil.imagemPath));
 }
 
-export async function imagemPreviaItem(ctx: ContextoPublico, id: string): Promise<Response> {
+/** Foto do item da Loja que o catálogo simples não enxerga (imóvel); null = não existe ou fora do ar. */
+export type FotoDoItemDaLoja = (id: string) => Promise<{ fotoPath: string | null } | null>;
+
+export async function imagemPreviaItem(
+  ctx: ContextoPublico,
+  id: string,
+  itemDaLoja?: FotoDoItemDaLoja,
+): Promise<Response> {
   const v = idSchema.safeParse(id);
   if (!v.success) return naoEncontrada();
   const dados = await ctx.leitura.itemPorId(v.data);
-  if (!dados) return naoEncontrada();
-  return redirecionar(await destinoDaImagem(ctx, dados.item.fotoPath));
+  if (dados) return redirecionar(await destinoDaImagem(ctx, dados.item.fotoPath));
+  let daLoja: { fotoPath: string | null } | null = null;
+  try {
+    daLoja = itemDaLoja ? await itemDaLoja(v.data) : null;
+  } catch {
+    daLoja = null;
+  }
+  if (!daLoja) return naoEncontrada();
+  return redirecionar(await destinoDaImagem(ctx, daLoja.fotoPath));
 }

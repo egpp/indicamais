@@ -4,12 +4,14 @@ import type { BannerPublico, MapaUrls } from "@/modules/perfis";
 import type { BeneficioPublico } from "@/modules/pontos";
 import { AcoesDoDestino } from "../../_componentes/acoes-destino";
 import { CabecalhoPublico, localTexto } from "../../_componentes/publico";
+import { FiltrosImoveis } from "../../_componentes/loja";
 import { Aviso } from "../../_componentes/ui";
 import { SiteNegocio } from "../../_componentes/site/site-negocio";
 import { TEMAS } from "../../_componentes/site/estilos";
 import { FormDenunciar } from "../../_componentes/form-ciclo-vida";
 import { CurtirPerfil } from "../../_componentes/form-relacionamento";
 import { lerEstadoCurtida } from "../../_lib/contexto-relacionamento";
+import { carregarLojaDoPerfil } from "../../_lib/loja-pagina";
 import { obterServicoAparenciaPublico } from "../../_lib/contexto-aparencia";
 import { obterServicoPontosPublico } from "../../_lib/contexto-pontos";
 import { obterServicoLocalizacaoPublico } from "../../_lib/contexto-localizacao";
@@ -84,6 +86,12 @@ export default async function PaginaPerfilPublico({
   } catch {
     mapa = null;
   }
+  // IM-097, D-020: com a Loja liberada e itens no ar, "Produtos e serviços" vira "Loja"; senão, catálogo simples.
+  const loja = await carregarLojaDoPerfil(perfil.id, consulta);
+  const preservar: Record<string, string> = {
+    ...(um(consulta.ind) ? { ind: um(consulta.ind)! } : {}),
+    ...(um(consulta.estilo) ? { estilo: um(consulta.estilo)! } : {}),
+  };
   const curtida = await lerEstadoCurtida(perfil.id);
   const { estilo, previa } = await estiloDaPaginaPublica(
     perfil.id,
@@ -106,9 +114,25 @@ export default async function PaginaPerfilPublico({
       <SiteNegocio
         estilo={estilo}
         perfil={perfil}
-        itens={itens}
+        itens={loja ? loja.itens : itens}
         categorias={categorias}
-        urls={{ ...urls, ...urlsBanners }}
+        urls={{ ...urls, ...(loja ? loja.urls : {}), ...urlsBanners }}
+        loja={
+          loja
+            ? {
+                filtroAtivo: loja.filtroAtivo,
+                erro: loja.erro,
+                filtros: loja.temImoveis ? (
+                  <FiltrosImoveis
+                    slug={perfil.slug}
+                    valores={loja.filtros}
+                    preservar={preservar}
+                    erro={loja.erroPreco}
+                  />
+                ) : null,
+              }
+            : null
+        }
         banners={banners}
         beneficios={beneficios}
         mapa={mapa}

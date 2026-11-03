@@ -38,6 +38,12 @@ export type PropsSiteNegocio = {
   denunciar?: ReactNode;
   /** Mapa do OpenStreetMap (IM-018): URLs prontas do módulo perfis. Sem isso, só endereço e "Como chegar" por busca. */
   mapa?: MapaUrls | null;
+  /**
+   * Loja liberada para o perfil (IM-097, D-020): a seção "Produtos e serviços" vira "Loja". `filtros` é a peça
+   * já renderizada (servidor); `filtroAtivo` mantém a seção visível mesmo sem resultado; `erro` é a mensagem do
+   * filtro. Catálogo, não venda: sem carrinho nem pagamento (IM-090).
+   */
+  loja?: { filtros?: ReactNode; filtroAtivo?: boolean; erro?: string | null } | null;
   /** Partes que são demonstração (prévia): ganham a etiqueta "Exemplo" e não viram links. */
   exemplo?: { perfil?: boolean; itens?: boolean; beneficios?: boolean };
 };
@@ -157,7 +163,17 @@ function CartaoItem({ dados, url, exemplo }: { dados: DadosCard; url?: string; e
           )}
         </h3>
         {dados.descricao ? <p className="st-card-desc">{dados.descricao}</p> : null}
+        {dados.chips && dados.chips.length > 0 ? (
+          <ul className="st-chips st-chips-imovel" aria-label="Características do imóvel">
+            {dados.chips.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+        ) : null}
         {dados.categoria ? <p className="st-card-meta">{dados.categoria}</p> : null}
+        {dados.local && dados.chips && dados.chips.length > 0 ? (
+          <p className="st-card-meta">{dados.local}</p>
+        ) : null}
       </div>
     </article>
   );
@@ -176,6 +192,7 @@ export function SiteNegocio({
   contato,
   denunciar,
   mapa = null,
+  loja = null,
   exemplo = {},
 }: PropsSiteNegocio) {
   const nome = perfil.nome ?? "Perfil sem nome";
@@ -184,7 +201,8 @@ export function SiteNegocio({
     .filter((c): c is string => Boolean(c))
     .map((c) => nomeDaCategoria(c, [...categorias]));
   const temLocalizacao = Boolean(perfil.endereco || local);
-  const temItens = itens.length > 0;
+  const temItens = itens.length > 0 || Boolean(loja?.filtroAtivo);
+  const tituloItens = loja ? "Loja" : "Produtos e serviços";
   const temBeneficios = beneficios.length > 0;
 
   const idsDasSecoes = new Set<string>(["inicio", "sobre", "contato-site"]);
@@ -207,7 +225,7 @@ export function SiteNegocio({
       ? [{ icone: "categoria" as const, rotulo: "Categoria", valor: nomesCategorias[0] }]
       : []),
     ...(temItens
-      ? [{ icone: "produtos" as const, rotulo: "Produtos e serviços", valor: String(itens.length) }]
+      ? [{ icone: "produtos" as const, rotulo: tituloItens, valor: String(itens.length) }]
       : []),
     ...(perfil.areasAtendidas.length > 0
       ? [
@@ -232,7 +250,7 @@ export function SiteNegocio({
   const menu: ItemMenuSite[] = [
     { id: "inicio", rotulo: "Início" },
     { id: "sobre", rotulo: "Sobre" },
-    ...(temItens ? [{ id: "produtos", rotulo: "Produtos e serviços" }] : []),
+    ...(temItens ? [{ id: "produtos", rotulo: tituloItens }] : []),
     ...(temBeneficios ? [{ id: "beneficios", rotulo: "Benefícios" }] : []),
     ...(temLocalizacao ? [{ id: "localizacao", rotulo: "Localização" }] : []),
     { id: "contato-site", rotulo: "Contato" },
@@ -284,7 +302,7 @@ export function SiteNegocio({
                 </a>
                 {temItens ? (
                   <a className="botao botao-secundario" href="#produtos">
-                    Ver produtos e serviços
+                    {loja ? "Ver a Loja" : "Ver produtos e serviços"}
                   </a>
                 ) : null}
               </p>
@@ -369,12 +387,23 @@ export function SiteNegocio({
           <Secao
             id="produtos"
             tituloId="titulo-itens"
-            titulo="Produtos e serviços"
+            titulo={tituloItens}
             icone="produtos"
             numero={numeroDe("produtos")}
             alt={altDe("produtos")}
             exemplo={exemplo.itens}
           >
+            {loja?.filtros}
+            {loja?.erro ? (
+              <p className="erro-campo" role="alert">
+                {loja.erro}
+              </p>
+            ) : null}
+            {itens.length === 0 ? (
+              <p className="ajuda" role="status">
+                Nenhum imóvel encontrado com esses filtros.
+              </p>
+            ) : null}
             <ul className="st-grade-cards">
               {itens.map((i) => {
                 const dados = dadosDeItem(i, [...categorias], local);
