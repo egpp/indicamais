@@ -219,6 +219,22 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-021 · 04/11/2026 · Estilo "Moto e Bike" e lista extensível de estilos (IM-100)
+**IDs:** IM-091, IM-100. Decidido pelo Emerson em 04/11/2026 ("incluir Moto e Bike como 21º estilo, possivelmente haverão mais posteriormente").
+- **21º estilo:** Moto e Bike entra na lista de estilos de página (modelo em `docs/marca/modelos-sites/estilo/`). Substitui, nesse ponto, o "20 estilos" de D-016.
+- **Lista extensível:** o limite de 20 deixa de ser teto. Novos estilos virão depois; cada um recebe ID novo e só muda a aparência. A implementação deve permitir acrescentar estilo sem refatorar (lista de estilos em um só lugar).
+
+---
+
+## D-022 · 04/11/2026 · Seção Loja visível só em plano pago; funções dos modelos ainda não implementadas (IM-099, IM-101)
+**IDs:** IM-097, IM-098, IM-099, IM-101. Decidido pelo Emerson em 04/11/2026 (aceitou a sugestão do gestor).
+- **Loja depende de plano pago:** a seção Loja/catálogo (produtos, serviços e, no futuro, assinaturas) é função de planos pagos ainda a definir (IM-060 é F). Para perfis sem a liberação, a seção fica **oculta** na página pública (não aparece desabilitada) e some também dos modelos de estilo. Até existirem planos, vale a liberação manual por perfil de D-020.
+- **Compra:** continua sem intermediação, carrinho, checkout ou pagamento (IM-090, D-020). Botões de compra/assinatura dos modelos, por ora, levam ao contato (IM-013). Pagamento e assinatura reais dependem de decisão futura do Emerson (pagamentos é módulo F).
+- **Futuro aberto (04/11/2026):** a ausência de intermediação de pagamentos e transações vale **por enquanto**. A possibilidade de intermediar no futuro fica aberta (módulo pagamentos, F): a arquitetura não deve fechar essa porta (por exemplo, itens da Loja com preço e identificador estável, ponto único de "ação de compra"), mas nada de pagamento é implementado agora. Ativar exige decisão nova do Emerson e revisão de IM-090.
+- **Funções dos modelos ainda não implementadas:** não se excluem dos modelos; o `interface` as relata em `docs/lacunas-modelos.md` (IM-101), para o Emerson planejar a implementação.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
