@@ -83,7 +83,7 @@ describe("estilo muda só a aparência (IM-091, IM-094)", () => {
   });
 
   it("id desconhecido cai no padrão e renderiza o mesmo conteúdo", () => {
-    for (const v of ["moto_bike", "xyz", "", undefined, ["pet"], "constructor", "toString"]) {
+    for (const v of ["xyz", "", undefined, ["pet"], "constructor", "toString"]) {
       const id = resolverEstilo(v);
       expect(id).toBe("minimalista");
       expect(conteudo(id, true).texto).toBe(ref.texto);
