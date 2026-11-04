@@ -53,23 +53,18 @@ describe("mapa de estilos (D-016; IM-091)", () => {
     }
   });
 
-  it("libera só os 5 estilos iniciais", () => {
-    expect(LISTA_TEMAS.filter((t) => t.liberado).map((t) => t.id)).toEqual([
-      "minimalista",
-      "saude_bem_estar",
-      "beleza_estetica",
-      "gastronomia",
-      "construcao_reformas",
-    ]);
+  it("os 20 estilos têm desenho pronto; a lista cresce sem refatorar (D-021)", () => {
+    expect(LISTA_TEMAS.filter((t) => t.liberado).map((t) => t.id)).toEqual(IDS_ESPERADOS);
   });
 
-  it("estilo inválido, vazio, não liberado ou em lista cai em minimalista", () => {
+  it("estilo inválido, desconhecido, vazio ou em lista cai em minimalista", () => {
     expect(ESTILO_PADRAO).toBe("minimalista");
-    for (const v of [undefined, "", "xyz", "premium", "pet", ["gastronomia"], 5, null, "__proto__"])
+    for (const v of [undefined, "", "xyz", "moto_bike", ["gastronomia"], 5, null, "__proto__"])
       expect(resolverEstilo(v)).toBe("minimalista");
     expect(resolverEstilo("gastronomia")).toBe("gastronomia");
     expect(estiloLiberadoOuNulo("construcao_reformas")).toBe("construcao_reformas");
-    expect(estiloLiberadoOuNulo("pet")).toBeNull();
+    expect(estiloLiberadoOuNulo("pet")).toBe("pet");
+    expect(estiloLiberadoOuNulo("moto_bike")).toBeNull();
     expect(estiloLiberadoOuNulo("xyz")).toBeNull();
   });
 });
@@ -79,7 +74,7 @@ describe("miniaturas", () => {
     const { container, rerender } = render(<MiniaturaEstilo tema={TEMAS.gastronomia} />);
     expect(container.firstElementChild?.classList.contains("site-gastronomia")).toBe(true);
     expect(container.firstElementChild?.getAttribute("aria-hidden")).toBe("true");
-    rerender(<MiniaturaEstilo tema={TEMAS.premium} />);
+    rerender(<MiniaturaEstilo tema={{ ...TEMAS.premium, liberado: false }} />);
     expect(container.firstElementChild?.classList.contains("st-mini-breve")).toBe(true);
     expect(container.firstElementChild?.getAttribute("aria-hidden")).toBe("true");
   });

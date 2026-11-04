@@ -51,11 +51,11 @@ describe("estilo salvo (IM-091, IM-094)", () => {
     expect(ruim.erro ?? ruim.erros).toBeTruthy();
     expect(banco.definirEstilo).toHaveBeenCalledTimes(1);
   });
-  it("só estilos com desenho pronto E habilitados são selecionáveis", () => {
+  it("só estilos com desenho pronto E habilitados são selecionáveis (id desconhecido do código fica de fora)", () => {
     const r = estilosSelecionaveis([
       { id: "minimalista", rotulo: "M", ordem: 1, habilitado: true },
       { id: "gastronomia", rotulo: "G", ordem: 2, habilitado: false },
-      { id: "pet", rotulo: "P", ordem: 3, habilitado: true },
+      { id: "estilo_futuro", rotulo: "F", ordem: 3, habilitado: true },
       { id: "beleza_estetica", rotulo: "B", ordem: 4, habilitado: true },
     ]);
     expect(r.map((t) => t.id)).toEqual(["minimalista", "beleza_estetica"]);
