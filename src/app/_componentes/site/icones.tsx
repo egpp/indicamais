@@ -154,6 +154,7 @@ const FORMAS: Partial<Record<EstiloId, ReactNode>> = {
   agro_campo: arcos("#e8c98a"),
   turismo_hospedagem: aneis("#f1e3c8"),
   premium: arcos("#d9a566"),
+  moto_bike: listras("#c8102e"),
 };
 
 /** Formas simples (uma cor) para os estilos novos: círculos concêntricos, listras diagonais e arcos. */

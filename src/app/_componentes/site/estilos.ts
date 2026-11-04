@@ -1,6 +1,7 @@
 /**
- * Estilos de página dos negócios (D-016; IM-091). UM arquivo concentra os 20 ids, os rótulos e o que está liberado.
- * Os 20 estilos estão com desenho pronto (`site-estilos.css`: 1 a 5; `site-estilos-novos.css`: 6 a 20). Para um estilo
+ * Estilos de página dos negócios (D-016, D-021; IM-091, IM-100). UM arquivo concentra os ids, os rótulos e o que está
+ * liberado; para um estilo novo, acrescente o id em IDS_ESTILOS e uma linha em TEMAS (mais CSS, fonte, miniatura e
+ * demonstração, que tipam por EstiloId). Os 21 estilos estão com desenho pronto (`site-estilos.css`: 1 a 5; `site-estilos-novos.css`: 6 a 21). Para um estilo
  * futuro sem desenho, passe `liberado = false` em `T(...)`. Quais estilos cada responsável pode escolher é decidido
  * no banco (`perfis_estilo_pagina.habilitado`), pela tela do administrador.
  * A escolha do responsável ainda não é gravada (virá com o banco): hoje o estilo vem da prévia (?estilo=) ou é o padrão.
@@ -28,6 +29,7 @@ export const IDS_ESTILOS = [
   "agro_campo",
   "turismo_hospedagem",
   "premium",
+  "moto_bike",
 ] as const;
 
 export type EstiloId = (typeof IDS_ESTILOS)[number];
@@ -87,6 +89,7 @@ export const TEMAS: Record<EstiloId, TemaEstilo> = {
   agro_campo: T("agro_campo", "Agro e Campo", "Natural e robusto."),
   turismo_hospedagem: T("turismo_hospedagem", "Turismo e Hospedagem", "Leve e convidativo."),
   premium: T("premium", "Premium", "Escuro e refinado."),
+  moto_bike: T("moto_bike", "Moto e Bike", "Duas rodas: energia, caixa alta e vermelho."),
 };
 
 export const LISTA_TEMAS: readonly TemaEstilo[] = IDS_ESTILOS.map((id) => TEMAS[id]);

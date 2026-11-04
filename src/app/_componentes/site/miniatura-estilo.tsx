@@ -28,6 +28,7 @@ const NOMES_EXEMPLO: Record<string, string> = {
   agro_campo: "Casa do Campo Exemplo",
   turismo_hospedagem: "Pousada Exemplo",
   premium: "Ateliê Exemplo",
+  moto_bike: "Giro Exemplo",
 };
 
 /**

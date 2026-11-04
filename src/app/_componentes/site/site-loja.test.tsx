@@ -53,6 +53,29 @@ function pagina(loja: React.ComponentProps<typeof SiteNegocio>["loja"], itens: I
   );
 }
 
+describe("Loja oculta sem liberação, inclusive na demonstração dos estilos (D-022, IM-099)", () => {
+  it("a demonstração de cada estilo mostra Produtos e serviços, sem seção, link nem texto Loja", () => {
+    for (const estilo of ["minimalista", "moda_lojas", "moto_bike"] as const) {
+      const demo = demonstracaoDoEstilo(estilo);
+      const { container } = render(
+        <SiteNegocio
+          estilo={estilo}
+          perfil={demo.perfil}
+          itens={demo.itens}
+          categorias={demo.categorias}
+          urls={demo.urls}
+          beneficios={[]}
+          contato={<p>contato</p>}
+        />,
+      );
+      expect(screen.queryByRole("heading", { level: 2, name: "Loja" })).toBeNull();
+      expect(screen.queryByRole("link", { name: /^(Ver a )?Loja$/ })).toBeNull();
+      expect(container.querySelector("#produtos h2")?.textContent).toBe("Produtos e serviços");
+      cleanup();
+    }
+  });
+});
+
 describe("seção Loja do perfil (IM-097, IM-098, D-020)", () => {
   it("com a Loja, a seção se chama Loja e o cartão do imóvel mostra preço, chips e bairro/cidade", () => {
     render(pagina({}, [imovel]));
