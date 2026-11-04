@@ -210,7 +210,7 @@ test.describe("Fase 11: 20 estilos em 360px", () => {
     const id = await idDoPerfil(page);
     await page.goto(`/meus-perfis/${id}/previa?estilo=nao_existe`);
     await expect(page.getByTestId("site-negocio")).toHaveCount(0);
-    await page.goto(`/meus-perfis/${id}/previa?estilo=moto_bike`);
+    await page.goto(`/meus-perfis/${id}/previa?estilo=moto_bike_x`);
     await expect(page.getByTestId("site-negocio")).toHaveCount(0);
   });
 });
