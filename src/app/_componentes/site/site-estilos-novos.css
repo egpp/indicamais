@@ -95,6 +95,10 @@
   color: #1d3f94;
   letter-spacing: 0.08em;
 }
+.site-cafe_padaria .st-hero-imagem .st-sobretitulo {
+  border-color: #fff8e6;
+  color: #fff8e6;
+}
 .site-cafe_padaria .botao {
   box-shadow: 0 4px 0 #0f2a6b;
   font-weight: 800;
@@ -1457,6 +1461,7 @@
   padding: 0 var(--e4) var(--e4);
   background: transparent;
   box-shadow: none;
+  color: var(--s-titulo);
   font-family: var(--s-fonte-titulo), serif;
   font-size: 1.5rem;
 }
@@ -1962,6 +1967,7 @@
   padding: 0 0 var(--e4);
   background: transparent;
   box-shadow: none;
+  color: var(--s-titulo);
   font-family: var(--s-fonte-titulo), serif;
   font-size: 1.5rem;
 }
