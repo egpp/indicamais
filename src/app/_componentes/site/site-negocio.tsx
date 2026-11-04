@@ -15,6 +15,7 @@ import { Decoracao, FaixaDecorativa, Icone, type NomeIcone } from "./icones";
 import { MenuSite, type ItemMenuSite } from "./menu-site";
 import "./site.css";
 import "./site-estilos.css";
+import "./site-estilos-novos.css";
 
 /**
  * Página do negócio como site de uma página (D-016; IM-091, IM-092, IM-093). Só apresentação: recebe modelos de

@@ -111,10 +111,10 @@ const FORMAS: Partial<Record<EstiloId, ReactNode>> = {
     <g stroke="none">
       <circle cx="640" cy="170" r="190" fill="#ffffff" fillOpacity="0.07" />
       <circle cx="560" cy="380" r="120" fill="#ffffff" fillOpacity="0.07" />
-      <circle cx="730" cy="400" r="70" fill="#7bd3c6" fillOpacity="0.25" />
+      <circle cx="730" cy="400" r="70" fill="#9ed2e6" fillOpacity="0.25" />
       <path
         d="M600 330c0-90 70-150 150-150 0 90-60 150-150 150z"
-        fill="#7bd3c6"
+        fill="#9ed2e6"
         fillOpacity="0.28"
       />
       <path d="M600 330c40-40 80-80 150-150" fill="none" stroke="#ffffff" strokeOpacity="0.4" />
@@ -139,7 +139,49 @@ const FORMAS: Partial<Record<EstiloId, ReactNode>> = {
       <rect x="610" y="330" width="110" height="14" fill="#1c2025" />
     </g>
   ),
+  cafe_padaria: aneis("#1d3f94"),
+  automotivo: listras("#ff5a1f"),
+  juridico_contabil: arcos("#e0aa6f"),
+  educacao_cursos: aneis("#4c1d95"),
+  pet: aneis("#f4896b"),
+  moda_lojas: arcos("#1d3dd6"),
+  fitness_esportes: listras("#d4ff1f"),
+  imobiliario: arcos("#e8c9a0"),
+  tecnologia_assistencia: aneis("#ffffff"),
+  casa_decoracao: arcos("#9a3f25"),
+  eventos_fotografia: aneis("#6a3fa0"),
+  servicos_rapidos: listras("#ff8a2a"),
+  agro_campo: arcos("#e8c98a"),
+  turismo_hospedagem: aneis("#f1e3c8"),
+  premium: arcos("#d9a566"),
 };
+
+/** Formas simples (uma cor) para os estilos novos: círculos concêntricos, listras diagonais e arcos. */
+function aneis(cor: string): ReactNode {
+  return (
+    <g fill="none" stroke={cor} strokeWidth="2">
+      <circle cx="620" cy="240" r="200" strokeOpacity="0.35" />
+      <circle cx="620" cy="240" r="140" strokeOpacity="0.45" />
+      <circle cx="620" cy="240" r="80" strokeOpacity="0.55" />
+    </g>
+  );
+}
+function listras(cor: string): ReactNode {
+  return (
+    <g stroke="none" fill={cor} fillOpacity="0.85">
+      <path d="M520 480 640 120h60L580 480z" />
+      <path d="M620 480 740 120h30L650 480z" fillOpacity="0.5" />
+    </g>
+  );
+}
+function arcos(cor: string): ReactNode {
+  return (
+    <g fill="none" stroke={cor} strokeWidth="1.5">
+      <path d="M520 480V250a110 110 0 0 1 220 0v230" strokeOpacity="0.7" />
+      <path d="M560 480V252a70 70 0 0 1 140 0v228" strokeOpacity="0.5" />
+    </g>
+  );
+}
 
 /** Faixa decorativa fina entre o banner e o conteúdo (estilos que a usam). */
 export function FaixaDecorativa() {

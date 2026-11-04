@@ -1,7 +1,8 @@
 /**
  * Estilos de página dos negócios (D-016; IM-091). UM arquivo concentra os 20 ids, os rótulos e o que está liberado.
- * Para liberar mais um estilo: marque `liberado: true` aqui e acrescente o bloco do tema em `site.css`
- * (e, se usar fonte própria, em `fontes.ts`). Nada mais muda.
+ * Os 20 estilos estão com desenho pronto (`site-estilos.css`: 1 a 5; `site-estilos-novos.css`: 6 a 20). Para um estilo
+ * futuro sem desenho, passe `liberado = false` em `T(...)`. Quais estilos cada responsável pode escolher é decidido
+ * no banco (`perfis_estilo_pagina.habilitado`), pela tela do administrador.
  * A escolha do responsável ainda não é gravada (virá com o banco): hoje o estilo vem da prévia (?estilo=) ou é o padrão.
  */
 export const ESTILO_PADRAO = "minimalista" as const;
@@ -35,11 +36,11 @@ export type TemaEstilo = {
   id: EstiloId;
   rotulo: string;
   descricao: string;
-  /** Só os liberados mudam a aparência; os demais caem no padrão e aparecem como "em breve". */
+  /** Só os liberados mudam a aparência; os demais (hoje nenhum) caem no padrão e aparecem como "em breve". */
   liberado: boolean;
 };
 
-const T = (id: EstiloId, rotulo: string, descricao: string, liberado = false): TemaEstilo => ({
+const T = (id: EstiloId, rotulo: string, descricao: string, liberado = true): TemaEstilo => ({
   id,
   rotulo,
   descricao,

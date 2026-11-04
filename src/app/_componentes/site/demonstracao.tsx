@@ -2,6 +2,7 @@ import type { ItemExibicao } from "@/modules/catalogo";
 import type { PerfilExibicao } from "@/modules/perfis";
 import type { BeneficioPublico } from "@/modules/pontos";
 import type { CategoriaOpcao } from "../../_lib/apresentacao";
+import { PALETAS_NOVAS, ROTEIROS_NOVOS } from "./demonstracao-estilos";
 import type { EstiloId } from "./estilos";
 
 /**
@@ -16,6 +17,7 @@ type Motivo = "prato" | "folha" | "arco" | "blocos" | "linhas";
 type Paleta = { fundo: string; forma: string; destaque: string; motivo: Motivo };
 
 const PALETAS: Partial<Record<EstiloId, Paleta[]>> = {
+  ...(PALETAS_NOVAS as Partial<Record<EstiloId, Paleta[]>>),
   minimalista: [
     { fundo: "#f1f1ee", forma: "#111111", destaque: "#1d4ed8", motivo: "linhas" },
     { fundo: "#e4e4e0", forma: "#555555", destaque: "#111111", motivo: "linhas" },
@@ -29,9 +31,9 @@ const PALETAS: Partial<Record<EstiloId, Paleta[]>> = {
     { fundo: "#d9b98a", forma: "#2b1a14", destaque: "#fbf4e8", motivo: "prato" },
   ],
   saude_bem_estar: [
-    { fundo: "#e5f5f1", forma: "#0f766e", destaque: "#7bd3c6", motivo: "folha" },
-    { fundo: "#cfe8e2", forma: "#0b4a52", destaque: "#ffffff", motivo: "folha" },
-    { fundo: "#f4fbf9", forma: "#4fb3a6", destaque: "#0f766e", motivo: "folha" },
+    { fundo: "#dcebf2", forma: "#16475f", destaque: "#9ed2e6", motivo: "folha" },
+    { fundo: "#d2e2ea", forma: "#123f55", destaque: "#ffffff", motivo: "folha" },
+    { fundo: "#f9f6f0", forma: "#5f8aa0", destaque: "#16475f", motivo: "folha" },
     { fundo: "#b7e3da", forma: "#0f766e", destaque: "#f4fbf9", motivo: "folha" },
   ],
   beleza_estetica: [
@@ -84,6 +86,7 @@ type Roteiro = {
 };
 
 const ROTEIROS: Record<string, Roteiro> = {
+  ...ROTEIROS_NOVOS,
   minimalista: {
     nome: "Estúdio Exemplo",
     categoria: "Consultoria",
