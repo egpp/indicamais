@@ -76,6 +76,14 @@ const barlowCondensed = localFont({
   preload: false,
 });
 
+const jakarta = localFont({
+  src: "../../fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+  weight: "200 800",
+  display: "swap",
+  variable: "--f-jakarta",
+  preload: false,
+});
+
 /** Classes (variáveis de fonte) a aplicar ao redor da página, por estilo. Estilos sem fonte própria usam a do padrão. */
 const FONTES: Partial<Record<EstiloId, string>> = {
   minimalista: inter.variable,
@@ -83,6 +91,21 @@ const FONTES: Partial<Record<EstiloId, string>> = {
   beleza_estetica: `${cormorant.variable} ${jost.variable}`,
   gastronomia: `${playfair.variable} ${lato.variable}`,
   construcao_reformas: `${barlowCondensed.variable} ${barlow.variable}`,
+  cafe_padaria: nunito.variable,
+  automotivo: `${barlowCondensed.variable} ${barlow.variable}`,
+  juridico_contabil: `${playfair.variable} ${inter.variable}`,
+  educacao_cursos: jakarta.variable,
+  pet: nunito.variable,
+  moda_lojas: `${playfair.variable} ${inter.variable}`,
+  fitness_esportes: `${barlowCondensed.variable} ${barlow.variable}`,
+  imobiliario: `${playfair.variable} ${inter.variable}`,
+  tecnologia_assistencia: `${jakarta.variable} ${inter.variable}`,
+  casa_decoracao: `${cormorant.variable} ${jost.variable}`,
+  eventos_fotografia: `${playfair.variable} ${inter.variable}`,
+  servicos_rapidos: jakarta.variable,
+  agro_campo: lato.variable,
+  turismo_hospedagem: `${playfair.variable} ${lato.variable}`,
+  premium: `${cormorant.variable} ${jost.variable}`,
 };
 
 export const classeDeFontes = (id: EstiloId): string => FONTES[id] ?? inter.variable;

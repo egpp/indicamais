@@ -1,0 +1,1989 @@
+/*
+ * Estilos 6 a 20 das páginas dos negócios (D-016; IM-091). GERADO a partir de uma tabela de paletas por um script
+ * de apoio; edite aqui à mão se precisar (o arquivo é a fonte). Mesma estrutura dos 5 primeiros (site-estilos.css):
+ * cada bloco `.site-<id>` define as variáveis --s-* e uma composição própria leve. O estilo muda só a aparência.
+ * Contraste (WCAG AA) medido por par; texto normal >= 4,5:1, ícones e bordas de ação >= 3:1. Razões principais
+ * ao lado de cada estilo. Estilos com seção escura (automotivo, fitness, eventos, premium) redefinem as cores
+ * dentro de `.st-faixa-alt`, com as razões medidas para o fundo escuro.
+ */
+
+/* ===== CAFÉ E PADARIA. Quentinho e artesanal: amarelo-manteiga, marrom, azul-cobalto, xadrez de padaria.
+ * Razões: texto/fundo 14.1 · texto/alt 10.1 · titulo/fundo 12.1 · suave/fundo 8.8 · suave/superficie 9.1 · link/fundo 9.0 · link/superficie 9.4 · texto/superficie 14.7 · botao 9.6 · borda-forte/fundo 4.7 · foco/fundo 9.0 · foco/superficie 9.4 */
+.site-cafe_padaria {
+  --s-bg: #fff8e6;
+  --s-alt: #f1cfa0;
+  --s-surface: #fffdf5;
+  --s-text: #3a2112;
+  --s-titulo: #4a2a18;
+  --s-suave: #5f402e;
+  --s-link: #1d3f94;
+  --s-borda: #ecd9a8;
+  --s-borda-forte: #8a6a4a;
+  --s-botao-fundo: #1d3f94;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #1d3f94;
+  --s-foco: #1d3f94;
+  --s-foco-halo: #fffdf5;
+  --s-raio: 28px;
+  --s-raio-pequeno: 16px;
+  --s-raio-botao: 999px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 24px;
+  --s-raio-avatar: 50%;
+  --s-sombra: 0 3px 0 rgb(29 63 148 / 0.14);
+  --s-sombra-forte: 0 8px 0 rgb(29 63 148 / 0.18);
+  --s-fonte-titulo: var(--f-nunito);
+  --s-fonte-texto: var(--f-nunito);
+  --s-peso-titulo: 900;
+  --s-tracking: -0.025em;
+  --s-tracking-botao: 0;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #fff8e6;
+  --s-menu-texto: #3a2112;
+  --s-menu-borda: 0;
+  --s-menu-sombra: 0 2px 0 #ecd9a8;
+  --s-menu-foco: #1d3f94;
+  --s-menu-foco-halo: #fff8e6;
+  --s-menu-hover: #f6e2b8;
+  --s-menu-ativo-bg: #1d3f94;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #fde8a6 0%, #f8d070 100%);
+  --s-hero-texto: #3a2112;
+  --s-hero-foco: #1d3f94;
+  --s-hero-foco-halo: #fffdf5;
+  --s-acento: #1d3f94;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #1d3f94;
+  --s-destaque-fundo: #1d3f94;
+  --s-destaque-icone: #fff8e6;
+  --s-rodape-fundo: #1d3f94;
+  --s-rodape-texto: #fff8e6;
+}
+.site-cafe_padaria .st-card-imagem {
+  display: contents;
+}
+.site-cafe_padaria .st-card-imagem img,
+.site-cafe_padaria .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-cafe_padaria .st-card-corpo {
+  order: 2;
+}
+.site-cafe_padaria .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-cafe_padaria {
+  font-size: 1.0625rem;
+}
+.site-cafe_padaria .st-hero h1 {
+  font-size: clamp(2.5rem, 10vw, 4.75rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+.site-cafe_padaria .st-sobretitulo {
+  display: inline-block;
+  padding: 0.25rem var(--e3);
+  border: 2px solid #1d3f94;
+  border-radius: 999px;
+  color: #1d3f94;
+  letter-spacing: 0.08em;
+}
+.site-cafe_padaria .botao {
+  box-shadow: 0 4px 0 #0f2a6b;
+  font-weight: 800;
+}
+.site-cafe_padaria .st-faixa-deco {
+  display: block;
+  height: 18px;
+  background: conic-gradient(#1d3f94 25%, #fff8e6 0 50%, #1d3f94 0 75%, #fff8e6 0) 0 0/18px 18px;
+}
+.site-cafe_padaria .st-cab {
+  flex-direction: column;
+  text-align: center;
+}
+.site-cafe_padaria .st-card {
+  border: 0;
+  background: #fff3cf;
+  box-shadow: var(--s-sombra);
+}
+.site-cafe_padaria .st-card:hover {
+  transform: translateY(-4px) rotate(-0.4deg);
+}
+.site-cafe_padaria .st-card-corpo h3 {
+  font-size: 1.375rem;
+}
+.site-cafe_padaria .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.5rem;
+}
+.site-cafe_padaria .st-card-tipo {
+  color: #1d3f94;
+}
+.site-cafe_padaria .st-destaques li {
+  border: 2px solid #1d3f94;
+}
+.site-cafe_padaria .st-rodape {
+  border-top: 6px solid #fff8e6;
+}
+.site-cafe_padaria .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== AUTOMOTIVO. Preto grafite, laranja de oficina, caixa alta condensada e itálica, cantos retos.
+ * Razões: texto/fundo 15.8 · titulo/fundo 15.8 · suave/fundo 6.9 · suave/superficie 7.8 · link/fundo 5.1 · link/superficie 5.8 · texto/superficie 17.8 · botao 5.7 · borda-forte/fundo 4.3 · foco/fundo 15.8 · foco/superficie 17.8 · menu 18.9 */
+.site-automotivo {
+  --s-bg: #f1f1ef;
+  --s-alt: #171b20;
+  --s-surface: #ffffff;
+  --s-text: #14181c;
+  --s-titulo: #14181c;
+  --s-suave: #4b535b;
+  --s-link: #b83a0a;
+  --s-borda: #d4d6d8;
+  --s-borda-forte: #6b737b;
+  --s-botao-fundo: #ff5a1f;
+  --s-botao-texto: #14181c;
+  --s-botao-borda: #ff5a1f;
+  --s-foco: #14181c;
+  --s-foco-halo: #ff5a1f;
+  --s-raio: 2px;
+  --s-raio-pequeno: 2px;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 0;
+  --s-sombra: 0 2px 10px rgb(20 24 28 / 0.1);
+  --s-sombra-forte: 0 12px 28px rgb(20 24 28 / 0.22);
+  --s-fonte-titulo: var(--f-barlow-cond);
+  --s-fonte-texto: var(--f-barlow);
+  --s-peso-titulo: 800;
+  --s-tracking: 0.01em;
+  --s-tracking-botao: 0.06em;
+  --s-caixa: uppercase;
+  --s-caixa-botao: uppercase;
+  --s-menu-bg: #0e1114;
+  --s-menu-texto: #ffffff;
+  --s-menu-borda: 3px solid #ff5a1f;
+  --s-menu-sombra: none;
+  --s-menu-foco: #ff8a5c;
+  --s-menu-foco-halo: #0e1114;
+  --s-menu-hover: rgb(255 255 255 / 0.12);
+  --s-menu-ativo-bg: #ff5a1f;
+  --s-menu-ativo-texto: #14181c;
+  --s-hero-fundo: linear-gradient(135deg, #0b0d10 0%, #262b31 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #ff8a5c;
+  --s-hero-foco-halo: #0b0d10;
+  --s-acento: #ff5a1f;
+  --s-acento-texto: #14181c;
+  --s-preco-fundo: #14181c;
+  --s-preco-texto: #ff8a5c;
+  --s-destaque-fundo: #14181c;
+  --s-destaque-icone: #ff8a5c;
+  --s-rodape-fundo: #0e1114;
+  --s-rodape-texto: #e5e7e9;
+}
+.site-automotivo .st-faixa-alt {
+  --s-bg: #171b20;
+  --s-surface: #20262c;
+  --s-text: #f3f4f5;
+  --s-titulo: #ffffff;
+  --s-suave: #bcc2c9;
+  --s-link: #ff8a5c;
+  --s-borda: #3a424a;
+  --s-borda-forte: #8b939b;
+  --s-sombra: none;
+  --s-botao-fundo: #ff5a1f;
+  --s-botao-texto: #14181c;
+  --s-botao-borda: #ff5a1f;
+  --s-foco: #ff8a5c;
+  --s-foco-halo: #171b20;
+  color: #f3f4f5;
+}
+.site-automotivo .st-card-imagem {
+  display: contents;
+}
+.site-automotivo .st-card-imagem img,
+.site-automotivo .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-automotivo .st-card-corpo {
+  order: 2;
+}
+.site-automotivo .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-automotivo .st-hero h1,
+.site-automotivo .st-cab h2,
+.site-automotivo .st-card-corpo h3 {
+  font-style: italic;
+}
+.site-automotivo .st-hero h1 {
+  font-size: clamp(2.75rem, 12vw, 5.5rem);
+  line-height: 0.95;
+}
+.site-automotivo .st-sobretitulo {
+  color: #ff8a5c;
+  border-bottom: 3px solid #ff5a1f;
+  display: inline-block;
+  padding-bottom: 0.25rem;
+}
+.site-automotivo .st-hero .st-sobretitulo {
+  color: #ff8a5c;
+}
+.site-automotivo .botao {
+  font-weight: 800;
+  border: 0;
+}
+.site-automotivo .st-cab {
+  padding-top: var(--e3);
+  border-top: 3px solid #ff5a1f;
+}
+.site-automotivo .st-faixa-deco {
+  display: block;
+  height: 10px;
+  background: repeating-linear-gradient(115deg, #ff5a1f 0 22px, #0e1114 22px 34px);
+}
+.site-automotivo .st-card {
+  border: 0;
+  border-top: 4px solid #ff5a1f;
+}
+.site-automotivo .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  color: var(--s-titulo);
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: 1.75rem;
+}
+.site-automotivo .st-card-tipo {
+  color: var(--s-link);
+}
+.site-automotivo .st-destaques li {
+  border: 0;
+  border-left: 6px solid #ff5a1f;
+}
+.site-automotivo .st-rodape {
+  border-top: 4px solid #ff5a1f;
+}
+.site-automotivo .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== JURÍDICO E CONTÁBIL. Azul-marinho, bronze e papel creme; serifa sóbria, caixas retas com filete.
+ * Razões: texto/fundo 14.0 · texto/alt 12.2 · titulo/fundo 13.2 · suave/fundo 7.2 · suave/superficie 7.9 · link/fundo 5.5 · link/superficie 6.1 · texto/superficie 15.5 · botao 14.8 · borda-forte/fundo 4.6 · foco/fundo 13.2 · foco/superficie 14.6 */
+.site-juridico_contabil {
+  --s-bg: #f6f1e9;
+  --s-alt: #e7e2d8;
+  --s-surface: #fffdfa;
+  --s-text: #0f2535;
+  --s-titulo: #0e2a3d;
+  --s-suave: #44525d;
+  --s-link: #8a5524;
+  --s-borda: #d9d0c0;
+  --s-borda-forte: #7a6a55;
+  --s-botao-fundo: #0e2a3d;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #0e2a3d;
+  --s-foco: #0e2a3d;
+  --s-foco-halo: #f6f1e9;
+  --s-raio: 0;
+  --s-raio-pequeno: 0;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 0;
+  --s-sombra: none;
+  --s-sombra-forte: 0 10px 26px rgb(14 42 61 / 0.14);
+  --s-fonte-titulo: var(--f-playfair);
+  --s-fonte-texto: var(--f-inter);
+  --s-peso-titulo: 500;
+  --s-tracking: -0.01em;
+  --s-tracking-botao: 0.02em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #f6f1e9;
+  --s-menu-texto: #0f2535;
+  --s-menu-borda: 1px solid #d9d0c0;
+  --s-menu-sombra: none;
+  --s-menu-foco: #0e2a3d;
+  --s-menu-foco-halo: #f6f1e9;
+  --s-menu-hover: #e7e2d8;
+  --s-menu-ativo-bg: #0e2a3d;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #0b2233 0%, #143a52 100%);
+  --s-hero-texto: #f6f1e9;
+  --s-hero-foco: #e0aa6f;
+  --s-hero-foco-halo: #0b2233;
+  --s-acento: #f6f1e9;
+  --s-acento-texto: #0e2a3d;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #0e2a3d;
+  --s-destaque-fundo: #0e2a3d;
+  --s-destaque-icone: #e0aa6f;
+  --s-rodape-fundo: #0e2a3d;
+  --s-rodape-texto: #e7e2d8;
+}
+.site-juridico_contabil .st-card-imagem {
+  display: contents;
+}
+.site-juridico_contabil .st-card-imagem img,
+.site-juridico_contabil .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-juridico_contabil .st-card-corpo {
+  order: 2;
+}
+.site-juridico_contabil .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-juridico_contabil .st-sobretitulo {
+  color: #e0aa6f;
+  letter-spacing: 0.2em;
+  font-size: 0.8125rem;
+}
+.site-juridico_contabil .st-hero h1 {
+  font-size: clamp(2.25rem, 8vw, 4.25rem);
+  line-height: 1.08;
+}
+.site-juridico_contabil .st-hero-texto {
+  padding-left: var(--e4);
+  border-left: 2px solid #e0aa6f;
+}
+.site-juridico_contabil .botao {
+  font-weight: 600;
+}
+.site-juridico_contabil .st-cab h2 {
+  font-size: clamp(1.875rem, 5vw, 2.75rem);
+}
+.site-juridico_contabil .st-grade-cards {
+  counter-reset: ju;
+}
+.site-juridico_contabil .st-card {
+  counter-increment: ju;
+  border: 1px solid #0e2a3d;
+  background: var(--s-surface);
+}
+.site-juridico_contabil .st-card::before {
+  position: absolute;
+  top: var(--e2);
+  right: var(--e3);
+  z-index: 2;
+  padding: 0 0.4rem;
+  background: #fffdfa;
+  color: #8a5524;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.125rem;
+  content: counter(ju, decimal-leading-zero);
+}
+.site-juridico_contabil .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.375rem;
+}
+.site-juridico_contabil .st-card-tipo {
+  color: #8a5524;
+  letter-spacing: 0.16em;
+}
+.site-juridico_contabil .st-destaques li {
+  border: 1px solid #0e2a3d;
+  border-left-width: 4px;
+}
+.site-juridico_contabil .st-beneficios .cartao,
+.site-juridico_contabil .st-local-cartao,
+.site-juridico_contabil .st-contato-form {
+  border-color: #0e2a3d;
+}
+.site-juridico_contabil .st-rodape {
+  border-top: 3px double #e0aa6f;
+}
+.site-juridico_contabil .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== EDUCAÇÃO E CURSOS. Roxo e verde-limão sobre fundo claro, blocos arredondados e marcador de destaque.
+ * Razões: texto/fundo 15.7 · texto/alt 13.5 · titulo/fundo 11.5 · suave/fundo 7.8 · suave/superficie 8.5 · link/fundo 8.3 · link/superficie 9.0 · texto/superficie 17.1 · botao 11.0 · borda-forte/fundo 4.5 · foco/fundo 10.1 · foco/superficie 11.0 */
+.site-educacao_cursos {
+  --s-bg: #f7f5f2;
+  --s-alt: #e9e1f8;
+  --s-surface: #ffffff;
+  --s-text: #1f1340;
+  --s-titulo: #3b1a85;
+  --s-suave: #52466e;
+  --s-link: #5b21b6;
+  --s-borda: #ddd3f2;
+  --s-borda-forte: #76699a;
+  --s-botao-fundo: #4c1d95;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #4c1d95;
+  --s-foco: #4c1d95;
+  --s-foco-halo: #ffffff;
+  --s-raio: 18px;
+  --s-raio-pequeno: 12px;
+  --s-raio-botao: 12px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 18px;
+  --s-raio-avatar: 50%;
+  --s-sombra: 0 2px 10px rgb(76 29 149 / 0.08);
+  --s-sombra-forte: 0 14px 30px rgb(76 29 149 / 0.2);
+  --s-fonte-titulo: var(--f-jakarta);
+  --s-fonte-texto: var(--f-jakarta);
+  --s-peso-titulo: 800;
+  --s-tracking: -0.03em;
+  --s-tracking-botao: 0;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #f7f5f2;
+  --s-menu-texto: #1f1340;
+  --s-menu-borda: 1px solid #ddd3f2;
+  --s-menu-sombra: none;
+  --s-menu-foco: #4c1d95;
+  --s-menu-foco-halo: #f7f5f2;
+  --s-menu-hover: #e9e1f8;
+  --s-menu-ativo-bg: #4c1d95;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #f9f7f3 0%, #e9e1f8 100%);
+  --s-hero-texto: #2b1065;
+  --s-hero-foco: #4c1d95;
+  --s-hero-foco-halo: #ffffff;
+  --s-acento: #4c1d95;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: #c8ec4f;
+  --s-preco-texto: #2b1065;
+  --s-destaque-fundo: #c8ec4f;
+  --s-destaque-icone: #2b1065;
+  --s-rodape-fundo: #2e1065;
+  --s-rodape-texto: #f3eefc;
+}
+.site-educacao_cursos .st-card-imagem {
+  display: contents;
+}
+.site-educacao_cursos .st-card-imagem img,
+.site-educacao_cursos .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-educacao_cursos .st-card-corpo {
+  order: 2;
+}
+.site-educacao_cursos .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-educacao_cursos .st-hero h1 {
+  font-size: clamp(2.5rem, 10vw, 4.75rem);
+  line-height: 1;
+}
+.site-educacao_cursos .st-sobretitulo {
+  display: inline-block;
+  padding: 0.25rem var(--e3);
+  border-radius: 8px;
+  background: #c8ec4f;
+  color: #2b1065;
+  letter-spacing: 0.06em;
+}
+.site-educacao_cursos .st-hero-imagem .st-sobretitulo {
+  background: #c8ec4f;
+  color: #2b1065;
+}
+.site-educacao_cursos .botao {
+  font-weight: 800;
+}
+.site-educacao_cursos .st-faixa-deco {
+  display: block;
+  height: 12px;
+  background: linear-gradient(90deg, #4c1d95 0 33%, #c8ec4f 33% 66%, #b9a1ec 66%);
+}
+.site-educacao_cursos .st-card {
+  border: 2px solid #ddd3f2;
+  box-shadow: none;
+}
+.site-educacao_cursos .st-card:hover {
+  border-color: #4c1d95;
+}
+.site-educacao_cursos .st-card-tipo {
+  color: #4c1d95;
+  letter-spacing: 0.06em;
+}
+.site-educacao_cursos .st-chips li {
+  background: #e9e1f8;
+  border-color: transparent;
+}
+.site-educacao_cursos .st-rodape {
+  border-top: 6px solid #c8ec4f;
+}
+.site-educacao_cursos .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== PET. Creme, verde-floresta e coral; cantos bem arredondados, tipografia redonda e acolhedora.
+ * Razões: texto/fundo 11.4 · texto/alt 10.4 · titulo/fundo 8.9 · suave/fundo 6.3 · suave/superficie 6.7 · link/fundo 7.5 · link/superficie 8.0 · texto/superficie 12.2 · botao 8.1 · borda-forte/fundo 3.9 · foco/fundo 7.5 · foco/superficie 8.0 */
+.site-pet {
+  --s-bg: #fdf4e7;
+  --s-alt: #dff0e2;
+  --s-surface: #fffdf9;
+  --s-text: #123b32;
+  --s-titulo: #0f4d3f;
+  --s-suave: #46605a;
+  --s-link: #0f5a4a;
+  --s-borda: #efdcc0;
+  --s-borda-forte: #6a8077;
+  --s-botao-fundo: #0f5a4a;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #0f5a4a;
+  --s-foco: #0f5a4a;
+  --s-foco-halo: #fffdf9;
+  --s-raio: 24px;
+  --s-raio-pequeno: 14px;
+  --s-raio-botao: 999px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 28px;
+  --s-raio-avatar: 50% 50% 50% 14px;
+  --s-sombra: 0 3px 12px rgb(15 77 63 / 0.08);
+  --s-sombra-forte: 0 12px 28px rgb(15 77 63 / 0.18);
+  --s-fonte-titulo: var(--f-nunito);
+  --s-fonte-texto: var(--f-nunito);
+  --s-peso-titulo: 900;
+  --s-tracking: -0.02em;
+  --s-tracking-botao: 0;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #fdf4e7;
+  --s-menu-texto: #123b32;
+  --s-menu-borda: 0;
+  --s-menu-sombra: 0 2px 0 #efdcc0;
+  --s-menu-foco: #0f5a4a;
+  --s-menu-foco-halo: #fdf4e7;
+  --s-menu-hover: #f6e5cb;
+  --s-menu-ativo-bg: #f4896b;
+  --s-menu-ativo-texto: #0e3a30;
+  --s-hero-fundo: linear-gradient(135deg, #fdf4e7 0%, #fbdcc6 100%);
+  --s-hero-texto: #0f4d3f;
+  --s-hero-foco: #0f5a4a;
+  --s-hero-foco-halo: #fffdf9;
+  --s-acento: #0f5a4a;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: #f4896b;
+  --s-preco-texto: #0e3a30;
+  --s-destaque-fundo: #f4896b;
+  --s-destaque-icone: #0e3a30;
+  --s-rodape-fundo: #0f5a4a;
+  --s-rodape-texto: #fdf4e7;
+}
+.site-pet .st-card-imagem {
+  display: contents;
+}
+.site-pet .st-card-imagem img,
+.site-pet .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-pet .st-card-corpo {
+  order: 2;
+}
+.site-pet .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-pet .st-hero h1 {
+  font-size: clamp(2.5rem, 10vw, 4.5rem);
+  line-height: 1;
+}
+.site-pet .st-sobretitulo {
+  display: inline-block;
+  padding: 0.25rem var(--e3);
+  border-radius: 999px;
+  background: #f4896b;
+  color: #0e3a30;
+}
+.site-pet .botao {
+  font-weight: 800;
+}
+.site-pet .st-card {
+  border: 2px solid #f2c9b4;
+  background: var(--s-surface);
+}
+.site-pet .st-faixa-alt .st-card {
+  border-color: #bfdcc6;
+}
+.site-pet .st-card:hover {
+  transform: translateY(-4px) rotate(0.4deg);
+}
+.site-pet .st-card-tipo {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: #dff0e2;
+  color: #0f4d3f;
+}
+.site-pet .st-faixa-alt .st-card-tipo {
+  background: #fdf4e7;
+}
+.site-pet .st-fotos img {
+  border-radius: 28px 28px 28px 8px;
+}
+.site-pet .st-destaques li {
+  border: 2px dashed #f4896b;
+}
+.site-pet .st-rodape {
+  border-top: 6px solid #f4896b;
+}
+.site-pet .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== MODA E LOJAS. Vitrine editorial: fundo off-white, serifa elegante, preto e azul-royal; fotos em retrato.
+ * Razões: texto/fundo 16.8 · texto/alt 15.0 · titulo/fundo 17.7 · suave/fundo 6.5 · suave/superficie 6.9 · link/fundo 7.4 · link/superficie 7.8 · texto/superficie 17.8 · botao 18.9 · borda-forte/fundo 3.8 · foco/fundo 7.4 · foco/superficie 7.8 */
+.site-moda_lojas {
+  --s-bg: #faf8f5;
+  --s-alt: #e6ecf7;
+  --s-surface: #ffffff;
+  --s-text: #16181d;
+  --s-titulo: #101216;
+  --s-suave: #555a63;
+  --s-link: #1d3dd6;
+  --s-borda: #e6e2dc;
+  --s-borda-forte: #7a7f88;
+  --s-botao-fundo: #111111;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #111111;
+  --s-foco: #1d3dd6;
+  --s-foco-halo: #ffffff;
+  --s-raio: 2px;
+  --s-raio-pequeno: 2px;
+  --s-raio-botao: 2px;
+  --s-raio-chip: 2px;
+  --s-raio-img: 0;
+  --s-raio-avatar: 50%;
+  --s-sombra: none;
+  --s-sombra-forte: 0 12px 28px rgb(17 17 17 / 0.14);
+  --s-fonte-titulo: var(--f-playfair);
+  --s-fonte-texto: var(--f-inter);
+  --s-peso-titulo: 500;
+  --s-tracking: -0.02em;
+  --s-tracking-botao: 0.04em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #faf8f5;
+  --s-menu-texto: #16181d;
+  --s-menu-borda: 1px solid #e6e2dc;
+  --s-menu-sombra: none;
+  --s-menu-foco: #1d3dd6;
+  --s-menu-foco-halo: #faf8f5;
+  --s-menu-hover: #e6ecf7;
+  --s-menu-ativo-bg: #111111;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #efe9e1 0%, #d9cfc2 100%);
+  --s-hero-texto: #111111;
+  --s-hero-foco: #1d3dd6;
+  --s-hero-foco-halo: #ffffff;
+  --s-acento: #111111;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #111111;
+  --s-destaque-fundo: #e6ecf7;
+  --s-destaque-icone: #1d3dd6;
+  --s-rodape-fundo: #111111;
+  --s-rodape-texto: #eeeeee;
+}
+.site-moda_lojas .st-card-imagem {
+  display: contents;
+}
+.site-moda_lojas .st-card-imagem img,
+.site-moda_lojas .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-moda_lojas .st-card-corpo {
+  order: 2;
+}
+.site-moda_lojas .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-moda_lojas .st-menu-nome {
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-size: 1rem;
+}
+.site-moda_lojas .st-hero h1 {
+  font-size: clamp(2.5rem, 9vw, 4.5rem);
+  line-height: 1.02;
+}
+.site-moda_lojas .st-sobretitulo {
+  color: #1d3dd6;
+  font-size: 0.8125rem;
+  letter-spacing: 0.18em;
+}
+.site-moda_lojas .st-hero-imagem .st-sobretitulo {
+  color: #ffffff;
+}
+.site-moda_lojas .st-cab h2 {
+  font-size: clamp(1.875rem, 5.5vw, 3rem);
+}
+.site-moda_lojas .st-card {
+  border: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--s-borda);
+}
+.site-moda_lojas .st-card {
+  --st-ar: 3 / 4;
+}
+.site-moda_lojas .st-card-preco {
+  padding: 0 var(--e1) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--s-fonte-texto), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.site-moda_lojas .st-card-corpo {
+  padding-inline: var(--e1);
+}
+.site-moda_lojas .st-card-corpo h3 {
+  font-size: 1.1875rem;
+}
+.site-moda_lojas .st-card-tipo {
+  color: #1d3dd6;
+  letter-spacing: 0.16em;
+}
+.site-moda_lojas .st-card:hover {
+  box-shadow: none;
+  transform: translateY(-3px);
+}
+.site-moda_lojas .st-rodape {
+  border-top: 0;
+}
+.site-moda_lojas .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== FITNESS E ESPORTES. Preto, verde-limão elétrico, caixa alta condensada itálica, faixa de energia.
+ * Razões: texto/fundo 16.8 · titulo/fundo 16.8 · suave/fundo 7.7 · suave/superficie 8.8 · link/fundo 6.9 · link/superficie 7.9 · texto/superficie 19.2 · botao 16.6 · borda-forte/fundo 4.3 · foco/fundo 16.8 · foco/superficie 19.2 · menu 19.2 */
+.site-fitness_esportes {
+  --s-bg: #f0f0ec;
+  --s-alt: #101415;
+  --s-surface: #ffffff;
+  --s-text: #0d0f10;
+  --s-titulo: #0d0f10;
+  --s-suave: #464b4e;
+  --s-link: #3d5a00;
+  --s-borda: #d6d6d0;
+  --s-borda-forte: #6c7174;
+  --s-botao-fundo: #d4ff1f;
+  --s-botao-texto: #0d0f10;
+  --s-botao-borda: #d4ff1f;
+  --s-foco: #0d0f10;
+  --s-foco-halo: #d4ff1f;
+  --s-raio: 0;
+  --s-raio-pequeno: 0;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 0;
+  --s-sombra: none;
+  --s-sombra-forte: 6px 6px 0 #0d0f10;
+  --s-fonte-titulo: var(--f-barlow-cond);
+  --s-fonte-texto: var(--f-barlow);
+  --s-peso-titulo: 800;
+  --s-tracking: 0;
+  --s-tracking-botao: 0.04em;
+  --s-caixa: uppercase;
+  --s-caixa-botao: uppercase;
+  --s-menu-bg: #0d0f10;
+  --s-menu-texto: #ffffff;
+  --s-menu-borda: 0;
+  --s-menu-sombra: 0 3px 0 #d4ff1f;
+  --s-menu-foco: #d4ff1f;
+  --s-menu-foco-halo: #0d0f10;
+  --s-menu-hover: rgb(255 255 255 / 0.14);
+  --s-menu-ativo-bg: #d4ff1f;
+  --s-menu-ativo-texto: #0d0f10;
+  --s-hero-fundo: linear-gradient(135deg, #0d0f10 0%, #1e2528 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #d4ff1f;
+  --s-hero-foco-halo: #0d0f10;
+  --s-acento: #d4ff1f;
+  --s-acento-texto: #0d0f10;
+  --s-preco-fundo: #0d0f10;
+  --s-preco-texto: #d4ff1f;
+  --s-destaque-fundo: #0d0f10;
+  --s-destaque-icone: #d4ff1f;
+  --s-rodape-fundo: #0d0f10;
+  --s-rodape-texto: #e8e8e4;
+}
+.site-fitness_esportes .st-faixa-alt {
+  --s-bg: #101415;
+  --s-surface: #1b2124;
+  --s-text: #f2f2ee;
+  --s-titulo: #ffffff;
+  --s-suave: #bfc4c6;
+  --s-link: #d4ff1f;
+  --s-borda: #343c40;
+  --s-borda-forte: #8a9296;
+  --s-sombra: none;
+  --s-botao-fundo: #d4ff1f;
+  --s-botao-texto: #0d0f10;
+  --s-botao-borda: #d4ff1f;
+  --s-foco: #d4ff1f;
+  --s-foco-halo: #101415;
+  color: #f2f2ee;
+}
+.site-fitness_esportes .st-card-imagem {
+  display: contents;
+}
+.site-fitness_esportes .st-card-imagem img,
+.site-fitness_esportes .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-fitness_esportes .st-card-corpo {
+  order: 2;
+}
+.site-fitness_esportes .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-fitness_esportes .st-hero h1,
+.site-fitness_esportes .st-cab h2,
+.site-fitness_esportes .st-card-corpo h3 {
+  font-style: italic;
+}
+.site-fitness_esportes .st-hero h1 {
+  font-size: clamp(2.75rem, 12vw, 5.75rem);
+  line-height: 0.92;
+}
+.site-fitness_esportes .st-sobretitulo {
+  color: #d4ff1f;
+}
+.site-fitness_esportes .botao {
+  font-weight: 800;
+  font-style: italic;
+  border: 0;
+}
+.site-fitness_esportes .st-faixa-deco {
+  display: block;
+  height: 34px;
+  background: #d4ff1f
+    repeating-linear-gradient(115deg, transparent 0 40px, rgb(13 15 16 / 0.18) 40px 46px);
+}
+.site-fitness_esportes .st-grade-cards {
+  counter-reset: fit;
+}
+.site-fitness_esportes .st-card {
+  counter-increment: fit;
+  border: 0;
+  border-top: 6px solid #d4ff1f;
+}
+.site-fitness_esportes .st-card::before {
+  position: absolute;
+  top: var(--e2);
+  left: var(--e3);
+  z-index: 2;
+  color: transparent;
+  -webkit-text-stroke: 2px #ffffff;
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: 2.5rem;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1;
+  content: counter(fit, decimal-leading-zero);
+}
+.site-fitness_esportes .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  color: var(--s-titulo);
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: 2rem;
+  font-style: italic;
+}
+.site-fitness_esportes .st-card-tipo {
+  color: var(--s-link);
+}
+.site-fitness_esportes .st-destaques li {
+  border: 0;
+  border-left: 8px solid #d4ff1f;
+}
+.site-fitness_esportes .st-rodape {
+  border-top: 6px solid #d4ff1f;
+}
+.site-fitness_esportes .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== IMOBILIÁRIO. Verde-petróleo, areia e bronze; serifa espaçosa, cartões claros com selo de Venda/Aluguel.
+ * Razões: texto/fundo 13.5 · texto/alt 11.6 · titulo/fundo 10.2 · suave/fundo 6.7 · suave/superficie 7.1 · link/fundo 6.4 · link/superficie 6.7 · texto/superficie 14.3 · botao 10.8 · borda-forte/fundo 3.9 · foco/fundo 10.2 · foco/superficie 10.8 */
+.site-imobiliario {
+  --s-bg: #fbf8f3;
+  --s-alt: #efe6da;
+  --s-surface: #ffffff;
+  --s-text: #1d2d30;
+  --s-titulo: #17434a;
+  --s-suave: #4b5b5d;
+  --s-link: #8a4b24;
+  --s-borda: #e4dccf;
+  --s-borda-forte: #70807f;
+  --s-botao-fundo: #17434a;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #17434a;
+  --s-foco: #17434a;
+  --s-foco-halo: #fbf8f3;
+  --s-raio: 10px;
+  --s-raio-pequeno: 6px;
+  --s-raio-botao: 6px;
+  --s-raio-chip: 6px;
+  --s-raio-img: 10px;
+  --s-raio-avatar: 10px;
+  --s-sombra: 0 2px 12px rgb(23 67 74 / 0.08);
+  --s-sombra-forte: 0 14px 30px rgb(23 67 74 / 0.16);
+  --s-fonte-titulo: var(--f-playfair);
+  --s-fonte-texto: var(--f-inter);
+  --s-peso-titulo: 500;
+  --s-tracking: -0.015em;
+  --s-tracking-botao: 0.01em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #fbf8f3;
+  --s-menu-texto: #1d2d30;
+  --s-menu-borda: 1px solid #e4dccf;
+  --s-menu-sombra: none;
+  --s-menu-foco: #17434a;
+  --s-menu-foco-halo: #fbf8f3;
+  --s-menu-hover: #efe6da;
+  --s-menu-ativo-bg: #17434a;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #10363c 0%, #1d5a60 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #e8c9a0;
+  --s-hero-foco-halo: #10363c;
+  --s-acento: #e8c9a0;
+  --s-acento-texto: #10363c;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #8a4b24;
+  --s-destaque-fundo: #17434a;
+  --s-destaque-icone: #e8c9a0;
+  --s-rodape-fundo: #10363c;
+  --s-rodape-texto: #e9eeee;
+}
+.site-imobiliario .st-card-imagem {
+  display: contents;
+}
+.site-imobiliario .st-card-imagem img,
+.site-imobiliario .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-imobiliario .st-card-corpo {
+  order: 2;
+}
+.site-imobiliario .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-imobiliario .st-hero h1 {
+  font-size: clamp(2.25rem, 8vw, 4.25rem);
+  line-height: 1.08;
+}
+.site-imobiliario .st-sobretitulo {
+  color: #e8c9a0;
+  font-size: 0.8125rem;
+  letter-spacing: 0.18em;
+}
+.site-imobiliario .st-cab h2 {
+  font-size: clamp(1.875rem, 5vw, 2.75rem);
+}
+.site-imobiliario .st-faixa-deco {
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, #e8c9a0, #8a4b24);
+}
+.site-imobiliario .st-card {
+  border: 1px solid var(--s-borda);
+}
+.site-imobiliario .st-card-corpo h3 {
+  font-size: 1.3125rem;
+}
+.site-imobiliario .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.site-imobiliario .st-card-tipo {
+  align-self: flex-start;
+  padding: 0.15rem 0.6rem;
+  border-radius: 4px;
+  background: #f3e6d3;
+  color: #7a3f1a;
+}
+.site-imobiliario .st-chips-imovel li {
+  border-color: #e4dccf;
+  background: #f6efe4;
+  color: var(--s-text);
+}
+.site-imobiliario .st-faixa-alt .st-chips-imovel li {
+  background: #ffffff;
+}
+.site-imobiliario .st-destaques li {
+  border: 0;
+  border-top: 3px solid #e8c9a0;
+}
+.site-imobiliario .st-rodape {
+  border-top: 0;
+}
+.site-imobiliario .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== TECNOLOGIA E ASSISTÊNCIA. Azul-elétrico sobre fundo gelo, sans geométrica, cartões limpos e numerados.
+ * Razões: texto/fundo 16.5 · texto/alt 14.9 · titulo/fundo 17.0 · suave/fundo 7.0 · suave/superficie 7.6 · link/fundo 7.6 · link/superficie 8.2 · texto/superficie 17.9 · botao 8.2 · borda-forte/fundo 4.6 · foco/fundo 7.6 · foco/superficie 8.2 */
+.site-tecnologia_assistencia {
+  --s-bg: #f4f6fb;
+  --s-alt: #e4ebfb;
+  --s-surface: #ffffff;
+  --s-text: #0f172a;
+  --s-titulo: #0b1230;
+  --s-suave: #475569;
+  --s-link: #1537d6;
+  --s-borda: #dbe2f2;
+  --s-borda-forte: #64708a;
+  --s-botao-fundo: #1537d6;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #1537d6;
+  --s-foco: #1537d6;
+  --s-foco-halo: #ffffff;
+  --s-raio: 14px;
+  --s-raio-pequeno: 10px;
+  --s-raio-botao: 10px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 14px;
+  --s-raio-avatar: 14px;
+  --s-sombra: 0 2px 10px rgb(21 55 214 / 0.07);
+  --s-sombra-forte: 0 14px 30px rgb(21 55 214 / 0.18);
+  --s-fonte-titulo: var(--f-jakarta);
+  --s-fonte-texto: var(--f-inter);
+  --s-peso-titulo: 800;
+  --s-tracking: -0.03em;
+  --s-tracking-botao: 0;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #ffffff;
+  --s-menu-texto: #0f172a;
+  --s-menu-borda: 1px solid #dbe2f2;
+  --s-menu-sombra: none;
+  --s-menu-foco: #1537d6;
+  --s-menu-foco-halo: #ffffff;
+  --s-menu-hover: #e4ebfb;
+  --s-menu-ativo-bg: #1537d6;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #0f2ab0 0%, #1d4ff0 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #ffffff;
+  --s-hero-foco-halo: #0f2ab0;
+  --s-acento: #ffffff;
+  --s-acento-texto: #0f2ab0;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #1537d6;
+  --s-destaque-fundo: #1537d6;
+  --s-destaque-icone: #ffffff;
+  --s-rodape-fundo: #0b1a7a;
+  --s-rodape-texto: #e4ebfb;
+}
+.site-tecnologia_assistencia .st-card-imagem {
+  display: contents;
+}
+.site-tecnologia_assistencia .st-card-imagem img,
+.site-tecnologia_assistencia .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-tecnologia_assistencia .st-card-corpo {
+  order: 2;
+}
+.site-tecnologia_assistencia .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-tecnologia_assistencia .st-hero h1 {
+  font-size: clamp(2.375rem, 9vw, 4.5rem);
+  line-height: 1.04;
+}
+.site-tecnologia_assistencia .st-sobretitulo {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.16);
+  color: #ffffff;
+}
+.site-tecnologia_assistencia .botao {
+  font-weight: 700;
+}
+.site-tecnologia_assistencia .st-card {
+  border: 1px solid var(--s-borda);
+  box-shadow: var(--s-sombra);
+}
+.site-tecnologia_assistencia .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.375rem;
+}
+.site-tecnologia_assistencia .st-card-tipo {
+  color: #1537d6;
+  letter-spacing: 0.14em;
+}
+.site-tecnologia_assistencia .st-destaques li {
+  border: 0;
+  background: #ffffff;
+  box-shadow: var(--s-sombra);
+}
+.site-tecnologia_assistencia .st-rodape {
+  border-top: 0;
+}
+.site-tecnologia_assistencia .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== CASA E DECORAÇÃO. Creme, terracota e verde-oliva; serifa alta e leve, muito respiro, cantos retos.
+ * Razões: texto/fundo 12.3 · texto/alt 10.8 · titulo/fundo 11.5 · suave/fundo 6.8 · suave/superficie 7.3 · link/fundo 6.1 · link/superficie 6.5 · texto/superficie 13.2 · botao 6.7 · borda-forte/fundo 4.2 · foco/fundo 11.5 · foco/superficie 12.3 */
+.site-casa_decoracao {
+  --s-bg: #f8f2ea;
+  --s-alt: #eee3d3;
+  --s-surface: #fffaf3;
+  --s-text: #3a2a22;
+  --s-titulo: #4a2a1d;
+  --s-suave: #65503f;
+  --s-link: #9a3f25;
+  --s-borda: #e5d8c6;
+  --s-borda-forte: #85705c;
+  --s-botao-fundo: #9a3f25;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #9a3f25;
+  --s-foco: #4a2a1d;
+  --s-foco-halo: #fffaf3;
+  --s-raio: 0;
+  --s-raio-pequeno: 0;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 50%;
+  --s-sombra: none;
+  --s-sombra-forte: 0 12px 28px rgb(74 42 29 / 0.14);
+  --s-fonte-titulo: var(--f-cormorant);
+  --s-fonte-texto: var(--f-jost);
+  --s-peso-titulo: 600;
+  --s-tracking: -0.005em;
+  --s-tracking-botao: 0.03em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #f8f2ea;
+  --s-menu-texto: #3a2a22;
+  --s-menu-borda: 1px solid #e5d8c6;
+  --s-menu-sombra: none;
+  --s-menu-foco: #4a2a1d;
+  --s-menu-foco-halo: #f8f2ea;
+  --s-menu-hover: #eee3d3;
+  --s-menu-ativo-bg: #9a3f25;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #efe3d0 0%, #d9c4a6 100%);
+  --s-hero-texto: #3a2a22;
+  --s-hero-foco: #4a2a1d;
+  --s-hero-foco-halo: #fffaf3;
+  --s-acento: #9a3f25;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #4a2a1d;
+  --s-destaque-fundo: #4b5a3a;
+  --s-destaque-icone: #f8f2ea;
+  --s-rodape-fundo: #4b5a3a;
+  --s-rodape-texto: #f8f2ea;
+}
+.site-casa_decoracao .st-card-imagem {
+  display: contents;
+}
+.site-casa_decoracao .st-card-imagem img,
+.site-casa_decoracao .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-casa_decoracao .st-card-corpo {
+  order: 2;
+}
+.site-casa_decoracao .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-casa_decoracao {
+  font-size: 1.0625rem;
+}
+.site-casa_decoracao .st-menu-nome {
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+}
+.site-casa_decoracao .st-hero h1 {
+  font-size: clamp(2.75rem, 10vw, 5rem);
+  font-weight: 600;
+  line-height: 1;
+}
+.site-casa_decoracao .st-sobretitulo {
+  font-size: 0.75rem;
+  letter-spacing: 0.26em;
+}
+.site-casa_decoracao .st-cab h2 {
+  font-size: clamp(2rem, 6vw, 3.25rem);
+}
+.site-casa_decoracao .st-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.site-casa_decoracao .st-card-corpo {
+  padding-inline: 0;
+}
+.site-casa_decoracao .st-card-corpo h3 {
+  font-size: 1.625rem;
+}
+.site-casa_decoracao .st-card-preco {
+  padding: 0 0 var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.5rem;
+}
+.site-casa_decoracao .st-card-tipo {
+  color: var(--s-suave);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+}
+.site-casa_decoracao .st-card:hover {
+  box-shadow: none;
+  transform: translateY(-3px);
+}
+.site-casa_decoracao .st-destaques li {
+  border: 0;
+  border-top: 1px solid #4b5a3a;
+  background: transparent;
+}
+.site-casa_decoracao .st-rodape {
+  border-top: 0;
+}
+.site-casa_decoracao .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== EVENTOS E FOTOGRAFIA. Creme e grafite, lilás suave; serifa de galeria, fotos em destaque, linhas finas.
+ * Razões: texto/fundo 14.9 · titulo/fundo 15.8 · suave/fundo 6.9 · suave/superficie 7.5 · link/fundo 6.6 · link/superficie 7.1 · texto/superficie 16.1 · botao 16.2 · borda-forte/fundo 4.1 · foco/fundo 6.6 · foco/superficie 7.1 · menu 14.9 */
+.site-eventos_fotografia {
+  --s-bg: #f7f1ea;
+  --s-alt: #231f26;
+  --s-surface: #fffaf4;
+  --s-text: #221c24;
+  --s-titulo: #1c161e;
+  --s-suave: #5a4f5e;
+  --s-link: #6a3fa0;
+  --s-borda: #e2d9d0;
+  --s-borda-forte: #7d7280;
+  --s-botao-fundo: #231f26;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #231f26;
+  --s-foco: #6a3fa0;
+  --s-foco-halo: #fffaf4;
+  --s-raio: 0;
+  --s-raio-pequeno: 0;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 50%;
+  --s-sombra: none;
+  --s-sombra-forte: 0 14px 30px rgb(34 28 36 / 0.18);
+  --s-fonte-titulo: var(--f-playfair);
+  --s-fonte-texto: var(--f-inter);
+  --s-peso-titulo: 500;
+  --s-tracking: -0.02em;
+  --s-tracking-botao: 0.03em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #f7f1ea;
+  --s-menu-texto: #221c24;
+  --s-menu-borda: 1px solid #e2d9d0;
+  --s-menu-sombra: none;
+  --s-menu-foco: #6a3fa0;
+  --s-menu-foco-halo: #f7f1ea;
+  --s-menu-hover: #ece3d9;
+  --s-menu-ativo-bg: #231f26;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #f7f1ea 0%, #e9dfd3 100%);
+  --s-hero-texto: #1c161e;
+  --s-hero-foco: #6a3fa0;
+  --s-hero-foco-halo: #fffaf4;
+  --s-acento: #231f26;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #1c161e;
+  --s-destaque-fundo: #c9b3e4;
+  --s-destaque-icone: #231f26;
+  --s-rodape-fundo: #231f26;
+  --s-rodape-texto: #efe8f2;
+}
+.site-eventos_fotografia .st-faixa-alt {
+  --s-bg: #231f26;
+  --s-surface: #2f2a33;
+  --s-text: #f1ebf3;
+  --s-titulo: #ffffff;
+  --s-suave: #c4bbc9;
+  --s-link: #cdb6ea;
+  --s-borda: #443e49;
+  --s-borda-forte: #968c9b;
+  --s-sombra: none;
+  --s-botao-fundo: #c9b3e4;
+  --s-botao-texto: #231f26;
+  --s-botao-borda: #c9b3e4;
+  --s-foco: #cdb6ea;
+  --s-foco-halo: #231f26;
+  color: #f1ebf3;
+}
+.site-eventos_fotografia .st-card-imagem {
+  display: contents;
+}
+.site-eventos_fotografia .st-card-imagem img,
+.site-eventos_fotografia .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-eventos_fotografia .st-card-corpo {
+  order: 2;
+}
+.site-eventos_fotografia .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-eventos_fotografia .st-hero h1 {
+  font-size: clamp(2.5rem, 9vw, 4.75rem);
+  line-height: 1.02;
+  text-align: center;
+}
+.site-eventos_fotografia .st-sobretitulo {
+  letter-spacing: 0.24em;
+  font-size: 0.75rem;
+}
+.site-eventos_fotografia .st-cab h2 {
+  font-size: clamp(1.875rem, 5.5vw, 3rem);
+}
+.site-eventos_fotografia .st-fotos {
+  gap: var(--e2);
+}
+.site-eventos_fotografia .st-fotos img {
+  aspect-ratio: 4 / 5;
+}
+.site-eventos_fotografia .st-card {
+  border: 0;
+  border-bottom: 1px solid var(--s-borda);
+  background: transparent;
+  box-shadow: none;
+}
+.site-eventos_fotografia .st-card-corpo h3 {
+  font-size: 1.4375rem;
+}
+.site-eventos_fotografia .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.5rem;
+}
+.site-eventos_fotografia .st-card-tipo {
+  color: var(--s-link);
+  letter-spacing: 0.2em;
+}
+.site-eventos_fotografia .st-destaques li {
+  border: 0;
+  border-top: 1px solid var(--s-borda-forte);
+  background: transparent;
+}
+.site-eventos_fotografia .st-rodape {
+  border-top: 0;
+}
+.site-eventos_fotografia .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== SERVIÇOS RÁPIDOS. Azul-marinho e laranja sobre creme; botões grandes e diretos, cartões com ação imediata.
+ * Razões: texto/fundo 13.3 · texto/alt 12.2 · titulo/fundo 12.0 · suave/fundo 6.7 · suave/superficie 7.2 · link/fundo 6.9 · link/superficie 7.4 · texto/superficie 14.3 · botao 7.4 · borda-forte/fundo 4.4 · foco/fundo 12.0 · foco/superficie 12.9 */
+.site-servicos_rapidos {
+  --s-bg: #fdf6ee;
+  --s-alt: #e3eefb;
+  --s-surface: #ffffff;
+  --s-text: #0e2a52;
+  --s-titulo: #0b2f6b;
+  --s-suave: #43587a;
+  --s-link: #0b4fb8;
+  --s-borda: #d7e3f5;
+  --s-borda-forte: #5d7499;
+  --s-botao-fundo: #0b4fb8;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #0b4fb8;
+  --s-foco: #0b2f6b;
+  --s-foco-halo: #ffffff;
+  --s-raio: 16px;
+  --s-raio-pequeno: 10px;
+  --s-raio-botao: 12px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 18px;
+  --s-raio-avatar: 50%;
+  --s-sombra: 0 2px 10px rgb(11 47 107 / 0.08);
+  --s-sombra-forte: 0 12px 28px rgb(11 47 107 / 0.18);
+  --s-fonte-titulo: var(--f-jakarta);
+  --s-fonte-texto: var(--f-jakarta);
+  --s-peso-titulo: 800;
+  --s-tracking: -0.03em;
+  --s-tracking-botao: 0;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #ffffff;
+  --s-menu-texto: #0e2a52;
+  --s-menu-borda: 1px solid #d7e3f5;
+  --s-menu-sombra: none;
+  --s-menu-foco: #0b2f6b;
+  --s-menu-foco-halo: #ffffff;
+  --s-menu-hover: #e3eefb;
+  --s-menu-ativo-bg: #ff8a2a;
+  --s-menu-ativo-texto: #0e2a52;
+  --s-hero-fundo: linear-gradient(135deg, #fdf6ee 0%, #fde0c2 100%);
+  --s-hero-texto: #0b2f6b;
+  --s-hero-foco: #0b2f6b;
+  --s-hero-foco-halo: #ffffff;
+  --s-acento: #0b4fb8;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #a84300;
+  --s-destaque-fundo: #0b4fb8;
+  --s-destaque-icone: #ffffff;
+  --s-rodape-fundo: #0b2f6b;
+  --s-rodape-texto: #e3eefb;
+}
+.site-servicos_rapidos .st-card-imagem {
+  display: contents;
+}
+.site-servicos_rapidos .st-card-imagem img,
+.site-servicos_rapidos .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-servicos_rapidos .st-card-corpo {
+  order: 2;
+}
+.site-servicos_rapidos .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-servicos_rapidos .st-hero h1 {
+  font-size: clamp(2.375rem, 9.5vw, 4.5rem);
+  line-height: 1.02;
+}
+.site-servicos_rapidos .st-sobretitulo {
+  display: inline-block;
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+  background: #ff8a2a;
+  color: #0e2a52;
+}
+.site-servicos_rapidos .botao {
+  min-height: 52px;
+  font-weight: 800;
+}
+.site-servicos_rapidos .st-faixa-deco {
+  display: block;
+  height: 8px;
+  background: linear-gradient(90deg, #0b4fb8 0 70%, #ff8a2a 70%);
+}
+.site-servicos_rapidos .st-card {
+  border: 2px solid #d7e3f5;
+  box-shadow: none;
+}
+.site-servicos_rapidos .st-card:hover {
+  border-color: #0b4fb8;
+  transform: translateY(-3px);
+}
+.site-servicos_rapidos .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.5rem;
+}
+.site-servicos_rapidos .st-card-tipo {
+  color: #0b4fb8;
+}
+.site-servicos_rapidos .st-destaques li {
+  border: 2px solid #d7e3f5;
+}
+.site-servicos_rapidos .st-rodape {
+  border-top: 6px solid #ff8a2a;
+}
+.site-servicos_rapidos .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== AGRO E CAMPO. Verde-floresta, trigo e terracota sobre bege; robusto, cantos de 6px, fonte humanista em negrito.
+ * Razões: texto/fundo 13.2 · texto/alt 11.9 · titulo/fundo 8.6 · suave/fundo 6.3 · suave/superficie 7.0 · link/fundo 7.2 · link/superficie 8.0 · texto/superficie 14.7 · botao 8.2 · borda-forte/fundo 3.7 · foco/fundo 8.6 · foco/superficie 9.6 */
+.site-agro_campo {
+  --s-bg: #f6f0e6;
+  --s-alt: #efe5cc;
+  --s-surface: #fffdf8;
+  --s-text: #1f2a1c;
+  --s-titulo: #1f4d2e;
+  --s-suave: #4d5c46;
+  --s-link: #1f5a34;
+  --s-borda: #ddd2b8;
+  --s-borda-forte: #73806b;
+  --s-botao-fundo: #1f5a34;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #1f5a34;
+  --s-foco: #1f4d2e;
+  --s-foco-halo: #fffdf8;
+  --s-raio: 6px;
+  --s-raio-pequeno: 4px;
+  --s-raio-botao: 6px;
+  --s-raio-chip: 6px;
+  --s-raio-img: 6px;
+  --s-raio-avatar: 50%;
+  --s-sombra: 0 1px 6px rgb(31 42 28 / 0.08);
+  --s-sombra-forte: 0 10px 24px rgb(31 42 28 / 0.18);
+  --s-fonte-titulo: var(--f-lato);
+  --s-fonte-texto: var(--f-lato);
+  --s-peso-titulo: 700;
+  --s-tracking: -0.015em;
+  --s-tracking-botao: 0.01em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #fffdf8;
+  --s-menu-texto: #1f2a1c;
+  --s-menu-borda: 1px solid #ddd2b8;
+  --s-menu-sombra: none;
+  --s-menu-foco: #1f4d2e;
+  --s-menu-foco-halo: #fffdf8;
+  --s-menu-hover: #efe5cc;
+  --s-menu-ativo-bg: #1f5a34;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #1b4527 0%, #2f6a3f 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #e8c98a;
+  --s-hero-foco-halo: #1b4527;
+  --s-acento: #e8c98a;
+  --s-acento-texto: #1f2a1c;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #1f4d2e;
+  --s-destaque-fundo: #1f4d2e;
+  --s-destaque-icone: #e8c98a;
+  --s-rodape-fundo: #1f4d2e;
+  --s-rodape-texto: #f6f0e6;
+}
+.site-agro_campo .st-card-imagem {
+  display: contents;
+}
+.site-agro_campo .st-card-imagem img,
+.site-agro_campo .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-agro_campo .st-card-corpo {
+  order: 2;
+}
+.site-agro_campo .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-agro_campo .st-hero h1 {
+  font-size: clamp(2.375rem, 9vw, 4.5rem);
+  line-height: 1.04;
+}
+.site-agro_campo .st-sobretitulo {
+  color: #e8c98a;
+  letter-spacing: 0.16em;
+}
+.site-agro_campo .st-faixa-deco {
+  display: block;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, #1f4d2e 0 28px, #e8c98a 28px 36px);
+}
+.site-agro_campo .st-card {
+  border: 1px solid var(--s-borda);
+}
+.site-agro_campo .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.site-agro_campo .st-card-tipo {
+  color: #a2441f;
+  letter-spacing: 0.12em;
+}
+.site-agro_campo .st-destaques li {
+  border: 0;
+  border-left: 6px solid #e8c98a;
+}
+.site-agro_campo .st-rodape {
+  border-top: 6px solid #e8c98a;
+}
+.site-agro_campo .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== TURISMO E HOSPEDAGEM. Verde-mar e areia; serifa leve com subtítulos em itálico, cantos suaves, muito ar.
+ * Razões: texto/fundo 13.0 · texto/alt 12.2 · titulo/fundo 9.2 · suave/fundo 6.3 · suave/superficie 6.8 · link/fundo 7.2 · link/superficie 7.7 · texto/superficie 14.0 · botao 9.9 · borda-forte/fundo 3.9 · foco/fundo 9.2 · foco/superficie 9.9 */
+.site-turismo_hospedagem {
+  --s-bg: #fbf6ee;
+  --s-alt: #e8f1ef;
+  --s-surface: #ffffff;
+  --s-text: #17302f;
+  --s-titulo: #0e4a4f;
+  --s-suave: #476060;
+  --s-link: #0c5c62;
+  --s-borda: #e3dccf;
+  --s-borda-forte: #6a807f;
+  --s-botao-fundo: #0e4a4f;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #0e4a4f;
+  --s-foco: #0e4a4f;
+  --s-foco-halo: #ffffff;
+  --s-raio: 14px;
+  --s-raio-pequeno: 10px;
+  --s-raio-botao: 8px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 14px;
+  --s-raio-avatar: 50%;
+  --s-sombra: 0 2px 12px rgb(14 74 79 / 0.08);
+  --s-sombra-forte: 0 14px 30px rgb(14 74 79 / 0.18);
+  --s-fonte-titulo: var(--f-playfair);
+  --s-fonte-texto: var(--f-lato);
+  --s-peso-titulo: 500;
+  --s-tracking: -0.015em;
+  --s-tracking-botao: 0.01em;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #fbf6ee;
+  --s-menu-texto: #17302f;
+  --s-menu-borda: 1px solid #e3dccf;
+  --s-menu-sombra: none;
+  --s-menu-foco: #0e4a4f;
+  --s-menu-foco-halo: #fbf6ee;
+  --s-menu-hover: #e8f1ef;
+  --s-menu-ativo-bg: #0e4a4f;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #0b3d42 0%, #157076 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #f1e3c8;
+  --s-hero-foco-halo: #0b3d42;
+  --s-acento: #f1e3c8;
+  --s-acento-texto: #0b3d42;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #0e4a4f;
+  --s-destaque-fundo: #0e4a4f;
+  --s-destaque-icone: #f1e3c8;
+  --s-rodape-fundo: #0e4a4f;
+  --s-rodape-texto: #e8f1ef;
+}
+.site-turismo_hospedagem .st-card-imagem {
+  display: contents;
+}
+.site-turismo_hospedagem .st-card-imagem img,
+.site-turismo_hospedagem .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-turismo_hospedagem .st-card-corpo {
+  order: 2;
+}
+.site-turismo_hospedagem .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-turismo_hospedagem .st-hero h1 {
+  font-size: clamp(2.5rem, 9.5vw, 4.75rem);
+  line-height: 1.04;
+}
+.site-turismo_hospedagem .st-sobretitulo {
+  color: #f1e3c8;
+  letter-spacing: 0.2em;
+  font-size: 0.8125rem;
+}
+.site-turismo_hospedagem .st-cab h2 {
+  font-size: clamp(1.875rem, 5.5vw, 3rem);
+}
+.site-turismo_hospedagem .st-card {
+  border: 1px solid var(--s-borda);
+}
+.site-turismo_hospedagem .st-card-preco {
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.site-turismo_hospedagem .st-card-tipo {
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1rem;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.site-turismo_hospedagem .st-destaques li {
+  border: 0;
+  background: #ffffff;
+  box-shadow: var(--s-sombra);
+}
+.site-turismo_hospedagem .st-rodape {
+  border-top: 0;
+}
+.site-turismo_hospedagem .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== PREMIUM. Marfim, grafite quase preto e bronze; serifa fina, muito espaço, cantos retos e filetes dourados.
+ * Razões: texto/fundo 15.1 · titulo/fundo 15.9 · suave/fundo 6.6 · suave/superficie 7.1 · link/fundo 5.7 · link/superficie 6.1 · texto/superficie 16.3 · botao 15.9 · borda-forte/fundo 4.1 · foco/fundo 5.7 · foco/superficie 6.1 · menu 15.9 */
+.site-premium {
+  --s-bg: #f1ebe2;
+  --s-alt: #14110f;
+  --s-surface: #f8f4ee;
+  --s-text: #1a1714;
+  --s-titulo: #14110f;
+  --s-suave: #5a5148;
+  --s-link: #7f5224;
+  --s-borda: #d8cdbd;
+  --s-borda-forte: #7a6f62;
+  --s-botao-fundo: #14110f;
+  --s-botao-texto: #f1ebe2;
+  --s-botao-borda: #14110f;
+  --s-foco: #7f5224;
+  --s-foco-halo: #f8f4ee;
+  --s-raio: 0;
+  --s-raio-pequeno: 0;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 50%;
+  --s-sombra: none;
+  --s-sombra-forte: 0 16px 36px rgb(20 17 15 / 0.2);
+  --s-fonte-titulo: var(--f-cormorant);
+  --s-fonte-texto: var(--f-jost);
+  --s-peso-titulo: 500;
+  --s-tracking: 0.01em;
+  --s-tracking-botao: 0.14em;
+  --s-caixa: none;
+  --s-caixa-botao: uppercase;
+  --s-menu-bg: #14110f;
+  --s-menu-texto: #f1ebe2;
+  --s-menu-borda: 1px solid #d9a566;
+  --s-menu-sombra: none;
+  --s-menu-foco: #d9a566;
+  --s-menu-foco-halo: #14110f;
+  --s-menu-hover: rgb(241 235 226 / 0.12);
+  --s-menu-ativo-bg: #d9a566;
+  --s-menu-ativo-texto: #14110f;
+  --s-hero-fundo: linear-gradient(135deg, #14110f 0%, #2a231d 100%);
+  --s-hero-texto: #f1ebe2;
+  --s-hero-foco: #d9a566;
+  --s-hero-foco-halo: #14110f;
+  --s-acento: #f1ebe2;
+  --s-acento-texto: #14110f;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #14110f;
+  --s-destaque-fundo: #14110f;
+  --s-destaque-icone: #d9a566;
+  --s-rodape-fundo: #14110f;
+  --s-rodape-texto: #d8cdbd;
+}
+.site-premium .st-faixa-alt {
+  --s-bg: #14110f;
+  --s-surface: #1f1a16;
+  --s-text: #efe8dc;
+  --s-titulo: #f1ebe2;
+  --s-suave: #bbb0a0;
+  --s-link: #d9a566;
+  --s-borda: #3a322a;
+  --s-borda-forte: #8a7f70;
+  --s-sombra: none;
+  --s-botao-fundo: #d9a566;
+  --s-botao-texto: #14110f;
+  --s-botao-borda: #d9a566;
+  --s-foco: #d9a566;
+  --s-foco-halo: #14110f;
+  color: #efe8dc;
+}
+.site-premium .st-card-imagem {
+  display: contents;
+}
+.site-premium .st-card-imagem img,
+.site-premium .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-premium .st-card-corpo {
+  order: 2;
+}
+.site-premium .st-card-preco {
+  order: 3;
+  position: static;
+}
+.site-premium {
+  font-size: 1.0625rem;
+}
+.site-premium .st-menu-nome {
+  font-size: 1.5rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.site-premium .st-hero h1 {
+  font-size: clamp(2.75rem, 10vw, 5.25rem);
+  line-height: 1;
+}
+.site-premium .st-sobretitulo {
+  color: #d9a566;
+  font-family: var(--s-fonte-texto), sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.32em;
+}
+.site-premium .botao {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.site-premium .st-cab h2 {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+.site-premium .st-faixa-deco {
+  display: block;
+  height: 1px;
+  margin-inline: var(--e4);
+  background: #d9a566;
+}
+.site-premium .st-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.site-premium .st-card-corpo {
+  padding-inline: 0;
+}
+.site-premium .st-card-corpo h3 {
+  font-size: 1.625rem;
+}
+.site-premium .st-card-preco {
+  padding: 0 0 var(--e4);
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--s-fonte-titulo), serif;
+  font-size: 1.5rem;
+}
+.site-premium .st-card-tipo {
+  color: var(--s-link);
+  font-family: var(--s-fonte-texto), sans-serif;
+  letter-spacing: 0.24em;
+}
+.site-premium .st-card:hover {
+  box-shadow: none;
+  transform: translateY(-3px);
+}
+.site-premium .st-destaques li {
+  border: 0;
+  border-top: 1px solid #d9a566;
+  background: transparent;
+}
+.site-premium .st-rodape {
+  border-top: 1px solid #d9a566;
+}
+.site-premium .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}

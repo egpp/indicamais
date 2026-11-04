@@ -5,6 +5,7 @@ import { classeDeFontes } from "./fontes";
 import { Decoracao } from "./icones";
 import "./site.css";
 import "./site-estilos.css";
+import "./site-estilos-novos.css";
 
 const NOMES_EXEMPLO: Record<string, string> = {
   minimalista: "Estúdio Exemplo",
@@ -12,6 +13,21 @@ const NOMES_EXEMPLO: Record<string, string> = {
   saude_bem_estar: "Clínica Exemplo",
   beleza_estetica: "Espaço Exemplo",
   construcao_reformas: "Obras Exemplo",
+  cafe_padaria: "Padaria Exemplo",
+  automotivo: "Auto Exemplo",
+  juridico_contabil: "Escritório Exemplo",
+  educacao_cursos: "Escola Exemplo",
+  pet: "Pet Shop Exemplo",
+  moda_lojas: "Loja Exemplo",
+  fitness_esportes: "Academia Exemplo",
+  imobiliario: "Imobiliária Exemplo",
+  tecnologia_assistencia: "Assistência Exemplo",
+  casa_decoracao: "Casa Exemplo",
+  eventos_fotografia: "Estúdio Exemplo",
+  servicos_rapidos: "Resolve Exemplo",
+  agro_campo: "Casa do Campo Exemplo",
+  turismo_hospedagem: "Pousada Exemplo",
+  premium: "Ateliê Exemplo",
 };
 
 /**
