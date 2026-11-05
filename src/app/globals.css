@@ -1422,3 +1422,24 @@ fieldset.grupo-imovel {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* Fase 7: seções da área de comissões do administrador (celular primeiro; toque mínimo de 44px). */
+.abas-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+  margin: var(--e4) 0;
+}
+.abas-admin a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e3);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio-p);
+}
+.abas-admin a[aria-current="page"] {
+  font-weight: 700;
+  background: var(--coral-fundo);
+  color: var(--grafite);
+}
