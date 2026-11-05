@@ -189,7 +189,6 @@ select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-0000000
 select set_config('t.pg_c0', (select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m0')::date, 10000, 'Pix do mês')::text), true);
 select is((select valor_centavos from public.comissoes_comissao where pagamento_id = current_setting('t.pg_c0')::uuid), 2000, 'pagamento novo usa 20%');
 select is((select motivo from public.comissoes_decisao where pagamento_id = current_setting('t.pg_c0')::uuid), 'gerada', 'cliente pago antes do indicador no mesmo mês gera comissão: mês corrente não é vencido (D-026)');
-select is((select o_em_dia from public.comissoes_situacao_indicador('a0000000-0000-0000-0000-000000000001', 'bbbbbbbb-0000-0000-0000-00000000000b', public.comissoes_hoje())), true, 'indicador sem pagar o mês corrente continua em dia');
 select is((select motivo from public.comissoes_decisao where pagamento_id = (select public.comissoes_confirmar_pagamento(current_setting('t.ass_f')::uuid, current_setting('t.m0')::date, 10000, 'Pix do cliente 2'))), 'indicador_inadimplente', 'mês encerrado sem pagamento do indicador continua bloqueando (IM-066, D-026)');
 select is((select valor_centavos from public.comissoes_comissao where pagamento_id = current_setting('t.pg_c1')::uuid), 1000, 'comissão anterior NÃO foi recalculada (IM-069)');
 select is((select count(*)::int from public.comissoes_oferta_percentual where oferta_id = current_setting('t.of1')::uuid), 2, 'histórico guarda os dois percentuais');
@@ -246,7 +245,7 @@ select is((select total_gerado_centavos from public.comissoes_meu_saldo), 3000::
 select is((select liquido_centavos from public.comissoes_meu_saldo), 0::bigint, 'líquido após reversões');
 select is((select revertida_apos_paga_centavos from public.comissoes_meu_saldo), 3000::bigint, 'valor revertido depois de pago fica visível para análise');
 select is((select count(*)::int from public.comissoes_minha_situacao), 2, 'B tem situação em dois negócios');
-select is((select em_dia from public.comissoes_minha_situacao where negocio_id = 'a0000000-0000-0000-0000-000000000001'), true, 'B está em dia em P1');
+select is((select em_dia from public.comissoes_minha_situacao where negocio_id = 'a0000000-0000-0000-0000-000000000001'), true, 'B está em dia em P1 sem ter pago o mês corrente (D-026)');
 select is((select em_dia from public.comissoes_minha_situacao where negocio_id = 'a0000000-0000-0000-0000-000000000003'), false, 'B não tem assinatura em P3: sem direito a novas comissões lá');
 select is((select count(*)::int from public.comissoes_comissao), 0, 'o indicador não lê a tabela de comissões (RLS)');
 select is((select count(*)::int from public.comissoes_negocio_vinculos), 0, 'B não é responsável de negócio: não vê vínculos de negócio');
