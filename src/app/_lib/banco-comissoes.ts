@@ -189,7 +189,76 @@ export function criarBancoComissoes(supabase: Cliente): ClienteBancoComissoes {
         return { dados: data ?? null, erro: paraErro(error) };
       }),
 
+    // ------------------------------------------------------------------------------ Leituras do administrador
+    // Paginadas no banco (limite 1..100); só o administrador as recebe (42501 para os demais).
+    listarNegociosAdmin: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("comissoes_admin_listar_negocios", {
+          ...(a.estado ? { p_estado: a.estado } : {}),
+          ...(a.busca ? { p_busca: a.busca } : {}),
+          p_limite: a.limite,
+          p_deslocamento: a.deslocamento,
+        });
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    listarAssinaturasAdmin: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("comissoes_admin_listar_assinaturas", {
+          ...(a.perfilId ? { p_perfil: a.perfilId } : {}),
+          ...(a.situacao ? { p_situacao: a.situacao } : {}),
+          p_limite: a.limite,
+          p_deslocamento: a.deslocamento,
+        });
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    listarPagamentosAdmin: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("comissoes_admin_listar_pagamentos", {
+          ...(a.perfilId ? { p_perfil: a.perfilId } : {}),
+          ...(a.estado ? { p_estado: a.estado } : {}),
+          p_limite: a.limite,
+          p_deslocamento: a.deslocamento,
+        });
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    listarComissoesAdmin: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("comissoes_admin_listar_comissoes", {
+          ...(a.perfilId ? { p_perfil: a.perfilId } : {}),
+          ...(a.estado ? { p_estado: a.estado } : {}),
+          p_limite: a.limite,
+          p_deslocamento: a.deslocamento,
+        });
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    listarVinculosAdmin: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("comissoes_admin_listar_vinculos", {
+          ...(a.perfilId ? { p_perfil: a.perfilId } : {}),
+          ...(a.situacao ? { p_situacao: a.situacao } : {}),
+          p_limite: a.limite,
+          p_deslocamento: a.deslocamento,
+        });
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    lerPrazoInadimplencia: () =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("comissoes_admin_prazo_inadimplencia");
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
     // ------------------------------------------------------------------------------ Leituras
+    listarNegociosVinculados: () =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("comissoes_meus_negocios_vinculados");
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
     listarMinhasComissoes: () =>
       protegido(async () => {
         const { data, error } = await supabase
