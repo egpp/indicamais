@@ -231,7 +231,16 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 - **Loja depende de plano pago:** a seção Loja/catálogo (produtos, serviços e, no futuro, assinaturas) é função de planos pagos ainda a definir (IM-060 é F). Para perfis sem a liberação, a seção fica **oculta** na página pública (não aparece desabilitada) e some também dos modelos de estilo. Até existirem planos, vale a liberação manual por perfil de D-020.
 - **Compra:** continua sem intermediação, carrinho, checkout ou pagamento (IM-090, D-020). Botões de compra/assinatura dos modelos, por ora, levam ao contato (IM-013). Pagamento e assinatura reais dependem de decisão futura do Emerson (pagamentos é módulo F).
 - **Futuro aberto (04/11/2026):** a ausência de intermediação de pagamentos e transações vale **por enquanto**. A possibilidade de intermediar no futuro fica aberta (módulo pagamentos, F): a arquitetura não deve fechar essa porta (por exemplo, itens da Loja com preço e identificador estável, ponto único de "ação de compra"), mas nada de pagamento é implementado agora. Ativar exige decisão nova do Emerson e revisão de IM-090.
+- **Confirmado em 04/11/2026 (Emerson: "creio que sim, mas aceito sua sugestão"):** sem a liberação, some só a Loja. A seção "Produtos e serviços" (catálogo simples, IM-014) continua visível como catálogo de apresentação.
 - **Funções dos modelos ainda não implementadas:** não se excluem dos modelos; o `interface` as relata em `docs/lacunas-modelos.md` (IM-101), para o Emerson planejar a implementação.
+
+---
+
+## D-023 · 04/11/2026 · Liberação inicial dos estilos e sacola de interesse (IM-091, IM-100, IM-101)
+**IDs:** IM-090, IM-091, IM-100, IM-101. Aceito pelo Emerson em 04/11/2026 ("aceito suas recomendações").
+- **Liberação dos estilos:** os estilos 6 a 21 passam a `habilitado=true` no dev por migração de dados com auditoria. O autor da auditoria é o administrador mais antigo (não se cria conta "sistema").
+- **Sacola/lista de interesse (modelos 6, 11, 15, 17, 18, 20):** pode existir como lista de interesse que vira mensagem de contato, **sem pagamento** e sem intermediar a venda (IM-090, D-020, D-022). A "ação de compra" fica num ponto único para não fechar a porta do pagamento futuro. Implementação posterior, conforme `docs/lacunas-modelos.md`.
+- **Aceitas em 04/11/2026 ("aceito"), recomendações do gestor:** (1) variações de item (tamanho, cor) só **informativas**, sem estoque; (2) planos do negócio na página (estilo 12) como **vitrine** de itens com preço e descrição, contato pelo canal existente, sem assinatura real (F); (3) equipe **sem foto de pessoas** no início (nome e cargo ou ícone); foto com consentimento e moderação depois, junto da revisão jurídica (IM-082); (4) **sem banco de imagens** agora; o dono envia as próprias fotos e os estilos usam desenhos quando não há foto. Banco gratuito ou pago só com decisão futura do Emerson (custo, IM-089).
 
 ---
 
