@@ -18,7 +18,8 @@ const modelo = ler(/comissoes_modelo/);
 const habilitacao = ler(/comissoes_habilitacao_ofertas/);
 const fluxo = ler(/comissoes_fluxo/);
 const leitura = ler(/comissoes_leitura/);
-const modulo = [modelo, habilitacao, fluxo, leitura].join("\n");
+const leiturasAdmin = ler(/comissoes_admin_leituras/);
+const modulo = [modelo, habilitacao, fluxo, leitura, leiturasAdmin].join("\n");
 
 const corpo = (texto: string, nome: string) =>
   [
@@ -39,7 +40,7 @@ const funcoes = [...modulo.matchAll(/create function public\.(\w+)\(([\s\S]*?)\$
 
 describe("comissoes: tabelas (IM-086, IM-065)", () => {
   it("as migrações existem na ordem certa e as 16 tabelas têm prefixo comissoes_", () => {
-    expect(arquivos.length).toBe(4);
+    expect(arquivos.length).toBe(5);
     expect(tabelas).toHaveLength(16);
     for (const t of tabelas) expect(t).toMatch(/^comissoes_/);
   });
@@ -402,5 +403,142 @@ describe("comissoes: correções da revisão (D1, D3, D4, D5)", () => {
       expect(c, n).toMatch(/\(select auth\.uid\(\)\)/);
       expect(leitura, n).toMatch(new RegExp(`function public\\.${n}\\(\\)`));
     }
+  });
+});
+
+describe("comissoes: leituras do administrador e nome público do negócio (migração 20261105140000)", () => {
+  const adminFns = [
+    "comissoes_admin_listar_negocios",
+    "comissoes_admin_listar_assinaturas",
+    "comissoes_admin_listar_pagamentos",
+    "comissoes_admin_listar_comissoes",
+    "comissoes_admin_listar_vinculos",
+    "comissoes_admin_prazo_inadimplencia",
+  ];
+
+  it("só cria funções: sem visão, tabela, política nem alteração de privilégio de tabela (RLS não muda)", () => {
+    expect(leiturasAdmin).not.toMatch(
+      /create (or replace )?view|create table|create policy|alter table/i,
+    );
+    expect(leiturasAdmin).not.toMatch(/grant (select|insert|update|delete)/i);
+    expect(leiturasAdmin).not.toMatch(/(update|delete from|insert into)\s+public\./i);
+  });
+
+  it.each(adminFns)("%s: exige administrador geral, sem anon, search_path vazio", (n) => {
+    const c = corpo(leiturasAdmin, n);
+    expect(c, n).toMatch(/perform public\.administracao_exigir_admin\(\)/);
+    expect(c, n).toMatch(/security definer set search_path = ''/);
+    expect(leiturasAdmin, n).toMatch(
+      new RegExp(`revoke all on function public\\.${n}\\([^)]*\\) from public, anon;`),
+    );
+    expect(leiturasAdmin, n).toMatch(
+      new RegExp(`grant execute on function public\\.${n}\\([^)]*\\) to authenticated;`),
+    );
+    expect(leiturasAdmin, n).not.toMatch(
+      new RegExp(`grant execute on function public\\.${n}\\([^)]*\\) to[^;]*\\banon\\b`, "i"),
+    );
+  });
+
+  it.each(adminFns.filter((n) => n !== "comissoes_admin_prazo_inadimplencia"))(
+    "%s: paginação limitada a 100 e total do filtro",
+    (n) => {
+      const c = corpo(leiturasAdmin, n);
+      expect(c).toMatch(/least\(greatest\(coalesce\(p_limite, 50\), 1\), 100\)/);
+      expect(c).toMatch(/count\(\*\) over \(\)/);
+    },
+  );
+
+  it("nenhuma leitura do administrador toca contas_conta, contato, nome completo ou motivo interno (IM-029, IM-041, IM-050)", () => {
+    const texto = adminFns.map((n) => corpo(leiturasAdmin, n)).join("\n");
+    expect(texto).not.toMatch(
+      /contas_conta|whatsapp|telefone|\bemail\b|nome_completo|nome_exibicao|contato/i,
+    );
+    // o único "motivo" lido é o código fixo da decisão do pagamento; o texto livre do administrador não é coluna
+    expect(texto.match(/\b\w+\.motivo\b/g)).toEqual(["d.motivo"]);
+  });
+
+  it("não cria atalho para as funções internas nem aceita uuid arbitrário fora do administrador", () => {
+    for (const n of [
+      "comissoes_hoje",
+      "comissoes_parametro_valor",
+      "comissoes_situacao_indicador",
+    ]) {
+      expect(leiturasAdmin).not.toMatch(new RegExp(`grant execute on function public\\.${n}\\(`));
+    }
+  });
+
+  it("indicador: invólucro sem parâmetros, filtro fixo em auth.uid() e só nome de perfil público", () => {
+    const c = corpo(leiturasAdmin, "comissoes_meus_negocios_vinculados");
+    expect(c).toMatch(/function public\.comissoes_meus_negocios_vinculados\(\)/);
+    expect(c).toMatch(/cv\.indicador_id = \(select auth\.uid\(\)\)/);
+    expect(c).toMatch(/case when p\.publicado then v\.nome end/);
+    expect(c).not.toMatch(/responsavel_id|cliente_id|administracao_exigir_admin/);
+    expect(leiturasAdmin).toMatch(
+      /grant execute on function public\.comissoes_meus_negocios_vinculados\(\) to authenticated;/,
+    );
+  });
+});
+
+describe("comissoes: leituras do administrador, revisão adversarial do verificador", () => {
+  const todas = [
+    "comissoes_admin_listar_negocios",
+    "comissoes_admin_listar_assinaturas",
+    "comissoes_admin_listar_pagamentos",
+    "comissoes_admin_listar_comissoes",
+    "comissoes_admin_listar_vinculos",
+    "comissoes_admin_prazo_inadimplencia",
+    "comissoes_meus_negocios_vinculados",
+  ];
+
+  it("as 7 funções têm revoke de public e anon, grant só a authenticated e nenhuma outra função nova", () => {
+    const criadas = [...leiturasAdmin.matchAll(/create function public\.(\w+)\(/g)].map(
+      (m) => m[1],
+    );
+    expect([...criadas].sort()).toEqual([...todas].sort());
+    const grants = [...leiturasAdmin.matchAll(/grant execute on function [^;]*? to ([^;]+);/g)];
+    expect(grants).toHaveLength(7);
+    for (const g of grants) expect(g[1].trim()).toBe("authenticated");
+    expect(leiturasAdmin).not.toMatch(/to anon|to service_role/i);
+  });
+
+  it("o guarda do administrador vem antes de qualquer leitura de dados", () => {
+    for (const n of todas.filter((x) => x.startsWith("comissoes_admin_"))) {
+      const c = corpo(leiturasAdmin, n);
+      const iGuarda = c.indexOf("perform public.administracao_exigir_admin()");
+      expect(iGuarda, n).toBeGreaterThan(-1);
+      expect(c.indexOf("return query"), n).toBeGreaterThan(iGuarda);
+    }
+  });
+
+  it("busca é literal (position), sem LIKE/ILIKE/regex nem SQL dinâmico", () => {
+    expect(leiturasAdmin).not.toMatch(/\b(i?like|similar to)\b|\s~\*?\s|execute\s+(format|'|\$)/i);
+    expect(corpo(leiturasAdmin, "comissoes_admin_listar_negocios")).toMatch(
+      /position\(v_busca in lower\(b\.slug\)\)/,
+    );
+  });
+
+  it("deslocamento é saneado e filtros inválidos dão 22023", () => {
+    for (const n of todas.filter((x) => x.startsWith("comissoes_admin_listar_"))) {
+      const c = corpo(leiturasAdmin, n);
+      expect(c, n).toMatch(/greatest\(coalesce\(p_deslocamento, 0\), 0\)/);
+      expect(c, n).toMatch(/errcode = '22023'/);
+    }
+  });
+
+  it("nome do negócio só sai de versão aprovada e perfil publicado, nas duas visões", () => {
+    const c1 = corpo(leiturasAdmin, "comissoes_admin_listar_negocios");
+    const c2 = corpo(leiturasAdmin, "comissoes_meus_negocios_vinculados");
+    for (const c of [c1, c2]) {
+      expect(c).toMatch(/v\.id = p\.versao_aprovada_id and v\.situacao = 'aprovada'/);
+      expect(c).toMatch(/case when p\.publicado then/);
+    }
+    expect(c2).toMatch(/case when p\.publicado then p\.slug end/);
+  });
+
+  it("nenhuma assinatura de retorno carrega dado privado", () => {
+    const retornos = leiturasAdmin.match(/returns table \(([\s\S]*?)\)\s*language/g) ?? [];
+    expect(retornos).toHaveLength(7);
+    for (const r of retornos)
+      expect(r).not.toMatch(/telefone|whatsapp|email|nome_completo|contato|motivo|responsavel/i);
   });
 });
