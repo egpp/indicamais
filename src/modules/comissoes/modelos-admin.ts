@@ -14,6 +14,7 @@ export type LinhaPagamentoAdmin = Funcoes["comissoes_admin_listar_pagamentos"]["
 export type LinhaComissaoAdmin = Funcoes["comissoes_admin_listar_comissoes"]["Returns"][number];
 export type LinhaVinculoAdmin = Funcoes["comissoes_admin_listar_vinculos"]["Returns"][number];
 export type LinhaPrazoAdmin = Funcoes["comissoes_admin_prazo_inadimplencia"]["Returns"][number];
+export type LinhaParametroAdmin = Database["public"]["Tables"]["comissoes_parametro"]["Row"];
 export type LinhaNegocioVinculado =
   Funcoes["comissoes_meus_negocios_vinculados"]["Returns"][number];
 
@@ -101,6 +102,15 @@ export type VinculoAdmin = {
 
 export type PrazoInadimplencia = {
   prazoDias: number;
+  minimo: number;
+  maximo: number;
+  atualizadoEm: string | null;
+};
+
+/** Parâmetro numérico de comissoes_parametro (valor, faixa e última alteração). */
+export type ParametroComissoes = {
+  chave: string;
+  valor: number;
   minimo: number;
   maximo: number;
   atualizadoEm: string | null;
@@ -233,6 +243,19 @@ export function paraPrazoInadimplencia(l: LinhaPrazoAdmin | undefined): PrazoIna
     minimo: num(l.o_minimo),
     maximo: num(l.o_maximo),
     atualizadoEm: l.o_atualizado_em ?? null,
+  };
+}
+
+export function paraParametroComissoes(
+  l: LinhaParametroAdmin | undefined,
+): ParametroComissoes | null {
+  if (!l || typeof l.valor !== "number") return null;
+  return {
+    chave: l.chave,
+    valor: l.valor,
+    minimo: num(l.minimo),
+    maximo: num(l.maximo),
+    atualizadoEm: l.atualizado_em ?? null,
   };
 }
 

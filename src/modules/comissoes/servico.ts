@@ -43,6 +43,7 @@ import {
   paraNegocioVinculado,
   paraPagamentoAdmin,
   paraPrazoInadimplencia,
+  paraParametroComissoes,
   paraVinculoAdmin,
   totalDe,
   type AssinaturaAdmin,
@@ -53,6 +54,8 @@ import {
   type LinhaNegocioVinculado,
   type LinhaPagamentoAdmin,
   type LinhaPrazoAdmin,
+  type LinhaParametroAdmin,
+  type ParametroComissoes,
   type LinhaVinculoAdmin,
   type NegocioAdmin,
   type NegocioVinculado,
@@ -80,6 +83,7 @@ import {
   encerrarVinculoSchema,
   estornarPagamentoSchema,
   listarVencidosSchema,
+  PARAMETROS_LEITURA,
   registrarAssinaturaSchema,
   registrarVinculoSchema,
   reverterComissaoSchema,
@@ -193,6 +197,8 @@ export interface ClienteBancoComissoes {
     deslocamento: number;
   }): Promise<RespostaBanco<LinhaVinculoAdmin[]>>;
   lerPrazoInadimplencia(): Promise<RespostaBanco<LinhaPrazoAdmin[]>>;
+  /** select em comissoes_parametro por chave (a política do banco só deixa o administrador ler) */
+  lerParametro(chave: string): Promise<RespostaBanco<LinhaParametroAdmin[]>>;
   /** rpc comissoes_meus_negocios_vinculados(): nome público dos negócios onde o indicador tem vínculo */
   listarNegociosVinculados(): Promise<RespostaBanco<LinhaNegocioVinculado[]>>;
   // Leituras (visões com filtro fixo por auth.uid() no banco)
@@ -473,6 +479,19 @@ export function criarServicoComissoes(
         return prazo
           ? { ok: true, valor: prazo }
           : falha(erroComissoes("ERRO_INTERNO", M.generica));
+      }),
+
+    /** IM-068, IM-072: valor, faixa e data de um parâmetro conhecido (ex.: antecedência do aviso), lido do banco. */
+    adminParametro: (
+      chave: (typeof PARAMETROS_LEITURA)[number],
+    ): Promise<Resultado<ParametroComissoes>> =>
+      seguro(async () => {
+        if (!PARAMETROS_LEITURA.includes(chave))
+          return falha(erroComissoes("ERRO_INTERNO", M.generica));
+        const r = await banco.lerParametro(chave);
+        if (r.erro) return falha(mapearErroBancoComissoes(r.erro));
+        const p = paraParametroComissoes(r.dados?.[0]);
+        return p ? { ok: true, valor: p } : falha(erroComissoes("ERRO_INTERNO", M.generica));
       }),
 
     // ---------------------------------------------------------------- Anunciante (IM-062, IM-063, IM-067, IM-069, IM-073)
