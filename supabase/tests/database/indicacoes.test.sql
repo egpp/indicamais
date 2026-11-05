@@ -473,5 +473,41 @@ select throws_ok($$update public.indicacoes_notificacao set pedido_id = gen_rand
 select throws_ok($$insert into public.indicacoes_evento (tipo, canal) values ('link_compartilhado', 'copiar')$$, '23514', null, 'evento incoerente é recusado');
 select throws_ok($$insert into public.indicacoes_evento (tipo, pedido_id) select 'contato_enviado', id from public.indicacoes_pedido_contato where id = current_setting('t.ped_1')::uuid$$, '23505', null, 'contato_enviado não se repete para o mesmo pedido');
 
+-- ===== Cron: recolocar falhas na fila (IM-027, IM-028, IM-080) =====
+select is(has_function_privilege('authenticated', 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)', 'EXECUTE')
+  or has_function_privilege('anon', 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)', 'EXECUTE'), false, 'recolocar falhas: nem anon nem authenticated executam');
+select is(has_function_privilege('service_role', 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)', 'EXECUTE'), true, 'recolocar falhas: service_role executa');
+select is((select prosecdef from pg_proc where oid = 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)'::regprocedure), true, 'recolocar falhas: security definer');
+select ok((select proconfig::text from pg_proc where oid = 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)'::regprocedure) ~ 'search_path=', 'recolocar falhas: search_path vazio');
+-- Estados de partida (como dono): item elegivel; ped_1 com espera nao cumprida; auto com tentativas esgotadas; errado sem e-mail.
+update public.indicacoes_notificacao set estado = 'falhou', tentativas = 1, ultima_tentativa_em = now() - interval '2 hours', ultimo_erro = 'smtp_timeout', alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_item')::uuid;
+update public.indicacoes_notificacao set estado = 'falhou', tentativas = 1, ultima_tentativa_em = now() - interval '30 seconds', ultimo_erro = 'smtp_timeout', alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_1')::uuid;
+update public.indicacoes_notificacao set estado = 'falhou', tentativas = 3, ultima_tentativa_em = now() - interval '2 hours', ultimo_erro = 'smtp_timeout', alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_auto')::uuid;
+update public.indicacoes_notificacao set estado = 'falhou', tentativas = 1, ultima_tentativa_em = now() - interval '2 hours', ultimo_erro = 'responsável sem e-mail', alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_errado')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
+select throws_ok($$select public.indicacoes_notificacoes_recolocar_falhas(10, 3, 60)$$, '42501', null, 'nem o administrador executa a recolocacao (so o cron)');
+reset role;
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+select throws_ok($$select public.indicacoes_notificacoes_recolocar_falhas(10, 3, 60)$$, '42501', null, 'anon nao executa a recolocacao');
+reset role;
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+select is(public.indicacoes_notificacoes_recolocar_falhas(-5, null, null), 1, 'limite negativo vira 1; parametro nulo usa o padrao; so a falha elegivel volta');
+select is(public.indicacoes_notificacoes_recolocar_falhas(2147483647, 0, 60), 0, 'tentativas_max 0 vira 1: ninguem com tentativa gasta volta; limite enorme nao quebra');
+reset role;
+select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_item')::uuid), 'pendente', 'falha com tentativas sobrando e espera cumprida volta a pendente');
+select is((select tentativas::text || ':' || ultimo_erro || ':' || alerta_estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_item')::uuid), '1:smtp_timeout:aberto', 'recolocar nao mexe em tentativas, erro nem alerta');
+select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_1')::uuid), 'falhou', 'espera nao cumprida: nao volta');
+select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_auto')::uuid), 'falhou', 'tentativas esgotadas: nao volta');
+select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_errado')::uuid), 'falhou', 'responsavel sem e-mail: nao volta');
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+select is(public.indicacoes_notificacoes_recolocar_falhas(100, 3, -100), 1, 'espera negativa vira 0: a falha recente tambem volta; a esgotada e a sem e-mail nao');
+reset role;
+select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_1')::uuid), 'pendente', 'espera zero libera a falha recente');
+select is((select count(*)::int from public.indicacoes_notificacao where estado = 'enviada' and pedido_id in (current_setting('t.ped_item')::uuid, current_setting('t.ped_1')::uuid)), 0, 'recolocar nunca marca como enviada');
+
 select * from finish();
 rollback;

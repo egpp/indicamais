@@ -23,6 +23,7 @@ export type EnviadorEmailPorta = { enviar(email: EmailEnvio): Promise<ResultadoE
 export const ERRO_EMAIL = {
   semConfiguracao: "provedor de e-mail não configurado",
   limite: "provedor de e-mail: limite de envio atingido",
+  conflito: "provedor de e-mail: conflito na requisição",
   autenticacao: "provedor de e-mail: chave ou remetente recusado",
   rejeitado: "provedor de e-mail: envio recusado",
   indisponivel: "provedor de e-mail: indisponível",
@@ -50,7 +51,8 @@ export function lerConfigResend(
 }
 
 function classificarStatus(status: number): string {
-  if (status === 429 || status === 409) return ERRO_EMAIL.limite;
+  if (status === 429) return ERRO_EMAIL.limite;
+  if (status === 409) return ERRO_EMAIL.conflito; // invalid_/concurrent_idempotent_requests: não é limite
   if (status === 401 || status === 403) return ERRO_EMAIL.autenticacao;
   if (status >= 500) return ERRO_EMAIL.indisponivel;
   return ERRO_EMAIL.rejeitado;
