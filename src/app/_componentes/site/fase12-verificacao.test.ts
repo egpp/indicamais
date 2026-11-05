@@ -60,15 +60,16 @@ describe("contraste dos novos elementos nos 21 estilos (D-023, WCAG AA)", () => 
   }
 });
 
-// Defeito menor (decorativo, aria-hidden): o círculo do ícone da Equipe usa --s-alt (faixa escura nesses estilos)
-// com --s-link de página clara. it.fails documenta; passa a falhar quando o desenho for corrigido.
-describe("ícone decorativo da Equipe: link/alt >= 3 (fora da faixa escura)", () => {
+// Ícone decorativo da Equipe (aria-hidden): fundo --s-surface e cor --s-link (corrigido; IM-101).
+// Conferido na base e na faixa escura, nos 21 estilos.
+describe("ícone decorativo da Equipe: link/surface >= 3 (base e faixa escura)", () => {
   for (const id of IDS_ESTILOS) {
-    const v = variaveis(`\.site-${id}`);
-    const comProblema = ["fitness_esportes", "eventos_fotografia", "premium", "moto_bike"];
-    const t = comProblema.includes(id) ? it.fails : it;
-    t(id, () => {
-      expect(razao(v["--s-link"]!, v["--s-alt"]!)).toBeGreaterThanOrEqual(3);
+    it(id, () => {
+      const base = variaveis(`\.site-${id}`);
+      const faixa = { ...base, ...variaveis(`\.site-${id} \.st-faixa-alt`) };
+      for (const v of [base, faixa]) {
+        expect(razao(v["--s-link"]!, v["--s-surface"]!)).toBeGreaterThanOrEqual(3);
+      }
     });
   }
 });
