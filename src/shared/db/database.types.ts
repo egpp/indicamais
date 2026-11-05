@@ -354,6 +354,13 @@ export type Database = {
             foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
             columns: ["perfil_destino_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["perfil_destino_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -821,6 +828,991 @@ export type Database = {
           },
         ]
       }
+      comissoes_assinatura: {
+        Row: {
+          cliente_id: string
+          criada_em: string
+          criada_por: string
+          fim: string | null
+          id: string
+          inicio: string
+          oferta_id: string
+          perfil_id: string
+          valor_centavos: number
+        }
+        Insert: {
+          cliente_id: string
+          criada_em?: string
+          criada_por: string
+          fim?: string | null
+          id?: string
+          inicio: string
+          oferta_id: string
+          perfil_id: string
+          valor_centavos: number
+        }
+        Update: {
+          cliente_id?: string
+          criada_em?: string
+          criada_por?: string
+          fim?: string | null
+          id?: string
+          inicio?: string
+          oferta_id?: string
+          perfil_id?: string
+          valor_centavos?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_assinatura_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_assinatura_criada_por_fkey"
+            columns: ["criada_por"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_assinatura_oferta_fk"
+            columns: ["oferta_id", "perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_minhas_ofertas"
+            referencedColumns: ["id", "negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_assinatura_oferta_fk"
+            columns: ["oferta_id", "perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_oferta"
+            referencedColumns: ["id", "perfil_id"]
+          },
+        ]
+      }
+      comissoes_assinatura_cancelamento: {
+        Row: {
+          assinatura_id: string
+          autor_id: string
+          cancelada_em: string
+          motivo: string
+        }
+        Insert: {
+          assinatura_id: string
+          autor_id: string
+          cancelada_em?: string
+          motivo: string
+        }
+        Update: {
+          assinatura_id?: string
+          autor_id?: string
+          cancelada_em?: string
+          motivo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_assinatura_cancelamento_assinatura_id_fkey"
+            columns: ["assinatura_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_assinatura"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_assinatura_cancelamento_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_comissao: {
+        Row: {
+          base_centavos: number
+          criada_em: string
+          id: string
+          indicador_id: string
+          oferta_id: string
+          pagamento_id: string
+          percentual_bp: number
+          perfil_id: string
+          valor_centavos: number
+          vinculo_id: string
+        }
+        Insert: {
+          base_centavos: number
+          criada_em?: string
+          id?: string
+          indicador_id: string
+          oferta_id: string
+          pagamento_id: string
+          percentual_bp: number
+          perfil_id: string
+          valor_centavos: number
+          vinculo_id: string
+        }
+        Update: {
+          base_centavos?: number
+          criada_em?: string
+          id?: string
+          indicador_id?: string
+          oferta_id?: string
+          pagamento_id?: string
+          percentual_bp?: number
+          perfil_id?: string
+          valor_centavos?: number
+          vinculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_comissao_indicador_id_fkey"
+            columns: ["indicador_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_oferta_id_fkey"
+            columns: ["oferta_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_minhas_ofertas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_oferta_id_fkey"
+            columns: ["oferta_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_oferta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_pagamento_id_fkey"
+            columns: ["pagamento_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_pagamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_vinculo_id_fkey"
+            columns: ["vinculo_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_negocio_vinculos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_vinculo_id_fkey"
+            columns: ["vinculo_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_vinculo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_comissao_estado: {
+        Row: {
+          autor_id: string
+          comissao_id: string
+          criado_em: string
+          estado: string
+          id: number
+          motivo: string | null
+        }
+        Insert: {
+          autor_id: string
+          comissao_id: string
+          criado_em?: string
+          estado: string
+          id?: never
+          motivo?: string | null
+        }
+        Update: {
+          autor_id?: string
+          comissao_id?: string
+          criado_em?: string
+          estado?: string
+          id?: never
+          motivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_comissao_estado_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_estado_comissao_id_fkey"
+            columns: ["comissao_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_comissao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_estado_comissao_id_fkey"
+            columns: ["comissao_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_minhas_comissoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_estado_comissao_id_fkey"
+            columns: ["comissao_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_negocio_comissoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_decisao: {
+        Row: {
+          decidida_em: string
+          gerada: boolean
+          id: number
+          indicador_id: string | null
+          motivo: string
+          pagamento_id: string
+          vinculo_id: string | null
+        }
+        Insert: {
+          decidida_em?: string
+          gerada: boolean
+          id?: never
+          indicador_id?: string | null
+          motivo: string
+          pagamento_id: string
+          vinculo_id?: string | null
+        }
+        Update: {
+          decidida_em?: string
+          gerada?: boolean
+          id?: never
+          indicador_id?: string | null
+          motivo?: string
+          pagamento_id?: string
+          vinculo_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_decisao_indicador_id_fkey"
+            columns: ["indicador_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_decisao_pagamento_id_fkey"
+            columns: ["pagamento_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_pagamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_decisao_vinculo_id_fkey"
+            columns: ["vinculo_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_negocio_vinculos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_decisao_vinculo_id_fkey"
+            columns: ["vinculo_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_vinculo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_habilitacao_evento: {
+        Row: {
+          ativa: boolean
+          autor_id: string
+          criado_em: string
+          id: number
+          motivo: string
+          origem: string
+          perfil_id: string
+        }
+        Insert: {
+          ativa: boolean
+          autor_id: string
+          criado_em?: string
+          id?: never
+          motivo: string
+          origem: string
+          perfil_id: string
+        }
+        Update: {
+          ativa?: boolean
+          autor_id?: string
+          criado_em?: string
+          id?: never
+          motivo?: string
+          origem?: string
+          perfil_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_habilitacao_evento_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_habilitacao_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_habilitacao_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_habilitacao_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_habilitacao_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_habilitacao_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      comissoes_lancamento: {
+        Row: {
+          autor_id: string | null
+          causa: string | null
+          comissao_id: string
+          confirmou_ja_paga: boolean
+          criado_em: string
+          id: string
+          indicador_id: string
+          motivo: string | null
+          original_id: string | null
+          perfil_id: string
+          tipo: string
+          valor_centavos: number
+        }
+        Insert: {
+          autor_id?: string | null
+          causa?: string | null
+          comissao_id: string
+          confirmou_ja_paga?: boolean
+          criado_em?: string
+          id?: string
+          indicador_id: string
+          motivo?: string | null
+          original_id?: string | null
+          perfil_id: string
+          tipo: string
+          valor_centavos: number
+        }
+        Update: {
+          autor_id?: string | null
+          causa?: string | null
+          comissao_id?: string
+          confirmou_ja_paga?: boolean
+          criado_em?: string
+          id?: string
+          indicador_id?: string
+          motivo?: string | null
+          original_id?: string | null
+          perfil_id?: string
+          tipo?: string
+          valor_centavos?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_lancamento_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_comissao_fk"
+            columns: ["comissao_id", "indicador_id", "perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_comissao"
+            referencedColumns: ["id", "indicador_id", "perfil_id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_indicador_id_fkey"
+            columns: ["indicador_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_original_fk"
+            columns: ["original_id", "comissao_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_lancamento"
+            referencedColumns: ["id", "comissao_id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_lancamento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      comissoes_oferta: {
+        Row: {
+          criada_em: string
+          criada_por: string
+          id: string
+          item_id: string
+          nome: string
+          perfil_id: string
+          periodicidade: string
+        }
+        Insert: {
+          criada_em?: string
+          criada_por: string
+          id?: string
+          item_id: string
+          nome: string
+          perfil_id: string
+          periodicidade?: string
+        }
+        Update: {
+          criada_em?: string
+          criada_por?: string
+          id?: string
+          item_id?: string
+          nome?: string
+          perfil_id?: string
+          periodicidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_oferta_criada_por_fkey"
+            columns: ["criada_por"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      comissoes_oferta_estado: {
+        Row: {
+          ativa: boolean
+          autor_id: string
+          criado_em: string
+          id: number
+          oferta_id: string
+        }
+        Insert: {
+          ativa: boolean
+          autor_id: string
+          criado_em?: string
+          id?: never
+          oferta_id: string
+        }
+        Update: {
+          ativa?: boolean
+          autor_id?: string
+          criado_em?: string
+          id?: never
+          oferta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_oferta_estado_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_estado_oferta_id_fkey"
+            columns: ["oferta_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_minhas_ofertas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_estado_oferta_id_fkey"
+            columns: ["oferta_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_oferta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_oferta_percentual: {
+        Row: {
+          autor_id: string
+          criado_em: string
+          id: number
+          oferta_id: string
+          percentual_bp: number
+        }
+        Insert: {
+          autor_id: string
+          criado_em?: string
+          id?: never
+          oferta_id: string
+          percentual_bp: number
+        }
+        Update: {
+          autor_id?: string
+          criado_em?: string
+          id?: never
+          oferta_id?: string
+          percentual_bp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_oferta_percentual_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_percentual_oferta_id_fkey"
+            columns: ["oferta_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_minhas_ofertas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_percentual_oferta_id_fkey"
+            columns: ["oferta_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_oferta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_pagamento: {
+        Row: {
+          assinatura_id: string
+          competencia: string
+          confirmado_em: string
+          confirmado_por: string
+          id: string
+          valor_centavos: number
+        }
+        Insert: {
+          assinatura_id: string
+          competencia: string
+          confirmado_em?: string
+          confirmado_por: string
+          id?: string
+          valor_centavos: number
+        }
+        Update: {
+          assinatura_id?: string
+          competencia?: string
+          confirmado_em?: string
+          confirmado_por?: string
+          id?: string
+          valor_centavos?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_pagamento_assinatura_id_fkey"
+            columns: ["assinatura_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_assinatura"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_pagamento_confirmado_por_fkey"
+            columns: ["confirmado_por"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_pagamento_estorno: {
+        Row: {
+          autor_id: string
+          criado_em: string
+          motivo: string
+          pagamento_id: string
+        }
+        Insert: {
+          autor_id: string
+          criado_em?: string
+          motivo: string
+          pagamento_id: string
+        }
+        Update: {
+          autor_id?: string
+          criado_em?: string
+          motivo?: string
+          pagamento_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_pagamento_estorno_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_pagamento_estorno_pagamento_id_fkey"
+            columns: ["pagamento_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_pagamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes_parametro: {
+        Row: {
+          atualizado_em: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          chave: string
+          descricao: string
+          maximo: number
+          minimo: number
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          chave?: string
+          descricao?: string
+          maximo?: number
+          minimo?: number
+          valor?: number
+        }
+        Relationships: []
+      }
+      comissoes_rede: {
+        Row: {
+          criada_em: string
+          criada_por: string
+          id: string
+          perfil_id: string
+        }
+        Insert: {
+          criada_em?: string
+          criada_por: string
+          id?: string
+          perfil_id: string
+        }
+        Update: {
+          criada_em?: string
+          criada_por?: string
+          id?: string
+          perfil_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_rede_criada_por_fkey"
+            columns: ["criada_por"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_rede_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_rede_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_rede_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_rede_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_rede_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      comissoes_vinculo: {
+        Row: {
+          cliente_id: string
+          criado_em: string
+          criado_por: string
+          id: string
+          indicador_id: string
+          perfil_id: string
+          rede_id: string
+        }
+        Insert: {
+          cliente_id: string
+          criado_em?: string
+          criado_por: string
+          id?: string
+          indicador_id: string
+          perfil_id: string
+          rede_id: string
+        }
+        Update: {
+          cliente_id?: string
+          criado_em?: string
+          criado_por?: string
+          id?: string
+          indicador_id?: string
+          perfil_id?: string
+          rede_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_vinculo_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_vinculo_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_vinculo_indicador_id_fkey"
+            columns: ["indicador_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_vinculo_rede_fk"
+            columns: ["rede_id", "perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_rede"
+            referencedColumns: ["id", "perfil_id"]
+          },
+        ]
+      }
+      comissoes_vinculo_encerramento: {
+        Row: {
+          autor_id: string
+          criado_em: string
+          inadimplente_desde: string
+          motivo: string
+          prazo_dias: number
+          vinculo_id: string
+        }
+        Insert: {
+          autor_id: string
+          criado_em?: string
+          inadimplente_desde: string
+          motivo: string
+          prazo_dias: number
+          vinculo_id: string
+        }
+        Update: {
+          autor_id?: string
+          criado_em?: string
+          inadimplente_desde?: string
+          motivo?: string
+          prazo_dias?: number
+          vinculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_vinculo_encerramento_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_vinculo_encerramento_vinculo_id_fkey"
+            columns: ["vinculo_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_negocio_vinculos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_vinculo_encerramento_vinculo_id_fkey"
+            columns: ["vinculo_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_vinculo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contas_ciclo_vida: {
         Row: {
           anonimizada_em: string | null
@@ -1107,6 +2099,13 @@ export type Database = {
             foreignKeyName: "indicacoes_link_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "indicacoes_link_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -1368,6 +2367,13 @@ export type Database = {
             foreignKeyName: "indicacoes_pedido_contato_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "indicacoes_pedido_contato_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -1418,6 +2424,13 @@ export type Database = {
           perfil_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "loja_liberacao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: true
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "loja_liberacao_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -1536,6 +2549,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contas_conta"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
           },
           {
             foreignKeyName: "perfis_banner_perfil_id_fkey"
@@ -1743,6 +2763,13 @@ export type Database = {
             foreignKeyName: "perfis_perfil_versao_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "perfis_perfil_versao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -1873,6 +2900,13 @@ export type Database = {
             foreignKeyName: "perfis_revisao_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "perfis_revisao_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -1939,6 +2973,13 @@ export type Database = {
           versao_aprovada_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "pontos_beneficio_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -2393,6 +3434,13 @@ export type Database = {
             foreignKeyName: "pontos_lancamento_destino_perfil_id_fkey"
             columns: ["destino_perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "pontos_lancamento_destino_perfil_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -2519,6 +3567,13 @@ export type Database = {
             foreignKeyName: "relacionamento_alternancia_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "relacionamento_alternancia_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -2574,6 +3629,13 @@ export type Database = {
           valido?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "relacionamento_entrada_decisao_base_perfil_id_fkey"
+            columns: ["base_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "relacionamento_entrada_decisao_base_perfil_id_fkey"
             columns: ["base_perfil_id"]
@@ -2652,6 +3714,13 @@ export type Database = {
           tipo?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "relacionamento_evento_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "relacionamento_evento_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -2778,6 +3847,13 @@ export type Database = {
             foreignKeyName: "relacionamento_membro_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -2851,6 +3927,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contas_conta"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relacionamento_saida_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
           },
           {
             foreignKeyName: "relacionamento_saida_perfil_id_fkey"
@@ -2935,6 +4018,13 @@ export type Database = {
             foreignKeyName: "perfis_banner_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -2977,6 +4067,13 @@ export type Database = {
           versao_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "pontos_beneficio_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -3133,6 +4230,13 @@ export type Database = {
           versao_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "pontos_beneficio_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -3346,6 +4450,13 @@ export type Database = {
           titulo: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
+            columns: ["destino_perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "administracao_patrocinador_perfil_destino_id_fkey"
             columns: ["destino_perfil_id"]
@@ -3626,6 +4737,248 @@ export type Database = {
           },
         ]
       }
+      comissoes_meu_saldo: {
+        Row: {
+          gerada_centavos: number | null
+          liquido_centavos: number | null
+          paga_centavos: number | null
+          pendente_repasse_centavos: number | null
+          quantidade: number | null
+          revertida_apos_paga_centavos: number | null
+          total_gerado_centavos: number | null
+        }
+        Relationships: []
+      }
+      comissoes_meus_negocios: {
+        Row: {
+          habilitado_desde: string | null
+          modulo_ativo: boolean | null
+          negocio_id: string | null
+        }
+        Insert: {
+          habilitado_desde?: never
+          modulo_ativo?: never
+          negocio_id?: string | null
+        }
+        Update: {
+          habilitado_desde?: never
+          modulo_ativo?: never
+          negocio_id?: string | null
+        }
+        Relationships: []
+      }
+      comissoes_minha_situacao: {
+        Row: {
+          clientes_ativos: number | null
+          clientes_encerrados: number | null
+          em_dia: boolean | null
+          encerra_em: string | null
+          inadimplente_desde: string | null
+          modulo_ativo: boolean | null
+          negocio_id: string | null
+          prazo_dias: number | null
+        }
+        Relationships: []
+      }
+      comissoes_minhas_comissoes: {
+        Row: {
+          base_centavos: number | null
+          cliente_ref: string | null
+          competencia: string | null
+          criada_em: string | null
+          estado: string | null
+          id: string | null
+          negocio_id: string | null
+          oferta_nome: string | null
+          percentual_bp: number | null
+          reversao_causa: string | null
+          revertida: boolean | null
+          valor_centavos: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      comissoes_minhas_ofertas: {
+        Row: {
+          ativa: boolean | null
+          criada_em: string | null
+          id: string | null
+          item_id: string | null
+          negocio_id: string | null
+          nome: string | null
+          percentual_bp: number | null
+          periodicidade: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_oferta_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      comissoes_negocio_comissoes: {
+        Row: {
+          base_centavos: number | null
+          cliente_ref: string | null
+          competencia: string | null
+          criada_em: string | null
+          estado: string | null
+          id: string | null
+          indicador_ref: string | null
+          negocio_id: string | null
+          oferta_nome: string | null
+          percentual_bp: number | null
+          reversao_causa: string | null
+          revertida: boolean | null
+          valor_centavos: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_meus_perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_perfil_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_comissao_perfil_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "relacionamento_meu_resumo"
+            referencedColumns: ["perfil_id"]
+          },
+        ]
+      }
+      comissoes_negocio_vinculos: {
+        Row: {
+          cliente_ref: string | null
+          criado_em: string | null
+          encerra_em: string | null
+          encerrado_em: string | null
+          id: string | null
+          inadimplente_desde: string | null
+          indicador_em_dia: boolean | null
+          indicador_ref: string | null
+          negocio_id: string | null
+          situacao: string | null
+        }
+        Relationships: []
+      }
       indicacoes_meus_links: {
         Row: {
           codigo: string | null
@@ -3813,6 +5166,13 @@ export type Database = {
             foreignKeyName: "perfis_banner_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -3865,6 +5225,13 @@ export type Database = {
           texto_alternativo?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "perfis_banner_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "perfis_banner_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -3991,6 +5358,13 @@ export type Database = {
             foreignKeyName: "pontos_beneficio_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "pontos_beneficio_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -4073,6 +5447,13 @@ export type Database = {
             foreignKeyName: "relacionamento_membro_perfil_id_fkey"
             columns: ["perfil_id"]
             isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
             referencedRelation: "perfis_meus_perfis"
             referencedColumns: ["id"]
           },
@@ -4111,6 +5492,13 @@ export type Database = {
           perfil_slug: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "relacionamento_membro_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "comissoes_meus_negocios"
+            referencedColumns: ["negocio_id"]
+          },
           {
             foreignKeyName: "relacionamento_membro_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -4398,6 +5786,154 @@ export type Database = {
       catalogo_imagem_publica: { Args: { p_nome: string }; Returns: boolean }
       catalogo_imagens_da_conta: { Args: never; Returns: number }
       catalogo_pasta_do_dono: { Args: { p_nome: string }; Returns: boolean }
+      comissoes_alterar_percentual_oferta: {
+        Args: { p_oferta: string; p_percentual_bp: number }
+        Returns: number
+      }
+      comissoes_avaliar_pagamento: {
+        Args: { p_autor: string; p_pagamento: string }
+        Returns: number
+      }
+      comissoes_avancar_repasse: {
+        Args: { p_comissao: string; p_estado: string; p_motivo: string }
+        Returns: number
+      }
+      comissoes_cancelar_assinatura: {
+        Args: { p_assinatura: string; p_motivo: string }
+        Returns: undefined
+      }
+      comissoes_confirmar_pagamento: {
+        Args: {
+          p_assinatura: string
+          p_competencia: string
+          p_motivo: string
+          p_valor_centavos: number
+        }
+        Returns: string
+      }
+      comissoes_criar_oferta: {
+        Args: {
+          p_item_id: string
+          p_nome: string
+          p_percentual_bp: number
+          p_perfil: string
+        }
+        Returns: string
+      }
+      comissoes_definir_habilitacao: {
+        Args: {
+          p_ativa: boolean
+          p_motivo: string
+          p_origem: string
+          p_perfil: string
+        }
+        Returns: number
+      }
+      comissoes_definir_oferta_ativa: {
+        Args: { p_ativa: boolean; p_oferta: string }
+        Returns: number
+      }
+      comissoes_definir_parametro: {
+        Args: { p_chave: string; p_motivo: string; p_valor: number }
+        Returns: undefined
+      }
+      comissoes_encerrar_vinculo: {
+        Args: { p_motivo: string; p_vinculo: string }
+        Returns: undefined
+      }
+      comissoes_estornar_pagamento: {
+        Args: {
+          p_confirmar_ja_paga?: boolean
+          p_motivo: string
+          p_pagamento: string
+        }
+        Returns: string
+      }
+      comissoes_exigir_responsavel: {
+        Args: { p_perfil: string }
+        Returns: string
+      }
+      comissoes_hoje: { Args: never; Returns: string }
+      comissoes_inserir_reversao: {
+        Args: {
+          p_autor: string
+          p_causa: string
+          p_comissao: string
+          p_confirmar: boolean
+          p_motivo: string
+        }
+        Returns: string
+      }
+      comissoes_listar_vinculos_vencidos: {
+        Args: { p_perfil?: string }
+        Returns: {
+          o_inadimplente_desde: string
+          o_indicador_ref: string
+          o_perfil_id: string
+          o_prazo_dias: number
+          o_vence_em: string
+          o_vinculo_id: string
+        }[]
+      }
+      comissoes_modulo_ativo: { Args: { p_perfil: string }; Returns: boolean }
+      comissoes_oferta_ativa: { Args: { p_oferta: string }; Returns: boolean }
+      comissoes_parametro_valor: { Args: { p_chave: string }; Returns: number }
+      comissoes_percentual_vigente: {
+        Args: { p_oferta: string }
+        Returns: number
+      }
+      comissoes_registrar_assinatura: {
+        Args: {
+          p_cliente: string
+          p_fim: string
+          p_inicio: string
+          p_motivo: string
+          p_oferta: string
+          p_valor_centavos: number
+        }
+        Returns: string
+      }
+      comissoes_registrar_vinculo: {
+        Args: {
+          p_cliente: string
+          p_indicador: string
+          p_motivo: string
+          p_perfil: string
+        }
+        Returns: string
+      }
+      comissoes_reverter_comissao: {
+        Args: {
+          p_causa: string
+          p_comissao: string
+          p_confirmar_ja_paga?: boolean
+          p_motivo: string
+        }
+        Returns: string
+      }
+      comissoes_situacao_indicador: {
+        Args: { p_indicador: string; p_perfil: string; p_ref: string }
+        Returns: {
+          o_em_dia: boolean
+          o_inadimplente_desde: string
+        }[]
+      }
+      comissoes_situacoes_como_indicador: {
+        Args: never
+        Returns: {
+          o_em_dia: boolean
+          o_inadimplente_desde: string
+          o_vinculo_id: string
+        }[]
+      }
+      comissoes_situacoes_como_responsavel: {
+        Args: never
+        Returns: {
+          o_em_dia: boolean
+          o_inadimplente_desde: string
+          o_vinculo_id: string
+        }[]
+      }
       contas_acesso_ativo: { Args: never; Returns: boolean }
       contas_acesso_permitido: { Args: { p_conta: string }; Returns: boolean }
       contas_anonimizar: { Args: { p_conta: string }; Returns: undefined }
