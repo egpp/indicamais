@@ -249,6 +249,40 @@ describe("vínculos: vencido derivado e prazo vigente (IM-068, IM-072)", () => {
     }).adminPrazoInadimplencia();
     expect(negado.ok).toBe(false);
   });
+
+  it("lê o parâmetro de antecedência do aviso e falha fechado sem linha ou com erro", async () => {
+    const linha = {
+      chave: "aviso_encerramento_antecedencia_dias",
+      valor: 7,
+      minimo: 1,
+      maximo: 365,
+      descricao: "x",
+      atualizado_em: "2026-11-05T00:00:00Z",
+    };
+    const lerParametro = vi.fn(ok([linha]));
+    const r = await servico({ lerParametro }).adminParametro(
+      "aviso_encerramento_antecedencia_dias",
+    );
+    expect(r).toEqual({
+      ok: true,
+      valor: {
+        chave: linha.chave,
+        valor: 7,
+        minimo: 1,
+        maximo: 365,
+        atualizadoEm: "2026-11-05T00:00:00Z",
+      },
+    });
+    expect(lerParametro).toHaveBeenCalledWith("aviso_encerramento_antecedencia_dias");
+    const vazio = await servico({ lerParametro: vi.fn(ok([])) }).adminParametro(
+      "aviso_encerramento_antecedencia_dias",
+    );
+    expect(vazio.ok).toBe(false);
+    const negado = await servico({ lerParametro: comErro("42501") }).adminParametro(
+      "aviso_encerramento_antecedencia_dias",
+    );
+    expect(negado.ok).toBe(false);
+  });
 });
 
 describe("nome público para o indicador (IM-072)", () => {

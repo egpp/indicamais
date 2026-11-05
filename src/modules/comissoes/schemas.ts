@@ -56,6 +56,14 @@ export const chaveParametroSchema = z
   .string({ error: "Informe o parâmetro." })
   .regex(/^[a-z][a-z0-9_]{0,63}$/, { error: "Parâmetro inválido." });
 
+/** Chaves de comissoes_parametro editáveis pela tela do administrador (IM-068, IM-072). */
+export const PARAMETRO_PRAZO_INADIMPLENCIA = "prazo_inadimplencia_dias";
+export const PARAMETRO_AVISO_ANTECEDENCIA = "aviso_encerramento_antecedencia_dias";
+export const PARAMETROS_LEITURA = [
+  PARAMETRO_PRAZO_INADIMPLENCIA,
+  PARAMETRO_AVISO_ANTECEDENCIA,
+] as const;
+
 export const definirParametroSchema = z.object({
   chave: chaveParametroSchema,
   valor: z.number({ error: "Informe o valor." }).int({ error: "O valor deve ser inteiro." }),

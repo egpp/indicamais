@@ -54,6 +54,7 @@ function fake(sobrescrever: Partial<ClienteBancoComissoes> = {}) {
     listarComissoesAdmin: vi.fn(ok([])),
     listarVinculosAdmin: vi.fn(ok([])),
     lerPrazoInadimplencia: vi.fn(ok([])),
+    lerParametro: vi.fn(ok([])),
     listarNegociosVinculados: vi.fn(ok([])),
     ...sobrescrever,
   } satisfies ClienteBancoComissoes;

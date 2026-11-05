@@ -1,6 +1,8 @@
 import type { ZodType } from "zod";
 import {
   alterarPercentualSchema,
+  PARAMETRO_AVISO_ANTECEDENCIA,
+  PARAMETRO_PRAZO_INADIMPLENCIA,
   avancarRepasseSchema,
   cancelarAssinaturaSchema,
   confirmarPagamentoSchema,
@@ -77,7 +79,7 @@ export const DEFINICOES_COMISSOES = {
     ],
     schema: definirParametroSchema,
     ler: (l) => ({
-      chave: "prazo_inadimplencia_dias",
+      chave: PARAMETRO_PRAZO_INADIMPLENCIA,
       valor: inteiro(l("valor")),
       motivo: l("motivo"),
     }),
@@ -85,6 +87,30 @@ export const DEFINICOES_COMISSOES = {
     recusaDoBanco: {
       campo: "valor",
       mensagem: "Informe um prazo entre 1 e 365 dias.",
+    },
+  },
+  antecedenciaAviso: {
+    campos: [
+      {
+        nome: "valor",
+        rotulo: "Antecedência do aviso de encerramento (dias)",
+        tipo: "inteiro",
+        ajuda:
+          "Quantos dias antes do prazo de encerramento o indicador e o anunciante são avisados. Padrão: 7 dias. O banco aceita de 1 a 365.",
+      },
+      MOTIVO,
+    ],
+    schema: definirParametroSchema,
+    ler: (l) => ({
+      chave: PARAMETRO_AVISO_ANTECEDENCIA,
+      valor: inteiro(l("valor")),
+      motivo: l("motivo"),
+    }),
+    sucesso: "Antecedência do aviso de encerramento atualizada.",
+    confirmar: true,
+    recusaDoBanco: {
+      campo: "valor",
+      mensagem: "Informe uma antecedência entre 1 e 365 dias.",
     },
   },
   habilitacao: {
@@ -348,6 +374,7 @@ export type ChaveComissoes = keyof typeof DEFINICOES_COMISSOES;
 export const MENSAGEM_PERCENTUAL = "Informe um percentual entre 0,01% e 100%. Exemplo: 10 ou 7,5.";
 export const MENSAGEM_REAIS = "Informe o valor em reais. Exemplo: 99,90.";
 export const MENSAGEM_PRAZO = "Informe um número inteiro de dias.";
+export const MENSAGEM_FAIXA_DIAS = "Informe um número de dias entre 1 e 365.";
 export const MENSAGEM_CONFIRMAR = "Marque a confirmação para continuar.";
 
 /**
@@ -370,6 +397,14 @@ export function errosDoFormulario(chave: ChaveComissoes, ler: Ler): Record<strin
       saida[c.nome] = MENSAGEM_REAIS;
     } else if (c.tipo === "inteiro" && ilegivel) {
       saida[c.nome] = MENSAGEM_PRAZO;
+    } else if (
+      chave === "antecedenciaAviso" &&
+      c.nome === "valor" &&
+      typeof lido === "number" &&
+      Number.isInteger(lido) &&
+      (lido < 1 || lido > 365)
+    ) {
+      saida[c.nome] = MENSAGEM_FAIXA_DIAS;
     } else if (c.nome in doSchema) {
       saida[c.nome] = doSchema[c.nome] as string;
     }

@@ -5,6 +5,7 @@ import type {
   NegocioAdmin,
   PagamentoAdmin,
   Pagina,
+  ParametroComissoes,
   PrazoInadimplencia,
   VinculoAdmin,
 } from "@/modules/comissoes";
@@ -72,6 +73,21 @@ export function PrazoAtual({ prazo }: { prazo: PrazoInadimplencia }) {
         (faixa permitida: {prazo.minimo} a {prazo.maximo} dias
         {prazo.atualizadoEm ? `; alterado em ${dia(prazo.atualizadoEm)}` : ""}). Vale para a data
         prevista de encerramento mostrada em cada vínculo.
+      </span>
+    </p>
+  );
+}
+
+export function AntecedenciaAtual({ parametro }: { parametro: ParametroComissoes }) {
+  return (
+    <p className="cartao">
+      Antecedência do aviso de encerramento atual: <strong>{parametro.valor} dias</strong>
+      <span className="ajuda">
+        {" "}
+        (faixa permitida: {parametro.minimo} a {parametro.maximo} dias
+        {parametro.atualizadoEm ? `; alterado em ${dia(parametro.atualizadoEm)}` : ""}). O indicador
+        e o anunciante são avisados esse número de dias antes da data prevista de encerramento do
+        vínculo.
       </span>
     </p>
   );
