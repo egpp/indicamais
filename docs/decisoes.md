@@ -277,6 +277,14 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-027 · 05/11/2026 · Leituras administrativas das comissões e identificador de conta (IM-029, IM-041, IM-050, IM-061 a IM-073)
+**IDs:** IM-029, IM-041, IM-050, IM-061 a IM-073. Aceito pelo Emerson em 05/11/2026 ("aceito").
+- **Leituras do administrador geral:** negócios com estado do módulo, assinaturas, pagamentos, comissões, vínculos e prazo de inadimplência, com filtros e paginação (migração 20261105140000).
+- **Identificador de conta visível ao administrador:** as leituras expõem `cliente_id` e `indicador_id` (id de conta) ao administrador geral, porque as ações precisam deles. Nome completo, telefone e e-mail continuam fora de qualquer leitura (IM-029, IM-041, IM-050); indicador e anunciante seguem só com referência opaca.
+- **Nome público do negócio:** o indicador vê o nome público do negócio nos avisos de inadimplência, só de perfil publicado e aprovado.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
