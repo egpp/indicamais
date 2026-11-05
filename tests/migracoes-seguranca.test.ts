@@ -642,7 +642,19 @@ describe("migrações: relacionamento e notificações (IM-039 a IM-045, IM-047 
   });
 
   it("a base e os avisos não tocam pontos nem comissões (IM-042)", () => {
-    expect(modulo).not.toMatch(/public\.(pontos|comissoes)_\w+/i);
+    // Exceção declarada (IM-072, D-029): a migração dos avisos de inadimplência LÊ as visões de leitura de comissões para
+    // montar o aviso, sem escrever nada em pontos ou comissões; o isolamento dela é conferido em
+    // tests/migracoes-avisos-inadimplencia.test.ts.
+    const semInadimplencia = semComentario(
+      sql
+        .filter(
+          (s) =>
+            /^\d+_(relacionamento|notificacoes)_/.test(s.n) && !/aviso_inadimplencia/.test(s.n),
+        )
+        .map((s) => s.t)
+        .join("\n"),
+    );
+    expect(semInadimplencia).not.toMatch(/public\.(pontos|comissoes)_\w+/i);
   });
 
   it("o gatilho de entrada nunca impede o pedido (captura exceção e registra a falha)", () => {
