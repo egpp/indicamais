@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { existsSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import { exigirCotaDisponivel } from "../suporte/item-fixo";
 
 /**
  * Integração real contra o Supabase de DESENVOLVIMENTO: seções da home (IM-095, IM-096, D-018) e endurecimento do Storage
@@ -322,6 +323,10 @@ describe.skipIf(!pronto)(
         "base64",
       ),
     );
+    // Este teste sobe 1 PNG (e o apaga no finally: saldo zero). Falha cedo e com mensagem clara se a cota estiver cheia.
+    beforeAll(async () => {
+      await exigirCotaDisponivel(await logado(e.E2E_DONO_EMAIL!, e.E2E_DONO_SENHA!));
+    });
     it("nome comum é aceito; adm-* é recusado; rename para adm-* também", async () => {
       const dono = await logado(e.E2E_DONO_EMAIL!, e.E2E_DONO_SENHA!);
       const { data: perfis } = await dono.from("perfis_meus_perfis").select("id").limit(1);
