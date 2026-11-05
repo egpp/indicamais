@@ -189,7 +189,8 @@ select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-0000000
 select set_config('t.pg_c0', (select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m0')::date, 10000, 'Pix do mês')::text), true);
 select is((select valor_centavos from public.comissoes_comissao where pagamento_id = current_setting('t.pg_c0')::uuid), 2000, 'pagamento novo usa 20%');
 select is((select motivo from public.comissoes_decisao where pagamento_id = current_setting('t.pg_c0')::uuid), 'gerada', 'cliente pago antes do indicador no mesmo mês gera comissão: mês corrente não é vencido (D-026)');
-select is((select motivo from public.comissoes_decisao where pagamento_id = (select public.comissoes_confirmar_pagamento(current_setting('t.ass_f')::uuid, current_setting('t.m0')::date, 10000, 'Pix do cliente 2'))), 'indicador_inadimplente', 'mês encerrado sem pagamento do indicador continua bloqueando (IM-066, D-026)');
+select set_config('t.pg_f0', (select public.comissoes_confirmar_pagamento(current_setting('t.ass_f')::uuid, current_setting('t.m0')::date, 10000, 'Pix do cliente 2')::text), true);
+select is((select motivo from public.comissoes_decisao where pagamento_id = current_setting('t.pg_f0')::uuid), 'indicador_inadimplente', 'mês encerrado sem pagamento do indicador continua bloqueando (IM-066, D-026)');
 select is((select valor_centavos from public.comissoes_comissao where pagamento_id = current_setting('t.pg_c1')::uuid), 1000, 'comissão anterior NÃO foi recalculada (IM-069)');
 select is((select count(*)::int from public.comissoes_oferta_percentual where oferta_id = current_setting('t.of1')::uuid), 2, 'histórico guarda os dois percentuais');
 
@@ -313,7 +314,7 @@ select throws_ok($$select public.comissoes_cancelar_assinatura(gen_random_uuid()
 select lives_ok($$select public.comissoes_cancelar_assinatura(current_setting('t.ass_f')::uuid, 'Cliente saiu')$$, 'administrador cancela a assinatura');
 select throws_ok($$select public.comissoes_cancelar_assinatura(current_setting('t.ass_f')::uuid, 'de novo')$$, 'P0409', null, 'assinatura só é cancelada uma vez');
 select is((select valor_novo ->> 'situacao' from public.administracao_auditoria where acao = 'cancelar_assinatura_comissoes'), 'cancelada', 'auditoria do cancelamento');
-select is((select count(*)::int from public.comissoes_pagamento where assinatura_id = current_setting('t.ass_f')::uuid), 2, 'cancelar não apaga pagamentos já confirmados');
+select is((select count(*)::int from public.comissoes_pagamento where assinatura_id = current_setting('t.ass_f')::uuid), 3, 'cancelar não apaga pagamentos já confirmados');
 -- Nova assinatura após cancelamento não paga de novo o mesmo mês do mesmo cliente na mesma oferta
 select set_config('t.ass_f2', (select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, 'ffffffff-0000-0000-0000-00000000000f', 10000, current_setting('t.m_3')::date, null, 'Nova assinatura após cancelar')::text), true);
 select throws_ok($$select public.comissoes_confirmar_pagamento(current_setting('t.ass_f2')::uuid, current_setting('t.m_3')::date, 10000, 'tentativa duplicada')$$, 'P0409', null, 'mês já pago em outra assinatura do mesmo cliente e oferta é recusado');
@@ -356,7 +357,7 @@ select throws_ok($$update public.comissoes_parametro set chave = 'outra'$$, '425
 select throws_ok($$delete from public.comissoes_parametro$$, '42501', null, 'parâmetro não é apagado');
 
 -- ===== Restrições do banco contra duplicidade e dados inválidos =====
-select throws_ok($$insert into public.comissoes_pagamento (assinatura_id, competencia, valor_centavos, confirmado_por) values (current_setting('t.ass_b')::uuid, current_setting('t.m0')::date, 100, 'dddddddd-0000-0000-0000-00000000000d')$$,
+select throws_ok($$insert into public.comissoes_pagamento (assinatura_id, competencia, valor_centavos, confirmado_por) values (current_setting('t.ass_c')::uuid, current_setting('t.m0')::date, 100, 'dddddddd-0000-0000-0000-00000000000d')$$,
   '23505', null, 'pagamento duplicado na mesma assinatura e mês é recusado (IM-064)');
 select throws_ok($$insert into public.comissoes_pagamento (assinatura_id, competencia, valor_centavos, confirmado_por) values (current_setting('t.ass_b')::uuid, current_setting('t.m_2')::date + 1, 100, 'dddddddd-0000-0000-0000-00000000000d')$$,
   '23514', null, 'competência que não é dia 1 é recusada');
