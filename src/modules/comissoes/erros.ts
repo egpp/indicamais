@@ -7,6 +7,8 @@ export const MENSAGENS_COMISSOES = {
   dadosInvalidos: "Confira os dados informados.",
   naoEncontrado: "Registro não encontrado.",
   regraNegocio: "Esta ação não é permitida na situação atual.",
+  assinaturaCanceladaAntes:
+    "Esta assinatura foi cancelada antes deste mês. Só é possível confirmar meses até o cancelamento.",
   jaRegistrado: "Este registro já existe ou já foi processado.",
   confirmacaoNecessaria:
     "A comissão já foi paga. Confirme que deseja prosseguir para registrar a reversão.",
@@ -50,6 +52,8 @@ export function mapearErroBancoComissoes(e: ErroBanco): ErroComissoes {
     case "P0002":
       return erroComissoes("NAO_ENCONTRADO", M.naoEncontrado);
     case "P0001":
+      if (/cancelada antes desta compet/i.test(e.message ?? ""))
+        return erroComissoes("REGRA_NEGOCIO", M.assinaturaCanceladaAntes);
       return erroComissoes("REGRA_NEGOCIO", M.regraNegocio);
     case "P0409":
       return erroComissoes("CONFLITO", M.jaRegistrado);

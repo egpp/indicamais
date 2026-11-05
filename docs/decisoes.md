@@ -293,6 +293,13 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-029 · 05/11/2026 · Avisos de inadimplência nas notificações e ajustes de interface das comissões (IM-072, IM-051, IM-052)
+**IDs:** IM-072, IM-051, IM-052, IM-061 a IM-073. Aceito pelo Emerson em 05/11/2026 ("aceito para as duas").
+- **Avisos de inadimplência (IM-072):** passam a alimentar o módulo de notificações existente (aviso dentro da plataforma, sem e-mail por ora, IM-027 segue pendente de provedor). O conteúdo não leva dado privado (nome, telefone, e-mail) nem valores de outras contas (IM-029, IM-041, IM-050); o indicador e o anunciante só recebem o que já veem nas próprias telas. Eventos e leitura seguem as regras de IM-051 e IM-052 conforme definidas.
+- **Interface:** botão "copiar id" nos formulários de registrar vínculo e assinatura; dica em "confirmar pagamento" ("só meses até o cancelamento") e mensagem amigável para a recusa de competência posterior ao cancelamento.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
