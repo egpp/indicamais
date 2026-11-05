@@ -254,6 +254,32 @@ describe("assinaturas: confirmar pagamento por competência (IM-064, IM-070)", (
     expect(resumos()).toEqual(["Confirmar pagamento de um mês"]);
   });
 
+  it("assinatura cancelada mostra a dica de meses até o cancelamento; ativa não", () => {
+    const { rerender } = render(
+      <ul>
+        <CartaoAssinaturaAdmin a={assinatura()} />
+      </ul>,
+    );
+    expect(screen.queryByText(/só é possível confirmar meses até o cancelamento/)).toBeNull();
+    rerender(
+      <ul>
+        <CartaoAssinaturaAdmin
+          a={assinatura({ situacao: "cancelada", canceladaEm: "2026-09-10T12:00:00Z" })}
+        />
+      </ul>,
+    );
+    expect(screen.getByText(/só é possível confirmar meses até o cancelamento/)).toBeTruthy();
+  });
+
+  it("cada identificador curto tem botão Copiar id (cliente, negócio e oferta)", () => {
+    render(
+      <ul>
+        <CartaoAssinaturaAdmin a={assinatura()} />
+      </ul>,
+    );
+    expect(screen.getAllByRole("button", { name: /^Copiar id / })).toHaveLength(3);
+  });
+
   it("valorDivergente ignora texto ilegível e compara em centavos", () => {
     expect(valorDivergente("99,90", 9990)).toBe(false);
     expect(valorDivergente("R$ 99,9", 9990)).toBe(false);
