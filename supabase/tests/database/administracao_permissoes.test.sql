@@ -36,6 +36,7 @@ select is((select array_agg(p.proname::text order by p.proname) from pg_proc p j
   where n.nspname = 'public' and p.prosrc like '%public.administracao_exigir_admin()%' and p.proname <> 'administracao_exigir_admin'),
   array['administracao_alterar_home_secao', 'administracao_alterar_patrocinador', 'administracao_conceder_permissao', 'administracao_criar_patrocinador',
         'administracao_definir_parametro', 'administracao_definir_patrocinador_ativo', 'administracao_revogar_permissao',
+        'comissoes_admin_listar_assinaturas', 'comissoes_admin_listar_comissoes', 'comissoes_admin_listar_negocios', 'comissoes_admin_listar_pagamentos', 'comissoes_admin_listar_vinculos', 'comissoes_admin_prazo_inadimplencia',
         'comissoes_avancar_repasse', 'comissoes_cancelar_assinatura', 'comissoes_confirmar_pagamento', 'comissoes_definir_habilitacao', 'comissoes_definir_parametro', 'comissoes_encerrar_vinculo', 'comissoes_estornar_pagamento', 'comissoes_listar_vinculos_vencidos', 'comissoes_registrar_assinatura', 'comissoes_registrar_vinculo', 'comissoes_reverter_comissao',
         'contas_definir_parametro', 'indicacoes_definir_parametro', 'indicacoes_tratar_alerta', 'loja_definir_liberacao', 'perfis_admin_definir_estilo_habilitado', 'pontos_definir_parametro'],
   'só as RPCs sem permissão específica seguem exigindo administrador geral');

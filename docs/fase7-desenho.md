@@ -1,7 +1,7 @@
 # Fase 7 — Comissões mononível: desenho do banco
 
 **IDs:** IM-061 a IM-073 (IM-060 e IM-074 seguem F). Base: D-017 e D-025. Só banco e desenho; regras em `src/` e telas vêm depois.
-**Migrações (dev apenas):** `20261105100000_comissoes_modelo`, `20261105110000_comissoes_habilitacao_ofertas`, `20261105120000_comissoes_fluxo`, `20261105130000_comissoes_leitura`.
+**Migrações (dev apenas):** `20261105100000_comissoes_modelo`, `20261105110000_comissoes_habilitacao_ofertas`, `20261105120000_comissoes_fluxo`, `20261105130000_comissoes_leitura`, `20261105140000_comissoes_admin_leituras`.
 **Testes:** `supabase/tests/database/comissoes.test.sql` (pgTAP, roda no CI) e `tests/migracoes-fase7.test.ts` (varredura estática).
 
 ## Princípios
@@ -41,6 +41,21 @@ Duplicidade: restrições únicas em pagamento (assinatura+mês), decisão (paga
 - RLS ativada e forçada nas 16 tabelas, quatro políticas cada. Insert, update e delete sempre negados ao cliente; select só do administrador. Privilégios de escrita revogados de `anon` e `authenticated`.
 - Funções `SECURITY DEFINER` com `search_path` vazio; nenhuma executável por `anon`; internas sem acesso da API. Ações administrativas usam `administracao_exigir_admin()` (administrador geral) e gravam `administracao_auditoria` (autor, data, motivo, valor anterior) na mesma transação.
 - Leitura por visões com filtro fixo por `auth.uid()`: indicador (`comissoes_minhas_comissoes`, `comissoes_meu_saldo`, `comissoes_minha_situacao`) e anunciante (`comissoes_meus_negocios`, `comissoes_minhas_ofertas`, `comissoes_negocio_comissoes`, `comissoes_negocio_vinculos`). Nenhuma traz nome, telefone, e-mail nem id de conta de cliente ou indicador: só referência opaca (sha256). O motivo interno do administrador não é coluna; só a causa fixa da reversão. Os avisos de inadimplência (IM-072) são derivados dessas visões, sem cópia.
+
+## Leituras do administrador e nome público (migração `20261105140000_comissoes_admin_leituras`)
+Só funções (sem visão nova, sem mudança de RLS ou de privilégio de tabela). `SECURITY DEFINER`, `search_path` vazio, `administracao_exigir_admin()` (42501 para anon, anunciante, indicador e cliente), sem EXECUTE para `anon`. Paginação `p_limite` (1 a 100, padrão 50) e `p_deslocamento`; `o_total` traz o total do filtro. Valor de filtro inválido: 22023. Ids de conta aparecem só para o administrador agir; nenhuma leitura traz nome, telefone ou e-mail (IM-029, IM-041, IM-050); o texto livre do administrador (motivo) não é coluna.
+
+| Função | Filtros | Colunas |
+|---|---|---|
+| `comissoes_admin_listar_negocios` | `p_estado` (habilitado, nao_habilitado), `p_busca` (slug ou nome) | negócio, slug, nome público (só se publicado), publicado, módulo ativo, estado desde, origem, total |
+| `comissoes_admin_listar_assinaturas` | `p_perfil`, `p_situacao` (ativa, encerrada, cancelada) | id, negócio, oferta (id, nome), cliente_id, valor, início, fim, situação, cancelada em, criada em, total |
+| `comissoes_admin_listar_pagamentos` | `p_perfil`, `p_estado` (confirmado, estornado) | id, assinatura, negócio, oferta, cliente_id, competência, valor, estado, estornado em, decisão (código fixo), comissão, confirmado em, total |
+| `comissoes_admin_listar_comissoes` | `p_perfil`, `p_estado` (gerada, pendente_repasse, paga) | id, negócio, pagamento, oferta, competência, indicador_id, cliente_id, base e percentual congelados, valor, estado e quando, revertida, causa da reversão, criada em, total |
+| `comissoes_admin_listar_vinculos` | `p_perfil`, `p_situacao` (ativo, encerrado) | id, negócio, indicador_id, cliente_id, situação, indicador em dia, inadimplente desde, encerra em (desde + prazo), criado em, encerrado em, total |
+| `comissoes_admin_prazo_inadimplencia` | nenhum | prazo atual, mínimo, máximo, atualizado em |
+| `comissoes_meus_negocios_vinculados` (indicador) | nenhum; filtro fixo em `auth.uid()` | negócio, nome e slug públicos (nulos se o perfil não é público) |
+
+O cliente do administrador é `o_cliente_id` (a conta); as visões do anunciante e do indicador seguem só com referência opaca. Lição do defeito D1: sem visão nova, e as funções internas (`comissoes_hoje`, `comissoes_parametro_valor`, `comissoes_situacao_indicador`) seguem sem EXECUTE para `authenticated`. Testes: `supabase/tests/database/comissoes_admin_leituras.test.sql` e o bloco final de `tests/migracoes-fase7.test.ts`.
 
 ## Perguntas em aberto (adotei a opção mais conservadora; nada foi decidido pelo Emerson)
 1. **Cliente sem conta:** o cliente precisa ser uma conta da plataforma (evita guardar nome, telefone ou e-mail). Cliente sem conta é permitido?
