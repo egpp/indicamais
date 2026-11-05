@@ -9,6 +9,32 @@
 -- fixa da reversão (cancelamento, estorno, correcao). Os avisos de IM-072 são DERIVADOS destas visões, nunca copiados.
 -- O administrador lê as tabelas diretamente (política de select do administrador).
 
+-- Funções de apoio das visões. Visão sem security_invoker avalia as FUNÇÕES com os direitos de quem consulta; por isso as
+-- visões NÃO chamam funções internas (sem EXECUTE para authenticated). A única exceção são os dois invólucros abaixo:
+-- SECURITY DEFINER, SEM parâmetros, com filtro fixo em auth.uid(). Nenhuma função que aceite uuid arbitrário é liberada.
+create function public.comissoes_situacoes_como_indicador()
+returns table (o_vinculo_id uuid, o_em_dia boolean, o_inadimplente_desde date)
+language sql stable security definer set search_path = '' as $$
+  select v.id, s.o_em_dia, s.o_inadimplente_desde
+  from public.comissoes_vinculo v
+  cross join lateral public.comissoes_situacao_indicador(v.perfil_id, v.indicador_id, (now() at time zone 'utc')::date) s
+  where v.indicador_id = (select auth.uid());
+$$;
+revoke all on function public.comissoes_situacoes_como_indicador() from public, anon;
+grant execute on function public.comissoes_situacoes_como_indicador() to authenticated;
+
+create function public.comissoes_situacoes_como_responsavel()
+returns table (o_vinculo_id uuid, o_em_dia boolean, o_inadimplente_desde date)
+language sql stable security definer set search_path = '' as $$
+  select v.id, s.o_em_dia, s.o_inadimplente_desde
+  from public.comissoes_vinculo v
+  join public.perfis_perfil p on p.id = v.perfil_id
+  cross join lateral public.comissoes_situacao_indicador(v.perfil_id, v.indicador_id, (now() at time zone 'utc')::date) s
+  where p.responsavel_id = (select auth.uid());
+$$;
+revoke all on function public.comissoes_situacoes_como_responsavel() from public, anon;
+grant execute on function public.comissoes_situacoes_como_responsavel() to authenticated;
+
 -- Indicador: comissões próprias, com estado e reversão ---------------------------------------------------------------------
 create view public.comissoes_minhas_comissoes as
 select c.id,
@@ -57,13 +83,14 @@ grant select on public.comissoes_meu_saldo to authenticated;
 -- Indicador: situação por negócio (aviso interno de inadimplência, IM-066, IM-072). encerra_em = desde + prazo.
 create view public.comissoes_minha_situacao as
 select s.negocio_id,
-       public.comissoes_modulo_ativo(s.negocio_id) as modulo_ativo,
+       coalesce((select h.ativa from public.comissoes_habilitacao_evento h
+                 where h.perfil_id = s.negocio_id order by h.id desc limit 1), false) as modulo_ativo,
        s.clientes_ativos,
        s.clientes_encerrados,
        s.em_dia,
        s.inadimplente_desde,
-       (s.inadimplente_desde + public.comissoes_parametro_valor('prazo_inadimplencia_dias')) as encerra_em,
-       public.comissoes_parametro_valor('prazo_inadimplencia_dias') as prazo_dias
+       (s.inadimplente_desde + (select pa.valor from public.comissoes_parametro pa where pa.chave = 'prazo_inadimplencia_dias')) as encerra_em,
+       (select pa.valor from public.comissoes_parametro pa where pa.chave = 'prazo_inadimplencia_dias') as prazo_dias
 from (
   select v.perfil_id as negocio_id,
          count(*) filter (where e.vinculo_id is null)::integer as clientes_ativos,
@@ -72,7 +99,7 @@ from (
          min(sit.o_inadimplente_desde) as inadimplente_desde
   from public.comissoes_vinculo v
   left join public.comissoes_vinculo_encerramento e on e.vinculo_id = v.id
-  cross join lateral public.comissoes_situacao_indicador(v.perfil_id, v.indicador_id, public.comissoes_hoje()) sit
+  join public.comissoes_situacoes_como_indicador() sit on sit.o_vinculo_id = v.id
   where v.indicador_id = (select auth.uid())
   group by v.perfil_id
 ) s;
@@ -82,7 +109,8 @@ grant select on public.comissoes_minha_situacao to authenticated;
 -- Anunciante: módulo habilitado nos próprios negócios ---------------------------------------------------------------------
 create view public.comissoes_meus_negocios as
 select p.id as negocio_id,
-       public.comissoes_modulo_ativo(p.id) as modulo_ativo,
+       coalesce((select h.ativa from public.comissoes_habilitacao_evento h
+                 where h.perfil_id = p.id order by h.id desc limit 1), false) as modulo_ativo,
        (select min(e.criado_em) from public.comissoes_habilitacao_evento e where e.perfil_id = p.id and e.ativa) as habilitado_desde
 from public.perfis_perfil p
 where p.responsavel_id = (select auth.uid())
@@ -97,8 +125,8 @@ select o.id,
        o.item_id,
        o.nome,
        o.periodicidade,
-       public.comissoes_percentual_vigente(o.id) as percentual_bp,
-       public.comissoes_oferta_ativa(o.id) as ativa,
+       (select pv.percentual_bp from public.comissoes_oferta_percentual pv where pv.oferta_id = o.id order by pv.id desc limit 1) as percentual_bp,
+       coalesce((select oe.ativa from public.comissoes_oferta_estado oe where oe.oferta_id = o.id order by oe.id desc limit 1), false) as ativa,
        o.criada_em
 from public.comissoes_oferta o
 join public.perfis_perfil p on p.id = o.perfil_id
@@ -142,13 +170,13 @@ select v.id,
        case when e.vinculo_id is null then 'ativo' else 'encerrado' end as situacao,
        sit.o_em_dia as indicador_em_dia,
        sit.o_inadimplente_desde as inadimplente_desde,
-       (sit.o_inadimplente_desde + public.comissoes_parametro_valor('prazo_inadimplencia_dias')) as encerra_em,
+       (sit.o_inadimplente_desde + (select pa.valor from public.comissoes_parametro pa where pa.chave = 'prazo_inadimplencia_dias')) as encerra_em,
        v.criado_em,
        e.criado_em as encerrado_em
 from public.comissoes_vinculo v
 join public.perfis_perfil p on p.id = v.perfil_id
 left join public.comissoes_vinculo_encerramento e on e.vinculo_id = v.id
-cross join lateral public.comissoes_situacao_indicador(v.perfil_id, v.indicador_id, public.comissoes_hoje()) sit
+join public.comissoes_situacoes_como_responsavel() sit on sit.o_vinculo_id = v.id
 where p.responsavel_id = (select auth.uid());
 revoke all on public.comissoes_negocio_vinculos from anon, authenticated;
 grant select on public.comissoes_negocio_vinculos to authenticated;

@@ -232,6 +232,7 @@ declare
   v_admin uuid := public.administracao_exigir_admin();
   v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
   v_perfil uuid;
+  v_resp uuid;
   v_id uuid;
 begin
   if v_motivo is null then
@@ -249,6 +250,10 @@ begin
   end if;
   if not exists (select 1 from public.contas_conta c where c.id = p_cliente) then
     raise exception 'conta não encontrada' using errcode = 'P0002';
+  end if;
+  select p.responsavel_id into v_resp from public.perfis_perfil p where p.id = v_perfil;
+  if p_cliente = v_resp or not public.contas_acesso_permitido(p_cliente) then
+    raise exception 'conta não pode ser cliente deste negócio' using errcode = 'P0001';
   end if;
   if not exists (select 1 from public.comissoes_habilitacao_evento e where e.perfil_id = v_perfil) then
     raise exception 'módulo de comissões nunca habilitado para este negócio' using errcode = 'P0001';
@@ -344,6 +349,10 @@ begin
   if found and p_competencia > date_trunc('month', v_cancel at time zone 'utc')::date then
     raise exception 'assinatura cancelada antes desta competência' using errcode = 'P0001';
   end if;
+  -- Valor diferente do contratado só com justificativa detalhada (mín. 10 caracteres); vai para a auditoria.
+  if p_valor_centavos <> v_a.valor_centavos and char_length(v_motivo) < 10 then
+    raise exception 'valor difere da assinatura: justifique no motivo (mín. 10 caracteres)' using errcode = '22023';
+  end if;
 
   perform pg_advisory_xact_lock(hashtextextended('comissoes_pagamento_conf:' || p_assinatura::text || ':' || p_competencia::text, 0));
   select pg.id into v_pag from public.comissoes_pagamento pg
@@ -353,6 +362,17 @@ begin
       raise exception 'pagamento desta competência foi estornado' using errcode = 'P0409';
     end if;
     return v_pag;
+  end if;
+  -- Um mês só gera pagamento (e comissão) uma vez por cliente e oferta, mesmo com nova assinatura após cancelar.
+  perform pg_advisory_xact_lock(hashtextextended(
+    'comissoes_pagamento_cliente:' || v_a.oferta_id::text || ':' || v_a.cliente_id::text || ':' || p_competencia::text, 0));
+  if exists (
+    select 1 from public.comissoes_pagamento pg2
+    join public.comissoes_assinatura a2 on a2.id = pg2.assinatura_id
+    where a2.oferta_id = v_a.oferta_id and a2.cliente_id = v_a.cliente_id and pg2.competencia = p_competencia
+      and not exists (select 1 from public.comissoes_pagamento_estorno e2 where e2.pagamento_id = pg2.id)
+  ) then
+    raise exception 'competência já paga para este cliente nesta oferta (outra assinatura)' using errcode = 'P0409';
   end if;
 
   insert into public.comissoes_pagamento (assinatura_id, competencia, valor_centavos, confirmado_por)
@@ -366,7 +386,9 @@ begin
   values (v_admin, 'confirmar_pagamento_comissoes', 'comissoes_pagamento', v_pag::text, v_motivo,
           jsonb_build_object('pagamento', null),
           jsonb_build_object('assinatura_id', p_assinatura, 'competencia', p_competencia, 'valor_centavos', p_valor_centavos,
-                             'decisao', v_dec_motivo, 'comissao_centavos', v_com_valor));
+                             'decisao', v_dec_motivo, 'comissao_centavos', v_com_valor,
+                             'valor_assinatura_centavos', v_a.valor_centavos,
+                             'valor_diferente', p_valor_centavos <> v_a.valor_centavos));
   return v_pag;
 end $$;
 revoke all on function public.comissoes_confirmar_pagamento(uuid, date, integer, text) from public, anon;
@@ -398,7 +420,12 @@ begin
   insert into public.comissoes_pagamento_estorno (pagamento_id, motivo, autor_id) values (p_pagamento, v_motivo, v_admin);
   select c.id into v_comissao from public.comissoes_comissao c where c.pagamento_id = p_pagamento;
   if v_comissao is not null then
-    v_rev := public.comissoes_inserir_reversao(v_comissao, 'estorno', v_motivo, v_admin, p_confirmar_ja_paga);
+    perform pg_advisory_xact_lock(hashtextextended('comissoes_comissao:' || v_comissao::text, 0));
+    -- Comissão já revertida antes (ex.: causa 'correcao'): o estorno do pagamento segue sem nova reversão (sem duplicar).
+    select r.id into v_rev from public.comissoes_lancamento r where r.comissao_id = v_comissao and r.tipo = 'reversao';
+    if v_rev is null then
+      v_rev := public.comissoes_inserir_reversao(v_comissao, 'estorno', v_motivo, v_admin, p_confirmar_ja_paga);
+    end if;
   end if;
   insert into public.administracao_auditoria (autor_id, acao, alvo_tabela, alvo_id, motivo, valor_anterior, valor_novo)
   values (v_admin, 'estornar_pagamento_comissoes', 'comissoes_pagamento', p_pagamento::text, v_motivo,

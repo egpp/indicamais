@@ -364,3 +364,37 @@ describe("comissoes: visões não chamam função sem EXECUTE do chamador (revis
     expect([...chamaveis]).not.toContain("comissoes_inserir_reversao");
   });
 });
+
+describe("comissoes: correções da revisão (D1, D3, D4, D5)", () => {
+  it("D3: estorno de pagamento não refaz reversão já existente", () => {
+    const c = corpo(fluxo, "comissoes_estornar_pagamento");
+    expect(c).toMatch(/r\.tipo = 'reversao'/);
+    expect(c).toMatch(/if v_rev is null then/);
+  });
+
+  it("D4: mesmo cliente, oferta e competência não são pagos duas vezes por assinaturas diferentes", () => {
+    const c = corpo(fluxo, "comissoes_confirmar_pagamento");
+    expect(c).toMatch(/a2\.oferta_id = v_a\.oferta_id and a2\.cliente_id = v_a\.cliente_id/);
+    expect(c).toMatch(/competência já paga para este cliente nesta oferta/);
+  });
+
+  it("D5: valor diferente da assinatura exige justificativa e vai para a auditoria; cliente válido", () => {
+    const c = corpo(fluxo, "comissoes_confirmar_pagamento");
+    expect(c).toMatch(/p_valor_centavos <> v_a\.valor_centavos/);
+    expect(c).toMatch(/'valor_diferente'/);
+    const r = corpo(fluxo, "comissoes_registrar_assinatura");
+    expect(r).toMatch(/p_cliente = v_resp/);
+    expect(r).toMatch(/contas_acesso_permitido\(p_cliente\)/);
+  });
+
+  it("D1: invólucros de situação não aceitam parâmetros e filtram por auth.uid()", () => {
+    for (const n of [
+      "comissoes_situacoes_como_indicador",
+      "comissoes_situacoes_como_responsavel",
+    ]) {
+      const c = corpo(leitura, n);
+      expect(c, n).toMatch(/\(select auth\.uid\(\)\)/);
+      expect(leitura, n).toMatch(new RegExp(`function public\\.${n}\\(\\)`));
+    }
+  });
+});

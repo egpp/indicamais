@@ -148,6 +148,7 @@ select is((select count(*)::int from public.comissoes_vinculo where indicador_id
 select throws_ok($$select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, 'bbbbbbbb-0000-0000-0000-00000000000b', 0, current_setting('t.m_2')::date, null, 'x')$$, '22023', null, 'valor zero recusado');
 select throws_ok($$select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, 'bbbbbbbb-0000-0000-0000-00000000000b', 5000, current_setting('t.m_2')::date, (current_setting('t.m_4')::date), 'x')$$, '22023', null, 'fim antes do início recusado');
 select throws_ok($$select public.comissoes_registrar_assinatura(gen_random_uuid(), 'bbbbbbbb-0000-0000-0000-00000000000b', 5000, current_setting('t.m_2')::date, null, 'x')$$, 'P0002', null, 'oferta inexistente');
+select throws_ok($$select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, 'aaaaaaaa-0000-0000-0000-00000000000a', 5000, current_setting('t.m_2')::date, null, 'x')$$, 'P0001', null, 'o responsável do negócio não é cliente do próprio negócio');
 select set_config('t.ass_b', (select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, 'bbbbbbbb-0000-0000-0000-00000000000b', 5000, current_setting('t.m_2')::date, null, 'Contrato do indicador')::text), true);
 select set_config('t.ass_c', (select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, 'cccccccc-0000-0000-0000-00000000000c', 10000, current_setting('t.m_2')::date, null, 'Contrato do cliente')::text), true);
 select set_config('t.ass_g', (select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, '77777777-0000-0000-0000-000000000007', 5000, current_setting('t.m_4')::date, null, 'Contrato do indicador 2')::text), true);
@@ -161,6 +162,7 @@ select throws_ok($$select public.comissoes_confirmar_pagamento(current_setting('
 select throws_ok($$select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m_2')::date, 0, 'x')$$, '22023', null, 'valor zero recusado');
 select throws_ok($$select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m_2')::date, 10000, '')$$, '22023', null, 'confirmação exige motivo');
 select throws_ok($$select public.comissoes_confirmar_pagamento(gen_random_uuid(), current_setting('t.m_2')::date, 10000, 'x')$$, 'P0002', null, 'assinatura inexistente');
+select throws_ok($$select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m_2')::date, 9000, 'curto')$$, '22023', null, 'valor diferente da assinatura exige justificativa detalhada');
 select set_config('t.pg_c2', (select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m_2')::date, 10000, 'Pix do mês retrasado')::text), true);
 select is((select motivo from public.comissoes_decisao where pagamento_id = current_setting('t.pg_c2')::uuid), 'indicador_inadimplente', 'indicador sem pagamento em dia: nenhuma comissão (IM-066)');
 select is((select count(*)::int from public.comissoes_comissao), 0, 'nenhuma comissão criada');
@@ -227,6 +229,11 @@ select throws_ok($$select public.comissoes_estornar_pagamento(current_setting('t
 select throws_ok($$select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m0')::date, 10000, 'tentativa')$$, 'P0409', null, 'competência estornada não é confirmada de novo');
 select is((select coalesce(sum(valor_centavos), 0)::int from public.comissoes_lancamento where indicador_id = 'bbbbbbbb-0000-0000-0000-00000000000b'), 0, 'saldo líquido do indicador volta a zero; histórico mantido');
 select is((select count(*)::int from public.comissoes_lancamento where indicador_id = 'bbbbbbbb-0000-0000-0000-00000000000b'), 4, 'quatro lançamentos preservados (2 comissões e 2 reversões)');
+-- Comissão já revertida por correção/cancelamento: estornar o pagamento é permitido, sem nova reversão (idempotente)
+select lives_ok($$select public.comissoes_estornar_pagamento(current_setting('t.pg_c1')::uuid, 'Estorno após reversão prévia', true)$$, 'estorno do pagamento cuja comissão já foi revertida não desfaz tudo');
+select is((select count(*)::int from public.comissoes_lancamento where comissao_id = current_setting('t.com1')::uuid and tipo = 'reversao'), 1, 'sem segunda reversão da mesma comissão');
+select is((select count(*)::int from public.comissoes_pagamento_estorno where pagamento_id = current_setting('t.pg_c1')::uuid), 1, 'o estorno do pagamento foi registrado');
+select is((select valor_novo ->> 'reversao_id' from public.administracao_auditoria where acao = 'estornar_pagamento_comissoes' and alvo_id = current_setting('t.pg_c1')), current_setting('t.rev1'), 'auditoria do estorno aponta a reversão anterior');
 
 -- ===== Leitura: o indicador vê só o que é dele; sem dados de cliente (IM-029, IM-041) =====
 select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
@@ -305,6 +312,9 @@ select lives_ok($$select public.comissoes_cancelar_assinatura(current_setting('t
 select throws_ok($$select public.comissoes_cancelar_assinatura(current_setting('t.ass_f')::uuid, 'de novo')$$, 'P0409', null, 'assinatura só é cancelada uma vez');
 select is((select valor_novo ->> 'situacao' from public.administracao_auditoria where acao = 'cancelar_assinatura_comissoes'), 'cancelada', 'auditoria do cancelamento');
 select is((select count(*)::int from public.comissoes_pagamento where assinatura_id = current_setting('t.ass_f')::uuid), 2, 'cancelar não apaga pagamentos já confirmados');
+-- Nova assinatura após cancelamento não paga de novo o mesmo mês do mesmo cliente na mesma oferta
+select set_config('t.ass_f2', (select public.comissoes_registrar_assinatura(current_setting('t.of1')::uuid, 'ffffffff-0000-0000-0000-00000000000f', 10000, current_setting('t.m_3')::date, null, 'Nova assinatura após cancelar')::text), true);
+select throws_ok($$select public.comissoes_confirmar_pagamento(current_setting('t.ass_f2')::uuid, current_setting('t.m_3')::date, 10000, 'tentativa duplicada')$$, 'P0409', null, 'mês já pago em outra assinatura do mesmo cliente e oferta é recusado');
 reset role;
 
 -- ===== Desativar o módulo preserva saldos e histórico; só bloqueia novas comissões (IM-073) =====
