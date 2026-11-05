@@ -470,7 +470,9 @@ export function criarServicoComissoes(
         const r = await banco.lerPrazoInadimplencia();
         if (r.erro) return falha(mapearErroBancoComissoes(r.erro));
         const prazo = paraPrazoInadimplencia(r.dados?.[0]);
-        return prazo ? { ok: true, valor: prazo } : falha(erroComissoes("ERRO_INTERNO", M.generica));
+        return prazo
+          ? { ok: true, valor: prazo }
+          : falha(erroComissoes("ERRO_INTERNO", M.generica));
       }),
 
     // ---------------------------------------------------------------- Anunciante (IM-062, IM-063, IM-067, IM-069, IM-073)

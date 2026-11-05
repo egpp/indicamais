@@ -78,7 +78,10 @@ describe("leituras do administrador: paginação e filtros (IM-061)", () => {
       deslocamento: 0,
     });
     const vazio = await s.adminNegocios({});
-    expect(vazio).toEqual({ ok: true, valor: { itens: [], total: 0, limite: 20, deslocamento: 0 } });
+    expect(vazio).toEqual({
+      ok: true,
+      valor: { itens: [], total: 0, limite: 20, deslocamento: 0 },
+    });
   });
 
   it.each([
@@ -148,7 +151,8 @@ describe("leituras do administrador: mapeamento sem dado privado (IM-029, IM-041
       ),
     }).adminNegocios();
     expect(r.ok && r.valor.itens).toHaveLength(1);
-    if (r.ok) expect(r.valor.itens[0]).toMatchObject({ nome: null, publicado: false, origem: null });
+    if (r.ok)
+      expect(r.valor.itens[0]).toMatchObject({ nome: null, publicado: false, origem: null });
   });
 
   it("comissão do administrador copia só campos conhecidos (coluna extra não vaza)", async () => {
@@ -240,7 +244,9 @@ describe("vínculos: vencido derivado e prazo vigente (IM-068, IM-072)", () => {
     });
     const vazio = await servico({ lerPrazoInadimplencia: vi.fn(ok([])) }).adminPrazoInadimplencia();
     expect(vazio.ok).toBe(false);
-    const negado = await servico({ lerPrazoInadimplencia: comErro("42501") }).adminPrazoInadimplencia();
+    const negado = await servico({
+      lerPrazoInadimplencia: comErro("42501"),
+    }).adminPrazoInadimplencia();
     expect(negado.ok).toBe(false);
   });
 });
@@ -266,7 +272,9 @@ describe("nome público para o indicador (IM-072)", () => {
   });
 
   it("erro do banco vira erro tipado", async () => {
-    const r = await servico({ listarNegociosVinculados: comErro("42501") }).meusNegociosVinculados();
+    const r = await servico({
+      listarNegociosVinculados: comErro("42501"),
+    }).meusNegociosVinculados();
     expect(r.ok).toBe(false);
   });
 });
