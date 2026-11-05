@@ -66,6 +66,8 @@ jobs:
       - name: Publicar em desenvolvimento (indicamais-dev)
         id: publicar
         env:
+          # Variavel de repositorio (nao secret): embutida no build do Next. Vazia = omitida.
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         shell: bash

@@ -8,3 +8,5 @@ SUPABASE_SERVICE_ROLE_KEY=
 # Aviso por e-mail (Resend): secrets do Worker; sem a chave o aviso fica pendente.
 EMAIL_API_KEY=
 EMAIL_FROM=
+# URL publica do site (https://...), usada nos links dos avisos. No Worker de dev e a do workers.dev. Nao e segredo.
+NEXT_PUBLIC_APP_URL=
