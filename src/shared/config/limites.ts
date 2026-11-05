@@ -61,7 +61,15 @@ export const LIMITES = {
    * Notificação ao responsável sobre pedido de contato (IM-027, IM-028, IM-050). Política central:
    * tentativasMax = tentativas de envio por pedido antes de exigir intervenção do administrador.
    */
-  notificacaoContato: { tentativasMax: 3, lote: 20, erroMax: 100 },
+  notificacaoContato: {
+    tentativasMax: 3,
+    lote: 20,
+    erroMax: 100,
+    /** Cron (a cada 15 min): lote pequeno por execução (limite diário do provedor e tempo do Worker). */
+    loteCron: 10,
+    /** Cron: espera mínima, em minutos, desde a última tentativa antes de recolocar uma falha na fila. */
+    esperaReenvioMin: 60,
+  },
   /** Provedor de e-mail (IM-027, IM-028): tempo máximo de uma chamada à API, em milissegundos. */
   email: { timeoutMs: 10_000 },
   /** Compartilhamento de link (IM-024): tamanho do nome do destino aceito no texto pronto. */
