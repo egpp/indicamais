@@ -252,6 +252,15 @@ export function criarBancoComissoes(supabase: Cliente): ClienteBancoComissoes {
         return { dados: data ?? [], erro: paraErro(error) };
       }),
 
+    lerParametro: (chave) =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("comissoes_parametro")
+          .select("chave, valor, minimo, maximo, atualizado_em, descricao")
+          .eq("chave", chave);
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
     // ------------------------------------------------------------------------------ Leituras
     listarNegociosVinculados: () =>
       protegido(async () => {

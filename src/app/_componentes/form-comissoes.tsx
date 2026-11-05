@@ -7,6 +7,7 @@ import {
   acaoCancelarAssinatura,
   acaoConfirmarPagamento,
   acaoCriarOferta,
+  acaoDefinirAntecedenciaAviso,
   acaoDefinirHabilitacao,
   acaoDefinirOfertaAtiva,
   acaoDefinirPrazoInadimplencia,
@@ -40,6 +41,7 @@ type Acao = (estado: EstadoComissoes, dados: FormData) => Promise<EstadoComissoe
 
 const ACOES: Record<ChaveComissoes, Acao | null> = {
   parametro: acaoDefinirPrazoInadimplencia,
+  antecedenciaAviso: acaoDefinirAntecedenciaAviso,
   habilitacao: acaoDefinirHabilitacao,
   vinculo: acaoRegistrarVinculo,
   assinatura: acaoRegistrarAssinatura,

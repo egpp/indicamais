@@ -52,6 +52,9 @@ const doNegocio = (chave: ChaveComissoes, f: FormData) =>
 export async function acaoDefinirPrazoInadimplencia(_: EstadoComissoes, f: FormData) {
   return doAdmin("parametro", f);
 }
+export async function acaoDefinirAntecedenciaAviso(_: EstadoComissoes, f: FormData) {
+  return doAdmin("antecedenciaAviso", f);
+}
 export async function acaoDefinirHabilitacao(_: EstadoComissoes, f: FormData) {
   return doAdmin("habilitacao", f);
 }

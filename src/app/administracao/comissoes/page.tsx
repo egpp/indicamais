@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import type { Pagina, Resultado } from "@/modules/comissoes";
+import { PARAMETRO_AVISO_ANTECEDENCIA, type Pagina, type Resultado } from "@/modules/comissoes";
 import { AVISO_SEM_AUTOMATICO } from "../../_componentes/comissoes";
 import {
   ABAS_ADMIN,
@@ -12,6 +12,7 @@ import {
   CartaoVinculoAdmin,
   FiltrosAdmin,
   PaginacaoAdmin,
+  AntecedenciaAtual,
   PrazoAtual,
   ResumoLista,
   type AbaAdmin,
@@ -220,6 +221,7 @@ export default async function PaginaComissoesAdmin({
   const aba: AbaAdmin = ABAS_ADMIN.find((a) => a.chave === pedida)?.chave ?? "negocios";
   const negocio = um(sp.negocio);
   const prazo = await ctx.servico.adminPrazoInadimplencia();
+  const antecedencia = await ctx.servico.adminParametro(PARAMETRO_AVISO_ANTECEDENCIA);
   return (
     <PainelPagina
       titulo="Comissões"
@@ -240,6 +242,24 @@ export default async function PaginaComissoesAdmin({
         descricao="Dias de atraso do indicador antes de o vínculo poder ser encerrado. Só o administrador muda; a mudança fica na auditoria."
       >
         <FormComissoes chave="parametro" rotuloBotao="Salvar prazo" rotuloEnviando="Salvando..." />
+      </Acao>
+
+      {antecedencia.ok ? (
+        <AntecedenciaAtual parametro={antecedencia.valor} />
+      ) : (
+        <Aviso tipo="erro">{antecedencia.erro.mensagem}</Aviso>
+      )}
+      <Acao
+        id="titulo-antecedencia"
+        titulo="Alterar a antecedência do aviso de encerramento"
+        descricao="Quantos dias antes do prazo de encerramento o indicador e o anunciante são avisados. A mudança fica na auditoria."
+      >
+        <FormComissoes
+          chave="antecedenciaAviso"
+          rotuloBotao="Salvar antecedência"
+          rotuloEnviando="Salvando..."
+          textoConfirmacao="Confirmo que quero mudar a antecedência dos avisos de encerramento."
+        />
       </Acao>
 
       <AbasAdmin atual={aba} />

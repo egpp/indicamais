@@ -12,6 +12,7 @@ vi.mock("./acoes-comissoes", () => {
   const a = (...x: unknown[]) => acaoLenta(...(x as []));
   return {
     acaoDefinirPrazoInadimplencia: a,
+    acaoDefinirAntecedenciaAviso: a,
     acaoDefinirHabilitacao: a,
     acaoRegistrarVinculo: a,
     acaoRegistrarAssinatura: a,

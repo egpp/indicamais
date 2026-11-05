@@ -51,6 +51,7 @@ vi.mock("./acoes-comissoes", () => {
   };
   return {
     acaoDefinirPrazoInadimplencia: por("parametro"),
+    acaoDefinirAntecedenciaAviso: por("antecedenciaAviso"),
     acaoDefinirHabilitacao: por("habilitacao"),
     acaoRegistrarVinculo: por("vinculo"),
     acaoRegistrarAssinatura: por("assinatura"),
@@ -379,6 +380,35 @@ describe("botões por linha: FormData real -> ação de servidor -> banco falso 
     expect(chamadas[0]).toEqual({
       metodo: "definirParametro",
       args: { chave: "prazo_inadimplencia_dias", valor: 45, motivo: MOTIVO },
+    });
+  });
+});
+
+describe("antecedência do aviso de encerramento (IM-072)", () => {
+  it("envia a chave fixa, o valor inteiro e o motivo, só com a confirmação marcada", async () => {
+    const usuario = u();
+    render(
+      <FormComissoes
+        chave="antecedenciaAviso"
+        rotuloBotao="Salvar antecedência"
+        textoConfirmacao="Confirmo a mudança."
+      />,
+    );
+    await usuario.type(screen.getByLabelText(/^Antecedência do aviso de encerramento/), "400");
+    await usuario.type(screen.getByLabelText(/^Motivo/), MOTIVO);
+    await usuario.click(screen.getByRole("button", { name: "Salvar antecedência" }));
+    expect(chamadas.length).toBe(0);
+    expect(document.body.textContent).toContain("dias entre 1 e 365");
+    expect(document.body.textContent).toContain("Marque a confirmação");
+    const campo = screen.getByLabelText(/^Antecedência do aviso de encerramento/);
+    await usuario.clear(campo);
+    await usuario.type(campo, "10");
+    await usuario.click(screen.getByLabelText("Confirmo a mudança."));
+    await usuario.click(screen.getByRole("button", { name: "Salvar antecedência" }));
+    await waitFor(() => expect(chamadas.length).toBe(1));
+    expect(chamadas[0]).toEqual({
+      metodo: "definirParametro",
+      args: { chave: "aviso_encerramento_antecedencia_dias", valor: 10, motivo: MOTIVO },
     });
   });
 });

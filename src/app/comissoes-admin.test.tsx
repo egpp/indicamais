@@ -19,6 +19,7 @@ vi.mock("./acoes-comissoes", () => {
   const a = (...x: unknown[]) => acaoLenta(...(x as []));
   return {
     acaoDefinirPrazoInadimplencia: a,
+    acaoDefinirAntecedenciaAviso: a,
     acaoDefinirHabilitacao: a,
     acaoRegistrarVinculo: a,
     acaoRegistrarAssinatura: a,
@@ -44,6 +45,7 @@ import {
   CartaoVinculoAdmin,
   FiltrosAdmin,
   PaginacaoAdmin,
+  AntecedenciaAtual,
   PrazoAtual,
   ResumoLista,
   hrefAdmin,
@@ -487,6 +489,24 @@ describe("filtros, abas, paginação e prazo (IM-068)", () => {
     expect(document.body.textContent).toContain("1 a 365 dias");
     expect(document.body.textContent).toContain("alterado em 01/11/2026");
     expect(document.body.textContent).not.toContain("60");
+  });
+});
+
+describe("antecedência do aviso (IM-072)", () => {
+  it("mostra o valor vigente lido do banco", () => {
+    render(
+      <AntecedenciaAtual
+        parametro={{
+          chave: "aviso_encerramento_antecedencia_dias",
+          valor: 12,
+          minimo: 1,
+          maximo: 365,
+          atualizadoEm: null,
+        }}
+      />,
+    );
+    expect(screen.getByText("12 dias")).toBeTruthy();
+    expect(document.body.textContent).toContain("1 a 365 dias");
   });
 });
 

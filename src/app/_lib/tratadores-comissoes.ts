@@ -24,6 +24,7 @@ const CHAMADAS: Record<
   (s: ServicoComissoes, entrada: Record<string, unknown>) => Promise<Resultado>
 > = {
   parametro: (s, e) => s.definirParametro(e),
+  antecedenciaAviso: (s, e) => s.definirParametro(e),
   habilitacao: (s, e) => s.definirHabilitacao(e),
   vinculo: (s, e) => s.registrarVinculo(e),
   assinatura: (s, e) => s.registrarAssinatura(e),
