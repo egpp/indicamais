@@ -54,13 +54,13 @@ select is((select count(*)::int from information_schema.columns where table_name
 select throws_ok($$update public.perfis_estilo_pagina set rotulo = 'Outro' where id = 'pet'$$, '42501', null, 'rótulo do estilo é imutável');
 select throws_ok($$delete from public.perfis_estilo_pagina where id = 'pet'$$, '42501', null, 'estilo não é apagado');
 select throws_ok($$update public.perfis_estilo_pagina set habilitado = false where id = 'minimalista'$$, '23514', null, 'o estilo padrão não pode ficar desabilitado');
-select throws_ok($$insert into public.perfis_estilo_pagina (id, rotulo, ordem) values ('inventado', 'X', 99)$$, '23514', null, 'só os 20 ids fixos existem');
+select throws_ok($$insert into public.perfis_estilo_pagina (id, rotulo, ordem) values ('inventado', 'X', 99)$$, '23514', null, 'só os 21 ids fixos existem');
 
 -- ===== Leitura pública =====
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select is((select estilo_pagina from public.perfis_perfil_publico where id = 'a0000000-0000-0000-0000-000000000001'), 'minimalista', 'perfil novo é publicado como minimalista');
-select is((select count(*)::int from public.perfis_estilo_pagina), 20, 'visitante lê o catálogo de estilos');
+select is((select count(*)::int from public.perfis_estilo_pagina), 21, 'visitante lê o catálogo de estilos (21 estilos, D-021)');
 select throws_ok($$select public.perfis_definir_estilo('a0000000-0000-0000-0000-000000000001', 'gastronomia')$$, '42501', null, 'anon não define estilo');
 select throws_ok($$update public.perfis_perfil set estilo_pagina = 'premium'$$, '42501', null, 'anon não altera estilo');
 reset role;
