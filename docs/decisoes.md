@@ -244,6 +244,15 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-024 · 04/11/2026 · Merge de PR pelo gestor (IM-088, IM-089)
+**IDs:** IM-088, IM-089. Aceito pelo Emerson em 04/11/2026 ("aceito sua sugestão, sim").
+- **O gestor pode fazer o merge de PR na main** quando o CI estiver verde e o `verificador` tiver registrado evidência em `docs/acompanhamento.md`. Em PR só de documentação, basta o CI verde.
+- **Continuam com o Emerson:** PR com migração de banco ou mudança de segurança; conflito de requisitos; qualquer coisa com custo novo ou exposição pública.
+- **Nunca sem o Emerson (D-003):** deploy em produção e `supabase db push` em produção. Cada `db push` no dev segue pedindo "aprovado" explícito.
+- **Registro:** cada merge entra no relatório ao Emerson, com o número do PR. Se o sistema de permissões negar o comando, o gestor para e avisa; não contorna.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
