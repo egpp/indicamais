@@ -1345,7 +1345,8 @@ html:has(.site) {
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
-  background: var(--s-alt);
+  border: 1px solid var(--s-borda-forte);
+  background: var(--s-surface);
   color: var(--s-link);
 }
 .st-equipe li span:last-child {
