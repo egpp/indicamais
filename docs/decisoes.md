@@ -300,6 +300,13 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-030 · 05/11/2026 · Antecedência do aviso de encerramento de vínculo (IM-072)
+**IDs:** IM-072. Aceito pelo Emerson em 05/11/2026 ("aprovado" e "aceito").
+- **Antecedência padrão: 7 dias.** O indicador e o anunciante são avisados 7 dias antes do prazo de encerramento do vínculo (prazo padrão de 60 dias, D-025). O valor é o parâmetro `aviso_encerramento_antecedencia_dias` (faixa 1 a 365), editável só pelo administrador geral, com motivo e auditoria.
+- **Aplicado no dev** (migração `20261105150000_notificacoes_aviso_inadimplencia`, aprovada pelo Emerson em 05/11/2026).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
