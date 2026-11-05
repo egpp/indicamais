@@ -348,3 +348,65 @@ describe("abas (IM-048, IM-049, IM-050, IM-029)", () => {
     expect(b.ok).toBe(false);
   });
 });
+
+describe("avisos de inadimplência (IM-072, IM-050, IM-053)", () => {
+  const TIPOS_INADIMPLENCIA = [
+    "inadimplencia_atraso_indicador",
+    "inadimplencia_prazo_indicador",
+    "inadimplencia_atraso_negocio",
+    "inadimplencia_prazo_negocio",
+  ] as const;
+
+  it("os quatro tipos existem e têm título e texto em pt-BR", () => {
+    for (const tipo of TIPOS_INADIMPLENCIA) {
+      expect(TIPOS_AVISO).toContain(tipo);
+      const { titulo, texto } = textoDoAviso(tipo, "Padaria Boa", null);
+      expect(titulo.length).toBeGreaterThan(5);
+      expect(texto).toContain("Padaria Boa");
+    }
+  });
+
+  it("o texto não cita valores, datas, telefone, e-mail nem o nome de quem agiu", () => {
+    for (const tipo of TIPOS_INADIMPLENCIA) {
+      const { titulo, texto } = textoDoAviso(tipo, "Padaria Boa", "Maria S.");
+      const tudo = `${titulo} ${texto}`;
+      expect(tudo).not.toMatch(/R\$|\d|@|\+55|whatsapp/i);
+      expect(tudo).not.toContain("Maria");
+    }
+  });
+
+  it("sem nome do negócio, usa um texto neutro", () => {
+    expect(textoDoAviso("inadimplencia_atraso_negocio", "  ", null).texto).toContain("o negócio");
+  });
+
+  it("a lista traz o aviso de inadimplência derivado do banco e ignora qualquer ator", async () => {
+    const { servico } = fake({
+      listarMeusAvisos: ok([
+        aviso({
+          origem: "inadimplencia",
+          origem_id: ID_MD5,
+          tipo: "inadimplencia_atraso_indicador",
+          ator_nome: "Fulano da Silva",
+        }),
+      ]),
+    });
+    const r = await servico.meusAvisos();
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.valor).toHaveLength(1);
+      expect(r.valor[0]).toMatchObject({
+        origem: "inadimplencia",
+        tipo: "inadimplencia_atraso_indicador",
+        destino: { tipo: "perfil", id: ID, nome: "Padaria Boa" },
+      });
+      expect(JSON.stringify(r.valor[0])).not.toContain("Fulano");
+    }
+  });
+
+  it("marcarLida aceita a origem inadimplencia (id md5 do banco)", async () => {
+    const { servico, banco } = fake();
+    const r = await servico.marcarLida({ origem: "inadimplencia", origemId: ID_MD5 });
+    expect(r.ok).toBe(true);
+    expect(banco.marcarLida).toHaveBeenCalledWith({ origem: "inadimplencia", origemId: ID_MD5 });
+  });
+});

@@ -6,6 +6,7 @@ export const ORIGENS_AVISO = [
   "curtida",
   "revisao",
   "banner_aceite",
+  "inadimplencia",
 ] as const;
 export type OrigemAviso = (typeof ORIGENS_AVISO)[number];
 
