@@ -95,6 +95,10 @@
   color: #1d3f94;
   letter-spacing: 0.08em;
 }
+.site-cafe_padaria .st-hero-imagem .st-sobretitulo {
+  border-color: #fff8e6;
+  color: #fff8e6;
+}
 .site-cafe_padaria .botao {
   box-shadow: 0 4px 0 #0f2a6b;
   font-weight: 800;
@@ -1457,6 +1461,7 @@
   padding: 0 var(--e4) var(--e4);
   background: transparent;
   box-shadow: none;
+  color: var(--s-titulo);
   font-family: var(--s-fonte-titulo), serif;
   font-size: 1.5rem;
 }
@@ -1962,6 +1967,7 @@
   padding: 0 0 var(--e4);
   background: transparent;
   box-shadow: none;
+  color: var(--s-titulo);
   font-family: var(--s-fonte-titulo), serif;
   font-size: 1.5rem;
 }
@@ -1983,6 +1989,151 @@
   border-top: 1px solid #d9a566;
 }
 .site-premium .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}
+
+/* ===== MOTO E BIKE (IM-100, D-021). Variação do Automotivo: fundo claro, hero escuro, vermelho no lugar do laranja,
+ * caixa alta condensada e itálica, cantos retos.
+ * Razões: texto/fundo 16.2 · suave/fundo 7.1 · suave/superficie 7.8 · link/fundo 6.3 · link/superficie 6.9 · botao (branco/vermelho) 5.9 · borda-forte/fundo 4.4 · alt texto 15.4 · alt suave 9.4 · alt link 6.1 · menu 18.9 · menu foco 6.9 · hero 14.8 · hero sobretitulo 5.4 · preco/destaque 6.5 · rodape 15.3 */
+.site-moto_bike {
+  --s-bg: #f4f4f1;
+  --s-alt: #1a1d21;
+  --s-surface: #ffffff;
+  --s-text: #14181c;
+  --s-titulo: #14181c;
+  --s-suave: #4b535b;
+  --s-link: #b3121f;
+  --s-borda: #d6d7d4;
+  --s-borda-forte: #6b737b;
+  --s-botao-fundo: #c8102e;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #c8102e;
+  --s-foco: #14181c;
+  --s-foco-halo: #ffffff;
+  --s-raio: 2px;
+  --s-raio-pequeno: 2px;
+  --s-raio-botao: 0;
+  --s-raio-chip: 0;
+  --s-raio-img: 0;
+  --s-raio-avatar: 0;
+  --s-sombra: 0 2px 10px rgb(20 24 28 / 0.1);
+  --s-sombra-forte: 0 12px 28px rgb(20 24 28 / 0.22);
+  --s-fonte-titulo: var(--f-barlow-cond);
+  --s-fonte-texto: var(--f-barlow);
+  --s-peso-titulo: 800;
+  --s-tracking: 0.01em;
+  --s-tracking-botao: 0.06em;
+  --s-caixa: uppercase;
+  --s-caixa-botao: uppercase;
+  --s-menu-bg: #0e1114;
+  --s-menu-texto: #ffffff;
+  --s-menu-borda: 3px solid #c8102e;
+  --s-menu-sombra: none;
+  --s-menu-foco: #ff6b73;
+  --s-menu-foco-halo: #0e1114;
+  --s-menu-hover: rgb(255 255 255 / 0.12);
+  --s-menu-ativo-bg: #c8102e;
+  --s-menu-ativo-texto: #ffffff;
+  --s-hero-fundo: linear-gradient(135deg, #0b0d10 0%, #23282e 100%);
+  --s-hero-texto: #ffffff;
+  --s-hero-foco: #ff6b73;
+  --s-hero-foco-halo: #0b0d10;
+  --s-acento: #c8102e;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: #14181c;
+  --s-preco-texto: #ff6b73;
+  --s-destaque-fundo: #14181c;
+  --s-destaque-icone: #ff6b73;
+  --s-rodape-fundo: #0e1114;
+  --s-rodape-texto: #e5e7e9;
+}
+.site-moto_bike .st-faixa-alt {
+  --s-bg: #1a1d21;
+  --s-surface: #242a30;
+  --s-text: #f3f4f5;
+  --s-titulo: #ffffff;
+  --s-suave: #bcc2c9;
+  --s-link: #ff6b73;
+  --s-borda: #3a424a;
+  --s-borda-forte: #8b939b;
+  --s-sombra: none;
+  --s-botao-fundo: #c8102e;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #c8102e;
+  --s-foco: #ff6b73;
+  --s-foco-halo: #1a1d21;
+  color: #f3f4f5;
+}
+.site-moto_bike .st-card-imagem {
+  display: contents;
+}
+.site-moto_bike .st-card-imagem img,
+.site-moto_bike .st-card-sem-imagem {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--st-ar, 4 / 3);
+  object-fit: cover;
+}
+.site-moto_bike .st-card-corpo {
+  order: 2;
+}
+.site-moto_bike .st-card-preco {
+  order: 3;
+  position: static;
+  padding: 0 var(--e4) var(--e4);
+  background: transparent;
+  box-shadow: none;
+  color: var(--s-titulo);
+  font-family: var(--s-fonte-titulo), sans-serif;
+  font-size: 1.75rem;
+}
+.site-moto_bike .st-hero h1,
+.site-moto_bike .st-cab h2,
+.site-moto_bike .st-card-corpo h3 {
+  font-style: italic;
+}
+.site-moto_bike .st-hero h1 {
+  font-size: clamp(2.75rem, 12vw, 5.5rem);
+  line-height: 0.95;
+}
+.site-moto_bike .st-sobretitulo,
+.site-moto_bike .st-hero .st-sobretitulo {
+  color: #ff6b73;
+  display: inline-block;
+  padding-bottom: 0.25rem;
+  border-bottom: 3px solid #c8102e;
+}
+.site-moto_bike .botao {
+  font-weight: 800;
+  border: 0;
+}
+.site-moto_bike .st-cab {
+  padding-top: var(--e3);
+  border-top: 3px solid #c8102e;
+}
+.site-moto_bike .st-faixa-deco {
+  display: block;
+  height: 10px;
+  background: repeating-linear-gradient(115deg, #c8102e 0 22px, #0e1114 22px 34px);
+}
+.site-moto_bike .st-card {
+  border: 0;
+  border-top: 4px solid #c8102e;
+}
+.site-moto_bike .st-card-tipo {
+  color: var(--s-link);
+}
+.site-moto_bike .st-destaques li {
+  border: 0;
+  border-left: 6px solid #c8102e;
+}
+.site-moto_bike .st-rodape {
+  border-top: 4px solid #c8102e;
+}
+.site-moto_bike .st-mapa-quadro {
   border: 1px solid var(--s-borda-forte);
   border-radius: var(--s-raio-pequeno);
   box-shadow: none;

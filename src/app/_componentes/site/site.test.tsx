@@ -41,10 +41,11 @@ const IDS_ESPERADOS = [
   "agro_campo",
   "turismo_hospedagem",
   "premium",
+  "moto_bike",
 ];
 
 describe("mapa de estilos (D-016; IM-091)", () => {
-  it("tem exatamente os 20 ids aprovados, cada um com tema", () => {
+  it("tem exatamente os 21 ids aprovados (IM-091, IM-100), cada um com tema", () => {
     expect([...IDS_ESTILOS]).toEqual(IDS_ESPERADOS);
     expect(Object.keys(TEMAS).sort()).toEqual([...IDS_ESPERADOS].sort());
     for (const t of LISTA_TEMAS) {
@@ -53,18 +54,28 @@ describe("mapa de estilos (D-016; IM-091)", () => {
     }
   });
 
-  it("os 20 estilos têm desenho pronto; a lista cresce sem refatorar (D-021)", () => {
+  it("os 21 estilos têm desenho pronto; a lista cresce sem refatorar (D-021)", () => {
     expect(LISTA_TEMAS.filter((t) => t.liberado).map((t) => t.id)).toEqual(IDS_ESPERADOS);
   });
 
   it("estilo inválido, desconhecido, vazio ou em lista cai em minimalista", () => {
     expect(ESTILO_PADRAO).toBe("minimalista");
-    for (const v of [undefined, "", "xyz", "moto_bike", ["gastronomia"], 5, null, "__proto__"])
+    for (const v of [
+      undefined,
+      "",
+      "xyz",
+      "estilo_futuro_x",
+      ["gastronomia"],
+      5,
+      null,
+      "__proto__",
+    ])
       expect(resolverEstilo(v)).toBe("minimalista");
     expect(resolverEstilo("gastronomia")).toBe("gastronomia");
     expect(estiloLiberadoOuNulo("construcao_reformas")).toBe("construcao_reformas");
     expect(estiloLiberadoOuNulo("pet")).toBe("pet");
-    expect(estiloLiberadoOuNulo("moto_bike")).toBeNull();
+    expect(estiloLiberadoOuNulo("moto_bike")).toBe("moto_bike");
+    expect(estiloLiberadoOuNulo("estilo_futuro_x")).toBeNull();
     expect(estiloLiberadoOuNulo("xyz")).toBeNull();
   });
 });

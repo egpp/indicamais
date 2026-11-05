@@ -26,6 +26,12 @@ export const PALETAS_NOVAS: Record<string, PaletaDemo[]> = {
     ["#fff8e6", "#c27a2c", "#1d3f94"],
     ["#e8b574", "#1d3f94", "#fff8e6"],
   ]),
+  moto_bike: P("blocos", [
+    ["#23282e", "#c8102e", "#f4f4f1"],
+    ["#c8102e", "#14181c", "#ffffff"],
+    ["#d6d7d4", "#14181c", "#c8102e"],
+    ["#14181c", "#c8102e", "#d6d7d4"],
+  ]),
   automotivo: P("blocos", [
     ["#2a3038", "#ff5a1f", "#f1f1ef"],
     ["#ff5a1f", "#14181c", "#ffffff"],
@@ -448,6 +454,28 @@ export const ROTEIROS_NOVOS: Record<string, RoteiroDemo> = {
     [
       ["Café da manhã de cortesia", 140],
       ["Desconto na segunda diária", 450],
+    ],
+  ),
+  moto_bike: R(
+    "Giro Exemplo Moto e Bike",
+    "Motos, bikes e acessórios",
+    "Duas rodas, muitas possibilidades. Uma loja de exemplo para você avaliar uma página de caixa alta, hero escuro e vermelho.",
+    "Av. Exemplo, 700, Jatiúca",
+    ["Jatiúca", "Ponta Verde", "Farol"],
+    [
+      ["Scooter urbana", "Para os trajetos do dia a dia.", "R$ 15.900,00", "produto"],
+      ["Bike cidade", "Modelo urbano para conhecer em detalhes.", "R$ 1.890,00", "produto"],
+      ["Capacete urbano", "Consulte tamanhos e características.", "R$ 499,00", "produto"],
+      [
+        "Revisão de moto ou bike",
+        "Verificação geral dos principais itens.",
+        "A partir de R$ 120,00",
+        "servico",
+      ],
+    ],
+    [
+      ["Revisão de cortesia", 200],
+      ["Desconto em acessórios", 120],
     ],
   ),
   premium: R(

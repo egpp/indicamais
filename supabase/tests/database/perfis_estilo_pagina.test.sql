@@ -34,7 +34,11 @@ select is((select bool_and(relrowsecurity and relforcerowsecurity) from pg_class
 select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'perfis_estilo_pagina'), 4, 'catálogo de estilos: política explícita por operação');
 select is((select bool_or(has_table_privilege(r, 'public.perfis_estilo_pagina', p))
   from unnest(array['anon', 'authenticated']) r, unnest(array['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p), false, 'ninguém escreve direto no catálogo de estilos');
-select is((select count(*)::int from public.perfis_estilo_pagina), 20, 'os 20 estilos de IM-091 existem');
+select is((select count(*)::int from public.perfis_estilo_pagina), 21, 'os 20 estilos de IM-091 e o moto_bike (D-021) existem');
+-- A migração 20261104130000 liberou os estilos 6 a 21; os testes abaixo partem da primeira entrega (D-016), dentro da transação.
+select is((select count(*)::int from public.perfis_estilo_pagina where habilitado), 21, 'liberação inicial: os 21 estilos estão habilitados');
+update public.perfis_estilo_pagina set habilitado = false
+  where id not in ('minimalista', 'saude_bem_estar', 'beleza_estetica', 'gastronomia', 'construcao_reformas');
 select is((select array_agg(id order by id) from public.perfis_estilo_pagina where habilitado),
   array['beleza_estetica', 'construcao_reformas', 'gastronomia', 'minimalista', 'saude_bem_estar'], 'primeira entrega: só 5 estilos habilitados (D-016)');
 select is((select column_default from information_schema.columns where table_name = 'perfis_perfil' and column_name = 'estilo_pagina'), '''minimalista''::text', 'padrão minimalista');
