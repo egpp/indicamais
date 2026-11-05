@@ -1,7 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { existsSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { gerarPng } from "../e2e/png";
+import { exigirCotaDisponivel, obterItemFixo } from "../suporte/item-fixo";
 import { limparImagensDoItem } from "../suporte/limpar-imagens-item";
 
 /**
@@ -60,6 +61,22 @@ export function registrarLeituraDireta() {
     let produtoExtra = "";
     const sufixo = Date.now().toString(36);
 
+    beforeAll(async () => {
+      await exigirCotaDisponivel(await logado(e.E2E_DONO_EMAIL!, e.E2E_DONO_SENHA!));
+    });
+
+    // Sempre devolve a Loja ao estado inicial e despublica os itens, mesmo se um teste falhar no meio.
+    afterAll(async () => {
+      if (!perfilId || !admin) return;
+      try {
+        for (const id of [imovelId, produtoId]) {
+          if (id) await dono.from("catalogo_item").update({ publicado: false }).eq("id", id);
+        }
+      } finally {
+        await definir(lojaInicial);
+      }
+    });
+
     const definir = (liberada: boolean) =>
       admin.rpc("loja_definir_liberacao", {
         p_perfil_id: perfilId,
@@ -91,19 +108,18 @@ export function registrarLeituraDireta() {
         .id as string;
       expect((await definir(true)).error).toBeNull();
 
-      const im = await dono.rpc("catalogo_criar_item", {
+      // itens FIXOS (reaproveitados entre rodadas: nova versão, mesma capa) para a cota de imagens não crescer
+      const im = await obterItemFixo(dono, admin, {
         p_tipo: "imovel",
         p_perfil_id: perfilId,
-        p_nome: `LD imovel ${sufixo}`,
+        p_nome: "LD imovel fixo",
         p_descricao: "Imóvel de teste de leitura direta. Despublicado ao final.",
         p_categoria_principal_id: categoriaId,
         p_preco_modo: "fixo",
         p_preco_centavos: 210000,
       });
-      expect(im.error).toBeNull();
-      const li = (im.data as { o_item_id: string; o_versao_id: string }[])[0]!;
-      imovelId = li.o_item_id;
-      imovelVersaoId = li.o_versao_id;
+      imovelId = im.itemId;
+      imovelVersaoId = im.versaoId;
       const up = await dono
         .from("catalogo_item_versao")
         .update({
@@ -122,14 +138,16 @@ export function registrarLeituraDireta() {
         })
         .eq("id", imovelVersaoId);
       expect(up.error).toBeNull();
-      const capaImovel = `item/${imovelId}/capa-${sufixo}.png`;
-      expect(
-        (
-          await dono.storage
-            .from(BUCKET)
-            .upload(capaImovel, gerarPng(40, 30, [10, 90, 60]), { contentType: "image/png" })
-        ).error,
-      ).toBeNull();
+      const capaImovel = im.fotoPath ?? `item/${imovelId}/capa-fixa.png`;
+      if (!im.fotoPath) {
+        expect(
+          (
+            await dono.storage
+              .from(BUCKET)
+              .upload(capaImovel, gerarPng(40, 30, [10, 90, 60]), { contentType: "image/png" })
+          ).error,
+        ).toBeNull();
+      }
       expect(
         (
           await dono
@@ -139,27 +157,28 @@ export function registrarLeituraDireta() {
         ).error,
       ).toBeNull();
 
-      const pr = await dono.rpc("catalogo_criar_item", {
+      const pr = await obterItemFixo(dono, admin, {
         p_tipo: "produto",
         p_perfil_id: perfilId,
-        p_nome: `LD produto ${sufixo}`,
+        p_nome: "LD produto fixo",
         p_descricao: "Produto comum de teste de leitura direta. Despublicado ao final.",
         p_categoria_principal_id: categoriaId,
       });
-      expect(pr.error).toBeNull();
-      const lp = (pr.data as { o_item_id: string; o_versao_id: string }[])[0]!;
-      produtoId = lp.o_item_id;
-      produtoVersaoId = lp.o_versao_id;
-      // foto adicional no produto (exige a Loja liberada para gravar): base da ressalva aceita
+      produtoId = pr.itemId;
+      produtoVersaoId = pr.versaoId;
+      // foto adicional no produto (exige a Loja liberada para gravar): base da ressalva aceita.
+      // A extra é apagada na limpeza final (saldo zero); só a capa fica e é reaproveitada.
       produtoExtra = `item/${produtoId}/extra-${sufixo}.png`;
-      const produtoCapa = `item/${produtoId}/capa-${sufixo}.png`;
-      expect(
-        (
-          await dono.storage
-            .from(BUCKET)
-            .upload(produtoCapa, gerarPng(40, 30, [140, 60, 90]), { contentType: "image/png" })
-        ).error,
-      ).toBeNull();
+      const produtoCapa = pr.fotoPath ?? `item/${produtoId}/capa-fixa.png`;
+      if (!pr.fotoPath) {
+        expect(
+          (
+            await dono.storage
+              .from(BUCKET)
+              .upload(produtoCapa, gerarPng(40, 30, [140, 60, 90]), { contentType: "image/png" })
+          ).error,
+        ).toBeNull();
+      }
       const upImg = await dono.storage
         .from(BUCKET)
         .upload(produtoExtra, gerarPng(40, 30, [90, 60, 140]), { contentType: "image/png" });
