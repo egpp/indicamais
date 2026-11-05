@@ -44,6 +44,7 @@ Sistema de design aplicado a todas as telas existentes: paleta, tipografia, espa
 ## Fase 7 — Comissões mononível (confirmação manual)
 **IDs:** IM-061 a IM-070
 **Pendências:** IM-071, IM-072, IM-073.
+**Situação (05/11/2026):** concluída no código e verificada em camadas. Regras de IM-071 a IM-073 decididas em D-025, D-026, D-028, D-029 e D-030. Banco (migrações 20261105100000 a 20261105150000, aplicadas no dev), módulo `comissoes`, telas do administrador, do anunciante e do indicador, leituras administrativas e avisos de inadimplência nas notificações. Ressalva: o fluxo de escrita completo só está provado pelo pgTAP (tabelas só-inserção, sem dados de teste no dev). Cobrança e repasse automáticos seguem fora (IM-090, IM-074 é F).
 
 ## Fase 8 — Páginas dos negócios como sites (D-016)
 **IDs:** IM-091, IM-092, IM-093 (e IM-011, IM-012 no que evoluem)
