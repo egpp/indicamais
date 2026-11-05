@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { acaoEnviarContato } from "../acoes-indicacoes";
 import type { EstadoContato } from "../_lib/estado-indicacoes";
 import { validarContato } from "../_lib/validacao-indicacoes";
 import { Campo, CampoWhatsapp } from "./campos";
 import { CampoTextoLongo } from "./campos-conteudo";
+import { sacola, useSacola } from "./site/sacola-estado";
+import { incluirListaNaMensagem, montarMensagemSacola } from "../_lib/sacola";
 import { Aviso, BotaoEnviar } from "./ui";
 import { useFormulario } from "./use-formulario";
 
@@ -39,6 +41,23 @@ export function FormContato({
     validarContato,
   );
   const url = ehWhatsapp(estado.urlWhatsapp) ? estado.urlWhatsapp : undefined;
+
+  // Lista de interesse (D-023): "Enviar a lista ao contato" copia a lista para o campo Mensagem, que o visitante
+  // revisa e pode editar antes de enviar. Nada além do texto visível no campo é enviado.
+  const [mensagem, setMensagem] = useState(estado.valores?.mensagem ?? "");
+  const { itens, envio } = useSacola();
+  const campoMensagem = useRef<HTMLTextAreaElement>(null);
+  const envioVisto = useRef(envio);
+  useEffect(() => {
+    if (envio === envioVisto.current) return;
+    envioVisto.current = envio;
+    setMensagem((atual) => incluirListaNaMensagem(atual, montarMensagemSacola(itens)));
+    campoMensagem.current?.focus();
+  }, [envio, itens]);
+  const enviado = Boolean(estado.sucesso);
+  useEffect(() => {
+    if (enviado) sacola.limpar();
+  }, [enviado]);
 
   useEffect(() => {
     if (!url) return;
@@ -94,7 +113,9 @@ export function FormContato({
         rotulo="Mensagem"
         opcional
         linhas={4}
-        valorInicial={estado.valores?.mensagem}
+        valor={mensagem}
+        aoMudar={setMensagem}
+        campoRef={campoMensagem}
         erro={erros.mensagem}
       />
       <p className="ajuda">
