@@ -18,7 +18,8 @@ const modelo = ler(/comissoes_modelo/);
 const habilitacao = ler(/comissoes_habilitacao_ofertas/);
 const fluxo = ler(/comissoes_fluxo/);
 const leitura = ler(/comissoes_leitura/);
-const modulo = [modelo, habilitacao, fluxo, leitura].join("\n");
+const leiturasAdmin = ler(/comissoes_admin_leituras/);
+const modulo = [modelo, habilitacao, fluxo, leitura, leiturasAdmin].join("\n");
 
 const corpo = (texto: string, nome: string) =>
   [
@@ -416,7 +417,9 @@ describe("comissoes: leituras do administrador e nome público do negócio (migr
   ];
 
   it("só cria funções: sem visão, tabela, política nem alteração de privilégio de tabela (RLS não muda)", () => {
-    expect(leiturasAdmin).not.toMatch(/create (or replace )?view|create table|create policy|alter table/i);
+    expect(leiturasAdmin).not.toMatch(
+      /create (or replace )?view|create table|create policy|alter table/i,
+    );
     expect(leiturasAdmin).not.toMatch(/grant (select|insert|update|delete)/i);
     expect(leiturasAdmin).not.toMatch(/(update|delete from|insert into)\s+public\./i);
   });
@@ -455,7 +458,11 @@ describe("comissoes: leituras do administrador e nome público do negócio (migr
   });
 
   it("não cria atalho para as funções internas nem aceita uuid arbitrário fora do administrador", () => {
-    for (const n of ["comissoes_hoje", "comissoes_parametro_valor", "comissoes_situacao_indicador"]) {
+    for (const n of [
+      "comissoes_hoje",
+      "comissoes_parametro_valor",
+      "comissoes_situacao_indicador",
+    ]) {
       expect(leiturasAdmin).not.toMatch(new RegExp(`grant execute on function public\\.${n}\\(`));
     }
   });
