@@ -62,6 +62,8 @@ export const LIMITES = {
    * tentativasMax = tentativas de envio por pedido antes de exigir intervenção do administrador.
    */
   notificacaoContato: { tentativasMax: 3, lote: 20, erroMax: 100 },
+  /** Provedor de e-mail (IM-027, IM-028): tempo máximo de uma chamada à API, em milissegundos. */
+  email: { timeoutMs: 10_000 },
   /** Compartilhamento de link (IM-024): tamanho do nome do destino aceito no texto pronto. */
   link: { nomeDestinoMax: 100 },
 } as const;
