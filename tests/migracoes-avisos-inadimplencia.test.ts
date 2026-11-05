@@ -85,3 +85,25 @@ describe("avisos de inadimplência: migração (IM-072)", () => {
     expect(ramoInadimplencia).not.toMatch(/pontos_|relacionamento_/);
   });
 });
+
+describe("avisos de inadimplência: fronteira do módulo (revisão do verificador, IM-065, IM-086)", () => {
+  it("a migração só referencia leituras e o parâmetro de comissoes, e nada de pontos", () => {
+    const refs = new Set([...sql.matchAll(/public\.(comissoes_\w+)/gi)].map((m) => m[1]));
+    expect(refs).toEqual(
+      new Set(["comissoes_parametro", "comissoes_minha_situacao", "comissoes_negocio_vinculos"]),
+    );
+    expect(sql).not.toMatch(/pontos_/i);
+  });
+
+  it("a visão não usa security_invoker nem função de comissões (sem EXECUTE a reconferir, lição do D1)", () => {
+    expect(sql).not.toMatch(/security_invoker/i);
+    expect(sql).not.toMatch(/public\.comissoes_\w+\(/i);
+  });
+
+  it("o parâmetro novo respeita a faixa da tabela e não reescreve parâmetro existente", () => {
+    expect(sql).toMatch(/on conflict \(chave\) do nothing/);
+    expect(sql).not.toMatch(
+      /alter table public\.comissoes_parametro|drop trigger|disable trigger/i,
+    );
+  });
+});
