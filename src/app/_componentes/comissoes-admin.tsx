@@ -11,6 +11,7 @@ import type {
 import { formatarDataCivil as civil, formatarDataHora } from "../_lib/apresentacao";
 import { formatarPercentualBp, formatarReais, rotuloCompetencia } from "../_lib/dinheiro-comissoes";
 import { ROTULO_CAUSA_REVERSAO, ROTULO_ESTADO_COMISSAO } from "./comissoes";
+import { CopiarId } from "./copiar-id";
 import { FormComissoes } from "./form-comissoes";
 import { SeloEstado } from "./painel";
 import type { ReactNode } from "react";
@@ -263,7 +264,8 @@ export function CartaoAssinaturaAdmin({ a }: { a: AssinaturaAdmin }) {
         <SeloEstado rotulo={ROTULO_SITUACAO_ASSINATURA[a.situacao]} />
       </p>
       <p className="ajuda quebra-total">
-        Cliente (conta): {refConta(a.clienteId)} · Negócio: {refConta(a.negocioId)}
+        Cliente (conta): <CopiarId id={a.clienteId} /> · Negócio: <CopiarId id={a.negocioId} /> ·
+        Oferta: <CopiarId id={a.ofertaId} />
       </p>
       <p className="ajuda">
         Início em {dia(a.inicio)}
@@ -271,6 +273,12 @@ export function CartaoAssinaturaAdmin({ a }: { a: AssinaturaAdmin }) {
         {a.canceladaEm ? ` · cancelada em ${dia(a.canceladaEm)}` : ""}
       </p>
       <AcaoLinha titulo="Confirmar pagamento de um mês">
+        {a.situacao === "cancelada" ? (
+          <p className="ajuda">
+            Assinatura cancelada: só é possível confirmar meses até o cancelamento
+            {a.canceladaEm ? ` (${dia(a.canceladaEm)})` : ""}.
+          </p>
+        ) : null}
         <FormComissoes
           chave="pagamento"
           ocultos={{ assinaturaId: a.id }}
@@ -309,8 +317,8 @@ export function CartaoPagamentoAdmin({ p }: { p: PagamentoAdmin }) {
         <SeloEstado rotulo={p.comissaoId ? "Gerou comissão" : "Sem comissão"} />
       </p>
       <p className="ajuda quebra-total">
-        {p.ofertaNome ? `${p.ofertaNome} · ` : ""}Cliente (conta): {refConta(p.clienteId)} ·
-        Negócio: {refConta(p.negocioId)}
+        {p.ofertaNome ? `${p.ofertaNome} · ` : ""}Cliente (conta): <CopiarId id={p.clienteId} /> ·
+        Negócio: <CopiarId id={p.negocioId} />
       </p>
       <p className="ajuda">
         Confirmado em {formatarDataHora(p.confirmadoEm)}
@@ -355,7 +363,8 @@ export function CartaoComissaoAdmin({ c }: { c: ComissaoAdmin }) {
         {c.estadoEm ? ` · estado desde ${dia(c.estadoEm)}` : ""}
       </p>
       <p className="ajuda quebra-total">
-        Indicador (conta): {refConta(c.indicadorId)} · Cliente (conta): {refConta(c.clienteId)}
+        Indicador (conta): <CopiarId id={c.indicadorId} /> · Cliente (conta):{" "}
+        <CopiarId id={c.clienteId} />
       </p>
       {proximo && !c.revertida ? (
         <AcaoLinha titulo={proximo.titulo}>
@@ -399,8 +408,8 @@ export function CartaoVinculoAdmin({ v }: { v: VinculoAdmin }) {
         {v.vencido ? <SeloEstado rotulo="Prazo vencido" /> : null}
       </p>
       <p className="ajuda quebra-total">
-        Indicador (conta): {refConta(v.indicadorId)} · Cliente (conta): {refConta(v.clienteId)} ·
-        Negócio: {refConta(v.negocioId)}
+        Indicador (conta): <CopiarId id={v.indicadorId} /> · Cliente (conta):{" "}
+        <CopiarId id={v.clienteId} /> · Negócio: <CopiarId id={v.negocioId} />
       </p>
       {v.inadimplenteDesde ? (
         <p className="ajuda">

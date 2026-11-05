@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   criarServicoComissoes,
+  MENSAGENS_COMISSOES,
   mapearErroBancoComissoes,
   type ClienteBancoComissoes,
   type LinhaMinhaComissao,
@@ -86,6 +87,17 @@ describe("mapeamento de erros SQL (IM-073, IM-086)", () => {
     const e = mapearErroBancoComissoes({ code, message: "comissoes_comissao violada" });
     expect(e.codigo).toBe(esperado);
     expect(e.mensagem).not.toMatch(/comissoes_|violada/);
+  });
+
+  it("P0001 de assinatura cancelada antes da competência tem mensagem própria, sem texto do banco", () => {
+    const e = mapearErroBancoComissoes({
+      code: "P0001",
+      message: "assinatura cancelada antes desta competência",
+    });
+    expect(e.codigo).toBe("REGRA_NEGOCIO");
+    expect(e.mensagem).toBe(MENSAGENS_COMISSOES.assinaturaCanceladaAntes);
+    expect(e.mensagem).toMatch(/até o cancelamento/);
+    expect(e.mensagem).not.toMatch(/desta competência|P0001/);
   });
 
   it("sem código vira erro interno", () => {

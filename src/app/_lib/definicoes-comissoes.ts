@@ -89,7 +89,11 @@ export const DEFINICOES_COMISSOES = {
   },
   habilitacao: {
     campos: [
-      uuid("perfilId", "Identificador do negócio (perfil)"),
+      uuid(
+        "perfilId",
+        "Identificador do negócio (perfil)",
+        `Em Negócios, use o botão "Copiar id" do negócio.`,
+      ),
       {
         nome: "ativa",
         rotulo: "Ação",
@@ -126,12 +130,12 @@ export const DEFINICOES_COMISSOES = {
       uuid(
         "indicadorId",
         "Identificador da conta do indicador",
-        "Conta da plataforma de quem indicou.",
+        'Conta de quem indicou. Copie o id completo com o botão "Copiar id" nas listas (ex.: Vínculos).',
       ),
       uuid(
         "clienteId",
         "Identificador da conta do cliente",
-        "O cliente precisa ter conta. Cada cliente tem um único indicador por negócio.",
+        'O cliente precisa ter conta. Copie o id com o botão "Copiar id" nas listas (ex.: Assinaturas). Cada cliente tem um único indicador por negócio.',
       ),
       MOTIVO,
     ],
@@ -147,8 +151,16 @@ export const DEFINICOES_COMISSOES = {
   },
   assinatura: {
     campos: [
-      uuid("ofertaId", "Identificador da oferta recorrente"),
-      uuid("clienteId", "Identificador da conta do cliente"),
+      uuid(
+        "ofertaId",
+        "Identificador da oferta recorrente",
+        'Copie o id da oferta com o botão "Copiar id" no cartão de uma assinatura da mesma oferta (aba Assinaturas).',
+      ),
+      uuid(
+        "clienteId",
+        "Identificador da conta do cliente",
+        'Copie o id completo com o botão "Copiar id" nas listas do administrador.',
+      ),
       {
         nome: "valorCentavos",
         rotulo: "Valor da mensalidade (R$)",
