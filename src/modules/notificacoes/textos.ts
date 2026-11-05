@@ -10,7 +10,11 @@ export type TipoAviso =
   | "curtida"
   | "revisao_aprovada"
   | "revisao_rejeitada"
-  | "banner_aguardando_aceite";
+  | "banner_aguardando_aceite"
+  | "inadimplencia_atraso_indicador"
+  | "inadimplencia_prazo_indicador"
+  | "inadimplencia_atraso_negocio"
+  | "inadimplencia_prazo_negocio";
 
 export const TIPOS_AVISO: readonly TipoAviso[] = [
   "contato_valido",
@@ -19,6 +23,10 @@ export const TIPOS_AVISO: readonly TipoAviso[] = [
   "revisao_aprovada",
   "revisao_rejeitada",
   "banner_aguardando_aceite",
+  "inadimplencia_atraso_indicador",
+  "inadimplencia_prazo_indicador",
+  "inadimplencia_atraso_negocio",
+  "inadimplencia_prazo_negocio",
 ];
 
 export const ehTipoAviso = (v: string | null): v is TipoAviso =>
@@ -30,6 +38,7 @@ export function textoDoAviso(
   atorNome: string | null,
 ): { titulo: string; texto: string } {
   const destino = destinoNome.trim() || "seu cadastro";
+  const negocio = destinoNome.trim() || "o negócio";
   const ator = atorNome?.trim() || "Uma pessoa";
   switch (tipo) {
     case "contato_valido":
@@ -55,6 +64,27 @@ export function textoDoAviso(
       return {
         titulo: "Banner aguardando aceite",
         texto: `Um banner novo aguarda o seu aceite no perfil ${destino}.`,
+      };
+    // IM-072: avisos de inadimplência. Sem valores, sem nomes de pessoas e sem prometer encerramento automático.
+    case "inadimplencia_atraso_indicador":
+      return {
+        titulo: "Pagamento em atraso",
+        texto: `Há um mês encerrado sem pagamento confirmado em ${negocio}. Enquanto isso, você não gera comissões novas nesse negócio. Regularize para manter seus vínculos.`,
+      };
+    case "inadimplencia_prazo_indicador":
+      return {
+        titulo: "Seus vínculos podem ser encerrados em breve",
+        texto: `O prazo de atraso em ${negocio} está perto do fim. Depois dele, a administração pode encerrar seus vínculos nesse negócio.`,
+      };
+    case "inadimplencia_atraso_negocio":
+      return {
+        titulo: "Indicador com pagamento em atraso",
+        texto: `Um indicador de ${negocio} tem mês encerrado sem pagamento confirmado e não gera comissões novas enquanto isso.`,
+      };
+    case "inadimplencia_prazo_negocio":
+      return {
+        titulo: "Prazo de atraso perto do fim",
+        texto: `O prazo de atraso de um indicador de ${negocio} está perto do fim. Depois dele, a administração pode encerrar o vínculo.`,
       };
   }
 }

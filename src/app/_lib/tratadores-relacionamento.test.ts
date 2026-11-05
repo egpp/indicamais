@@ -97,6 +97,17 @@ describe("caminhoDoAviso (IM-052)", () => {
     } as never;
     expect(await caminhoDoAviso(a, slug)).toBe("/meus-perfis/p1/banners");
   });
+  it("avisos de inadimplência abrem a tela de comissões do papel certo (IM-072)", async () => {
+    const dest = { tipo: "perfil", id: "p1", nome: "" };
+    for (const tipo of ["inadimplencia_atraso_indicador", "inadimplencia_prazo_indicador"]) {
+      const a = { ...base, origem: "inadimplencia", tipo, destino: dest } as never;
+      expect(await caminhoDoAviso(a, slug)).toBe("/comissoes");
+    }
+    for (const tipo of ["inadimplencia_atraso_negocio", "inadimplencia_prazo_negocio"]) {
+      const a = { ...base, origem: "inadimplencia", tipo, destino: dest } as never;
+      expect(await caminhoDoAviso(a, slug)).toBe("/meus-perfis/p1/comissoes");
+    }
+  });
   it("indicador abre a página pública", async () => {
     const a = {
       ...base,

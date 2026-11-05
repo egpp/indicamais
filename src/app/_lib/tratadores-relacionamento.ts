@@ -90,6 +90,19 @@ export async function caminhoDoAviso(
   if (aviso.tipo === "banner_aguardando_aceite") {
     return d.tipo === "perfil" ? `/meus-perfis/${d.id}/banners` : "/avisos";
   }
+  // IM-072: o indicador abre a própria tela de comissões; o anunciante, a do negócio. Nunca a página do outro papel.
+  if (
+    aviso.tipo === "inadimplencia_atraso_indicador" ||
+    aviso.tipo === "inadimplencia_prazo_indicador"
+  ) {
+    return "/comissoes";
+  }
+  if (
+    aviso.tipo === "inadimplencia_atraso_negocio" ||
+    aviso.tipo === "inadimplencia_prazo_negocio"
+  ) {
+    return d.tipo === "perfil" ? `/meus-perfis/${d.id}/comissoes` : "/avisos";
+  }
   return d.tipo === "perfil" ? `/meus-perfis/${d.id}` : `/meus-itens/${d.id}`;
 }
 

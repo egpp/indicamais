@@ -71,7 +71,8 @@ export function paraAviso(l: LinhaAviso): Aviso | null {
     titulo,
     texto,
     destino,
-    atorNome: l.ator_nome,
+    // IM-072/IM-050: aviso de inadimplência nunca carrega nome de pessoa, mesmo que o banco mande um por engano.
+    atorNome: l.tipo.startsWith("inadimplencia_") ? null : l.ator_nome,
     criadoEm: l.criado_em,
     lida: l.lida ?? false,
     lidaEm: l.lida_em,
