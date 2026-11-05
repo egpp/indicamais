@@ -253,6 +253,17 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-025 · 05/11/2026 · Comissões mononível: regras de IM-071, IM-072, IM-073 e registro manual (IM-061 a IM-073)
+**IDs:** IM-061 a IM-073 (IM-074 segue F). Aceito pelo Emerson em 05/11/2026 ("aceito"), com as recomendações do gestor.
+- **Registro manual de assinaturas (IM-064, IM-070):** sem integração financeira, o administrador registra cada assinatura (cliente, oferta, valor, mês) e confirma cada pagamento mensal, com auditoria. Sem cobrança nem repasse automático.
+- **Elegibilidade (IM-071):** a comissão vale só sobre a oferta que o cliente indicado assinou; o indicador precisa estar adimplente na assinatura do mesmo negócio (IM-066).
+- **Inadimplência (IM-072):** a contagem do prazo começa no primeiro mês sem pagamento confirmado. O indicador e o anunciante são avisados dentro da plataforma. O prazo é configurável só pelo administrador (padrão **60 dias**, IM-068). Vínculos encerrados ficam no histórico, sem transferir indicados e sem restauração automática.
+- **Mudanças e reversões (IM-073):** novo percentual vale só para pagamentos futuros, sem recalcular o já gerado (IM-069). Cancelamento ou estorno gera lançamento de reversão com auditoria, sem apagar histórico. Desativar o módulo preserva saldos e histórico e só bloqueia novas comissões.
+- **Ordem:** Fase 7 agora; cadastro da Equipe (A7) e novos estilos depois.
+- **Isolamento (IM-065):** saldos, regras e históricos de comissões são próprios; nada altera pontos, relacionamento ou social de forma automática.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
