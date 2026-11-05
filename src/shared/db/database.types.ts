@@ -6125,10 +6125,6 @@ export type Database = {
         Args: { p_erro?: string; p_pedido_id: string; p_sucesso: boolean }
         Returns: undefined
       }
-      indicacoes_notificacoes_recolocar_falhas: {
-        Args: { p_espera_minutos?: number; p_limite?: number; p_tentativas_max?: number }
-        Returns: number
-      }
       indicacoes_notificacoes_pendentes: {
         Args: { p_limite?: number }
         Returns: {
@@ -6138,6 +6134,10 @@ export type Database = {
           o_pedido_id: string
           o_tentativas: number
         }[]
+      }
+      indicacoes_notificacoes_recolocar_falhas: {
+        Args: { p_espera_minutos?: number; p_limite?: number; p_tentativas_max?: number }
+        Returns: number
       }
       indicacoes_parametro_valor: { Args: { p_chave: string }; Returns: number }
       indicacoes_registrar_compartilhamento: {
