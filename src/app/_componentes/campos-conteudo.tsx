@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ReactNode } from "react";
+import { useId, type ChangeEvent, type ReactNode, type Ref } from "react";
 import { UFS } from "@/modules/perfis";
 import type { CategoriaOpcao } from "../_lib/apresentacao";
 
@@ -47,7 +47,17 @@ export function CampoTextoLongo({
   opcional,
   valorInicial,
   linhas = 4,
-}: Base & { valorInicial?: string; linhas?: number }) {
+  valor,
+  aoMudar,
+  campoRef,
+}: Base & {
+  valorInicial?: string;
+  linhas?: number;
+  /** Modo controlado (opcional): `valor` e `aoMudar` andam juntos. */
+  valor?: string;
+  aoMudar?: (v: string) => void;
+  campoRef?: Ref<HTMLTextAreaElement>;
+}) {
   const id = useId();
   return (
     <Moldura id={id} rotulo={rotulo} opcional={opcional} erro={erro} ajuda={ajuda}>
@@ -55,7 +65,13 @@ export function CampoTextoLongo({
         id={id}
         name={nome}
         rows={linhas}
-        defaultValue={valorInicial}
+        ref={campoRef}
+        {...(valor !== undefined
+          ? {
+              value: valor,
+              onChange: (e: ChangeEvent<HTMLTextAreaElement>) => aoMudar?.(e.target.value),
+            }
+          : { defaultValue: valorInicial })}
         aria-invalid={erro ? true : undefined}
         aria-describedby={descrito(id, erro, ajuda)}
       />
