@@ -48,8 +48,8 @@ Duplicidade: restrições únicas em pagamento (assinatura+mês), decisão (paga
 3. **Solicitação de habilitação (IM-061):** só o administrador habilita; a origem (espontânea ou solicitação) é informada por ele. Haverá pedido pelo painel do anunciante?
 4. **Qual percentual vale (IM-073):** o vigente no momento da confirmação do pagamento, não o da competência. Existe teto (hoje de 0,01% a 100%)?
 5. **Elegibilidade do indicador (IM-071):** basta assinatura vigente e em dia no mesmo negócio, em qualquer oferta; a comissão é só sobre a oferta do cliente. Deve ser a mesma oferta do cliente?
-6. **Contagem (IM-072):** o relógio começa no dia 1 do primeiro mês sem pagamento confirmado (mensalidade tratada como antecipada). Deve começar no vencimento?
-7. **Várias assinaturas do indicador em atraso:** vale o relógio mais recente (mais favorável ao indicador).
+6. **Contagem (IM-072):** RESOLVIDA (D-026, D2). O mês corrente não é vencido: só meses encerrados sem pagamento confirmado contam, e o relógio começa no dia 1 do primeiro mês encerrado sem pagamento. Confirmar o cliente antes do indicador no mesmo mês gera comissão.
+7. **Várias assinaturas do indicador em atraso:** RESOLVIDA (aceita com D-026): vale o relógio mais recente (mais favorável ao indicador).
 8. **Cancelamento (IM-073):** cancelar a assinatura bloqueia comissões futuras e não reverte as geradas; reverter é ação explícita. Cancelar deve reverter o último mês?
 9. **Comissão já paga e revertida:** o banco registra e sinaliza; a recuperação do valor é fora do sistema.
 10. **Pagamento estornado:** a competência não pode ser confirmada de novo. Como corrigir um estorno indevido?

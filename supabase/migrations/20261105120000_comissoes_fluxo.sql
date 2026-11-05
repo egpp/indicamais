@@ -7,8 +7,9 @@
 --     floor(valor pago x percentual vigente / 10000); percentual e base ficam congelados (IM-069, IM-073).
 --   * Elegibilidade (IM-071): só a oferta que o cliente assinou gera comissão (a assinatura aponta a oferta).
 --   * Adimplência do indicador (IM-066): no MESMO negócio, o indicador precisa de uma assinatura vigente sem mês em aberto,
---     contando do mês de início até o mês corrente (UTC). Mês em aberto = sem pagamento confirmado e não estornado.
---   * Inadimplência (IM-072): o relógio começa no PRIMEIRO mês sem pagamento confirmado (dia 1 do mês). Com várias
+--     contando do mês de início até o ÚLTIMO MÊS ENCERRADO (UTC); o mês corrente não conta (tolerância, D-026/D2). Mês em
+--     aberto = mês encerrado sem pagamento confirmado e não estornado.
+--   * Inadimplência (IM-072): o relógio começa no PRIMEIRO mês ENCERRADO sem pagamento confirmado (dia 1 desse mês; D-026). Com várias
 --     assinaturas em aberto vale a de início mais recente do relógio (mais favorável ao indicador; decisão conservadora
 --     contra o encerramento, que é irreversível sem decisão nova). Sem assinatura vigente, o relógio começa no mês seguinte
 --     ao fim/cancelamento da última.
@@ -27,7 +28,7 @@ create function public.comissoes_situacao_indicador(p_perfil uuid, p_indicador u
 returns table (o_em_dia boolean, o_inadimplente_desde date)
 language plpgsql stable security definer set search_path = '' as $$
 declare
-  v_mes date := date_trunc('month', p_ref::timestamp)::date;
+  v_mes date := date_trunc('month', p_ref::timestamp)::date; -- mês corrente: não vencido (D-026/D2)
   r record;
   v_primeiro date;
   v_ha_ativa boolean := false;
@@ -47,7 +48,7 @@ begin
   loop
     v_ha_ativa := true;
     select min(m.mes)::date into v_primeiro
-    from generate_series(date_trunc('month', r.inicio::timestamp), v_mes::timestamp, interval '1 month') as m (mes)
+    from generate_series(date_trunc('month', r.inicio::timestamp), (v_mes - interval '1 month'), interval '1 month') as m (mes)
     where not exists (
       select 1 from public.comissoes_pagamento pg
       where pg.assinatura_id = r.id and pg.competencia = m.mes::date

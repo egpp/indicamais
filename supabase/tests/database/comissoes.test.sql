@@ -168,8 +168,8 @@ select is((select motivo from public.comissoes_decisao where pagamento_id = curr
 select is((select count(*)::int from public.comissoes_comissao), 0, 'nenhuma comissão criada');
 
 -- ===== Indicador regulariza; comissão passa a ser gerada só dali em diante (IM-067) =====
-select lives_ok($$select count(public.comissoes_confirmar_pagamento(current_setting('t.ass_b')::uuid, (date_trunc('month', now() at time zone 'utc') - g * interval '1 month')::date, 5000, 'Pix do indicador')) from generate_series(0, 2) g$$,
-  'administrador confirma os três meses do indicador');
+select lives_ok($$select count(public.comissoes_confirmar_pagamento(current_setting('t.ass_b')::uuid, (date_trunc('month', now() at time zone 'utc') - g * interval '1 month')::date, 5000, 'Pix do indicador')) from generate_series(1, 2) g$$,
+  'administrador confirma os dois meses encerrados do indicador (o mês corrente fica em aberto, D-026)');
 select set_config('t.pg_c1', (select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m_1')::date, 10000, 'Pix recebido')::text), true);
 select is((select motivo from public.comissoes_decisao where pagamento_id = current_setting('t.pg_c1')::uuid), 'gerada', 'indicador em dia: comissão gerada (IM-064)');
 select is((select valor_centavos from public.comissoes_comissao where pagamento_id = current_setting('t.pg_c1')::uuid), 1000, '10% de R$ 100,00 = R$ 10,00 em centavos');
@@ -188,6 +188,9 @@ select is((select public.comissoes_alterar_percentual_oferta(current_setting('t.
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
 select set_config('t.pg_c0', (select public.comissoes_confirmar_pagamento(current_setting('t.ass_c')::uuid, current_setting('t.m0')::date, 10000, 'Pix do mês')::text), true);
 select is((select valor_centavos from public.comissoes_comissao where pagamento_id = current_setting('t.pg_c0')::uuid), 2000, 'pagamento novo usa 20%');
+select is((select motivo from public.comissoes_decisao where pagamento_id = current_setting('t.pg_c0')::uuid), 'gerada', 'cliente pago antes do indicador no mesmo mês gera comissão: mês corrente não é vencido (D-026)');
+select is((select o_em_dia from public.comissoes_situacao_indicador('a0000000-0000-0000-0000-000000000001', 'bbbbbbbb-0000-0000-0000-00000000000b', public.comissoes_hoje())), true, 'indicador sem pagar o mês corrente continua em dia');
+select is((select motivo from public.comissoes_decisao where pagamento_id = (select public.comissoes_confirmar_pagamento(current_setting('t.ass_f')::uuid, current_setting('t.m0')::date, 10000, 'Pix do cliente 2'))), 'indicador_inadimplente', 'mês encerrado sem pagamento do indicador continua bloqueando (IM-066, D-026)');
 select is((select valor_centavos from public.comissoes_comissao where pagamento_id = current_setting('t.pg_c1')::uuid), 1000, 'comissão anterior NÃO foi recalculada (IM-069)');
 select is((select count(*)::int from public.comissoes_oferta_percentual where oferta_id = current_setting('t.of1')::uuid), 2, 'histórico guarda os dois percentuais');
 

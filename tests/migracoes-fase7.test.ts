@@ -251,6 +251,12 @@ describe("comissoes: funções (IM-086)", () => {
     expect(c).not.toMatch(/delete from public\.comissoes_/i);
   });
 
+  it("tolerância do mês corrente: só meses encerrados contam como em aberto (D-026, IM-066, IM-072)", () => {
+    const c = corpo(fluxo, "comissoes_situacao_indicador");
+    expect(c).toMatch(/\(v_mes - interval '1 month'\)/);
+    expect(c).not.toMatch(/v_mes::timestamp, interval/);
+  });
+
   it("reversão: lançamento novo que aponta o original, uma só vez, comissão paga exige confirmação (IM-073, IM-078)", () => {
     const c = corpo(fluxo, "comissoes_inserir_reversao");
     expect(c).toMatch(/original_id/);
