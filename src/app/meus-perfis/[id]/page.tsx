@@ -14,6 +14,7 @@ import { LinkPaginaPublica, hrefPerfilPublico } from "../../_componentes/link-pa
 import { PainelPagina, SeloEstado } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora, motivoParaExibir } from "../../_lib/apresentacao";
+import { moduloComissoesAtivo } from "../../_lib/contexto-comissoes";
 import { obterServicoLocalizacao } from "../../_lib/contexto-localizacao";
 import { obterContexto } from "../../_lib/contexto-sessao";
 import {
@@ -56,6 +57,8 @@ export default async function PaginaPerfil({
     .then((svc) => svc.lerMinhaLocalizacao(id))
     .catch(() => null);
   const mapa = loc && loc.ok ? loc.valor : null;
+  // IM-061: a seção de comissões só aparece com o módulo habilitado pelo administrador; falha = oculta.
+  const comissoesAtivas = await moduloComissoesAtivo(id);
   const rejeicao =
     p.estado.ultimaRejeitada && resultados.ok
       ? resultados.valor.find(
@@ -95,6 +98,13 @@ export default async function PaginaPerfil({
           Base de relacionamento
         </Link>
       </p>
+      {comissoesAtivas ? (
+        <p>
+          <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/comissoes`}>
+            Comissões
+          </Link>
+        </p>
+      ) : null}
 
       {aviso === "criado" ? (
         <Aviso tipo="sucesso">

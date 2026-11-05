@@ -22,6 +22,8 @@ const eslintConfig = defineConfig([
     // Saídas geradas pelo Playwright (fora do git).
     "playwright-report/**",
     "test-results/**",
+    // Pastas de trabalho dos agentes (fora do git).
+    ".claude/**",
     // Fixtures violam a regra de proposito; sao lintadas so pelo teste.
     "tests/fixtures/**",
   ]),

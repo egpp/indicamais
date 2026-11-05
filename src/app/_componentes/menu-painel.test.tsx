@@ -44,6 +44,7 @@ describe("menu lateral do painel (D-015; IM-005, IM-014, IM-047)", () => {
       "Minhas indicações",
       "Quem me indicou",
       "Meus pontos",
+      "Minhas comissões",
       "Avisos",
       "Política de privacidade",
     ])
@@ -162,7 +163,7 @@ describe("dados do menu", () => {
         permissoes: ["analisar_denuncias", "invalidar_indicacoes"],
       }).map((i) => i.href),
     ).toEqual(["/administracao/denuncias", "/administracao/indicacoes"]);
-    expect(itensAdministracao({ geral: true, permissoes: [] }).length).toBe(12);
+    expect(itensAdministracao({ geral: true, permissoes: [] }).length).toBe(13);
   });
 
   it("hrefAtivo escolhe o prefixo mais longo e ignora rotas fora do menu", () => {
