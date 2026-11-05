@@ -22,7 +22,11 @@ const IDS = [
     .matchAll(/"([a-z_]+)"/g),
 ]
   .map((m) => m[1]!)
-  .filter((id) => !(process.env.E2E_ESTILOS_EXCLUIR ?? "").split(",").includes(id));
+  .filter((id) => !(process.env.E2E_ESTILOS_EXCLUIR ?? "").split(",").includes(id))
+  .filter(
+    (id) =>
+      !process.env.E2E_ESTILOS_INCLUIR || process.env.E2E_ESTILOS_INCLUIR.split(",").includes(id),
+  );
 
 const PROD_A = "E2E360 Camiseta";
 const PROD_B = "E2E360 Caneca";
