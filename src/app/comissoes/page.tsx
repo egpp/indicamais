@@ -24,12 +24,18 @@ const LIMITE = 100;
  */
 export default async function PaginaMinhasComissoes() {
   const ctx = await obterContextoComissoes("/comissoes");
-  const [admin, saldo, situacao, comissoes] = await Promise.all([
+  const [admin, saldo, situacao, comissoes, vinculados] = await Promise.all([
     ctx.ehAdministrador(),
     ctx.servico.meuSaldo(),
     ctx.servico.minhaSituacao(),
     ctx.servico.minhasComissoes(),
+    ctx.servico.meusNegociosVinculados(),
   ]);
+  // Nome PÚBLICO do negócio (IM-072). Falha ou perfil não público: sem nome, e a tela usa o texto neutro.
+  const nomes: Record<string, string> = {};
+  if (vinculados.ok) {
+    for (const n of vinculados.valor) if (n.nome) nomes[n.negocioId] = n.nome;
+  }
   return (
     <PainelPagina
       titulo="Minhas comissões"
@@ -39,7 +45,7 @@ export default async function PaginaMinhasComissoes() {
     >
       <Aviso tipo="info">{AVISO_SEM_AUTOMATICO}</Aviso>
 
-      {situacao.ok ? <AvisosSituacao situacoes={situacao.valor} /> : null}
+      {situacao.ok ? <AvisosSituacao situacoes={situacao.valor} nomes={nomes} /> : null}
 
       <section aria-labelledby="titulo-saldo-comissoes">
         <h2 id="titulo-saldo-comissoes">Saldo de comissões</h2>
@@ -60,6 +66,7 @@ export default async function PaginaMinhasComissoes() {
           <ul className="lista-cartoes">
             {situacao.valor.map((s) => (
               <li key={s.negocioId} className="cartao">
+                <h3>{nomes[s.negocioId] ?? "Negócio onde você indica"}</h3>
                 <p>
                   {s.emDia
                     ? "Em dia: você pode gerar novas comissões neste negócio."
