@@ -478,7 +478,7 @@ select is(has_function_privilege('authenticated', 'public.indicacoes_notificacoe
   or has_function_privilege('anon', 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)', 'EXECUTE'), false, 'recolocar falhas: nem anon nem authenticated executam');
 select is(has_function_privilege('service_role', 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)', 'EXECUTE'), true, 'recolocar falhas: service_role executa');
 select is((select prosecdef from pg_proc where oid = 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)'::regprocedure), true, 'recolocar falhas: security definer');
-select ok((select proconfig::text from pg_proc where oid = 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)'::regprocedure) ~ 'search_path=""', 'recolocar falhas: search_path vazio');
+select ok((select proconfig::text from pg_proc where oid = 'public.indicacoes_notificacoes_recolocar_falhas(integer,integer,integer)'::regprocedure) ~ 'search_path=', 'recolocar falhas: search_path vazio');
 -- Estados de partida (como dono): item elegivel; ped_1 com espera nao cumprida; auto com tentativas esgotadas; errado sem e-mail.
 update public.indicacoes_notificacao set estado = 'falhou', tentativas = 1, ultima_tentativa_em = now() - interval '2 hours', ultimo_erro = 'smtp_timeout', alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_item')::uuid;
 update public.indicacoes_notificacao set estado = 'falhou', tentativas = 1, ultima_tentativa_em = now() - interval '30 seconds', ultimo_erro = 'smtp_timeout', alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_1')::uuid;
