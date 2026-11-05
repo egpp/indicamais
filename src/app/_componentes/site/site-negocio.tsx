@@ -7,6 +7,10 @@ import type { BannerPublico, DestinoSecaoBanner, MapaUrls, PerfilExibicao } from
 import { AVISO_SEM_RESGATE, ListaBeneficiosPublicos } from "../pontos";
 import { dadosDeItem, localTexto, type DadosCard } from "../publico";
 import { nomeDaCategoria, type CategoriaOpcao } from "../../_lib/apresentacao";
+import { detalhesDoItem, type DetalhesItem } from "../../_lib/detalhes-item";
+import { AcaoCompra } from "./acao-compra";
+import { resolverAcaoCompra } from "./acao-compra-regras";
+import { PainelSacola } from "./painel-sacola";
 import { CarrosselBanner, type ImagemBanner } from "./carrossel-banner";
 import type { EstiloId } from "./estilos";
 import { classeDeFontes } from "./fontes";
@@ -45,6 +49,11 @@ export type PropsSiteNegocio = {
    * filtro. Catálogo, não venda: sem carrinho nem pagamento (IM-090).
    */
   loja?: { filtros?: ReactNode; filtroAtivo?: boolean; erro?: string | null } | null;
+  /**
+   * Equipe do negócio: nome e cargo, sem foto de pessoa (D-023). Só aparece se vier
+   * preenchida; ainda não há cadastro no perfil (pendente, ver docs/lacunas-modelos.md A7).
+   */
+  equipe?: readonly { nome: string; cargo: string }[];
   /** Partes que são demonstração (prévia): ganham a etiqueta "Exemplo" e não viram links. */
   exemplo?: { perfil?: boolean; itens?: boolean; beneficios?: boolean };
 };
@@ -139,7 +148,20 @@ function Secao({
   );
 }
 
-function CartaoItem({ dados, url, exemplo }: { dados: DadosCard; url?: string; exemplo: boolean }) {
+function CartaoItem({
+  dados,
+  url,
+  exemplo,
+  variacoes = [],
+  acao,
+}: {
+  dados: DadosCard;
+  url?: string;
+  exemplo: boolean;
+  variacoes?: DetalhesItem["variacoes"];
+  /** Botão da ação de compra (ver `AcaoCompra`); ausente na demonstração. */
+  acao?: ReactNode;
+}) {
   return (
     <article className="st-card">
       <div className="st-card-imagem">
@@ -171,14 +193,29 @@ function CartaoItem({ dados, url, exemplo }: { dados: DadosCard; url?: string; e
             ))}
           </ul>
         ) : null}
+        {variacoes.map((g) => (
+          <p className="st-card-meta st-variacoes" key={g.rotulo}>
+            <strong>{rotuloPlural(g)}:</strong> {g.opcoes.join(", ")}
+          </p>
+        ))}
         {dados.categoria ? <p className="st-card-meta">{dados.categoria}</p> : null}
         {dados.local && dados.chips && dados.chips.length > 0 ? (
           <p className="st-card-meta">{dados.local}</p>
         ) : null}
+        {acao}
       </div>
     </article>
   );
 }
+
+const rotuloPlural = (g: DetalhesItem["variacoes"][number]) =>
+  g.opcoes.length < 2
+    ? g.rotulo
+    : g.rotulo === "Cor"
+      ? "Cores"
+      : g.rotulo === "Tamanho"
+        ? "Tamanhos"
+        : g.rotulo;
 
 type Destaque = { icone: NomeIcone; rotulo: string; valor: string };
 
@@ -194,6 +231,7 @@ export function SiteNegocio({
   denunciar,
   mapa = null,
   loja = null,
+  equipe = [],
   exemplo = {},
 }: PropsSiteNegocio) {
   const nome = perfil.nome ?? "Perfil sem nome";
@@ -202,12 +240,23 @@ export function SiteNegocio({
     .filter((c): c is string => Boolean(c))
     .map((c) => nomeDaCategoria(c, [...categorias]));
   const temLocalizacao = Boolean(perfil.endereco || local);
-  const temItens = itens.length > 0 || Boolean(loja?.filtroAtivo);
+  // Planos do negócio (D-023): vitrine de itens com "Periodicidade:", só com a Loja liberada
+  // (D-022). Saem do catálogo comum para não aparecerem duas vezes.
+  const detalhes = new Map(itens.map((i) => [i.id, detalhesDoItem(i.descricao)] as const));
+  const planos = loja ? itens.filter((i) => detalhes.get(i.id)?.periodicidade) : [];
+  const idsPlanos = new Set(planos.map((p) => p.id));
+  const itensCatalogo = itens.filter((i) => !idsPlanos.has(i.id));
+  const temPlanos = planos.length > 0;
+  const temEquipe = equipe.length > 0;
+  const temSacola = !exemplo.itens;
+  const temItens = itensCatalogo.length > 0 || Boolean(loja?.filtroAtivo);
   const tituloItens = loja ? "Loja" : "Produtos e serviços";
   const temBeneficios = beneficios.length > 0;
 
   const idsDasSecoes = new Set<string>(["inicio", "sobre", "contato-site"]);
   if (temItens) idsDasSecoes.add("produtos");
+  if (temPlanos) idsDasSecoes.add("planos");
+  if (temEquipe) idsDasSecoes.add("equipe");
   if (temBeneficios) idsDasSecoes.add("beneficios");
   if (temLocalizacao) idsDasSecoes.add("localizacao");
 
@@ -226,7 +275,7 @@ export function SiteNegocio({
       ? [{ icone: "categoria" as const, rotulo: "Categoria", valor: nomesCategorias[0] }]
       : []),
     ...(temItens
-      ? [{ icone: "produtos" as const, rotulo: tituloItens, valor: String(itens.length) }]
+      ? [{ icone: "produtos" as const, rotulo: tituloItens, valor: String(itensCatalogo.length) }]
       : []),
     ...(perfil.areasAtendidas.length > 0
       ? [
@@ -252,6 +301,8 @@ export function SiteNegocio({
     { id: "inicio", rotulo: "Início" },
     { id: "sobre", rotulo: "Sobre" },
     ...(temItens ? [{ id: "produtos", rotulo: tituloItens }] : []),
+    ...(temPlanos ? [{ id: "planos", rotulo: "Planos" }] : []),
+    ...(temEquipe ? [{ id: "equipe", rotulo: "Equipe" }] : []),
     ...(temBeneficios ? [{ id: "beneficios", rotulo: "Benefícios" }] : []),
     ...(temLocalizacao ? [{ id: "localizacao", rotulo: "Localização" }] : []),
     { id: "contato-site", rotulo: "Contato" },
@@ -261,6 +312,8 @@ export function SiteNegocio({
   const ordem = [
     "sobre",
     ...(temItens ? ["produtos"] : []),
+    ...(temPlanos ? ["planos"] : []),
+    ...(temEquipe ? ["equipe"] : []),
     ...(temBeneficios ? ["beneficios"] : []),
     ...(temLocalizacao ? ["localizacao"] : []),
     "contato-site",
@@ -400,24 +453,108 @@ export function SiteNegocio({
                 {loja.erro}
               </p>
             ) : null}
-            {itens.length === 0 ? (
+            {temSacola ? <PainelSacola perfilId={perfil.id} /> : null}
+            {itensCatalogo.length === 0 ? (
               <p className="ajuda" role="status">
                 Nenhum imóvel encontrado com esses filtros.
               </p>
             ) : null}
             <ul className="st-grade-cards">
-              {itens.map((i) => {
-                const dados = dadosDeItem(i, [...categorias], local);
+              {itensCatalogo.map((i) => {
+                const d = detalhes.get(i.id) ?? detalhesDoItem(i.descricao);
+                // A descrição do cartão não repete as linhas de variação nem de periodicidade.
+                const dados = dadosDeItem({ ...i, descricao: d.descricao }, [...categorias], local);
                 return (
                   <li key={dados.chave}>
                     <CartaoItem
                       dados={dados}
                       url={dados.imagemPath ? urls[dados.imagemPath] : undefined}
                       exemplo={Boolean(exemplo.itens)}
+                      variacoes={d.variacoes}
+                      acao={
+                        exemplo.itens ? undefined : (
+                          <AcaoCompra
+                            acao={resolverAcaoCompra({ tipoItem: i.tipo })}
+                            perfilId={perfil.id}
+                            item={{ id: i.id, nome: dados.nome }}
+                            variacoes={d.variacoes}
+                          />
+                        )
+                      }
                     />
                   </li>
                 );
               })}
+            </ul>
+          </Secao>
+        ) : null}
+
+        {temPlanos ? (
+          <Secao
+            id="planos"
+            tituloId="titulo-planos"
+            titulo="Planos"
+            icone="produtos"
+            numero={numeroDe("planos")}
+            alt={altDe("planos")}
+          >
+            <p className="ajuda">
+              Valores de referência. A contratação é combinada direto com {nome}, pelo contato.
+            </p>
+            <ul className="st-planos">
+              {planos.map((p) => {
+                const d = detalhes.get(p.id)!;
+                const nomePlano = p.nome ?? "Plano";
+                return (
+                  <li key={p.id} className="st-plano">
+                    <h3>{nomePlano}</h3>
+                    <p className="st-plano-preco">
+                      {p.precoTexto ? <>{p.precoTexto} </> : null}
+                      <span>{d.periodicidade}</span>
+                    </p>
+                    {d.linhas.length > 0 ? (
+                      <ul className="st-plano-inclusos">
+                        {d.linhas.map((l) => (
+                          <li key={l}>
+                            <span aria-hidden="true">
+                              <Icone nome="check" />
+                            </span>
+                            {l}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <AcaoCompra
+                      acao={resolverAcaoCompra({ tipoItem: p.tipo, plano: true })}
+                      perfilId={perfil.id}
+                      item={{ id: p.id, nome: nomePlano }}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </Secao>
+        ) : null}
+
+        {temEquipe ? (
+          <Secao
+            id="equipe"
+            tituloId="titulo-equipe"
+            titulo="Equipe"
+            icone="sobre"
+            numero={numeroDe("equipe")}
+            alt={altDe("equipe")}
+          >
+            <ul className="st-equipe">
+              {equipe.map((m) => (
+                <li key={`${m.nome}-${m.cargo}`}>
+                  <span className="st-equipe-icone" aria-hidden="true">
+                    <Icone nome="sobre" />
+                  </span>
+                  <strong>{m.nome}</strong>
+                  <span>{m.cargo}</span>
+                </li>
+              ))}
             </ul>
           </Secao>
         ) : null}
