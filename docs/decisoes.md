@@ -307,6 +307,14 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-032 · 05/11/2026 · Provedor de e-mail: Resend (IM-023, IM-027, IM-028)
+**IDs:** IM-023, IM-027, IM-028. Aceito pelo Emerson em 05/11/2026 ("aceito suas recomendações").
+- **Provedor:** Resend, **plano grátis** no início (3.000 e-mails por mês, limite de 100 por dia, 1 domínio; valores de sites de terceiros, a confirmar no site oficial). Custo inicial R$ 0; plano pago só com nova decisão do Emerson (IM-089). Amazon SES fica como alternativa se o volume crescer.
+- **Integração:** enviador isolado no código, chave em `EMAIL_API_KEY` e remetente em variável de ambiente (nomes em `.env.example`, valores só no ambiente). Sem a chave, o aviso segue como "pendente".
+- **O que depende do Emerson:** definir o domínio de produção, criar a conta no Resend, verificar o domínio (registros DNS) e guardar a chave de API; configurar o SMTP de autenticação do Supabase (opcional). Nada é enviado a pessoas reais em produção sem a aprovação dele.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
