@@ -117,6 +117,20 @@ select is((select o_situacao from public.comissoes_admin_listar_vinculos()), 'at
 select is((select count(*)::int from public.comissoes_admin_listar_vinculos(null, 'encerrado')), 0, 'filtro: nenhum vínculo encerrado');
 select is((select o_prazo_dias from public.comissoes_admin_prazo_inadimplencia()), 60, 'prazo atual de inadimplência: 60 dias');
 
+-- Limites da paginação e busca literal (verificador)
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, null, 0, 0)), 1, 'limite 0 vira 1');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, null, -5, 0)), 1, 'limite negativo vira 1');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, null, 1000, 0)), 3, 'limite acima de 100 é cortado em 100 (só há 3 linhas)');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, null, null, null)), 3, 'limite e deslocamento nulos usam o padrão');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, null, 50, -10)), 3, 'deslocamento negativo vira 0');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, null, 50, 3)), 0, 'deslocamento além do total devolve vazio');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, '%')), 0, 'coringa % na busca é texto literal, não casa tudo');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, '_')), 0, 'coringa _ na busca é texto literal');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, '''; drop table x; --')), 0, 'aspas na busca não quebram a consulta');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, '   ')), 3, 'busca só com espaços equivale a sem busca');
+select is((select count(*)::int from public.comissoes_admin_listar_negocios(null, 'pública')), 1, 'busca pelo nome público do negócio publicado');
+select is((select count(*)::int from public.comissoes_admin_listar_vinculos(null, null, 1, 0)), 1, 'vínculos paginam');
+
 reset role;
 
 -- Privacidade: nenhuma coluna de nome, telefone ou e-mail
