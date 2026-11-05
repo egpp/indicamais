@@ -20,7 +20,7 @@ insert into public.catalogo_item (id, conta_id, perfil_id, tipo) values
   ('e0000000-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-00000000000a', 'a0000000-0000-0000-0000-000000000001', 'servico');
 -- P1: perfil publicado com versão aprovada (nome público). P2 e P3 não são públicos.
 insert into public.catalogo_categoria (id, nome, slug, ativa, ordem) values
-  ('11111111-0000-0000-0000-000000000001', 'Alimentação', 'alimentacao', true, 1);
+  ('11111111-0000-0000-0000-000000000001', 'Categoria de teste', 'categoria-teste-comissoes', true, 1);
 insert into public.perfis_perfil_versao (id, perfil_id, situacao, enviada_em, nome, descricao_breve, imagem_path, categoria_principal_id, cidade, uf) values
   ('b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'aprovada', now(), 'Loja Um Pública', 'Doces',
    'perfil/a0000000-0000-0000-0000-000000000001/c.jpg', '11111111-0000-0000-0000-000000000001', 'Porto Alegre', 'RS');
