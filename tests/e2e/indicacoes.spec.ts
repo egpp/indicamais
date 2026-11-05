@@ -242,6 +242,8 @@ test.describe("atribuição só no destino do link (IM-025)", () => {
     page,
   }) => {
     test.skip(!codigoLink, "Depende do link gerado pelo indicador (E2E_INDICADOR ausente).");
+    // O dev compila rotas sob demanda: a 1a visita a /, /perfil e /item pode passar de 30 s.
+    test.setTimeout(90_000);
     await abrirPerfil(page, `?ind=${codigoLink}`);
 
     const hrefsComInd = await page.locator("a[href*='ind=']").count();
@@ -257,7 +259,7 @@ test.describe("atribuição só no destino do link (IM-025)", () => {
       await expect(page.locator("input[name=ind]")).toHaveCount(0);
     }
     // Voltar à página inicial e a outro perfil também não leva o código
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.locator("input[name=ind]")).toHaveCount(0);
 
     const armazenado = await page.evaluate(() => ({
