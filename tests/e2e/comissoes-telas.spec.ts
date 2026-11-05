@@ -68,31 +68,36 @@ test.describe("telas de comissões (somente leitura)", () => {
     await noindex(page);
     await semRolagemHorizontal(page);
     await expect(page.getByText(/administrador confirma cada pagamento/i)).toBeVisible();
-    for (const titulo of [
-      "Vínculos com prazo vencido",
-      "Habilitar ou desabilitar o módulo",
-      "Registrar vínculo indicador e cliente",
-      "Registrar assinatura",
-      "Confirmar pagamento mensal",
-      "Estornar pagamento",
-      "Reverter comissão",
-      "Avançar repasse",
-      "Cancelar assinatura",
-      "Prazo de inadimplência",
-    ]) {
-      await expect(page.getByRole("heading", { level: 2, name: titulo })).toBeVisible();
+    // Prazo de inadimplência lido do banco (número de dias, não texto fixo).
+    await expect(page.getByText(/Prazo de inadimplência atual:\s*\d+ dias/)).toBeVisible();
+    const abas = page.getByRole("navigation", { name: "Seções de comissões" });
+    for (const aba of ["Negócios", "Assinaturas", "Pagamentos", "Comissões", "Vínculos"]) {
+      await abas.getByRole("link", { name: aba, exact: true }).click();
+      await expect(abas.getByRole("link", { name: aba, exact: true })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
+      await expect(page.locator("form[aria-label='Filtrar a lista']")).toBeVisible();
+      await semRolagemHorizontal(page);
+      // Nenhum campo de identificador digitado nas linhas das listas.
+      await expect(page.locator("ul.lista-cartoes").getByLabel(/^Identificador/)).toHaveCount(0);
+      // Nenhum botão de cobrança ou de pagamento automático.
+      await expect(
+        page.getByRole("button", { name: /cobrar|pagar agora|transferir/i }),
+      ).toHaveCount(0);
     }
-    // Só valida o formulário no navegador (nada é enviado): motivo curto e sem confirmação.
-    await page
-      .locator("section", { has: page.getByRole("heading", { name: "Estornar pagamento" }) })
-      .getByText("Abrir formulário")
-      .click();
-    await page.getByRole("button", { name: "Estornar pagamento" }).click();
-    await expect(page.getByText("O motivo precisa ter pelo menos 10 caracteres.")).toBeVisible();
-    await expect(page.getByText("Marque a confirmação para continuar.")).toBeVisible();
-    // Nenhum botão de cobrança ou de pagamento automático.
-    await expect(page.getByRole("button", { name: /cobrar|pagar agora|transferir/i })).toHaveCount(
-      0,
-    );
+    // Filtro inválido na URL vira aviso em português, não erro técnico.
+    await page.goto("/administracao/comissoes?aba=negocios&pagina=0");
+    await expect(page.getByRole("alert")).toContainText("Página inválida.");
+    // Só valida o formulário da primeira linha de negócios no navegador (nada é enviado): motivo vazio.
+    await page.goto("/administracao/comissoes?aba=negocios");
+    const abrir = page.locator("ul.lista-cartoes summary").first();
+    if ((await abrir.count()) > 0) {
+      await abrir.click();
+      await page.locator("ul.lista-cartoes form").first().getByRole("button").click();
+      await expect(
+        page.getByText("O motivo precisa ter pelo menos 10 caracteres.").first(),
+      ).toBeVisible();
+    }
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import {
   acaoAlterarPercentual,
   acaoAvancarRepasse,
@@ -22,6 +22,7 @@ import {
   type CampoSpec,
   type ChaveComissoes,
 } from "../_lib/definicoes-comissoes";
+import { formatarReais, valorDivergente } from "../_lib/dinheiro-comissoes";
 import { lerDeRegistro } from "../_lib/entrada-conteudo";
 import type { EstadoComissoes } from "../_lib/estado-comissoes";
 import { Campo } from "./campos";
@@ -137,8 +138,10 @@ function CampoDe({
 }
 
 /**
- * Formulário genérico de uma ação de comissões. `ocultos` leva os ids fixos da linha (oferta, perfil...).
- * `opcoes` preenche selects cujas opções vêm da tela (ex.: itens do negócio).
+ * Formulário genérico de uma ação de comissões. `ocultos` leva os valores fixos da linha (ids, estado do repasse...):
+ * o campo correspondente não é mostrado de novo. `opcoes` preenche selects cujas opções vêm da tela (ex.: itens do
+ * negócio). `iniciais` sugere valores de partida. `valorCombinadoCentavos` (confirmação de pagamento) avisa, ao
+ * digitar, que o valor recebido difere do combinado e pede a explicação no motivo.
  */
 export function FormComissoes({
   chave,
@@ -146,6 +149,8 @@ export function FormComissoes({
   rotuloEnviando = "Enviando...",
   ocultos,
   opcoes,
+  iniciais,
+  valorCombinadoCentavos,
   perigo,
   secundario,
   textoConfirmacao = "Confirmo que esta ação fica registrada e não pode ser desfeita.",
@@ -155,6 +160,8 @@ export function FormComissoes({
   rotuloEnviando?: string;
   ocultos?: Record<string, string>;
   opcoes?: Record<string, readonly { valor: string; rotulo: string }[]>;
+  iniciais?: Record<string, string>;
+  valorCombinadoCentavos?: number;
   perigo?: boolean;
   secundario?: boolean;
   textoConfirmacao?: string;
@@ -165,10 +172,22 @@ export function FormComissoes({
     useFormulario<EstadoComissoes>(acao, (dados) =>
       errosDoFormulario(chave, lerDeRegistro({ ...(ocultos ?? {}), ...dados })),
     );
-  const campos: readonly CampoSpec[] = def.campos;
+  const [digitado, setDigitado] = useState(iniciais?.valorCentavos ?? "");
+  const campos: readonly CampoSpec[] = def.campos.filter((c) => !(c.nome in (ocultos ?? {})));
+  const divergente =
+    valorCombinadoCentavos !== undefined && valorDivergente(digitado, valorCombinadoCentavos);
   const confirmar = "confirmar" in def && def.confirmar === true;
   return (
-    <form ref={registrarForm} action={action} onSubmit={aoEnviar} noValidate>
+    <form
+      ref={registrarForm}
+      action={action}
+      onSubmit={aoEnviar}
+      onInput={(e) => {
+        const alvo = e.target as HTMLInputElement;
+        if (alvo.name === "valorCentavos") setDigitado(alvo.value);
+      }}
+      noValidate
+    >
       {estado.erro ? <Aviso tipo="erro">{estado.erro}</Aviso> : null}
       {estado.sucesso ? <Aviso tipo="sucesso">{estado.sucesso}</Aviso> : null}
       {Object.entries(ocultos ?? {}).map(([k, v]) => (
@@ -179,10 +198,17 @@ export function FormComissoes({
           key={c.nome}
           c={c}
           erro={erros[c.nome]}
-          valor={estado.valores?.[c.nome]}
+          valor={estado.valores?.[c.nome] ?? iniciais?.[c.nome]}
           opcoes={opcoes?.[c.nome]}
         />
       ))}
+      {divergente && valorCombinadoCentavos !== undefined ? (
+        <Aviso tipo="atencao">
+          O valor informado é diferente do combinado na assinatura (
+          {formatarReais(valorCombinadoCentavos)}). Explique a diferença no motivo, com pelo menos
+          10 caracteres.
+        </Aviso>
+      ) : null}
       {estado.pedirConfirmacaoPaga ? (
         <CaixaMarcar
           nome="confirmarJaPaga"

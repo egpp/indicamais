@@ -5786,6 +5786,125 @@ export type Database = {
       catalogo_imagem_publica: { Args: { p_nome: string }; Returns: boolean }
       catalogo_imagens_da_conta: { Args: never; Returns: number }
       catalogo_pasta_do_dono: { Args: { p_nome: string }; Returns: boolean }
+      comissoes_admin_listar_assinaturas: {
+        Args: {
+          p_deslocamento?: number
+          p_limite?: number
+          p_perfil?: string
+          p_situacao?: string
+        }
+        Returns: {
+          o_cancelada_em: string
+          o_cliente_id: string
+          o_criada_em: string
+          o_fim: string
+          o_id: string
+          o_inicio: string
+          o_negocio_id: string
+          o_oferta_id: string
+          o_oferta_nome: string
+          o_situacao: string
+          o_total: number
+          o_valor_centavos: number
+        }[]
+      }
+      comissoes_admin_listar_comissoes: {
+        Args: {
+          p_deslocamento?: number
+          p_estado?: string
+          p_limite?: number
+          p_perfil?: string
+        }
+        Returns: {
+          o_base_centavos: number
+          o_cliente_id: string
+          o_competencia: string
+          o_criada_em: string
+          o_estado: string
+          o_estado_em: string
+          o_id: string
+          o_indicador_id: string
+          o_negocio_id: string
+          o_oferta_nome: string
+          o_pagamento_id: string
+          o_percentual_bp: number
+          o_reversao_causa: string
+          o_revertida: boolean
+          o_total: number
+          o_valor_centavos: number
+        }[]
+      }
+      comissoes_admin_listar_negocios: {
+        Args: {
+          p_busca?: string
+          p_deslocamento?: number
+          p_estado?: string
+          p_limite?: number
+        }
+        Returns: {
+          o_estado_desde: string
+          o_modulo_ativo: boolean
+          o_negocio_id: string
+          o_nome: string
+          o_origem: string
+          o_publicado: boolean
+          o_slug: string
+          o_total: number
+        }[]
+      }
+      comissoes_admin_listar_pagamentos: {
+        Args: {
+          p_deslocamento?: number
+          p_estado?: string
+          p_limite?: number
+          p_perfil?: string
+        }
+        Returns: {
+          o_assinatura_id: string
+          o_cliente_id: string
+          o_comissao_id: string
+          o_competencia: string
+          o_confirmado_em: string
+          o_decisao: string
+          o_estado: string
+          o_estornado_em: string
+          o_id: string
+          o_negocio_id: string
+          o_oferta_nome: string
+          o_total: number
+          o_valor_centavos: number
+        }[]
+      }
+      comissoes_admin_listar_vinculos: {
+        Args: {
+          p_deslocamento?: number
+          p_limite?: number
+          p_perfil?: string
+          p_situacao?: string
+        }
+        Returns: {
+          o_cliente_id: string
+          o_criado_em: string
+          o_encerra_em: string
+          o_encerrado_em: string
+          o_id: string
+          o_inadimplente_desde: string
+          o_indicador_em_dia: boolean
+          o_indicador_id: string
+          o_negocio_id: string
+          o_situacao: string
+          o_total: number
+        }[]
+      }
+      comissoes_admin_prazo_inadimplencia: {
+        Args: never
+        Returns: {
+          o_atualizado_em: string
+          o_maximo: number
+          o_minimo: number
+          o_prazo_dias: number
+        }[]
+      }
       comissoes_alterar_percentual_oferta: {
         Args: { p_oferta: string; p_percentual_bp: number }
         Returns: number
@@ -5873,6 +5992,14 @@ export type Database = {
           o_prazo_dias: number
           o_vence_em: string
           o_vinculo_id: string
+        }[]
+      }
+      comissoes_meus_negocios_vinculados: {
+        Args: never
+        Returns: {
+          o_negocio_id: string
+          o_nome: string
+          o_slug: string
         }[]
       }
       comissoes_modulo_ativo: { Args: { p_perfil: string }; Returns: boolean }

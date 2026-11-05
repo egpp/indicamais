@@ -37,6 +37,38 @@ import {
   type VinculoVencido,
 } from "./modelos";
 import {
+  paraAssinaturaAdmin,
+  paraComissaoAdmin,
+  paraNegocioAdmin,
+  paraNegocioVinculado,
+  paraPagamentoAdmin,
+  paraPrazoInadimplencia,
+  paraVinculoAdmin,
+  totalDe,
+  type AssinaturaAdmin,
+  type ComissaoAdmin,
+  type LinhaAssinaturaAdmin,
+  type LinhaComissaoAdmin,
+  type LinhaNegocioAdmin,
+  type LinhaNegocioVinculado,
+  type LinhaPagamentoAdmin,
+  type LinhaPrazoAdmin,
+  type LinhaVinculoAdmin,
+  type NegocioAdmin,
+  type NegocioVinculado,
+  type PagamentoAdmin,
+  type Pagina,
+  type PrazoInadimplencia,
+  type VinculoAdmin,
+} from "./modelos-admin";
+import {
+  filtroAssinaturasAdminSchema,
+  filtroComissoesAdminSchema,
+  filtroNegociosAdminSchema,
+  filtroPagamentosAdminSchema,
+  filtroVinculosAdminSchema,
+} from "./schemas-admin";
+import {
   alterarPercentualSchema,
   avancarRepasseSchema,
   cancelarAssinaturaSchema,
@@ -129,6 +161,40 @@ export interface ClienteBancoComissoes {
     ofertaId: string;
     ativa: boolean;
   }): Promise<RespostaBanco<number | string>>;
+  // Leituras do administrador (rpc comissoes_admin_*; o banco confere o administrador, 42501 para os demais)
+  listarNegociosAdmin(a: {
+    estado: string | null;
+    busca: string | null;
+    limite: number;
+    deslocamento: number;
+  }): Promise<RespostaBanco<LinhaNegocioAdmin[]>>;
+  listarAssinaturasAdmin(a: {
+    perfilId: string | null;
+    situacao: string | null;
+    limite: number;
+    deslocamento: number;
+  }): Promise<RespostaBanco<LinhaAssinaturaAdmin[]>>;
+  listarPagamentosAdmin(a: {
+    perfilId: string | null;
+    estado: string | null;
+    limite: number;
+    deslocamento: number;
+  }): Promise<RespostaBanco<LinhaPagamentoAdmin[]>>;
+  listarComissoesAdmin(a: {
+    perfilId: string | null;
+    estado: string | null;
+    limite: number;
+    deslocamento: number;
+  }): Promise<RespostaBanco<LinhaComissaoAdmin[]>>;
+  listarVinculosAdmin(a: {
+    perfilId: string | null;
+    situacao: string | null;
+    limite: number;
+    deslocamento: number;
+  }): Promise<RespostaBanco<LinhaVinculoAdmin[]>>;
+  lerPrazoInadimplencia(): Promise<RespostaBanco<LinhaPrazoAdmin[]>>;
+  /** rpc comissoes_meus_negocios_vinculados(): nome público dos negócios onde o indicador tem vínculo */
+  listarNegociosVinculados(): Promise<RespostaBanco<LinhaNegocioVinculado[]>>;
   // Leituras (visões com filtro fixo por auth.uid() no banco)
   listarMinhasComissoes(): Promise<RespostaBanco<LinhaMinhaComissao[]>>;
   lerMeuSaldo(): Promise<RespostaBanco<LinhaMeuSaldo[]>>;
@@ -208,6 +274,25 @@ export function criarServicoComissoes(
       if (m) itens.push(m);
     }
     return { ok: true, valor: itens };
+  }
+
+  /** Lista paginada do administrador: o total vem do banco (`o_total`); linhas inválidas são descartadas. */
+  async function paginaAdmin<L extends { o_total: number }, T>(
+    ler: (limite: number, deslocamento: number) => Promise<RespostaBanco<L[]>>,
+    limite: number,
+    pagina: number,
+    mapear: (l: L) => T | null,
+  ): Promise<Resultado<Pagina<T>>> {
+    const deslocamento = (pagina - 1) * limite;
+    const r = await ler(limite, deslocamento);
+    if (r.erro) return falha(mapearErroBancoComissoes(r.erro));
+    const linhas = r.dados ?? [];
+    const itens: T[] = [];
+    for (const l of linhas) {
+      const m = mapear(l);
+      if (m) itens.push(m);
+    }
+    return { ok: true, valor: { itens, total: totalDe(linhas), limite, deslocamento } };
   }
 
   return {
@@ -290,6 +375,106 @@ export function criarServicoComissoes(
     encerrarVinculo: (entrada: unknown) =>
       acao(encerrarVinculoSchema, entrada, async (a) => semRetorno(await banco.encerrarVinculo(a))),
 
+    // ---------------------------------------------------------------- Leituras do administrador (IM-061 a IM-073)
+    // Ids de conta só para o administrador agir; nunca nome, telefone ou e-mail (IM-029, IM-041, IM-050).
+
+    /** IM-061: negócios com o estado do módulo (habilitado ou não), com busca por nome público ou slug. */
+    adminNegocios: (entrada: unknown = {}): Promise<Resultado<Pagina<NegocioAdmin>>> =>
+      acao(filtroNegociosAdminSchema, entrada, (f) =>
+        paginaAdmin(
+          (limite, deslocamento) =>
+            banco.listarNegociosAdmin({
+              estado: f.estado ?? null,
+              busca: f.busca ?? null,
+              limite,
+              deslocamento,
+            }),
+          f.limite,
+          f.pagina,
+          paraNegocioAdmin,
+        ),
+      ),
+
+    /** IM-062, IM-064: assinaturas registradas (situação derivada no banco: ativa, encerrada, cancelada). */
+    adminAssinaturas: (entrada: unknown = {}): Promise<Resultado<Pagina<AssinaturaAdmin>>> =>
+      acao(filtroAssinaturasAdminSchema, entrada, (f) =>
+        paginaAdmin(
+          (limite, deslocamento) =>
+            banco.listarAssinaturasAdmin({
+              perfilId: f.perfilId ?? null,
+              situacao: f.situacao ?? null,
+              limite,
+              deslocamento,
+            }),
+          f.limite,
+          f.pagina,
+          paraAssinaturaAdmin,
+        ),
+      ),
+
+    /** IM-064, IM-070, IM-073: pagamentos confirmados e estornados, por competência. */
+    adminPagamentos: (entrada: unknown = {}): Promise<Resultado<Pagina<PagamentoAdmin>>> =>
+      acao(filtroPagamentosAdminSchema, entrada, (f) =>
+        paginaAdmin(
+          (limite, deslocamento) =>
+            banco.listarPagamentosAdmin({
+              perfilId: f.perfilId ?? null,
+              estado: f.estado ?? null,
+              limite,
+              deslocamento,
+            }),
+          f.limite,
+          f.pagina,
+          paraPagamentoAdmin,
+        ),
+      ),
+
+    /** IM-064, IM-069, IM-073: comissões com percentual e base congelados, repasse e reversão. */
+    adminComissoes: (entrada: unknown = {}): Promise<Resultado<Pagina<ComissaoAdmin>>> =>
+      acao(filtroComissoesAdminSchema, entrada, (f) =>
+        paginaAdmin(
+          (limite, deslocamento) =>
+            banco.listarComissoesAdmin({
+              perfilId: f.perfilId ?? null,
+              estado: f.estado ?? null,
+              limite,
+              deslocamento,
+            }),
+          f.limite,
+          f.pagina,
+          paraComissaoAdmin,
+        ),
+      ),
+
+    /** IM-066, IM-072: vínculos com a data prevista de encerramento; `vencido` é derivado (relógio injetável). */
+    adminVinculos: (entrada: unknown = {}): Promise<Resultado<Pagina<VinculoAdmin>>> =>
+      acao(filtroVinculosAdminSchema, entrada, (f) => {
+        const hoje = agora().toISOString().slice(0, 10);
+        return paginaAdmin(
+          (limite, deslocamento) =>
+            banco.listarVinculosAdmin({
+              perfilId: f.perfilId ?? null,
+              situacao: f.situacao ?? null,
+              limite,
+              deslocamento,
+            }),
+          f.limite,
+          f.pagina,
+          (l) => paraVinculoAdmin(l, hoje),
+        );
+      }),
+
+    /** IM-068, IM-072: prazo de inadimplência vigente, lido do banco (nunca fixo na tela). */
+    adminPrazoInadimplencia: (): Promise<Resultado<PrazoInadimplencia>> =>
+      seguro(async () => {
+        const r = await banco.lerPrazoInadimplencia();
+        if (r.erro) return falha(mapearErroBancoComissoes(r.erro));
+        const prazo = paraPrazoInadimplencia(r.dados?.[0]);
+        return prazo
+          ? { ok: true, valor: prazo }
+          : falha(erroComissoes("ERRO_INTERNO", M.generica));
+      }),
+
     // ---------------------------------------------------------------- Anunciante (IM-062, IM-063, IM-067, IM-069, IM-073)
 
     /** IM-062, IM-067: oferta recorrente com percentual próprio (1 a 10000 bp). Exige módulo habilitado. */
@@ -334,6 +519,13 @@ export function criarServicoComissoes(
           (l) => paraMinhaSituacao(l, hoje),
         );
       }),
+
+    /**
+     * IM-072: nome PÚBLICO dos negócios onde o indicador tem vínculo, para os avisos de inadimplência. Nome e slug
+     * são nulos se o perfil não é público (a tela usa um texto neutro).
+     */
+    meusNegociosVinculados: (): Promise<Resultado<NegocioVinculado[]>> =>
+      seguro(() => lista(() => banco.listarNegociosVinculados(), paraNegocioVinculado)),
 
     situacoesComoIndicador: (): Promise<Resultado<SituacaoVinculo[]>> =>
       seguro(() => lista(() => banco.listarSituacoesComoIndicador(), paraSituacaoVinculo)),

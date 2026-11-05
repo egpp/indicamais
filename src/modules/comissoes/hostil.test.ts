@@ -44,6 +44,13 @@ function fake() {
     listarNegocioVinculos: vi.fn(ok([])),
     listarSituacoesComoIndicador: vi.fn(ok([])),
     listarSituacoesComoResponsavel: vi.fn(ok([])),
+    listarNegociosAdmin: vi.fn(ok([])),
+    listarAssinaturasAdmin: vi.fn(ok([])),
+    listarPagamentosAdmin: vi.fn(ok([])),
+    listarComissoesAdmin: vi.fn(ok([])),
+    listarVinculosAdmin: vi.fn(ok([])),
+    lerPrazoInadimplencia: vi.fn(ok([])),
+    listarNegociosVinculados: vi.fn(ok([])),
   } satisfies ClienteBancoComissoes;
 }
 

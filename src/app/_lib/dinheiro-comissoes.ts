@@ -53,3 +53,13 @@ export function rotuloCompetencia(iso: string | null | undefined): string {
   const m = /^(\d{4})-(\d{2})/.exec(iso ?? "");
   return m ? `${m[2]}/${m[1]}` : "";
 }
+
+/**
+ * Valor digitado difere do combinado na assinatura? Só apresentação: o aviso pede ao administrador que explique a
+ * diferença no motivo; quem aceita o valor e grava é o banco (IM-064, IM-070). Texto ilegível ou vazio não avisa
+ * (o campo mostra o próprio erro).
+ */
+export function valorDivergente(digitado: string, combinadoCentavos: number): boolean {
+  const centavos = lerReais(digitado);
+  return Number.isFinite(centavos) && centavos !== combinadoCentavos;
+}
