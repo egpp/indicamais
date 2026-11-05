@@ -125,7 +125,7 @@ test.describe("aparência (responsável)", () => {
       page.getByRole("heading", { level: 1, name: "Aparência da página" }),
     ).toBeVisible();
     const cartoes = page.locator("ul.grade-estilos > li");
-    await expect(cartoes).toHaveCount(5);
+    await expect(cartoes).toHaveCount(21); // 21 estilos liberados no dev em 04/11/2026 (IM-091, IM-100)
     await expect(page.getByRole("button", { name: /^Em breve/ })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Salvar estilo" })).toBeEnabled();
     await capturar(page, info.project.name, "aparencia");
