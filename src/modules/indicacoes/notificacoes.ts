@@ -8,7 +8,13 @@ import type { ErroBanco, RespostaBanco } from "@/shared/conteudo/resultado";
  * do destino e o link do painel. O envio real é uma porta injetada (provedor ainda indefinido).
  */
 
-export type EmailParaEnviar = { para: string; assunto: string; texto: string };
+export type EmailParaEnviar = {
+  para: string;
+  assunto: string;
+  texto: string;
+  /** Chave estável da tentativa: o provedor a usa para não duplicar o envio em nova tentativa (IM-028). */
+  chaveIdempotencia?: string;
+};
 export type ResultadoEnvio = { ok: true } | { ok: false; erro: string };
 
 /** Porta de e-mail. O adaptador real (SMTP/API) é escolhido depois; não implementar provedor no módulo. */
@@ -55,7 +61,13 @@ function nomePublico(nome: string | null, tipo: string): string {
 
 /** IM-050: o único texto que o responsável recebe por e-mail. */
 export function montarEmailNovoPedido(
-  p: { emailResponsavel: string; destinoTipo: string; destinoNome: string | null },
+  p: {
+    emailResponsavel: string;
+    destinoTipo: string;
+    destinoNome: string | null;
+    pedidoId?: string;
+    tentativas?: number;
+  },
   urlPainel: string,
 ): EmailParaEnviar {
   const destino = nomePublico(p.destinoNome, p.destinoTipo);
@@ -63,6 +75,10 @@ export function montarEmailNovoPedido(
     para: p.emailResponsavel,
     assunto: "Novo pedido de contato no IndicaMais",
     texto: `Você recebeu um novo pedido de contato em ${destino}. Acesse o painel para ver.\n\n${urlPainel}`,
+    // Mesmo pedido e mesma tentativa (ainda não registrada) = mesma chave: reenvio após falha ao gravar não duplica.
+    ...(p.pedidoId
+      ? { chaveIdempotencia: `notificacao-contato/${p.pedidoId}/${p.tentativas ?? 0}` }
+      : {}),
   };
 }
 
@@ -161,6 +177,8 @@ export function criarServicoNotificacoesContato(
                     emailResponsavel: p.o_email_responsavel,
                     destinoTipo: p.o_destino_tipo,
                     destinoNome: p.o_destino_nome,
+                    pedidoId: p.o_pedido_id,
+                    tentativas: p.o_tentativas,
                   },
                   opcoes.urlPainel,
                 ),

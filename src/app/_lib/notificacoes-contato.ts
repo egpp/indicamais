@@ -1,19 +1,19 @@
 import { after } from "next/server";
 import {
   criarServicoNotificacoesContato,
-  ENVIADOR_EMAIL_SEM_PROVEDOR,
   type ClienteBancoNotificacoes,
   type EnviadorEmail,
   type ResultadoProcessamento,
 } from "@/modules/indicacoes";
+import { criarEnviadorDoAmbiente } from "@/shared/email/enviador-resend";
 import { criarClienteServico } from "@/shared/supabase/servico";
 import { criarBancoNotificacoes } from "./banco-indicacoes";
 import { origemPublica } from "./site";
 
 /**
  * Aviso por e-mail ao responsável (IM-027, IM-028, IM-050). Sem provedor configurado (EMAIL_API_KEY vazia) NADA
- * é disparado: o pedido fica com a notificação "pendente" e o responsável o vê no painel. Provedor real ainda
- * não existe (decisão do Emerson): por enquanto o enviador é o padrão do módulo, que falha de forma controlada.
+ * é disparado: o pedido fica com a notificação "pendente" e o responsável o vê no painel. Provedor: Resend
+ * (decisão de 05/11/2026), via `criarEnviadorDoAmbiente` (EMAIL_API_KEY + EMAIL_FROM). Sem os dois, falha controlada.
  */
 
 /** Só uma chave preenchida liga o processamento. */
@@ -61,7 +61,7 @@ export function dispararNotificacoes(d: DependenciasDisparo): boolean {
   return true;
 }
 
-/** Disparo real: `after` do Next, cliente de serviço do servidor e enviador sem provedor (por enquanto). */
+/** Disparo real: `after` do Next, cliente de serviço do servidor e enviador Resend do ambiente. */
 export function dispararNotificacoesDoServidor(
   opcoes: { ignorarLimiteTentativas?: boolean } = {},
 ): boolean {
@@ -69,7 +69,7 @@ export function dispararNotificacoesDoServidor(
   return dispararNotificacoes({
     configurado: provedorEmailConfigurado(),
     criarBanco: () => criarBancoNotificacoes(criarClienteServico()),
-    enviador: ENVIADOR_EMAIL_SEM_PROVEDOR,
+    enviador: criarEnviadorDoAmbiente(),
     urlPainel: origem ? `${origem}${CAMINHO_PAINEL_PEDIDOS}` : null,
     ...(opcoes.ignorarLimiteTentativas ? { ignorarLimiteTentativas: true } : {}),
     agendar: (tarefa) => after(tarefa),

@@ -97,7 +97,11 @@ describe("processarNotificacoesPendentes", () => {
     expect(f.registrar).toHaveBeenCalledWith({ pedidoId: P1, sucesso: true, erro: null });
     const email = m.enviar.mock.calls[0]![0] as EmailParaEnviar;
     expect(email.para).toBe("dono@padaria.com.br");
-    expect(Object.keys(email).sort()).toEqual(["assunto", "para", "texto"]);
+    expect(Object.keys(email).sort()).toEqual(["assunto", "chaveIdempotencia", "para", "texto"]);
+    // IM-028: mesma tentativa ainda não registrada = mesma chave (não duplica no provedor).
+    expect(email.chaveIdempotencia).toBe(`notificacao-contato/${P1}/0`);
+    // IM-029/041/050: a chave e o texto não carregam dado do visitante.
+    expect(`${email.assunto}${email.texto}`).not.toMatch(/whatsapp|telefone|\+55/i);
   });
 
   it("e-mail NÃO contém nome, WhatsApp, e-mail nem mensagem do visitante (IM-050)", async () => {
