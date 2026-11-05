@@ -1,8 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { existsSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { gerarPng } from "../e2e/png";
 import { registrarLeituraDireta } from "./loja-leitura-direta";
+import { exigirCotaDisponivel, obterItemFixo } from "../suporte/item-fixo";
 import { limparImagensDoItem } from "../suporte/limpar-imagens-item";
 
 /**
@@ -65,7 +66,34 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
   let categoriaId = "";
   let itemId = "";
   let versaoId = "";
-  const nome = `IT Loja ${Date.now().toString(36)}`;
+  // Nome FIXO: o mesmo item é reaproveitado entre rodadas (nova versão, mesma capa), para a cota de 100 imagens do dono
+  // de teste não crescer a cada execução (a capa de item aprovado não é apagável pelo dono).
+  const nome = "IT Loja fixo";
+  let capaFixa: string | null = null;
+  let sessoesProntas = false;
+
+  beforeAll(async () => {
+    const d = await logado(e.E2E_DONO_EMAIL!, e.E2E_DONO_SENHA!);
+    await exigirCotaDisponivel(d); // falha com mensagem clara em vez de erro de RLS do Storage
+  });
+
+  // Sempre devolve a Loja do perfil ao estado inicial, mesmo se um teste falhar no meio.
+  afterAll(async () => {
+    if (!sessoesProntas || !perfilId) return;
+    const atual = async () => {
+      const l = await dono.from("loja_liberacao").select("liberada").eq("perfil_id", perfilId);
+      return Boolean(l.data?.[0]?.liberada);
+    };
+    if ((await atual()) === lojaInicial) return; // o último teste já restaurou: nada a fazer
+    try {
+      if (itemId) {
+        await definir(true, "Teste: limpeza de imagens (afterAll)");
+        await limparImagensDoItem(dono, admin, itemId);
+      }
+    } finally {
+      await definir(lojaInicial, "Teste: restaurar estado inicial (afterAll)");
+    }
+  });
 
   async function definir(liberada: boolean, motivo = "Teste de integração da Loja (verificador)") {
     return admin.rpc("loja_definir_liberacao", {
@@ -106,6 +134,7 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
     const cat = await anon.from("catalogo_categoria").select("id").limit(1);
     categoriaId = cat.data![0]!.id as string;
     expect(perfilId).toMatch(/^[0-9a-f-]{36}$/);
+    sessoesProntas = true;
   });
 
   describe("liberar e retirar: só administrador geral, com motivo e auditoria", () => {
@@ -274,22 +303,17 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
       expect(direto.error).not.toBeNull();
 
       // item simples (produto) para testar os campos extras no rascunho
-      const prod = await dono.rpc("catalogo_criar_item", {
+      // produto fixo (rascunho nunca enviado): reaproveitado entre rodadas
+      const prod = await obterItemFixo(dono, admin, {
         p_tipo: "produto",
         p_perfil_id: perfilId,
         p_nome: `${nome} produto`,
         p_descricao: "Produto de teste de integração (rascunho, nunca publicado)",
         p_categoria_principal_id: categoriaId,
       });
-      expect(prod.error).toBeNull();
-      const idProduto = (prod.data as { o_item_id: string }[])[0]!.o_item_id;
+      const idProduto = prod.itemId;
       expect(idProduto).toMatch(/^[0-9a-f-]{36}$/);
-      const vs = await dono
-        .from("catalogo_item_versao")
-        .select("id")
-        .eq("item_id", idProduto)
-        .limit(1);
-      const vId = vs.data![0]!.id as string;
+      const vId = prod.versaoId;
 
       const comFoto = await dono
         .from("catalogo_item_versao")
@@ -326,7 +350,8 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
   describe("com a Loja: imóvel, regras do banco, aprovação, publicação, retirada e re-liberação", () => {
     it("libera, cria o imóvel (rascunho) e o banco recusa campos inválidos", async () => {
       expect((await definir(true)).error).toBeNull();
-      const r = await dono.rpc("catalogo_criar_item", {
+      // imóvel fixo: nova versão em rascunho copiada da aprovada, reaproveitando o caminho da capa
+      const fixo = await obterItemFixo(dono, admin, {
         p_tipo: "imovel",
         p_perfil_id: perfilId,
         p_nome: nome,
@@ -335,11 +360,32 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
         p_preco_modo: "fixo",
         p_preco_centavos: 150000,
       });
-      expect(r.error).toBeNull();
-      itemId = (r.data as { o_item_id: string; o_versao_id: string }[])[0]!.o_item_id;
+      itemId = fixo.itemId;
+      versaoId = fixo.versaoId;
+      capaFixa = fixo.fotoPath;
       expect(itemId).toMatch(/^[0-9a-f-]{36}$/);
-      const v = await dono.from("catalogo_item_versao").select("id").eq("item_id", itemId);
-      versaoId = v.data![0]!.id as string;
+      if (capaFixa) {
+        // a cópia vem completa: volta ao estado de rascunho incompleto que o teste seguinte espera
+        const zera = await dono
+          .from("catalogo_item_versao")
+          .update({
+            imovel_tipo: null,
+            finalidade: null,
+            area_m2: null,
+            quartos: null,
+            banheiros: null,
+            vagas: null,
+            bairro: null,
+            cidade: null,
+            uf: null,
+            condominio_centavos: null,
+            iptu_centavos: null,
+            aceita_financiamento: null,
+            foto_path: null,
+          } as never)
+          .eq("id", versaoId);
+        expect(zera.error).toBeNull();
+      }
 
       const invalidos: Record<string, unknown>[] = [
         { imovel_tipo: "castelo" },
@@ -401,6 +447,8 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
 
     it("foto adicional na pasta do item: dono envia; pasta alheia é recusada", async () => {
       const png = gerarPng(40, 30, [20, 120, 90]);
+      // resto de rodada interrompida (a extra é apagada na limpeza final); melhor esforço
+      await dono.storage.from(BUCKET).remove([`item/${itemId}/extra-1.png`]);
       const propria = await dono.storage
         .from(BUCKET)
         .upload(`item/${itemId}/extra-1.png`, png, { contentType: "image/png", upsert: false });
@@ -414,14 +462,18 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
         .upload(`item/${itemId}/invasor.png`, png, { contentType: "image/png" });
       expect(noPerfilAlheio.error).not.toBeNull();
 
-      const capa = await dono.storage
-        .from(BUCKET)
-        .upload(`item/${itemId}/capa.png`, png, { contentType: "image/png", upsert: false });
-      expect(capa.error).toBeNull();
+      // capa: só envia arquivo na primeira vez; nas demais reaproveita o caminho (cota de imagens não cresce)
+      const caminhoCapa = capaFixa ?? `item/${itemId}/capa.png`;
+      if (!capaFixa) {
+        const capa = await dono.storage
+          .from(BUCKET)
+          .upload(caminhoCapa, png, { contentType: "image/png", upsert: false });
+        expect(capa.error).toBeNull();
+      }
       const g = await dono
         .from("catalogo_item_versao")
         .update({
-          foto_path: `item/${itemId}/capa.png`,
+          foto_path: caminhoCapa,
           fotos_extras_paths: [`item/${itemId}/extra-1.png`],
         })
         .eq("id", versaoId);
