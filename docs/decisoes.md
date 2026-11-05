@@ -264,6 +264,19 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-026 · 05/11/2026 · Ajustes da Fase 7 (IM-066, IM-068, IM-072, IM-073)
+**IDs:** IM-061 a IM-073. Aceito pelo Emerson em 05/11/2026 ("aceito suas recomendações").
+- **Tolerância do mês corrente (D2):** o mês corrente não conta como inadimplência; só meses encerrados sem pagamento confirmado. A contagem do prazo (IM-072) começa no primeiro mês encerrado sem pagamento.
+- **Cliente com conta:** o cliente indicado precisa ter conta na plataforma (sem guardar nome, telefone ou e-mail de visitante).
+- **Vínculo:** indicador→cliente registrado manualmente pelo administrador por ora; ligação ao fluxo de indicações fica para depois.
+- **Elegibilidade:** basta o indicador ter assinatura em dia no mesmo negócio (qualquer oferta).
+- **Cancelamento de assinatura:** bloqueia só comissões futuras, sem reverter o último mês.
+- **Valor divergente no pagamento:** exige motivo de pelo menos 10 caracteres, registrado na auditoria.
+- **Ações do anunciante (oferta, percentual):** sem auditoria com motivo; o histórico guarda autor e data.
+- **Em aberto (documentadas no desenho, opção conservadora):** perguntas 4, 8 a 16 de docs/fase7-desenho.md.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
