@@ -285,6 +285,14 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-028 · 05/11/2026 · Telas administrativas das comissões: acabamento (IM-061 a IM-073)
+**IDs:** IM-061 a IM-073. Aceito pelo Emerson em 05/11/2026 ("aceito").
+- **Registrar assinatura e vínculo:** seguem pedindo UUID digitado (oferta, indicador, cliente) por ora. Lista de ofertas e de contas para o administrador escolher exige função nova no banco; fica adiada, por serem ações raras e os identificadores já aparecerem nas listas.
+- **Vencimento:** o cálculo de "vencido" na tela usa a data UTC e pode divergir um dia do banco perto da meia-noite de São Paulo. O banco é a autoridade ao encerrar vínculos.
+- **Confirmar pagamento em assinatura cancelada:** o botão segue a recomendação do verificador do PR #50 (o banco decide a recusa).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
