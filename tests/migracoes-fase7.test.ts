@@ -333,3 +333,34 @@ describe("comissoes: leitura sem dados privados (IM-029, IM-041, IM-050)", () =>
     }
   });
 });
+
+describe("comissoes: visões não chamam função sem EXECUTE do chamador (revisão independente, 05/11/2026)", () => {
+  // Visão sem security_invoker avalia as TABELAS com os direitos do dono, mas as FUNÇÕES com os direitos de quem consulta
+  // (doc do PostgreSQL, CREATE VIEW). Função interna sem EXECUTE para authenticated faz a visão falhar com 42501.
+  // Foi o que derrubou o pgTAP do CI (comissoes.test.sql:123, "permission denied for function comissoes_percentual_vigente").
+  const chamaveis = new Set(
+    [...modulo.matchAll(/grant execute on function public\.(\w+)\([^)]*\) to authenticated/gi)].map(
+      (m) => m[1]!,
+    ),
+  );
+  const proprias = funcoes.map((f) => f.nome);
+  const visoesLeitura = [...leitura.matchAll(/create view public\.(\w+)[\s\S]*?;/gi)].map((m) => ({
+    nome: m[1]!,
+    corpo: m[0]!,
+  }));
+
+  it.each(visoesLeitura.map((v) => [v.nome, v.corpo] as const))(
+    "%s: só chama funções que o usuário autenticado pode executar",
+    (nome, corpoVisao) => {
+      const usadas = proprias.filter((f) => new RegExp(`public\\.${f}\\s*\\(`).test(corpoVisao));
+      const semAcesso = usadas.filter((f) => !chamaveis.has(f));
+      expect(semAcesso, `${nome} chama função interna sem EXECUTE para authenticated`).toEqual([]);
+    },
+  );
+
+  it("funções que aceitam uuid arbitrário nunca são liberadas a authenticated", () => {
+    expect([...chamaveis]).not.toContain("comissoes_situacao_indicador");
+    expect([...chamaveis]).not.toContain("comissoes_avaliar_pagamento");
+    expect([...chamaveis]).not.toContain("comissoes_inserir_reversao");
+  });
+});
