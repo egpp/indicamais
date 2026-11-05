@@ -307,6 +307,13 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-031 · 05/11/2026 · Confirmação de "indicação válida" (IM-031, IM-034)
+**IDs:** IM-031, IM-032, IM-033, IM-034. Aceito pelo Emerson em 05/11/2026 ("aceito").
+- **Interpretação confirmada (D-012):** "indicação válida" = pedido de contato recebido pelo link do indicador, no destino do link, com perfil disponível, sem ser autoindicação (IM-034) e fora do intervalo de 30 dias do mesmo visitante e destino. Deixa de ser "a confirmar".
+- **Provedor de e-mail (IM-027, IM-028, IM-023):** o gestor levanta opções com preços; a escolha envolve custo e é do Emerson (IM-089).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
