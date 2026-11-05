@@ -68,7 +68,9 @@ describe("enviador Resend", () => {
     expect(await mk(503).enviar(EMAIL)).toEqual({ ok: false, erro: ERRO_EMAIL.indisponivel });
     expect(await mk(403).enviar(EMAIL)).toEqual({ ok: false, erro: ERRO_EMAIL.autenticacao });
     expect(await mk(422).enviar(EMAIL)).toEqual({ ok: false, erro: ERRO_EMAIL.rejeitado });
-    expect(await mk(409).enviar(EMAIL)).toEqual({ ok: false, erro: ERRO_EMAIL.limite });
+    expect(await mk(409).enviar(EMAIL)).toEqual({ ok: false, erro: ERRO_EMAIL.conflito });
+    expect(ERRO_EMAIL.conflito).not.toBe(ERRO_EMAIL.limite);
+    expect(ERRO_EMAIL.conflito).not.toMatch(/resend/i);
   });
 
   it("timeout: o fetch recebe um sinal e o aborto vira falha 'tempo esgotado'", async () => {
