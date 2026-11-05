@@ -111,6 +111,12 @@ export type OpcoesProcessamento = {
    * Nunca ligar no processamento automático.
    */
   ignorarLimiteTentativas?: boolean;
+  /**
+   * Cron (IM-028): se o envio falhar com um erro para o qual isto devolve true (ex.: limite diário do provedor),
+   * o lote PARA ali, sem gravar a falha: o pedido segue pendente e a tentativa não é gasta. Ausente = comportamento
+   * normal (toda falha é gravada).
+   */
+  pararQuando?: (erro: string) => boolean;
 };
 
 export type ResumoProcessamento = {
@@ -121,6 +127,8 @@ export type ResumoProcessamento = {
   limiteAtingido: number;
   /** Casos em que o resultado não pôde ser gravado (o pedido segue pendente e será relido). */
   semRegistro: number;
+  /** Presente (true) só quando `pararQuando` interrompeu o lote. */
+  interrompido?: true;
 };
 
 export const ERRO_LIMITE_TENTATIVAS = "limite de tentativas atingido";
@@ -184,7 +192,10 @@ export function criarServicoNotificacoesContato(
                 ),
               );
               if (envio.ok) sucesso = true;
-              else erro = sanitizarErroNotificacao(envio.erro);
+              else if (opcoes.pararQuando?.(envio.erro)) {
+                resumo.interrompido = true;
+                break;
+              } else erro = sanitizarErroNotificacao(envio.erro);
             } catch (e) {
               erro = sanitizarErroNotificacao(e);
             }

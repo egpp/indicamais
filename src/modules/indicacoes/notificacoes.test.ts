@@ -186,6 +186,44 @@ describe("processarNotificacoesPendentes", () => {
     expect(gravado.length).toBeLessThanOrEqual(LIMITES.notificacaoContato.erroMax);
   });
 
+  describe("pararQuando (cron, IM-028)", () => {
+    const LIMITE = "provedor de e-mail: limite de envio atingido";
+    it("erro de limite interrompe o lote sem gravar falha nem gastar tentativa", async () => {
+      const f = fake([linha({ o_pedido_id: P1 }), linha({ o_pedido_id: P2 })]);
+      const enviar = vi.fn<EnviadorEmail["enviar"]>(async () => ({ ok: false, erro: LIMITE }));
+      const r = await criarServicoNotificacoesContato(f.banco, {
+        enviar,
+      }).processarNotificacoesPendentes({ urlPainel: PAINEL, pararQuando: (e) => e === LIMITE });
+      expect(enviar).toHaveBeenCalledTimes(1);
+      expect(f.registrar).not.toHaveBeenCalled();
+      expect(r).toEqual({
+        ok: true,
+        resumo: {
+          lidas: 1,
+          enviadas: 0,
+          falhas: 0,
+          limiteAtingido: 0,
+          semRegistro: 0,
+          interrompido: true,
+        },
+      });
+    });
+
+    it("outro erro continua sendo gravado e o lote segue", async () => {
+      const f = fake([linha({ o_pedido_id: P1 }), linha({ o_pedido_id: P2 })]);
+      const enviar = vi.fn<EnviadorEmail["enviar"]>(async () => ({
+        ok: false,
+        erro: "provedor de e-mail: indisponível",
+      }));
+      const r = await criarServicoNotificacoesContato(f.banco, {
+        enviar,
+      }).processarNotificacoesPendentes({ urlPainel: PAINEL, pararQuando: (e) => e === LIMITE });
+      expect(enviar).toHaveBeenCalledTimes(2);
+      expect(f.registrar).toHaveBeenCalledTimes(2);
+      expect(r.ok && r.resumo.falhas).toBe(2);
+    });
+  });
+
   describe("limite de tentativas", () => {
     const max = LIMITES.notificacaoContato.tentativasMax;
 
