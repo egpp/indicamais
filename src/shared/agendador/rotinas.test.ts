@@ -31,6 +31,23 @@ describe("rotinas agendadas (IM-081)", () => {
     expect(lt).toHaveBeenCalledWith("criado_em", corte);
   });
 
+  it("tarefas extras entram no resultado; uma que lança vira 'falhou' sem derrubar a outra (IM-080)", async () => {
+    const { c } = cliente();
+    const linhas: string[] = [];
+    const r = await executarRotinas(c, new Date(), (l) => linhas.push(l), [
+      { nome: "a", executar: async () => ({ a_enviadas: 3 }) },
+      {
+        nome: "b",
+        executar: async () => {
+          throw new Error("detalhe sensível");
+        },
+      },
+      { nome: "c", executar: async () => ({ c_ok: 1 }) },
+    ]);
+    expect(r).toMatchObject({ a_enviadas: 3, b: "falhou", c_ok: 1, limpeza_denuncia_tentativa: 4 });
+    expect(linhas[0]).not.toContain("sensível");
+  });
+
   it("uma rotina que falha não impede as outras e o log só tem contagens", async () => {
     const { c } = cliente({
       falhaEm: "contas_executar_encerramentos",

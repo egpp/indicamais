@@ -29,10 +29,14 @@ export type ClienteRotinas = {
 
 export type ResultadoRotinas = Record<string, number | "falhou">;
 
+/** Tarefa extra injetada pelo Worker (ex.: e-mail, que depende de módulos). Devolve só contagens. */
+export type TarefaAgendada = { nome: string; executar: () => Promise<ResultadoRotinas> };
+
 export async function executarRotinas(
   cliente: ClienteRotinas,
   agora: Date = new Date(),
   registrar: (linha: string) => void = (l) => console.log(l),
+  tarefas: TarefaAgendada[] = [],
 ): Promise<ResultadoRotinas> {
   const resultado: ResultadoRotinas = {};
 
@@ -61,12 +65,25 @@ export async function executarRotinas(
     resultado.limpeza_denuncia_tentativa = "falhou";
   }
 
+  // Tarefas extras (notificações de contato): uma que falha ou lança não derruba as outras.
+  for (const t of tarefas) {
+    try {
+      Object.assign(resultado, await t.executar());
+    } catch {
+      resultado[t.nome] = "falhou";
+    }
+  }
+
   registrar(`[cron] ${JSON.stringify(resultado)}`);
   return resultado;
 }
 
 /** Ponto de entrada do Worker: cria o cliente de serviço com as credenciais do `env` do handler. */
-export async function executarRotinasAgendadas(credenciais: CredenciaisServico) {
-  const cliente = criarClienteServico(credenciais) as unknown as ClienteRotinas;
-  return executarRotinas(cliente);
+export async function executarRotinasAgendadas(
+  credenciais: CredenciaisServico,
+  tarefas: (cliente: unknown) => TarefaAgendada[] = () => [],
+) {
+  const base = criarClienteServico(credenciais);
+  const cliente = base as unknown as ClienteRotinas;
+  return executarRotinas(cliente, new Date(), (l) => console.log(l), tarefas(base));
 }
