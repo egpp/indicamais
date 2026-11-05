@@ -320,6 +320,8 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ## Pendências que afetam as primeiras fases
 
+> **Atualização de 05/11/2026:** IM-031 (D-012), IM-043, IM-044, IM-051 e IM-052 (D-013) e IM-087 (D-003) já foram decididos; as linhas abaixo ficam como registro histórico. Seguem em aberto de verdade: IM-082 (revisão jurídica), política de privacidade definitiva (IM-026), provedor de e-mail (IM-027, IM-028), login com Google e Apple (IM-007) e a confirmação da interpretação de "indicação válida" de D-012.
+
 | ID | Pendência | Como seguir até a decisão |
 |---|---|---|
 | IM-031 | 10 pontos a cada 30 dias, ou 15 dias? | Implementar quantidade e intervalo como configuração central (IM-030). Não ativar valor em produção até a decisão. Testes usam valores de exemplo. |

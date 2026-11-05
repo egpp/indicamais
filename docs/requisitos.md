@@ -96,7 +96,7 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-030 | D | Pontuação configurável.** Pontos por indicação válida, com quantidade e intervalo definidos centralmente.
 
-- **IM-031 | P | Parâmetros iniciais.** Há referência consolidada a 10 pontos/30 dias e histórico com 15 dias. Confirmar a decisão vigente; não escolher silenciosamente entre os prazos.
+- **IM-031 | D | Parâmetros iniciais.** (Resolvida em D-012, 30/10/2026: 10 pontos por indicação válida, intervalo de 30 dias, configuráveis.) Há referência consolidada a 10 pontos/30 dias e histórico com 15 dias. Confirmar a decisão vigente; não escolher silenciosamente entre os prazos.
 
 - **IM-032 | D | Duplicidade.** WhatsApp visitante + perfil comercial; para particular, WhatsApp + conta anunciante; independe do item.
 
@@ -122,9 +122,9 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-042 | D | Separação dos incentivos.** Curtir não pontua nem gera comissão; participação na base não cria vínculo mononível.
 
-- **IM-043 | P | Identificação na curtida.** Definir login/identificação necessários para curtir, evitar duplicidade e permitir desfazer.
+- **IM-043 | D | Identificação na curtida.** (Resolvida em D-013, 30/10/2026: conta logada, uma curtida por conta e perfil, pode desfazer.) Definir login/identificação necessários para curtir, evitar duplicidade e permitir desfazer.
 
-- **IM-044 | P | Evento de entrada por indicação.** Definir se inclusão ocorre ao gerar link, compartilhar ou obter contato válido; não presumir que essas etapas são equivalentes.
+- **IM-044 | D | Evento de entrada por indicação.** (Resolvida em D-013: só contato válido pelo link do indicador.) Definir se inclusão ocorre ao gerar link, compartilhar ou obter contato válido; não presumir que essas etapas são equivalentes.
 
 - **IM-045 | P | Saída e visibilidade.** Definir efeitos de descurtir, sair da base e encerrar conta, além dos dados visíveis à empresa.
 
@@ -140,9 +140,9 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-050 | D | Identificação permitida.** Usar apenas dados de perfil permitidos; não expor telefone/e-mail privados nas notificações.
 
-- **IM-051 | P | Estados e contagens.** Definir evento que gera aviso, o que conta como indicação, datas e distinção entre link gerado, compartilhamento e contato válido; não afirmar compartilhamento externo sem confirmação técnica.
+- **IM-051 | D | Estados e contagens.** (Resolvida em D-013: só contato válido e curtida contam.) Definir evento que gera aviso, o que conta como indicação, datas e distinção entre link gerado, compartilhamento e contato válido; não afirmar compartilhamento externo sem confirmação técnica.
 
-- **IM-052 | P | Leitura dos avisos.** Proposta: contador de não lidas, marcar como lida e abrir item relacionado. Confirmar antes de tratar como requisito aprovado.
+- **IM-052 | D | Leitura dos avisos.** (Resolvida em D-013: sino com contador, marcar como lida, abrir item.) Proposta: contador de não lidas, marcar como lida e abrir item relacionado. Confirmar antes de tratar como requisito aprovado.
 
 - **IM-053 | D | Integração modular.** Reutilizar módulo de notificações para os avisos já definidos de aprovação/rejeição e contatos, sem duplicar registros.
 
@@ -220,7 +220,7 @@ Esta visão orienta o produto; o escopo, as pendências e as funções futuras s
 
 - **IM-086 | D | Segurança.** Controle de acesso na aplicação e banco, isolamento de dados entre responsáveis, auditoria e tratamento de falhas.
 
-- **IM-087 | P | Ambientes.** Desenvolvimento direto em produção foi discutido, mas não decidido. Conferir decisão vigente; não inferir autorização de debate.
+- **IM-087 | D | Ambientes.** (Resolvida em D-003, 20/10/2026: desenvolvimento e produção separados.) Desenvolvimento direto em produção foi discutido, mas não decidido. Conferir decisão vigente; não inferir autorização de debate.
 
 - **IM-088 | D | Validação e continuidade.** Testar riscos concretos e fluxos relevantes; continuar tarefas independentes; intervir apenas por bloqueio real ou ação fora da autorização.
 
