@@ -223,6 +223,16 @@ describe("revisão de segurança · tabelas (estado final)", () => {
     expect(NOMES_TABELAS.every((x) => !x.includes("."))).toBe(true);
   });
 
+  it("toda função criada ou removida usa o prefixo public. (senão a varredura não a enxerga)", () => {
+    const fora: string[] = [];
+    const re = /(?:create\s+(?:or\s+replace\s+)?function|drop\s+function(?:\s+if\s+exists)?)\s+(?!public\.)("?[\w.]+"?)/gi;
+    for (const { n, t } of migracoes) {
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(t))) fora.push(`${n}: ${m[1]}`);
+    }
+    expect(fora).toEqual([]);
+  });
+
   it("nenhuma migração cria tabela sem schema explícito nem desliga RLS", () => {
     expect(criaSemSchema).toEqual([]);
     expect(desabilitaRls).toEqual([]);
@@ -498,8 +508,9 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
     }
   });
 
-  it("S-03: o pedido de contato tem limite de ritmo por link, destino e global (gatilho antes de gravar)", () => {
-    const tudo = migracoes.map((m) => m.t).join("\n");
+  it("S-03: por link tira a atribuição (não recusa); destino e global só alarmam, com interruptor para recusar", () => {
+    const tudo = migracoes.map((m) => m.t).join("
+");
     expect(tudo).toMatch(
       /create trigger indicacoes_pedido_limitar before insert on public\.indicacoes_pedido_contato/i,
     );
@@ -508,10 +519,26 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
       "contato_limite_por_link_hora",
       "contato_limite_por_destino_hora",
       "contato_limite_global_hora",
+      "contato_recusar_excesso",
     ]) {
       expect(corpo).toContain(chave);
     }
+    expect(corpo).toMatch(/new\.link_id := null/);
+    // Serializa por link e por destino (o limite não pode ser mole só porque o visitante varia o WhatsApp).
+    expect(corpo).toMatch(/pg_advisory_xact_lock\([^)]*indicacoes_link/);
+    expect(corpo).toMatch(/pg_advisory_xact_lock\([^)]*indicacoes_destino/);
+    // Contagem barata: sempre com limit, nunca count(*) sobre a janela inteira.
+    expect(corpo).not.toMatch(/count\(\*\)\s+into\s+\w+\s+from\s+public/i);
+    // A única recusa possível é a do interruptor (nunca a do link).
+    const recusas = corpo.split("raise exception").length - 1;
+    expect(recusas).toBe(2);
+    expect(corpo.indexOf("new.link_id := null")).toBeLessThan(corpo.indexOf("v_recusar then"));
     expect(funcoes.get("indicacoes_pedido_limitar")?.acl.anon).toBe(false);
+    expect(funcoes.get("indicacoes_evento_link_do_pedido")?.acl.anon).toBe(false);
+    // Teto configurável do limiar global: o custo da contagem fica limitado.
+    expect(tudo).toMatch(/'contato_limite_global_hora', 1000, 10, 10000/);
+    // Alarme: tabela só de inserção, lida só pelo administrador.
+    expect(tabelas.get("indicacoes_alarme_excesso")?.imutavel).toBe(true);
   });
 
   it("denúncia: limite por pessoa, global e por alvo, e campo-armadilha, dentro da função", () => {
