@@ -2288,6 +2288,7 @@ export type Database = {
           link_id: string | null
           mensagem: string | null
           nome: string
+          origem_hash: string | null
           perfil_id: string | null
           solicitante_id: string | null
           whatsapp_e164: string
@@ -2302,6 +2303,7 @@ export type Database = {
           link_id?: string | null
           mensagem?: string | null
           nome: string
+          origem_hash?: string | null
           perfil_id?: string | null
           solicitante_id?: string | null
           whatsapp_e164: string
@@ -2316,6 +2318,7 @@ export type Database = {
           link_id?: string | null
           mensagem?: string | null
           nome?: string
+          origem_hash?: string | null
           perfil_id?: string | null
           solicitante_id?: string | null
           whatsapp_e164?: string
@@ -6105,6 +6108,7 @@ export type Database = {
           p_item_id: string
           p_mensagem?: string
           p_nome: string
+          p_origem_hash?: string
           p_perfil_id: string
           p_whatsapp: string
         }

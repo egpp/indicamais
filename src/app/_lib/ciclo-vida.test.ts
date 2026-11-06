@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import {
   criarServicoCicloVida,
@@ -65,13 +64,7 @@ const form = (campos: Record<string, string>) => {
 
 describe("origem da denúncia (IM-076)", () => {
   const h = (o: Record<string, string>) => ({ get: (k: string) => o[k] ?? null });
-  it("hash sha256 de IP + navegador, nunca o IP cru", async () => {
-    const o = await origemDaDenuncia(
-      h({ "cf-connecting-ip": "203.0.113.9", "user-agent": "Teste/1" }),
-    );
-    expect(o).toBe(createHash("sha256").update("203.0.113.9|Teste/1").digest("hex"));
-    expect(o).not.toContain("203");
-  });
+  // O cálculo do hash (HMAC com segredo) é coberto em origem-denuncia.test.ts.
   it("prefere cf-connecting-ip; senão o primeiro de x-forwarded-for; sem IP não há origem", async () => {
     expect(ipDoPedido(h({ "cf-connecting-ip": "1.1.1.1", "x-forwarded-for": "2.2.2.2" }))).toBe(
       "1.1.1.1",
@@ -150,6 +143,70 @@ describe("administração (IM-076, IM-077, IM-080)", () => {
       }),
     });
     expect((await sincronizarAcesso(com, form({ contaId: ID }))).sucesso).toBeTruthy();
+  });
+});
+
+describe("sincronizar acesso: id inválido (RSA-10)", () => {
+  const comPermissao = () =>
+    ctx({
+      listarMinhasPermissoes: async () => ({
+        dados: [{ permissao: "suspender", criado_em: "" }],
+        erro: null,
+      }),
+    });
+
+  it("id que não é UUID nunca chega à Admin API (nem bloqueia nem libera)", async () => {
+    const acesso = await import("@/shared/supabase/acesso-conta");
+    vi.mocked(acesso.liberarAcessoNoAuth).mockClear();
+    vi.mocked(acesso.bloquearAcessoNoAuth).mockClear();
+    for (const ruim of [
+      "",
+      "nao-e-uuid",
+      "../../x",
+      "0b6f1c1e-7d0e-4c55-8a53-0d2b9f5a1111; drop",
+    ]) {
+      const r = await sincronizarAcesso(comPermissao(), form({ contaId: ruim }));
+      expect(r.erro).toBe("Não foi possível sincronizar o acesso desta conta.");
+    }
+    expect(acesso.liberarAcessoNoAuth).not.toHaveBeenCalled();
+    expect(acesso.bloquearAcessoNoAuth).not.toHaveBeenCalled();
+  });
+
+  it("sem a permissão suspender, nada é chamado mesmo com UUID válido", async () => {
+    const acesso = await import("@/shared/supabase/acesso-conta");
+    vi.mocked(acesso.liberarAcessoNoAuth).mockClear();
+    const r = await sincronizarAcesso(ctx(), form({ contaId: ID }));
+    expect(r.erro).toBe(MENSAGENS_CICLO.semPermissao);
+    expect(acesso.liberarAcessoNoAuth).not.toHaveBeenCalled();
+  });
+
+  it("conta suspensa na lista é bloqueada, não liberada", async () => {
+    const acesso = await import("@/shared/supabase/acesso-conta");
+    vi.mocked(acesso.liberarAcessoNoAuth).mockClear();
+    vi.mocked(acesso.bloquearAcessoNoAuth).mockClear();
+    const c = ctx({
+      listarMinhasPermissoes: async () => ({
+        dados: [{ permissao: "suspender", criado_em: "" }],
+        erro: null,
+      }),
+      listarContasCicloVida: async () => ({
+        dados: [
+          {
+            conta_id: ID,
+            situacao: "suspensa",
+            suspensa_em: "2026-11-01T00:00:00Z",
+            encerramento_solicitado_em: null,
+            encerramento_executar_apos: null,
+            anonimizada_em: null,
+            atualizado_em: "2026-11-01T00:00:00Z",
+          },
+        ] as never,
+        erro: null,
+      }),
+    });
+    await sincronizarAcesso(c, form({ contaId: ID }));
+    expect(acesso.bloquearAcessoNoAuth).toHaveBeenCalledWith(ID);
+    expect(acesso.liberarAcessoNoAuth).not.toHaveBeenCalled();
   });
 });
 
