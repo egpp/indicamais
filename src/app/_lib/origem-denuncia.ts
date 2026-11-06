@@ -1,11 +1,16 @@
 import { emProducao } from "@/shared/config/ambiente";
 
 /**
- * Origem do pedido anônimo (IM-076, RSA-07, RSA-05, D-033): HMAC-SHA-256 (hex, 64) de IP + user-agent com o segredo
+ * Origem do pedido anônimo (IM-076, RSA-07, RSA-05, D-033): HMAC-SHA-256 (hex, 64) de contexto|IP com o segredo
  * do servidor (DENUNCIA_HASH_SEGREDO), calculado SEMPRE no servidor. SHA-256 puro de IPv4 se inverte em segundos;
  * com o segredo (só no ambiente do Worker) o hash não se desfaz mesmo com vazamento do banco. O IP nunca é
  * guardado nem enviado cru: o banco só recebe o hash, usado nos limites por pessoa/origem. O contexto
  * ("denuncia" ou "contato") entra na mensagem: o mesmo visitante não é ligável entre as duas finalidades.
+ *
+ * O user-agent NÃO entra na origem: ele é controlado pelo cliente (até 300 caracteres) e variá-lo escaparia dos
+ * limites por origem. Ressalva: muitos usuários atrás do mesmo IP (NAT, rede de empresa ou de operadora) compartilham
+ * o limite por origem (padrão de 10 pedidos por hora, parâmetro `contato_limite_por_origem` em indicacoes_parametro, e
+ * `denuncia_limite_por_pessoa` na denúncia). Na denúncia anônima, "uma por pessoa e perfil" passa a valer por IP.
  *
  * Sem IP (cabeçalho ausente) devolve undefined: melhor sem origem do que juntar todo mundo na mesma origem.
  * Sem segredo: em produção LANÇA (a ação responde "indisponível": falha segura, nunca grava hash fraco); fora dela
@@ -42,7 +47,6 @@ export async function origemDoPedido(
   }
   const ip = ipDoPedido(h);
   if (!ip) return undefined;
-  const ua = (h.get("user-agent") ?? "").slice(0, 300);
   const codificar = new TextEncoder();
   const chave = await crypto.subtle.importKey(
     "raw",
@@ -51,11 +55,7 @@ export async function origemDoPedido(
     false,
     ["sign"],
   );
-  const assinatura = await crypto.subtle.sign(
-    "HMAC",
-    chave,
-    codificar.encode(`${contexto}|${ip}|${ua}`),
-  );
+  const assinatura = await crypto.subtle.sign("HMAC", chave, codificar.encode(`${contexto}|${ip}`));
   return Array.from(new Uint8Array(assinatura), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 

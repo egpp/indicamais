@@ -60,11 +60,12 @@ describe("revisão de segurança do app: achados corrigidos (D-033)", () => {
     expect(ler("src/app/acoes-ciclo-vida.ts")).toMatch(/protegerFormularioPublico/);
   });
 
-  it("RSA-07: a origem da denúncia usa HMAC com segredo do servidor, não SHA-256 puro de IP+UA", () => {
+  it("RSA-07: a origem da denúncia usa HMAC com segredo do servidor, não SHA-256 puro; sem User-Agent", () => {
     const fonte = ler("src/app/_lib/origem-denuncia.ts");
     expect(fonte).toMatch(/HMAC/);
     expect(fonte).toMatch(/DENUNCIA_HASH_SEGREDO/);
     expect(fonte).not.toMatch(/subtle\.digest/);
+    expect(fonte).not.toMatch(/get\("user-agent"\)/);
   });
 
   it("RSA-05 e RSA-07: os exemplos de ambiente listam os nomes novos, sem valores", () => {

@@ -319,3 +319,23 @@ describe("CSP: Turnstile é o mínimo necessário", () => {
     expect(diretiva("frame-ancestors")).toBe("frame-ancestors 'none'");
   });
 });
+
+describe("origem sem User-Agent e deploy com a chave do Turnstile (IM-076, IM-086)", () => {
+  it("11 pedidos do mesmo IP com User-Agents diferentes têm a MESMA origem (o limite por origem não é contornado)", async () => {
+    const env = { NODE_ENV: "production", DENUNCIA_HASH_SEGREDO: "a".repeat(32) };
+    const origens = new Set<string | undefined>();
+    for (let i = 0; i < 11; i++) {
+      const h = new Headers({ "cf-connecting-ip": "203.0.113.7", "user-agent": `UA-${i}` });
+      origens.add(await origemDoPedido(h, "contato", env));
+    }
+    expect(origens.size).toBe(1);
+  });
+
+  it("o deploy-dev repassa NEXT_PUBLIC_TURNSTILE_SITE_KEY como variável (vars), nunca secret", () => {
+    const yml = readFileSync(join(process.cwd(), ".github/workflows/deploy-dev.yml"), "utf8");
+    expect(yml).toMatch(
+      /NEXT_PUBLIC_TURNSTILE_SITE_KEY:\s*\$\{\{\s*vars\.NEXT_PUBLIC_TURNSTILE_SITE_KEY\s*\}\}/,
+    );
+    expect(yml).not.toMatch(/secrets\.NEXT_PUBLIC_TURNSTILE/);
+  });
+});

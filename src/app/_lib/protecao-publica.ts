@@ -9,7 +9,7 @@ import { ipDoPedido, origemDoPedido, type ContextoOrigem } from "./origem-denunc
 /**
  * Proteção dos formulários públicos sem login (RSA-05, RSA-07, IM-076, D-033), sempre no SERVIDOR:
  * 1) Turnstile (verificação da resposta com a chave secreta);
- * 2) origem (HMAC de IP + navegador) para os limites por origem no banco.
+ * 2) origem (HMAC de contexto + IP) para os limites por origem no banco.
  * Devolve a mensagem amigável quando o pedido deve ser recusado. Falha de configuração (sem segredo em produção)
  * recusa com mensagem neutra: nunca segue sem a proteção. Nada de token, IP ou segredo em log ou mensagem.
  */

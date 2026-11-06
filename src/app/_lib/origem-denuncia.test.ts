@@ -7,18 +7,16 @@ const h = (o: Record<string, string>) => ({ get: (k: string) => o[k] ?? null });
 const pedido = h({ "cf-connecting-ip": "203.0.113.9", "user-agent": "Teste/1" });
 
 describe("origem do pedido anônimo: HMAC com segredo do servidor (RSA-07, IM-076)", () => {
-  it("é HMAC-SHA-256 hex (64) de contexto|IP|navegador, nunca o IP cru", async () => {
+  it("é HMAC-SHA-256 hex (64) de contexto|IP, nunca o IP cru", async () => {
     const o = await origemDoPedido(pedido, "denuncia", { DENUNCIA_HASH_SEGREDO: SEGREDO });
-    expect(o).toBe(
-      createHmac("sha256", SEGREDO).update("denuncia|203.0.113.9|Teste/1").digest("hex"),
-    );
+    expect(o).toBe(createHmac("sha256", SEGREDO).update("denuncia|203.0.113.9").digest("hex"));
     expect(o).toMatch(/^[0-9a-f]{64}$/);
     expect(o).not.toContain("203");
   });
 
-  it("NÃO é o SHA-256 puro de IP+UA (o hash antigo, reversível por força bruta)", async () => {
+  it("NÃO é o SHA-256 puro de IP (o hash antigo, reversível por força bruta)", async () => {
     const o = await origemDoPedido(pedido, "denuncia", { DENUNCIA_HASH_SEGREDO: SEGREDO });
-    const puro = createHash("sha256").update("203.0.113.9|Teste/1").digest("hex");
+    const puro = createHash("sha256").update("203.0.113.9").digest("hex");
     expect(o).not.toBe(puro);
   });
 
@@ -43,6 +41,18 @@ describe("origem do pedido anônimo: HMAC com segredo do servidor (RSA-07, IM-07
     );
     expect(await origemDoPedido(outro, "contato", env)).not.toBe(
       await origemDoPedido(pedido, "contato", env),
+    );
+  });
+
+  it("variar o User-Agent NÃO muda a origem (não contorna o limite por origem)", async () => {
+    const env = { DENUNCIA_HASH_SEGREDO: SEGREDO };
+    const base = await origemDoPedido(pedido, "contato", env);
+    for (const ua of ["Outro/2", "x".repeat(300), "", "y".repeat(5000)]) {
+      const h2 = h({ "cf-connecting-ip": "203.0.113.9", "user-agent": ua });
+      expect(await origemDoPedido(h2, "contato", env)).toBe(base);
+    }
+    expect(await origemDoPedido(h({ "cf-connecting-ip": "203.0.113.9" }), "contato", env)).toBe(
+      base,
     );
   });
 
