@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FormRecuperarSenha } from "../_componentes/formularios";
 import { CartaoPagina } from "../_componentes/ui";
+import { SEM_INDEXACAO } from "../_lib/pagina";
 
 /** O cabeçalho lê a sessão: renderiza por pedido, não no build. */
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Recuperar senha | IndicaMais" };
+export const metadata: Metadata = { title: "Recuperar senha | IndicaMais", ...SEM_INDEXACAO };
 
 export default function PaginaRecuperarSenha() {
   return (
