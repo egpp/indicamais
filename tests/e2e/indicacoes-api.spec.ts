@@ -100,7 +100,8 @@ test.describe("anônimo (chave anon, sem login)", () => {
     });
   }
 
-  // indicacoes_enviar_contato é a ÚNICA função aberta ao anônimo: só entradas inválidas aqui (não criam dado).
+  // D-034: indicacoes_enviar_contato NÃO é mais chamável por anon (só a ação do servidor, com Turnstile). Estes casos
+  // confirmam que a chamada direta é recusada, mesmo com entrada inválida; nenhum cria dado.
   const base = {
     p_perfil_id: UUID_ZERO,
     p_item_id: null,
@@ -131,6 +132,7 @@ test.describe("anônimo (chave anon, sem login)", () => {
         data: args,
       });
       expect(r.ok(), `status ${r.status()}`).toBe(false);
+      expect(negado(r.status()), `status ${r.status()}`).toBe(true);
       // A resposta de erro não devolve nenhum número de WhatsApp.
       expect(await r.text()).not.toMatch(/\+55[0-9]{10}/);
     });

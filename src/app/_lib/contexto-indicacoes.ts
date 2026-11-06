@@ -5,6 +5,7 @@ import { criarClientePublico } from "@/shared/supabase/publico";
 import { criarClienteServidor } from "@/shared/supabase/servidor";
 import { criarBancoCicloVidaConta } from "./banco-ciclo-vida";
 import { criarBancoIndicacoes } from "./banco-indicacoes";
+import { enviarContatoViaServidor } from "./chamada-publica-servidor";
 import { criarBancoLeituraPublica, consultarAdmin } from "./bancos-supabase";
 import { criarLeituraPublica, type LeituraPublica } from "./leitura-publica";
 import { origemPublica } from "./site";
@@ -42,11 +43,14 @@ export function criarContextoIndicacoes(d: {
   };
 }
 
-async function montar(): Promise<ContextoIndicacoes> {
+async function montar(contatoPublico = false): Promise<ContextoIndicacoes> {
   const supabase = await criarClienteServidor();
   const { data } = await supabase.auth.getUser();
+  const banco = criarBancoIndicacoes(supabase);
   return criarContextoIndicacoes({
-    banco: criarBancoIndicacoes(supabase),
+    // D-034: o contato de quem NÃO está logado passa pelo servidor (chave de serviço só nessa chamada).
+    banco:
+      contatoPublico && !data.user ? { ...banco, enviarContato: enviarContatoViaServidor } : banco,
     leitura: criarLeituraPublica(criarBancoLeituraPublica(criarClientePublico())),
     logado: Boolean(data.user),
     ehAdministrador: () => consultarAdmin(supabase),
@@ -60,7 +64,10 @@ async function montar(): Promise<ContextoIndicacoes> {
 }
 
 /** Visitante anônimo ou logado (contato público e "Indique"). */
-export const obterContextoIndicacoesAberto = montar;
+export const obterContextoIndicacoesAberto = () => montar();
+
+/** Só para o envio do contato (já protegido por Turnstile e origem): o visitante anônimo chama o banco pelo servidor. */
+export const obterContextoContatoPublico = () => montar(true);
 
 /** Exige login (senão leva a /entrar e volta depois). */
 export async function obterContextoIndicacoes(voltarPara: string): Promise<ContextoIndicacoes> {

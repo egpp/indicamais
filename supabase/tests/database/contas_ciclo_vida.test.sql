@@ -82,8 +82,8 @@ select lives_ok($$select * from public.indicacoes_gerar_link(p_perfil_id => 'a00
 select set_config('t.cod_x', (select codigo from public.indicacoes_meus_links where destino_id = 'a0000000-0000-0000-0000-000000000002'), true);
 reset role;
 
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000002', p_item_id => null,
   p_nome => 'Visitante Um', p_whatsapp => '+5511988880001', p_chave => 'chave-ciclo-0000001', p_codigo => current_setting('t.cod_x'))$$, 'contato 1 pelo link de X');
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000002', p_item_id => null,
@@ -117,8 +117,8 @@ select is((select count(*)::int from public.administracao_auditoria where acao =
 select is((select count(*)::int from public.contas_ciclo_vida_evento where conta_id = 'aaaaaaaa-0000-0000-0000-00000000000a' and evento = 'suspensa'), 1, 'evento de suspensão registrado uma vez');
 
 -- Catálogo, busca e contato
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select is((select count(*)::int from public.perfis_perfil_publico where id = 'a0000000-0000-0000-0000-000000000001'), 0, 'perfil suspenso sai do catálogo público');
 select is((select count(*)::int from public.catalogo_item_publico where id = 'e0000000-0000-0000-0000-000000000001'), 0, 'anúncio suspenso sai do catálogo público');
 select is((select count(*)::int from public.perfis_perfil_publico where id = 'a0000000-0000-0000-0000-000000000002'), 1, 'perfil de outra conta segue no ar');
@@ -148,8 +148,8 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
 select lives_ok($$select public.administracao_suspender_conta('bbbbbbbb-0000-0000-0000-00000000000b', 'Spam de indicações')$$, 'C suspende o indicador B');
 reset role;
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000002', p_item_id => null,
   p_nome => 'Visitante Quatro', p_whatsapp => '+5511988880004', p_chave => 'chave-ciclo-0000004', p_codigo => current_setting('t.cod_b'))$$, 'o visitante contata normalmente pelo link do indicador suspenso');
 reset role;

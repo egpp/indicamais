@@ -9,6 +9,7 @@ import { criarServicoCicloVidaConta, type ServicoCicloVidaConta } from "@/module
 import { bloquearAcessoNoAuth, liberarAcessoNoAuth } from "@/shared/supabase/acesso-conta";
 import { criarClienteServidor } from "@/shared/supabase/servidor";
 import { criarBancoCicloVida, criarBancoCicloVidaConta } from "./banco-ciclo-vida";
+import { denunciarViaServidor } from "./chamada-publica-servidor";
 import { consultarAdmin } from "./bancos-supabase";
 
 /**
@@ -74,14 +75,17 @@ export function criarContextoCicloVida(d: {
   };
 }
 
-async function montar(): Promise<ContextoCicloVida> {
+async function montar(denunciaPublica = false): Promise<ContextoCicloVida> {
   const supabase = await criarClienteServidor();
   const { data } = await supabase.auth.getUser();
   const falhas: FalhasBloqueio = { suspender: false, reativar: false };
+  const banco = criarBancoCicloVida(supabase);
   return criarContextoCicloVida({
-    admin: criarServicoCicloVida(criarBancoCicloVida(supabase), {
-      aplicadorBloqueio: criarAplicadorBloqueio(falhas),
-    }),
+    admin: criarServicoCicloVida(
+      // D-034: a denúncia de quem NÃO está logado passa pelo servidor (chave de serviço só nessa chamada).
+      denunciaPublica && !data.user ? { ...banco, denunciar: denunciarViaServidor } : banco,
+      { aplicadorBloqueio: criarAplicadorBloqueio(falhas) },
+    ),
     conta: criarServicoCicloVidaConta(criarBancoCicloVidaConta(supabase)),
     logado: Boolean(data.user),
     falhas,
@@ -89,8 +93,11 @@ async function montar(): Promise<ContextoCicloVida> {
   });
 }
 
-/** Visitante ou logado (denúncia pública). */
-export const obterContextoCicloVidaAberto = montar;
+/** Visitante ou logado. */
+export const obterContextoCicloVidaAberto = () => montar();
+
+/** Só para a denúncia (já protegida por Turnstile e origem): o visitante anônimo chama o banco pelo servidor. */
+export const obterContextoDenunciaPublica = () => montar(true);
 
 /** Exige login (senão leva a /entrar e volta depois). */
 export async function obterContextoCicloVida(voltarPara: string): Promise<ContextoCicloVida> {

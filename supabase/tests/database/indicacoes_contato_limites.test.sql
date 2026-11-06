@@ -61,8 +61,8 @@ select has_column('public', 'indicacoes_pedido_contato', 'origem_hash', 'pedido 
 
 -- ===== Limite por DESTINO: só alarme (não recusa) com o interruptor desligado; recusa só com ele ligado =====
 update public.indicacoes_parametro set valor = 3 where chave = 'contato_limite_por_destino_hora';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Spam', p_whatsapp => '+5511911110001', p_chave => 'chave-dest-0000000001')$$, 'destino: pedido 1 (whatsapp 1)');
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Spam', p_whatsapp => '+5511911110002', p_chave => 'chave-dest-0000000002')$$, 'destino: pedido 2 (whatsapp 2)');
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Spam', p_whatsapp => '+5511911110003', p_chave => 'chave-dest-0000000003')$$, 'destino: pedido 3 (whatsapp 3)');
@@ -72,8 +72,8 @@ select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 
 reset role;
 select is((select count(*)::int from public.indicacoes_alarme_excesso where tipo = 'destino' and alvo_id = 'a0000000-0000-0000-0000-000000000001'), 1, 'o excesso por destino gerou alarme');
 update public.indicacoes_parametro set valor = 1 where chave = 'contato_recusar_excesso';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Spam', p_whatsapp => '+5511911110006', p_chave => 'chave-dest-0000000006')$$, 'P0429', null, 'interruptor ligado: o destino acima do limiar recusa (mesmo interruptor do S-03)');
 reset role;
 update public.indicacoes_parametro set valor = 0 where chave = 'contato_recusar_excesso';
@@ -81,8 +81,8 @@ update public.indicacoes_parametro set valor = 60 where chave = 'contato_limite_
 
 -- ===== Limite por ORIGEM (hash) =====
 update public.indicacoes_parametro set valor = 2 where chave = 'contato_limite_por_origem';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => null, p_item_id => 'e0000000-0000-0000-0000-000000000002', p_nome => 'Bot', p_whatsapp => '+5511922220001', p_chave => 'chave-orig-0000000001', p_origem_hash => repeat('a', 64))$$, 'origem A: pedido 1');
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => null, p_item_id => 'e0000000-0000-0000-0000-000000000004', p_nome => 'Bot', p_whatsapp => '+5511922220002', p_chave => 'chave-orig-0000000002', p_origem_hash => repeat('a', 64))$$, 'origem A: pedido 2 (outro destino e outro WhatsApp)');
 select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Bot', p_whatsapp => '+5511922220003', p_chave => 'chave-orig-0000000003', p_origem_hash => repeat('a', 64))$$, 'P0429', null, 'origem A: terceiro pedido é recusado mesmo trocando destino e WhatsApp');
@@ -107,7 +107,14 @@ select is((select link_id from public.indicacoes_pedido_contato where whatsapp_e
 select is((select count(*)::int from public.indicacoes_alarme_excesso where tipo = 'link' and alvo_id = 'c0000000-0000-0000-0000-000000000001'), 1, 'o excesso por link e origem gerou alarme de link');
 
 -- ===== Privilégios: anon executa só a assinatura nova; nada de tabela =====
-select ok(has_function_privilege('anon', 'public.indicacoes_enviar_contato(uuid, uuid, text, text, text, text, text, text, text)', 'execute'), 'anon executa o envio de contato (IM-026)');
+select ok(not has_function_privilege('anon', 'public.indicacoes_enviar_contato(uuid, uuid, text, text, text, text, text, text, text)', 'execute'), 'anon não executa o envio de contato direto (D-034, IM-026)');
+select ok(has_function_privilege('service_role', 'public.indicacoes_enviar_contato(uuid, uuid, text, text, text, text, text, text, text)', 'execute'), 'service_role executa o envio de contato (ação do servidor com Turnstile)');
+select ok(has_function_privilege('authenticated', 'public.indicacoes_enviar_contato(uuid, uuid, text, text, text, text, text, text, text)', 'execute'), 'authenticated mantém o envio de contato (sessão: auth.uid() vale)');
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Bot', p_whatsapp => '+5511955550001', p_chave => 'chave-anon-0000000001')$$, '42501', null, 'anon chamando o contato direto: permissão negada (D-034)');
+select throws_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude')$$, '42501', null, 'anon chamando a denúncia direto: permissão negada (D-034)');
+reset role;
 select ok(not has_function_privilege('public', 'public.indicacoes_enviar_contato(uuid, uuid, text, text, text, text, text, text, text)', 'execute'), 'PUBLIC sem execute');
 select ok(not has_table_privilege('anon', 'public.indicacoes_pedido_contato', 'select'), 'anon continua sem ler pedidos (origem_hash nunca exposto)');
 select ok(not has_table_privilege('authenticated', 'public.indicacoes_pedido_contato', 'select'), 'authenticated continua sem ler a tabela de pedidos');

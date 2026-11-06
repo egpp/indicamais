@@ -85,7 +85,8 @@ select columns_are('public', 'indicacoes_meus_links', array['id', 'codigo', 'des
   'a visão de links não traz id de conta');
 select columns_are('public', 'indicacoes_meus_pedidos', array['id', 'destino_tipo', 'destino_id', 'destino_nome', 'nome', 'whatsapp_e164', 'email', 'mensagem', 'criado_em', 'veio_por_indicacao', 'notificacao_estado'],
   'a visão do responsável traz o que o IM-027 pede e nenhum id de conta');
-select is(has_function_privilege('anon', 'public.indicacoes_enviar_contato(uuid,uuid,text,text,text,text,text,text,text)', 'EXECUTE'), true, 'visitante anônimo pode enviar pedido pelo RPC');
+select is(has_function_privilege('anon', 'public.indicacoes_enviar_contato(uuid,uuid,text,text,text,text,text,text,text)', 'EXECUTE'), false, 'anon não chama o RPC de contato direto (D-034): só a ação do servidor, com Turnstile, usa service_role');
+select is(has_function_privilege('service_role', 'public.indicacoes_enviar_contato(uuid,uuid,text,text,text,text,text,text,text)', 'EXECUTE'), true, 'service_role (ação do servidor) chama o RPC de contato');
 select is(has_function_privilege('anon', 'public.indicacoes_gerar_link(uuid,uuid)', 'EXECUTE'), false, 'anon não gera link');
 select is(has_function_privilege('anon', 'public.indicacoes_solicitar_reenvio(uuid,text)', 'EXECUTE')
   or has_function_privilege('anon', 'public.indicacoes_tratar_alerta(uuid,text)', 'EXECUTE')
@@ -168,8 +169,8 @@ select throws_ok($$select public.indicacoes_registrar_compartilhamento(current_s
 reset role;
 
 -- ===== Pedido de contato: visitante sem cadastro =====
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select is((select o_whatsapp_responsavel from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Maria Silva',
   p_whatsapp => '+5511988880001', p_chave => 'chave-0000000000001')), '+5551988880001',
@@ -186,8 +187,8 @@ select is((select count(*)::int from public.indicacoes_evento where tipo = 'cont
 select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_1')::uuid), 'pendente', 'notificação nasce pendente');
 select is((select link_id is null and solicitante_id is null from public.indicacoes_pedido_contato where id = current_setting('t.ped_1')::uuid), true, 'sem código e sem login: sem atribuição nem solicitante');
 
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select is((select o_pedido_id::text from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Maria S.',
   p_whatsapp => '+5511988880001', p_chave => 'chave-0000000000002')), current_setting('t.ped_1'),
@@ -203,8 +204,8 @@ select is((select count(*)::int from public.indicacoes_notificacao n join public
 insert into public.indicacoes_pedido_contato (id, perfil_id, nome, whatsapp_e164, chave_idempotencia, criado_em)
 values ('99999999-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Antigo', '+5511977770001', 'chave-antiga-00000001', now() - interval '30 minutes');
 insert into public.indicacoes_notificacao (pedido_id) values ('99999999-0000-0000-0000-000000000001');
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select is((select o_repetido from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Antigo',
   p_whatsapp => '+5511977770001', p_chave => 'chave-nova-0000000002')), false, 'fora da janela o pedido é novo');
@@ -216,8 +217,8 @@ update public.indicacoes_parametro set valor = 60 where chave = 'contato_janela_
 insert into public.indicacoes_pedido_contato (id, item_id, nome, whatsapp_e164, chave_idempotencia, criado_em)
 values ('99999999-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000004', 'Antigo Dois', '+5511977770002', 'chave-antiga-00000002', now() - interval '30 minutes');
 insert into public.indicacoes_notificacao (pedido_id) values ('99999999-0000-0000-0000-000000000002');
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select is((select o_pedido_id from public.indicacoes_enviar_contato(
   p_perfil_id => null, p_item_id => 'e0000000-0000-0000-0000-000000000004', p_nome => 'Antigo Dois',
   p_whatsapp => '+5511977770002', p_chave => 'chave-nova-0000000003')), '99999999-0000-0000-0000-000000000002'::uuid, 'a janela é parâmetro central');
@@ -225,8 +226,8 @@ reset role;
 update public.indicacoes_parametro set valor = 10 where chave = 'contato_janela_repeticao_minutos';
 
 -- ===== Atribuição só no destino correto (IM-025) =====
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select set_config('t.ped_attr', (select o_pedido_id::text from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'João Souza',
   p_whatsapp => '+5511955550001', p_chave => 'chave-attr-00000001', p_email => 'joao@exemplo.com', p_mensagem => E'Olá,\nquero orçamento.',
@@ -264,8 +265,8 @@ reset role;
 select is((select solicitante_id from public.indicacoes_pedido_contato where chave_idempotencia = 'chave-logado-00000001'), 'ffffffff-0000-0000-0000-00000000000f'::uuid, 'solicitante logado é guardado (e não é legível por papel de API)');
 
 -- ===== Validação de entrada =====
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Teste', p_whatsapp => '+55119999ABCDE', p_chave => 'chave-val-0000000001')$$, '22023', null, 'WhatsApp com letras');
 select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Teste', p_whatsapp => E'+551199​990001', p_chave => 'chave-val-0000000002')$$, '22023', null, 'WhatsApp com caractere invisível (zero-width)');
 select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Teste', p_whatsapp => E'+55１１９９９９９０００１', p_chave => 'chave-val-0000000003')$$, '22023', null, 'WhatsApp com dígitos de largura total');
@@ -291,8 +292,8 @@ select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id =>
 reset role;
 -- Perfil despublicado depois: item do perfil também sai (IM-079).
 update public.perfis_perfil set publicado = false where id = 'a0000000-0000-0000-0000-000000000001';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select throws_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => null, p_item_id => 'e0000000-0000-0000-0000-000000000002', p_nome => 'Teste', p_whatsapp => '+5511933330003', p_chave => 'chave-ind-0000000005')$$, 'P0002', null, 'item de perfil despublicado recusa pedido');
 reset role;
 set local role authenticated;
@@ -304,8 +305,8 @@ update public.perfis_perfil set publicado = true where id = 'a0000000-0000-0000-
 
 -- ===== Limite de taxa por WhatsApp =====
 update public.indicacoes_parametro set valor = 3 where chave = 'contato_limite_por_whatsapp';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Spam', p_whatsapp => '+5511922220001', p_chave => 'chave-spam-0000000001')$$, 'spam 1');
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => null, p_item_id => 'e0000000-0000-0000-0000-000000000001', p_nome => 'Spam', p_whatsapp => '+5511922220001', p_chave => 'chave-spam-0000000002')$$, 'spam 2');
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => null, p_item_id => 'e0000000-0000-0000-0000-000000000002', p_nome => 'Spam', p_whatsapp => '+5511922220001', p_chave => 'chave-spam-0000000003')$$, 'spam 3');

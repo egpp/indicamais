@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   obterContextoIndicacoes,
+  obterContextoContatoPublico,
   obterContextoIndicacoesAberto,
   type ContextoIndicacoes,
 } from "./_lib/contexto-indicacoes";
@@ -68,7 +69,7 @@ export async function acaoEnviarContato(_: EstadoContato, f: FormData): Promise<
   ).catch(() => ({ ok: false, erro: MENSAGENS_INDICACOES.generica }));
   if (!protecao.ok) return { erro: protecao.erro, valores };
   const estado = await comContexto(
-    obterContextoIndicacoesAberto,
+    obterContextoContatoPublico,
     (ctx, dados) => enviarContatoVisitante(ctx, dados, protecao.origem),
     f,
     valores,
