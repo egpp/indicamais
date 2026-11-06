@@ -3,9 +3,10 @@ import Link from "next/link";
 import { FormRedefinirSenha } from "../_componentes/formularios";
 import { Aviso, CartaoPagina } from "../_componentes/ui";
 import { MENSAGEM_LINK_INVALIDO } from "../_lib/mensagens-auth";
+import { SEM_INDEXACAO } from "../_lib/pagina";
 import { criarClienteServidor } from "@/shared/supabase/servidor";
 
-export const metadata: Metadata = { title: "Redefinir senha | IndicaMais" };
+export const metadata: Metadata = { title: "Redefinir senha | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaRedefinirSenha() {
