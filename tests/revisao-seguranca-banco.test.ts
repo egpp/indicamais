@@ -608,9 +608,13 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
     // Sem CASE no WHERE do destino: o plano precisa poder usar o índice parcial de perfil ou de item.
     expect(corpo).not.toMatch(/\(case when new\.perfil_id/i);
     expect(corpo).toMatch(/if new\.perfil_id is not null then/);
-    expect(corpo).toMatch(/p\.perfil_id = new\.perfil_id and p\.criado_em > v_desde limit v_lim \* 4/);
+    expect(corpo).toMatch(
+      /p\.perfil_id = new\.perfil_id and p\.criado_em > v_desde limit v_lim \* 4/,
+    );
     expect(corpo).toMatch(/p\.item_id = new\.item_id and p\.criado_em > v_desde limit v_lim \* 4/);
-    expect(tudoMigracoes).toMatch(/constraint indicacoes_alarme_nivel check \(nivel between 0 and 2\)/);
+    expect(tudoMigracoes).toMatch(
+      /constraint indicacoes_alarme_nivel check \(nivel between 0 and 2\)/,
+    );
     const f = funcoes.get("indicacoes_admin_listar_alarmes");
     expect(f?.corpo).toMatch(/perform public\.administracao_exigir_admin\(\)/);
     expect(f?.definer).toBe(true);
