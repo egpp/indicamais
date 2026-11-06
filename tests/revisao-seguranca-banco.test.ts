@@ -509,8 +509,7 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
   });
 
   it("S-03: por link tira a atribuição (não recusa); destino e global só alarmam, com interruptor para recusar", () => {
-    const tudo = migracoes.map((m) => m.t).join("
-");
+    const tudo = migracoes.map((m) => m.t).join("\n");
     expect(tudo).toMatch(
       /create trigger indicacoes_pedido_limitar before insert on public\.indicacoes_pedido_contato/i,
     );
