@@ -10,25 +10,7 @@ const raiz = process.cwd();
 const ler = (p: string) => readFileSync(join(raiz, p), "utf8");
 
 describe("revisão de segurança do app: achados abertos", () => {
-  it.fails(
-    "RSA-01: respostas HTTP definem cabeçalhos de segurança (CSP, nosniff, frame-ancestors, Referrer-Policy)",
-    () => {
-      const fontes = ler("next.config.ts") + ler("public/_headers") + ler("src/proxy.ts");
-      expect(fontes).toMatch(/Content-Security-Policy/i);
-      expect(fontes).toMatch(/X-Content-Type-Options/i);
-      expect(fontes).toMatch(/frame-ancestors|X-Frame-Options/i);
-      expect(fontes).toMatch(/Referrer-Policy/i);
-    },
-  );
-
-  it.fails("RSA-03: actions dos workflows fixadas por SHA de commit", () => {
-    const dir = join(raiz, ".github/workflows");
-    const usos = readdirSync(dir)
-      .flatMap((f) => ler(`.github/workflows/${f}`).split("\n"))
-      .filter((l) => /^\s*-?\s*uses:/.test(l));
-    expect(usos.length).toBeGreaterThan(0);
-    for (const l of usos) expect(l).toMatch(/@[0-9a-f]{40}\b/);
-  });
+  // RSA-01, RSA-03, RSA-08, RSA-11 e RSA-12 foram corrigidos: testes em tests/hardening-config.test.ts.
 
   it.fails(
     "RSA-05: o limite de pedidos de contato não depende só do WhatsApp informado pelo visitante",
