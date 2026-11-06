@@ -63,6 +63,18 @@ jobs:
           fi
           echo "Credenciais da Cloudflare presentes (valores nao exibidos)."
 
+      - name: Verificar NEXT_PUBLIC_APP_URL
+        env:
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${NEXT_PUBLIC_APP_URL:-}" ]; then
+            echo "::error::Falta a variavel de repositorio NEXT_PUBLIC_APP_URL (URL publica do app de dev). Sem ela, cadastro, login com Google e e-mails de conta falham em producao. Crie em Settings > Secrets and variables > Actions > Variables."
+            exit 1
+          fi
+          echo "NEXT_PUBLIC_APP_URL presente (valor nao exibido)."
+
       - name: Publicar em desenvolvimento (indicamais-dev)
         id: publicar
         env:
