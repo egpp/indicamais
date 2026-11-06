@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { MENSAGENS_CICLO } from "@/modules/administracao";
 import { bloquearAcessoNoAuth, liberarAcessoNoAuth } from "@/shared/supabase/acesso-conta";
 import type { ContextoCicloVida } from "./contexto-ciclo-vida";
@@ -10,6 +11,8 @@ import { deErro, valoresDe } from "./resposta";
  * transformam o resultado em estado de tela. Nenhuma regra de negócio. Mensagens vêm dos módulos, nunca do banco.
  * Quem garante permissão é o banco (RLS e funções) a cada chamada.
  */
+const UUID = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
 export const MENSAGENS_TELA_CICLO = {
   decidida: "Decisão registrada. Nenhuma conta foi suspensa por isso.",
   concedida: "Permissão concedida.",
@@ -140,6 +143,10 @@ export async function sincronizarAcesso(
   if (!(await ctx.permissoes()).includes("suspender")) {
     return { erro: MENSAGENS_CICLO.semPermissao };
   }
+  // RSA-10: id que não é UUID nunca chega à Admin API (chave de serviço). Conta fora da lista (ativa) segue
+  // liberada de propósito: é o caminho de repetir a liberação após "reativada sem liberar". Restringir mais
+  // (só conta reativada) e auditar exige função no banco (ver docs/revisao-seguranca-app.md, RSA-10).
+  if (!UUID.safeParse(contaId).success) return { erro: MENSAGENS_TELA_CICLO.sincronizarNegado };
   const lista = await ctx.admin.listarContasCicloVida();
   if (!lista.ok) return { erro: lista.erro.mensagem };
   const conta = lista.valor.find((c) => c.contaId === contaId);

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { exigirAdministrador } from "./_lib/exigir-administrador";
 import { obterServicoLocalizacao } from "./_lib/contexto-localizacao";
 import { obterContexto } from "./_lib/contexto-sessao";
 import { impressaoEndereco, localizarSeguro } from "./_lib/tratadores-localizacao";
@@ -126,16 +127,22 @@ export async function acaoSolicitarCategoria(_: EstadoFormulario, f: FormData) {
   return rodar("/solicitar-categoria", solicitarCategoria, f);
 }
 
+/** RSA-06: papel de administrador conferido no servidor antes de qualquer chamada de negócio ao banco. */
+async function rodarAdmin(...args: Parameters<typeof rodar>): Promise<EstadoFormulario> {
+  await exigirAdministrador(args[0]);
+  return rodar(...args);
+}
+
 // Administrador ----------------------------------------------------------------------------------------
 export async function acaoDecidirRevisao(_: EstadoFormulario, f: FormData) {
-  return rodar("/administracao/revisao", decidirRevisao, f);
+  return rodarAdmin("/administracao/revisao", decidirRevisao, f);
 }
 export async function acaoCriarCategoria(_: EstadoFormulario, f: FormData) {
-  return rodar("/administracao/categorias", criarCategoria, f);
+  return rodarAdmin("/administracao/categorias", criarCategoria, f);
 }
 export async function acaoAlterarCategoria(_: EstadoFormulario, f: FormData) {
-  return rodar("/administracao/categorias", alterarCategoria, f);
+  return rodarAdmin("/administracao/categorias", alterarCategoria, f);
 }
 export async function acaoDecidirSolicitacao(_: EstadoFormulario, f: FormData) {
-  return rodar("/administracao/categorias", decidirSolicitacao, f);
+  return rodarAdmin("/administracao/categorias", decidirSolicitacao, f);
 }

@@ -10,3 +10,13 @@ EMAIL_API_KEY=
 EMAIL_FROM=
 # URL publica do site (https://...), usada nos links dos avisos. No Worker de dev e a do workers.dev. Nao e segredo.
 NEXT_PUBLIC_APP_URL=
+
+# Protecao dos formularios publicos (contato e denuncia; RSA-05, RSA-07, D-033). Somente nomes; nunca comite valores.
+# Turnstile da Cloudflare (gratis): crie um widget no painel Cloudflare (Turnstile) com o dominio do site.
+# Chave do site (publica; vai para o navegador; precisa estar definida na hora do build).
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+# Chave secreta (SOMENTE servidor/Worker). Sem ela, em producao o envio e recusado (falha fechado); em pnpm dev e dispensada.
+TURNSTILE_SECRET_KEY=
+# Segredo do HMAC do hash de origem (IP + navegador) da denuncia e do contato. SOMENTE servidor/Worker. Gere com: openssl rand -hex 32
+# (minimo 32 caracteres). Sem ele, em producao o envio e recusado; em pnpm dev a origem fica vazia.
+DENUNCIA_HASH_SEGREDO=

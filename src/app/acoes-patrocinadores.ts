@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { exigirAdministrador } from "./_lib/exigir-administrador";
 import { obterContextoPatrocinadores } from "./_lib/contexto-patrocinadores";
 import type { ContextoPatrocinadores } from "./_lib/contexto-patrocinadores";
 import type { EstadoFormulario } from "./_lib/estado-formulario";
@@ -24,6 +25,8 @@ async function rodar(
   tratador: Tratador,
   f: FormData,
 ): Promise<EstadoFormulario> {
+  // RSA-06: papel de administrador conferido no servidor antes de qualquer chamada de negócio ao banco.
+  await exigirAdministrador(voltarPara);
   const ctx = await obterContextoPatrocinadores(voltarPara);
   const { destino, ...estado } = await tratador(ctx, f);
   revalidatePath("/", "layout");

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { MENSAGENS_PERFIS } from "@/modules/perfis";
+import { exigirAdministrador } from "./_lib/exigir-administrador";
 import { obterContextoAparencia } from "./_lib/contexto-aparencia";
 import type { EstadoFormulario } from "./_lib/estado-formulario";
 import type { Resposta } from "./_lib/resposta";
@@ -43,11 +44,17 @@ async function rodar(
   }
 }
 
+/** RSA-06: papel de administrador conferido no servidor antes de qualquer chamada de negócio ao banco. */
+async function rodarAdmin(...args: Parameters<typeof rodar>): Promise<EstadoFormulario> {
+  await exigirAdministrador(args[0]);
+  return rodar(...args);
+}
+
 export async function acaoSalvarEstilo(_: EstadoFormulario, f: FormData) {
   return rodar("/aparencia", salvarEstilo, f, ["/"]);
 }
 export async function acaoHabilitarEstilo(_: EstadoFormulario, f: FormData) {
-  return rodar("/administracao/estilos", habilitarEstilo, f, ["/"]);
+  return rodarAdmin("/administracao/estilos", habilitarEstilo, f, ["/"]);
 }
 export async function acaoSalvarBanners(_: EstadoFormulario, f: FormData) {
   return rodar("/aparencia", salvarBanners, f, ["/"]);
@@ -59,8 +66,8 @@ export async function acaoBannerAtivo(_: EstadoFormulario, f: FormData) {
   return rodar("/aparencia", definirBannerAtivo, f, ["/"]);
 }
 export async function acaoAdicionarBannerAdmin(_: EstadoFormulario, f: FormData) {
-  return rodar("/administracao/negocios", adicionarBannerAdmin, f, ["/"]);
+  return rodarAdmin("/administracao/negocios", adicionarBannerAdmin, f, ["/"]);
 }
 export async function acaoRemoverBannerAdmin(_: EstadoFormulario, f: FormData) {
-  return rodar("/administracao/negocios", removerBannerAdmin, f, ["/"]);
+  return rodarAdmin("/administracao/negocios", removerBannerAdmin, f, ["/"]);
 }

@@ -85,7 +85,7 @@ select columns_are('public', 'indicacoes_meus_links', array['id', 'codigo', 'des
   'a visão de links não traz id de conta');
 select columns_are('public', 'indicacoes_meus_pedidos', array['id', 'destino_tipo', 'destino_id', 'destino_nome', 'nome', 'whatsapp_e164', 'email', 'mensagem', 'criado_em', 'veio_por_indicacao', 'notificacao_estado'],
   'a visão do responsável traz o que o IM-027 pede e nenhum id de conta');
-select is(has_function_privilege('anon', 'public.indicacoes_enviar_contato(uuid,uuid,text,text,text,text,text,text)', 'EXECUTE'), true, 'visitante anônimo pode enviar pedido pelo RPC');
+select is(has_function_privilege('anon', 'public.indicacoes_enviar_contato(uuid,uuid,text,text,text,text,text,text,text)', 'EXECUTE'), true, 'visitante anônimo pode enviar pedido pelo RPC');
 select is(has_function_privilege('anon', 'public.indicacoes_gerar_link(uuid,uuid)', 'EXECUTE'), false, 'anon não gera link');
 select is(has_function_privilege('anon', 'public.indicacoes_solicitar_reenvio(uuid,text)', 'EXECUTE')
   or has_function_privilege('anon', 'public.indicacoes_tratar_alerta(uuid,text)', 'EXECUTE')

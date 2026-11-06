@@ -66,6 +66,7 @@ function errosDoContato(erro: ErroIndicacoes, valores: Record<string, string>): 
 export async function enviarContatoVisitante(
   ctx: ContextoIndicacoes,
   f: FormData,
+  origem?: string,
 ): Promise<EstadoContato> {
   const ler = lerDeFormData(f);
   const valores = valoresDe(f, CAMPOS_CONTATO);
@@ -81,6 +82,8 @@ export async function enviarContatoVisitante(
     // IM-025: o código só vale para ESTE destino (a página e o formulário são do mesmo destino).
     codigo: ler("ind"),
     chave: ler("chave"),
+    // RSA-05: hash de origem calculado no servidor (nunca vem do formulário). Ausente = sem limite por origem.
+    ...(origem ? { origem } : {}),
   });
   if (!r.ok) return errosDoContato(r.erro, valores);
   return { sucesso: MENSAGENS_TELA_CONTATO.enviado, urlWhatsapp: r.valor.urlWhatsappResponsavel };

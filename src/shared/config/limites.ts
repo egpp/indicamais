@@ -56,6 +56,23 @@ export const LIMITES = {
     mensagemMax: 1000,
     chaveMin: 16,
     chaveMax: 100,
+    /**
+     * Limites padrão da janela de taxa (RSA-05, D-033): ESPELHAM os parâmetros do banco
+     * (indicacoes_parametro: contato_limite_por_origem, migração 20261106120000; o limite por destino é alarme, parâmetro do S-03 em 20261106110000). Quem
+     * impõe é o banco; o administrador ajusta em /administracao/parametros. Aqui ficam o valor de referência e
+     * os textos; um teste confere que migração e este arquivo não divergem.
+     */
+    limitePorOrigemPadrao: 10,
+  },
+  /**
+   * Turnstile da Cloudflare (RSA-05, IM-076): formulário público de contato e denúncia. Verificação SEMPRE no
+   * servidor. tokenMax: tamanho máximo aceito do token (a Cloudflare documenta até 2048 caracteres).
+   */
+  turnstile: {
+    urlVerificacao: "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    urlScript: "https://challenges.cloudflare.com/turnstile/v0/api.js",
+    tokenMax: 2048,
+    timeoutMs: 5_000,
   },
   /**
    * Notificação ao responsável sobre pedido de contato (IM-027, IM-028, IM-050). Política central:

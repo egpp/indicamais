@@ -1964,6 +1964,39 @@ export type Database = {
         }
         Relationships: []
       }
+      indicacoes_alarme_excesso: {
+        Row: {
+          alvo_id: string | null
+          criado_em: string
+          id: number
+          janela: string
+          limite: number
+          nivel: number
+          quantidade: number
+          tipo: string
+        }
+        Insert: {
+          alvo_id?: string | null
+          criado_em?: string
+          id?: never
+          janela: string
+          limite: number
+          nivel?: number
+          quantidade: number
+          tipo: string
+        }
+        Update: {
+          alvo_id?: string | null
+          criado_em?: string
+          id?: never
+          janela?: string
+          limite?: number
+          nivel?: number
+          quantidade?: number
+          tipo?: string
+        }
+        Relationships: []
+      }
       indicacoes_evento: {
         Row: {
           canal: string | null
@@ -2288,6 +2321,7 @@ export type Database = {
           link_id: string | null
           mensagem: string | null
           nome: string
+          origem_hash: string | null
           perfil_id: string | null
           solicitante_id: string | null
           whatsapp_e164: string
@@ -2302,6 +2336,7 @@ export type Database = {
           link_id?: string | null
           mensagem?: string | null
           nome: string
+          origem_hash?: string | null
           perfil_id?: string | null
           solicitante_id?: string | null
           whatsapp_e164: string
@@ -2316,6 +2351,7 @@ export type Database = {
           link_id?: string | null
           mensagem?: string | null
           nome?: string
+          origem_hash?: string | null
           perfil_id?: string | null
           solicitante_id?: string | null
           whatsapp_e164?: string
@@ -6089,6 +6125,20 @@ export type Database = {
         Args: { p_confirmacao: string }
         Returns: string
       }
+      indicacoes_admin_listar_alarmes: {
+        Args: { p_deslocamento?: number; p_limite?: number; p_tipo?: string }
+        Returns: {
+          o_alvo_id: string
+          o_criado_em: string
+          o_id: number
+          o_janela: string
+          o_limite: number
+          o_nivel: number
+          o_quantidade: number
+          o_tipo: string
+          o_total: number
+        }[]
+      }
       indicacoes_definir_parametro: {
         Args: { p_chave: string; p_motivo: string; p_valor: number }
         Returns: undefined
@@ -6105,6 +6155,7 @@ export type Database = {
           p_item_id: string
           p_mensagem?: string
           p_nome: string
+          p_origem_hash?: string
           p_perfil_id: string
           p_whatsapp: string
         }

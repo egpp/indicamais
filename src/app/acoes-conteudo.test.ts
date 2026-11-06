@@ -12,6 +12,9 @@ const revalidatePath = vi.fn();
 vi.mock("./_lib/contexto-sessao", () => ({
   obterContexto: (v: string) => obterContexto(v),
 }));
+// O papel de administrador no servidor (RSA-06) é testado em acoes-administrativas-papel.test.ts; aqui interessa a
+// defesa seguinte, a do serviço do módulo.
+vi.mock("./_lib/exigir-administrador", () => ({ exigirAdministrador: async () => undefined }));
 vi.mock("next/cache", () => ({ revalidatePath: (...a: unknown[]) => revalidatePath(...a) }));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
