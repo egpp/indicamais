@@ -7,7 +7,9 @@ delete from public.catalogo_categoria;
 
 insert into auth.users (id, instance_id, aud, role, email) values
   ('aaaaaaaa-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'a@teste.local'),
-  ('bbbbbbbb-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'b@teste.local');
+  ('bbbbbbbb-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'b@teste.local'),
+  ('dddddddd-0000-0000-0000-00000000000d', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'd@teste.local');
+insert into public.administracao_administrador (conta_id) values ('dddddddd-0000-0000-0000-00000000000d');
 insert into public.catalogo_categoria (id, nome, slug) values ('11111111-0000-0000-0000-000000000001', 'Alimentação', 'alimentacao');
 
 -- Perfil de A, aprovado e publicado, com capa.jpg no ar; solta.jpg existe mas não é usada por nenhuma versão.
@@ -129,6 +131,32 @@ select throws_ok($$delete from public.indicacoes_alarme_excesso$$, null, null, '
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
 select is((select count(*)::int from public.indicacoes_alarme_excesso), 0, 'responsável comum não lê o alarme');
+select throws_ok($$select * from public.indicacoes_admin_listar_alarmes()$$, '42501', null, 'responsável comum não usa a leitura administrativa do alarme');
+reset role;
+
+-- Nível do alarme: a contagem real sobe o nível (1 x = 0, 2 x = 1, 4 x = 2 do limite). Já há 16 pedidos na hora.
+select is((select count(*)::int from public.indicacoes_pedido_contato), 16, 'há 16 pedidos antes do teste de nível');
+select is((select nivel::int from public.indicacoes_alarme_excesso where tipo = 'global'), 0, 'o primeiro alarme global é de nível 0');
+-- Limiar 10 (mínimo permitido): 16 < 20, nível 0 já registrado. Mais 4 pedidos levam a contagem a 20 = 2 x.
+insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia)
+select 'a0000000-0000-0000-0000-000000000001', 'Nivel ' || g, '+55519000002' || lpad(g::text, 2, '0'), 'chave-nivel-' || lpad(g::text, 6, '0')
+from generate_series(1, 5) g;
+select is((select max(nivel)::int from public.indicacoes_alarme_excesso where tipo = 'global'), 1, 'a contagem em 2 x o limite sobe o alarme para o nível 1');
+select ok((select quantidade from public.indicacoes_alarme_excesso where tipo = 'global' and nivel = 1) >= 20, 'a quantidade registrada é a contagem real (não só o limite)');
+select ok((select count(*) from public.indicacoes_alarme_excesso where tipo = 'global') <= 3, 'no máximo três registros por alvo e hora');
+
+-- Leitura administrativa do alarme: só o administrador, paginada, sem dado pessoal.
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+select throws_ok($$select * from public.indicacoes_admin_listar_alarmes()$$, '42501', null, 'anon não executa a leitura do alarme');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
+select ok((select count(*) from public.indicacoes_admin_listar_alarmes()) >= 4, 'o administrador lista os alarmes (link, destino e global)');
+select is((select count(*)::int from public.indicacoes_admin_listar_alarmes('link')), 1, 'filtro por tipo');
+select is((select count(*)::int from public.indicacoes_admin_listar_alarmes(null, 1, 0)), 1, 'a leitura é paginada');
+select ok((select o_total from public.indicacoes_admin_listar_alarmes(null, 1, 0)) >= 4, 'o total acompanha a página');
+select throws_ok($$select * from public.indicacoes_admin_listar_alarmes('outro')$$, '22023', null, 'tipo inválido é recusado');
 reset role;
 
 select * from finish();

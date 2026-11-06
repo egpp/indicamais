@@ -586,6 +586,42 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
     );
   });
 
+  it("S-01 e S-02 vivem em migrações separadas; o S-01 (gatilho em storage.objects) é o último da fila", () => {
+    const s02 = migracoes.find((m) => /seguranca_storage_update_fora_de_uso/.test(m.n));
+    const s01 = migracoes.find((m) => /seguranca_storage_sem_dono/.test(m.n));
+    const s03 = migracoes.find((m) => /seguranca_indicacoes_limites_contato/.test(m.n));
+    expect(s02 && s01 && s03).toBeTruthy();
+    // S-02: só a política; nada de gatilho nem de storage.objects além dela.
+    expect(s02!.t).toMatch(/drop policy catalogo_imagens_update_propria on storage\.objects/);
+    expect(s02!.t).toMatch(/not public\.catalogo_imagem_em_uso\(name\)/);
+    expect(s02!.t).not.toMatch(/create trigger|catalogo_storage_sem_dono/i);
+    // S-01: só o gatilho e a limpeza; sem política.
+    expect(s01!.t).toMatch(/create trigger catalogo_storage_sem_dono/);
+    expect(s01!.t).not.toMatch(/create policy|drop policy/i);
+    // Ordem do db push: o que pode falhar (S-01) vem depois de S-02 e S-03, para não bloqueá-los.
+    expect(s02!.n < s03!.n).toBe(true);
+    expect(s03!.n < s01!.n).toBe(true);
+  });
+
+  it("S-03: alarme com nível (quantidade real até 4 x o limite), dois IF no destino e leitura só do administrador", () => {
+    const corpo = funcoes.get("indicacoes_pedido_limitar")?.corpo ?? "";
+    // Sem CASE no WHERE do destino: o plano precisa poder usar o índice parcial de perfil ou de item.
+    expect(corpo).not.toMatch(/\(case when new\.perfil_id/i);
+    expect(corpo).toMatch(/if new\.perfil_id is not null then/);
+    expect(corpo).toMatch(/p\.perfil_id = new\.perfil_id and p\.criado_em > v_desde limit v_lim \* 4/);
+    expect(corpo).toMatch(/p\.item_id = new\.item_id and p\.criado_em > v_desde limit v_lim \* 4/);
+    expect(tudoMigracoes).toMatch(/constraint indicacoes_alarme_nivel check \(nivel between 0 and 2\)/);
+    const f = funcoes.get("indicacoes_admin_listar_alarmes");
+    expect(f?.corpo).toMatch(/perform public\.administracao_exigir_admin\(\)/);
+    expect(f?.definer).toBe(true);
+    expect(f?.searchPathVazio).toBe(true);
+    expect(f?.acl.anon).toBe(false);
+    expect(f?.acl.public).toBe(false);
+    expect(f?.grantExplicito.has("authenticated")).toBe(true);
+    expect(f?.corpo).toMatch(/limit least\(greatest\(coalesce\(p_limite, 50\), 1\), 100\)/);
+    expect(f?.corpo).not.toMatch(/nome|whatsapp|email|mensagem/i);
+  });
+
   it("a simulação enxerga TODA função, tabela e visão criada (sem formatação que a esconda da varredura)", () => {
     // Falso-verde achado na verificação: 'create function\n public.x' (quebra de linha), 'create  table' (espaço duplo)
     // e funções SQL com 'begin atomic' (sem $$) não eram reconhecidas pela simulação e escapavam das checagens de

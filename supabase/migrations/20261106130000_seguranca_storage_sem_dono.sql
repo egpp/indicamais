@@ -1,5 +1,9 @@
--- Fase 14 · revisão de segurança do banco · Storage · IM-021, IM-029, IM-086
--- Achados S-01 e S-02 de docs/revisao-seguranca-banco.md. ESCRITA, NÃO APLICADA: aplicar primeiro no dev, com aprovação (D-003).
+-- Fase 14 · revisão de segurança do banco · Storage · IM-029, IM-086
+-- Achado S-01 de docs/revisao-seguranca-banco.md. ESCRITA, NÃO APLICADA: aplicar primeiro no dev, com aprovação (D-003).
+-- ANTES de aplicar, rodar no dev a verificação prévia de docs/revisao-seguranca-banco.md (dono de storage.objects e
+-- privilégio TRIGGER do papel da migração). Este arquivo é o ÚLTIMO da fila de propósito: cria gatilho em tabela do Storage
+-- e pode falhar no Supabase hospedado; o S-02 (20261106100000), o S-03 (20261106110000) e as demais migrações da fase 14
+-- são independentes e ficam aplicadas se este falhar (cada migração roda em transação própria).
 --
 -- S-01 (alto) · o Storage grava `owner`/`owner_id` (a conta que enviou) em storage.objects e o devolve na listagem e no
 --   "info" do objeto. Como as políticas deixam anon listar as imagens públicas, quem tem a chave pública (anon) poderia
@@ -8,12 +12,6 @@
 --   que não vale para quem chama a API do Storage direto. CORREÇÃO: gatilho que zera owner e owner_id de todo objeto do
 --   bucket. Nenhuma política depende deles (todas usam auth.uid() e a pasta do perfil/item). Zera também o que já existe.
 --   jsonb_populate_record troca só os campos citados e ignora o que não existir no tipo (a coluna `owner` é legada).
---
--- S-02 (alto) · a política de UPDATE do dono não olhava se a imagem estava em uso. Quem chama a API direto, com upsert,
---   trocava o CONTEÚDO de um arquivo já aprovado (ou pendente de revisão) mantendo o mesmo nome: a revisão do
---   administrador (IM-021) ficava sem efeito. O app só envia com upsert: false (src/app/_lib/upload-imagem.ts) e nunca
---   usa UPDATE. CORREÇÃO: o UPDATE do dono só vale para objeto que NÃO está em rascunho, pendente nem no ar (mesma
---   função do DELETE: catalogo_imagem_em_uso), no USING e no WITH CHECK (também não "renomeia" para cima de um nome em uso).
 
 create function public.catalogo_storage_sem_dono() returns trigger
 language plpgsql set search_path = '' as $$
@@ -41,17 +39,3 @@ begin
     update storage.objects set owner = null where bucket_id = 'indicamais-imagens' and owner is not null;
   end if;
 end $$;
-
-drop policy catalogo_imagens_update_propria on storage.objects;
-create policy catalogo_imagens_update_propria on storage.objects
-  for update to authenticated
-  using (
-    bucket_id = 'indicamais-imagens'
-    and name !~ '/adm-[^/]*$'
-    and public.catalogo_pasta_do_dono(name)
-    and not public.catalogo_imagem_em_uso(name))
-  with check (
-    bucket_id = 'indicamais-imagens'
-    and name !~ '/adm-[^/]*$'
-    and public.catalogo_pasta_do_dono(name)
-    and not public.catalogo_imagem_em_uso(name));
