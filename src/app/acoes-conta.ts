@@ -40,6 +40,20 @@ const texto = (f: FormData, nome: string) => {
   return typeof v === "string" ? v : "";
 };
 
+const MENSAGEM_INDISPONIVEL_AGORA = "Não foi possível iniciar agora. Tente de novo mais tarde.";
+/** Código de log para falha de configuração (ex.: NEXT_PUBLIC_APP_URL ausente em produção). */
+const CODIGO_FALHA_CONFIGURACAO = "config_origem_ausente";
+
+/** Devolve a origem do app ou null (registrando a falha de configuração, sem dado pessoal). */
+async function origemSegura(acao: string): Promise<string | null> {
+  try {
+    return await origemDoApp();
+  } catch {
+    registrarFalhaAuth(acao, { code: CODIGO_FALHA_CONFIGURACAO });
+    return null;
+  }
+}
+
 export async function cadastrar(_: EstadoFormulario, f: FormData): Promise<EstadoFormulario> {
   const nome = texto(f, "nomeExibicao").trim();
   const valores = { email: texto(f, "email"), nomeExibicao: texto(f, "nomeExibicao") };
@@ -51,7 +65,8 @@ export async function cadastrar(_: EstadoFormulario, f: FormData): Promise<Estad
   if (!p.success) return { erros: errosPorCampo(p.error.issues), valores };
 
   const supabase = await criarClienteServidor();
-  const origem = await origemDoApp();
+  const origem = await origemSegura("cadastrar");
+  if (!origem) return { erro: MENSAGEM_INDISPONIVEL_AGORA, valores };
   const { data, error } = await supabase.auth.signUp({
     email: p.data.email,
     password: p.data.senha,
@@ -98,7 +113,8 @@ export async function entrar(_: EstadoFormulario, f: FormData): Promise<EstadoFo
 
 export async function entrarComGoogle(_: EstadoFormulario, f: FormData): Promise<EstadoFormulario> {
   const supabase = await criarClienteServidor();
-  const origem = await origemDoApp();
+  const origem = await origemSegura("entrar_google");
+  if (!origem) return { erro: MENSAGEM_INDISPONIVEL_AGORA };
   const proximo = caminhoSeguro(texto(f, "proximo"));
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -135,8 +151,8 @@ export async function solicitarRecuperacao(
     });
     registrarFalhaAuth("recuperar_senha", error);
   } catch {
-    // Ignora de propósito: a resposta é sempre a mesma (IM-008).
-    registrarFalhaAuth("recuperar_senha", { code: "excecao" });
+    // Resposta neutra sempre (IM-008), mas a falha fica destacada no log (sem dado pessoal).
+    registrarFalhaAuth("recuperar_senha", { code: CODIGO_FALHA_CONFIGURACAO });
   }
   return { sucesso: MENSAGEM_RECUPERACAO_SOLICITADA };
 }
@@ -159,8 +175,8 @@ export async function reenviarConfirmacao(
     });
     registrarFalhaAuth("reenviar_confirmacao", error);
   } catch {
-    // Resposta neutra sempre (IM-008).
-    registrarFalhaAuth("reenviar_confirmacao", { code: "excecao" });
+    // Resposta neutra sempre (IM-008), mas a falha fica destacada no log (sem dado pessoal).
+    registrarFalhaAuth("reenviar_confirmacao", { code: CODIGO_FALHA_CONFIGURACAO });
   }
   return { sucesso: MENSAGEM_CONFIRMACAO_REENVIADA };
 }
