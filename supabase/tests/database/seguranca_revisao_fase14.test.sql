@@ -110,10 +110,10 @@ select throws_ok($$select * from public.indicacoes_enviar_contato('a0000000-0000
 reset role;
 select is((select count(*)::int from public.indicacoes_pedido_contato where whatsapp_e164 = '+5551900000005'), 0, 'o pedido recusado não foi gravado');
 
--- service_role é isento (carga em massa), mesmo com o interruptor ligado.
+-- D-034: service_role NÃO é mais isento (o contato público chega como service_role): o interruptor ligado também recusa.
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
-select lives_ok($$insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia) values ('a0000000-0000-0000-0000-000000000001', 'Carga', '+5551900000006', 'chave-carga-0000006')$$,
-  'service_role não passa pelo limite');
+select throws_ok($$insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia) values ('a0000000-0000-0000-0000-000000000001', 'Carga', '+5551900000006', 'chave-carga-0000006')$$,
+  'P0429', null, 'service_role também passa pelo limite do destino');
 select set_config('request.jwt.claims', '', true);
 
 -- Global: limiar 10; com o interruptor desligado só alarma.

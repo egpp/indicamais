@@ -240,8 +240,8 @@ select is((select count(*)::int from public.relacionamento_membro where conta_id
   'gerar link e compartilhar não colocam ninguém na base (D-013)');
 
 -- ===== Contato válido pelo link: entra na base (IM-044) =====
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select set_config('t.p1', (select o_pedido_id::text from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Maria Silva',
   p_whatsapp => '+5511988880001', p_chave => 'chave-rel-rpc-00001', p_codigo => current_setting('t.cod_c_p1'))), true);

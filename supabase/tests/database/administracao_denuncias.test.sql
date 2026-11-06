@@ -57,6 +57,9 @@ select throws_ok($$select public.administracao_denunciar('perfil', 'a0000000-000
 select throws_ok($$select public.administracao_denunciar('lugar', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', null, repeat('a', 64))$$, '22023', null, 'alvo inválido');
 select throws_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', repeat('x', 501), repeat('a', 64))$$, '22023', null, 'texto acima de 500 caracteres');
 select throws_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', null, 'origem-nao-hash')$$, '22023', null, 'origem fora do formato');
+reset role;
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select throws_ok($$select * from public.administracao_denuncia$$, '42501', null, 'anônimo não lê denúncias');
 reset role;
 select is((select count(*)::int from public.administracao_denuncia), 1, 'só uma denúncia gravada: armadilha, repetição e alvo inexistente não gravam');

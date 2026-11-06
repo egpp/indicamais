@@ -549,10 +549,10 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
     expect(tabelas.get("indicacoes_alarme_excesso")?.imutavel).toBe(true);
   });
 
-  it("S-03 (verificação independente): isenção só por auth.role(), alarme legível só pelo administrador, evento herda o link", () => {
+  it("S-03 (verificação independente): sem isenção de service_role (D-034), alarme legível só pelo administrador, evento herda o link", () => {
     const corpo = funcoes.get("indicacoes_pedido_limitar")?.corpo ?? "";
-    // A isenção deriva do JWT validado pelo PostgREST; nunca de papel escolhido pelo chamador nem isenção para todos.
-    expect(corpo).toMatch(/if \(select auth\.role\(\)\) = 'service_role' then\s+return new;/);
+    // D-034: o contato público chega como service_role; qualquer isenção por papel desligaria os limites do site.
+    expect(corpo).not.toMatch(/auth\.role\(\)|service_role|return new;\s+end if;\s+v_recusar/);
     expect(corpo).not.toMatch(/\bif true\b/i);
     // Ordem de aquisição dos locks: link antes de destino (evita deadlock entre as duas travas).
     expect(corpo.indexOf("indicacoes_link:")).toBeGreaterThan(-1);
