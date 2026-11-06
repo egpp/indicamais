@@ -468,6 +468,7 @@ describe("revisão de segurança · visões (estado final)", () => {
 
 describe("revisão de segurança · Storage e abuso (estado final)", () => {
   const pol = [...politicasStorage.entries()];
+  const tudoMigracoes = migracoes.map((m) => m.t).join("\n");
 
   it("toda política de storage.objects fica restrita ao bucket de imagens", () => {
     expect(pol.length).toBeGreaterThan(8);
@@ -536,9 +537,93 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
     expect(funcoes.get("indicacoes_pedido_limitar")?.acl.anon).toBe(false);
     expect(funcoes.get("indicacoes_evento_link_do_pedido")?.acl.anon).toBe(false);
     // Teto configurável do limiar global: o custo da contagem fica limitado.
-    expect(tudo).toMatch(/'contato_limite_global_hora', 1000, 10, 10000/);
+    expect(tudo).toMatch(/'contato_limite_global_hora', 1000, 10, 10000,/);
     // Alarme: tabela só de inserção, lida só pelo administrador.
     expect(tabelas.get("indicacoes_alarme_excesso")?.imutavel).toBe(true);
+  });
+
+  it("S-03 (verificação independente): isenção só por auth.role(), alarme legível só pelo administrador, evento herda o link", () => {
+    const corpo = funcoes.get("indicacoes_pedido_limitar")?.corpo ?? "";
+    // A isenção deriva do JWT validado pelo PostgREST; nunca de papel escolhido pelo chamador nem isenção para todos.
+    expect(corpo).toMatch(/if \(select auth\.role\(\)\) = 'service_role' then\s+return new;/);
+    expect(corpo).not.toMatch(/\bif true\b/i);
+    // Ordem de aquisição dos locks: link antes de destino (evita deadlock entre as duas travas).
+    expect(corpo.indexOf("indicacoes_link:")).toBeGreaterThan(-1);
+    expect(corpo.indexOf("indicacoes_link:")).toBeLessThan(corpo.indexOf("indicacoes_destino:"));
+    // O alarme é gravado com ON CONFLICT DO NOTHING (um registro por tipo, alvo e hora): sem crescimento por pedido.
+    const insercoes = corpo.match(/insert into public\.indicacoes_alarme_excesso/g)?.length ?? 0;
+    const conflitos = corpo.match(/ do nothing/g)?.length ?? 0;
+    expect(insercoes).toBe(3);
+    expect(conflitos).toBe(3);
+    // Alarme sem dado pessoal: só tipo, janela, alvo (id), quantidade e limite.
+    const tab =
+      tudoMigracoes.match(
+        /create table public\.indicacoes_alarme_excesso \(([\s\S]*?)\n\);/i,
+      )?.[1] ?? "";
+    expect(tab).not.toMatch(/nome|whatsapp|email|mensagem|solicitante|ip\b|origem/i);
+    // Política de leitura: somente administrador; as três outras negam.
+    expect(tudoMigracoes).toMatch(
+      /create policy indicacoes_alarme_excesso_select_admin on public\.indicacoes_alarme_excesso\s+for select to authenticated using \(\(select public\.administracao_eh_admin\(\)\)\);/i,
+    );
+    for (const op of ["insert", "update", "delete"]) {
+      expect(tudoMigracoes).toMatch(
+        new RegExp(
+          `create policy indicacoes_alarme_excesso_${op}_negado on public\\.indicacoes_alarme_excesso\\s+for ${op} to authenticated (?:using|with check) \\(false\\)`,
+          "i",
+        ),
+      );
+    }
+    // O evento contato_enviado herda o link já tratado do pedido (IM-030): gatilho existe e lê o pedido.
+    expect(tudoMigracoes).toMatch(
+      /create trigger indicacoes_evento_link_do_pedido before insert on public\.indicacoes_evento/i,
+    );
+    expect(funcoes.get("indicacoes_evento_link_do_pedido")?.corpo).toMatch(
+      /new\.link_id := \(select p\.link_id from public\.indicacoes_pedido_contato p where p\.id = new\.pedido_id\)/,
+    );
+    // O gatilho de imutabilidade do alarme existe de fato (não só a política).
+    expect(tudoMigracoes).toMatch(
+      /create trigger indicacoes_alarme_excesso_imutavel\s+before update or delete on public\.indicacoes_alarme_excesso/i,
+    );
+  });
+
+  it("a simulação enxerga TODA função, tabela e visão criada (sem formatação que a esconda da varredura)", () => {
+    // Falso-verde achado na verificação: 'create function\n public.x' (quebra de linha), 'create  table' (espaço duplo)
+    // e funções SQL com 'begin atomic' (sem $$) não eram reconhecidas pela simulação e escapavam das checagens de
+    // RLS, REVOKE e search_path. Aqui a forma é travada: uma migração fora do padrão falha em vez de passar calada.
+    const fora: string[] = [];
+    for (const { n, t } of migracoes) {
+      for (const m of t.matchAll(/create\s+(?:or\s+replace\s+)?function\s+[^\s(]+/gi)) {
+        if (!/^create (?:or replace )?function public\.\w+$/.test(m[0])) fora.push(`${n}: ${m[0]}`);
+      }
+      for (const m of t.matchAll(
+        /create\s+(?:or\s+replace\s+)?(?:temp\s+|temporary\s+|unlogged\s+)?(?:table|view)\s+(?:if\s+not\s+exists\s+)?[^\s(]+/gi,
+      )) {
+        if (
+          !/^create (?:or replace )?(?:table|view) (?:if not exists )?(?:public\.)?[\w"]+$/.test(
+            m[0],
+          ) &&
+          !/^create (?:or replace )?(?:table|view) storage\./.test(m[0])
+        ) {
+          fora.push(`${n}: ${m[0]}`);
+        }
+      }
+      if (/begin\s+atomic/i.test(t))
+        fora.push(`${n}: função com 'begin atomic' (a varredura só lê corpo entre $$)`);
+    }
+    expect(fora).toEqual([]);
+    // Cada função criada com a forma esperada foi registrada.
+    const criadas = new Set<string>();
+    for (const { t } of migracoes) {
+      for (const m of t.matchAll(/create (?:or replace )?function public\.(\w+)\(/g))
+        criadas.add(m[1]!);
+    }
+    const dropadas = new Set<string>();
+    for (const { t } of migracoes) {
+      for (const m of t.matchAll(/drop function (?:if exists )?public\.(\w+)\(/g))
+        dropadas.add(m[1]!);
+    }
+    const naoVistas = [...criadas].filter((f) => !funcoes.has(f) && !dropadas.has(f));
+    expect(naoVistas).toEqual([]);
   });
 
   it("denúncia: limite por pessoa, global e por alvo, e campo-armadilha, dentro da função", () => {
