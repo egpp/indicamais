@@ -322,6 +322,18 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-033 · 05/11/2026 · Correções da revisão de segurança da aplicação (RSA-01 a RSA-12)
+**IDs:** IM-076, IM-086, IM-089. Aceito pelo Emerson em 05/11/2026 ("aceito"). Relatório em `docs/revisao-seguranca-app.md` (0 críticos, 2 altos, 5 médios, 5 baixos).
+- **Turnstile e limites no contato público (RSA-05):** adotar o Turnstile da Cloudflare (gratuito) e limites por destino e por hash de IP no pedido de contato e na denúncia (IM-076). Chaves só no ambiente.
+- **Hash de origem da denúncia (RSA-07):** passa a HMAC com segredo do servidor no Worker.
+- **`NEXT_PUBLIC_APP_URL` obrigatório em produção (RSA-08):** sem a variável, a origem do app não confia em cabeçalhos de proxy.
+- **Cabeçalhos de segurança (RSA-01):** CSP, nosniff, proteção contra quadros, política de referência e HSTS; a CSP é testada primeiro no dev.
+- **Defesa em profundidade (RSA-06):** as ações administrativas conferem o papel também no servidor, além do banco.
+- **Ações do Emerson:** conferir as configurações do Auth no painel do Supabase (dev e produção); ligar proteção de ambiente (revisor obrigatório) no GitHub para os deploys.
+- **Baixos (RSA-03, RSA-10, RSA-11, RSA-12):** ações do GitHub fixadas por SHA, matcher do proxy, noindex em login e cadastro, robots.txt.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|

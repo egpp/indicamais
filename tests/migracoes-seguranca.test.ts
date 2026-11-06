@@ -231,8 +231,9 @@ describe("migrações: módulo indicacoes (IM-024 a IM-029, IM-041, IM-050, IM-0
   );
   const tabelasModulo = [...modulo.matchAll(/create table public\.(\w+)/gi)].map((m) => m[1]!);
 
-  it("encontra as seis tabelas e as quatro visões do módulo", () => {
+  it("encontra as sete tabelas (6 do modelo + alarme de excesso, S-03) e as quatro visões do módulo", () => {
     expect([...tabelasModulo].sort()).toEqual([
+      "indicacoes_alarme_excesso",
       "indicacoes_evento",
       "indicacoes_link",
       "indicacoes_notificacao",

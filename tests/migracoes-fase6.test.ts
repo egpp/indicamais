@@ -91,6 +91,7 @@ describe("Fase 6: permissões granulares (IM-077)", () => {
         "comissoes_registrar_vinculo",
         "comissoes_reverter_comissao",
         "contas_definir_parametro",
+        "indicacoes_admin_listar_alarmes",
         "indicacoes_definir_parametro",
         "indicacoes_tratar_alerta",
         "loja_definir_liberacao",
