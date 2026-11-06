@@ -18,6 +18,9 @@ export type Cabecalho = { key: string; value: string };
 
 const SUPABASE = "https://*.supabase.co";
 
+/** Turnstile (RSA-05, IM-076): script, iframe do desafio e verificação. */
+const TURNSTILE = "https://challenges.cloudflare.com";
+
 /** Parte aplicada de verdade desde já. */
 export const CSP_BASICA = ["frame-ancestors 'none'", "base-uri 'self'", "object-src 'none'"].join(
   "; ",
@@ -26,13 +29,13 @@ export const CSP_BASICA = ["frame-ancestors 'none'", "base-uri 'self'", "object-
 /** Política completa, em modo só-relatório até ser testada no dev. */
 export const CSP_COMPLETA = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline' ${TURNSTILE}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' ${SUPABASE} data: blob:`,
   "font-src 'self' data:",
-  `connect-src 'self' ${SUPABASE} wss://*.supabase.co`,
-  // Mapa incorporado do OpenStreetMap (IM-018). Turnstile (challenges.cloudflare.com) entra aqui quando for adotado.
-  "frame-src https://www.openstreetmap.org",
+  `connect-src 'self' ${SUPABASE} wss://*.supabase.co ${TURNSTILE}`,
+  // Mapa incorporado do OpenStreetMap (IM-018) e desafio do Turnstile (RSA-05).
+  `frame-src https://www.openstreetmap.org ${TURNSTILE}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "object-src 'none'",

@@ -88,7 +88,7 @@ describe("RSA-01: CSP completa e cabeçalhos", () => {
     // Fora da CSP por não serem carregados pelo navegador: links (wa.me, google.com/maps) e chamadas só do
     // servidor (api.resend.com, nominatim). Se algum passar a ser carregado no cliente, entra na CSP.
     const ignorar =
-      /^(localhost|example\.|exemplo\.|meusite\.|www\.w3\.org|schema\.org|nextjs\.org|.*\.example|wa\.me|www\.google\.com|api\.resend\.com|nominatim\.openstreetmap\.org)/;
+      /^(localhost|example\.|exemplo\.|meusite\.|www\.w3\.org|schema\.org|nextjs\.org|.*\.example|wa\.me|www\.google\.com|api\.resend\.com|nominatim\.openstreetmap\.org|developers\.cloudflare\.com)/;
     const naoCobertos = [...hosts].filter(
       (h) =>
         !ignorar.test(h) &&

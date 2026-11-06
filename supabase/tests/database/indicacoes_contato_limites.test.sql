@@ -50,6 +50,8 @@ insert into public.catalogo_item_versao (id, item_id, situacao, enviada_em, nome
   ('e1000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000003', 'aprovada', now(), 'Bike', 'Bike', 'item/e0000000-0000-0000-0000-000000000003/a.jpg', '11111111-0000-0000-0000-000000000001', 'Canoas', 'RS'),
   ('e1000000-0000-0000-0000-000000000004', 'e0000000-0000-0000-0000-000000000004', 'aprovada', now(), 'Torta', 'Torta', 'item/e0000000-0000-0000-0000-000000000004/a.jpg', '11111111-0000-0000-0000-000000000001', 'Canoas', 'RS');
 update public.catalogo_item set versao_aprovada_id = 'e1000000-0000-0000-0000-000000000001', publicado = true where id = 'e0000000-0000-0000-0000-000000000001';
+update public.catalogo_item set versao_aprovada_id = 'e1000000-0000-0000-0000-000000000002', publicado = true where id = 'e0000000-0000-0000-0000-000000000002';
+update public.catalogo_item set versao_aprovada_id = 'e1000000-0000-0000-0000-000000000004', publicado = true where id = 'e0000000-0000-0000-0000-000000000004';
 
 -- ===== Parâmetros novos e coluna de origem =====
 select is((select count(*)::int from public.indicacoes_parametro where chave = 'contato_limite_por_destino'), 0, 'não há parâmetro duplicado de destino: vale o do S-03 (contato_limite_por_destino_hora)');
