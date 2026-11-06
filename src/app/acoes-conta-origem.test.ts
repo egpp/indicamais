@@ -58,30 +58,44 @@ describe("origemDoApp ausente em produção nas Server Actions (RSA-08)", () => 
     expect(auth.signInWithOAuth).not.toHaveBeenCalled();
   });
 
-  // DEFEITO CONHECIDO (achado de verificação): cadastrar e entrarComGoogle não tratam a falha e a exceção sobe
-  // como erro 500 genérico. it.fails passa enquanto o defeito existe; ao corrigir, troque por it.
-  it.fails("cadastrar deveria devolver mensagem amigável em vez de lançar", async () => {
+  it("cadastrar devolve mensagem amigável, sem lançar nem enviar", async () => {
     semUrl();
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const r = await cadastrar(
       {},
       form({ email: "a@b.com", senha: "Senha-forte-123", nomeExibicao: "Ana" }),
     );
-    expect(r.erro).toBeTruthy();
+    expect(r.erro).toBe("Não foi possível iniciar agora. Tente de novo mais tarde.");
+    expect(auth.signUp).not.toHaveBeenCalled();
+    expect(JSON.stringify(aviso.mock.calls)).toContain("config_origem_ausente");
+    expect(JSON.stringify(aviso.mock.calls)).not.toContain("a@b.com");
+    aviso.mockRestore();
   });
 
-  it.fails("entrarComGoogle deveria devolver mensagem amigável em vez de lançar", async () => {
+  it("entrarComGoogle devolve mensagem amigável, sem lançar nem iniciar OAuth", async () => {
     semUrl();
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const r = await entrarComGoogle({}, form({}));
-    expect(r.erro).toBeTruthy();
+    expect(r.erro).toBe("Não foi possível iniciar agora. Tente de novo mais tarde.");
+    expect(auth.signInWithOAuth).not.toHaveBeenCalled();
+    expect(JSON.stringify(aviso.mock.calls)).toContain("config_origem_ausente");
+    aviso.mockRestore();
   });
 
-  // Recuperação e reenvio respondem sucesso neutro (IM-008) mesmo sem enviar nada: falha silenciosa.
-  it("recuperação e reenvio devolvem sucesso neutro sem enviar e-mail (falha silenciosa)", async () => {
+  it("recuperação e reenvio mantêm resposta neutra (IM-008) e registram a falha de configuração", async () => {
     semUrl();
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const a = await solicitarRecuperacao({}, form({ email: "a@b.com" }));
     const b = await reenviarConfirmacao({}, form({ email: "a@b.com" }));
     expect(a.sucesso).toBeTruthy();
     expect(b.sucesso).toBeTruthy();
     expect(auth.resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(auth.resend).not.toHaveBeenCalled();
+    const log = JSON.stringify(aviso.mock.calls);
+    expect(log).toContain("recuperar_senha");
+    expect(log).toContain("reenviar_confirmacao");
+    expect(log).toContain("config_origem_ausente");
+    expect(log).not.toContain("a@b.com");
+    aviso.mockRestore();
   });
 });
