@@ -77,6 +77,8 @@ export function criarBancoIndicacoes(supabase: Cliente): ClienteBancoIndicacoes 
           p_email: a.email ?? nulo,
           p_mensagem: a.mensagem ?? nulo,
           p_codigo: a.codigo ?? nulo,
+          // Só envia quando há hash: sem ele a chamada é idêntica à de antes da migração 20261105170000.
+          ...(a.origem ? { p_origem_hash: a.origem } : {}),
         });
         return { dados: data ?? null, erro: paraErro(error) };
       }),

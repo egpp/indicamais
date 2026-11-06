@@ -92,12 +92,14 @@ describe("migrações: funções", () => {
   });
 
   it("nenhuma função concede execute a anon, exceto as de leitura pública conhecidas", () => {
+    // Função recriada com outra assinatura (ex.: indicacoes_enviar_contato, RSA-05) repete o grant: conta uma vez.
     const concedidas = [
-      ...codigo.matchAll(/grant execute on function public\.(\w+)\([^)]*\)\s+to ([^;]+);/gi),
-    ]
-      .filter(([, , para]) => /\banon\b/i.test(para!))
-      .map(([, nome]) => nome!)
-      .sort();
+      ...new Set(
+        [...codigo.matchAll(/grant execute on function public\.(\w+)\([^)]*\)\s+to ([^;]+);/gi)]
+          .filter(([, , para]) => /\banon\b/i.test(para!))
+          .map(([, nome]) => nome!),
+      ),
+    ].sort();
     expect(concedidas).toEqual([
       "administracao_denunciar",
       "busca_home_secao_perfis",

@@ -8,6 +8,7 @@ import {
 } from "./_lib/contexto-indicacoes";
 import type { EstadoContato, EstadoLink } from "./_lib/estado-indicacoes";
 import { dispararNotificacoesDoServidor } from "./_lib/notificacoes-contato";
+import { protegerFormularioPublico, type ProtecaoPublica } from "./_lib/protecao-publica";
 import {
   CAMPOS_CONTATO,
   definirParametroAdmin,
@@ -58,11 +59,19 @@ function comContexto<E extends { erro?: string; valores?: Record<string, string>
 
 // Visitante (IM-026) -------------------------------------------------------------------------------------
 export async function acaoEnviarContato(_: EstadoContato, f: FormData): Promise<EstadoContato> {
+  const valores = valoresDe(f, CAMPOS_CONTATO);
+  // RSA-05: Turnstile e origem (HMAC) no servidor antes de qualquer chamada ao banco.
+  const protecao: ProtecaoPublica = await protegerFormularioPublico(
+    f,
+    "contato",
+    MENSAGENS_INDICACOES.generica,
+  ).catch(() => ({ ok: false, erro: MENSAGENS_INDICACOES.generica }));
+  if (!protecao.ok) return { erro: protecao.erro, valores };
   const estado = await comContexto(
     obterContextoIndicacoesAberto,
-    enviarContatoVisitante,
+    (ctx, dados) => enviarContatoVisitante(ctx, dados, protecao.origem),
     f,
-    valoresDe(f, CAMPOS_CONTATO),
+    valores,
   );
   if (estado.urlWhatsapp) {
     revalidatePath("/pedidos-de-contato");

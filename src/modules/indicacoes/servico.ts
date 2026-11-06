@@ -68,7 +68,7 @@ export interface ClienteBancoIndicacoes {
   }): Promise<{ erro: ErroBanco | null }>;
   /**
    * rpc indicacoes_enviar_contato(p_perfil_id, p_item_id, p_nome, p_whatsapp, p_chave, p_email, p_mensagem,
-   * p_codigo) -> linhas { o_pedido_id, o_whatsapp_responsavel, o_repetido }. Pode usar a sessão anon.
+   * p_codigo, p_origem_hash) -> linhas { o_pedido_id, o_whatsapp_responsavel, o_repetido }. Pode usar a sessão anon.
    */
   enviarContato(a: {
     perfilId: string | null;
@@ -79,6 +79,8 @@ export interface ClienteBancoIndicacoes {
     email: string | null;
     mensagem: string | null;
     codigo: string | null;
+    /** p_origem_hash (RSA-05): HMAC hex de IP + navegador; null = não informado (limite por origem não se aplica). */
+    origem?: string | null;
   }): Promise<
     RespostaBanco<{ o_pedido_id: string; o_whatsapp_responsavel: string; o_repetido: boolean }[]>
   >;
@@ -235,6 +237,7 @@ export function criarServicoIndicacoes(
           email: d.email ?? null,
           mensagem: d.mensagem ?? null,
           codigo: d.codigo ?? null,
+          ...(d.origem ? { origem: d.origem } : {}),
         });
         if (r.erro) return falha(mapearErroBancoIndicacoes(r.erro, "contato"));
         const linha = r.dados?.[0];

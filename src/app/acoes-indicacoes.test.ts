@@ -7,6 +7,7 @@ import type { ContextoIndicacoes } from "./_lib/contexto-indicacoes";
 import type { Usuario } from "../../tests/suporte/banco-indicacoes-memoria";
 
 let obter: () => Promise<ContextoIndicacoes>;
+let cabecalhos = new Headers({ "cf-connecting-ip": "203.0.113.9", "user-agent": "Teste/1" });
 const disparar = vi.fn(() => true);
 const revalidar = vi.fn();
 
@@ -26,6 +27,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("./_lib/notificacoes-contato", () => ({
   dispararNotificacoesDoServidor: (...a: unknown[]) => disparar(...(a as [])),
 }));
+vi.mock("next/headers", () => ({ headers: async () => cabecalhos }));
 vi.mock("next/cache", () => ({ revalidatePath: (...a: unknown[]) => revalidar(...a) }));
 
 import {
@@ -57,6 +59,9 @@ function mundo(usuario: Usuario | null = null) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+  cabecalhos = new Headers({ "cf-connecting-ip": "203.0.113.9", "user-agent": "Teste/1" });
 });
 
 describe("Server Actions da Fase 3", () => {
@@ -135,5 +140,77 @@ describe("Server Actions da Fase 3", () => {
     expect(a.erros?.motivo).toBe("Informe o motivo.");
     expect(b.erros?.motivo).toBe("Informe o motivo.");
     expect(disparar).not.toHaveBeenCalled();
+  });
+});
+
+describe("proteção do contato público (RSA-05, RSA-07, IM-026, IM-076)", () => {
+  const SEGREDO_HASH = "segredo-de-teste-com-pelo-menos-32-caracteres";
+  const comTurnstile = (tokenValido: boolean) => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA");
+    const buscar = vi.fn(async () => new Response(JSON.stringify({ success: tokenValido })));
+    vi.stubGlobal("fetch", buscar);
+    return buscar;
+  };
+
+  it("com Turnstile configurado e sem token: recusa com mensagem amigável, sem tocar no banco nem disparar aviso", async () => {
+    const m = mundo(null);
+    comTurnstile(true);
+    const r = await acaoEnviarContato({}, formulario(dados));
+    expect(r.erro).toBe("Confirme a verificação de segurança antes de enviar.");
+    expect(r.valores).toMatchObject({ nome: "Carla Visitante" });
+    expect(m.chamadasContato).toHaveLength(0);
+    expect(disparar).not.toHaveBeenCalled();
+  });
+
+  it("token recusado pela Cloudflare: recusa, nada é gravado", async () => {
+    const m = mundo(null);
+    comTurnstile(false);
+    const r = await acaoEnviarContato(
+      {},
+      formulario({ ...dados, "cf-turnstile-response": "ruim" }),
+    );
+    expect(r.erro).toBe("Não foi possível confirmar a verificação de segurança. Tente de novo.");
+    expect(m.chamadasContato).toHaveLength(0);
+    expect(r.urlWhatsapp).toBeUndefined();
+  });
+
+  it("token aceito: envia, com a origem em HMAC (nunca o IP) vinda do servidor, ignorando qualquer origem do formulário", async () => {
+    const m = mundo(null);
+    const buscar = comTurnstile(true);
+    vi.stubEnv("DENUNCIA_HASH_SEGREDO", SEGREDO_HASH);
+    const r = await acaoEnviarContato(
+      {},
+      formulario({ ...dados, "cf-turnstile-response": "bom", origem: "a".repeat(64) }),
+    );
+    expect(r.urlWhatsapp).toBeTruthy();
+    expect(buscar).toHaveBeenCalledTimes(1);
+    expect(m.chamadasContato).toHaveLength(1);
+    const origem = m.chamadasContato[0]!.origem;
+    expect(origem).toMatch(/^[0-9a-f]{64}$/);
+    expect(origem).not.toBe("a".repeat(64));
+    expect(JSON.stringify(m.chamadasContato)).not.toContain("203.0.113.9");
+  });
+
+  it("produção sem chave do Turnstile: falha fechado (não grava, não consulta a rede)", async () => {
+    const m = mundo(null);
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DENUNCIA_HASH_SEGREDO", SEGREDO_HASH);
+    const buscar = vi.fn();
+    vi.stubGlobal("fetch", buscar);
+    const r = await acaoEnviarContato({}, formulario({ ...dados, "cf-turnstile-response": "x" }));
+    expect(r.erro).toBe(
+      "A verificação de segurança está indisponível agora. Tente novamente em instantes.",
+    );
+    expect(m.chamadasContato).toHaveLength(0);
+    expect(buscar).not.toHaveBeenCalled();
+  });
+
+  it("produção com Turnstile mas sem segredo do hash: falha segura (mensagem genérica, nada gravado)", async () => {
+    const m = mundo(null);
+    comTurnstile(true);
+    vi.stubEnv("NODE_ENV", "production");
+    const r = await acaoEnviarContato({}, formulario({ ...dados, "cf-turnstile-response": "bom" }));
+    expect(r.erro).toBe("Não foi possível concluir agora. Tente novamente em instantes.");
+    expect(m.chamadasContato).toHaveLength(0);
   });
 });

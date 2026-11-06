@@ -122,6 +122,11 @@ export const enviarContatoSchema = z
     mensagem: mensagemVisitanteSchema,
     codigo: codigoOpcionalSchema,
     chave: chaveIdempotenciaSchema,
+    /** RSA-05: HMAC-SHA-256 hex calculado no servidor do app (nunca o IP). Opcional: sem ele só valem os outros limites. */
+    origem: z
+      .string({ error: "Origem inválida." })
+      .regex(/^[0-9a-f]{64}$/, { error: "Origem inválida." })
+      .optional(),
     nomeDestino: nomeDestinoSchema,
   })
   .refine((d) => (d.perfilId === undefined) !== (d.itemId === undefined), {

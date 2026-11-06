@@ -279,6 +279,28 @@ describe("enviarContato (IM-026, IM-028)", () => {
     expect(new Set(chaves).size).toBe(1);
   });
 
+  it("origem (RSA-05): hash de 64 hex segue ao banco; sem origem vai nulo; origem malformada (IP cru) nem chega ao banco", async () => {
+    const recebidas: (string | null | undefined)[] = [];
+    const b = fake({
+      enviarContato: async (a) => {
+        recebidas.push(a.origem);
+        return {
+          dados: [
+            { o_pedido_id: PEDIDO, o_whatsapp_responsavel: "+5511988887777", o_repetido: false },
+          ],
+          erro: null,
+        };
+      },
+    });
+    const s = servico(b);
+    expect((await s.enviarContato({ ...contato, origem: "ab".repeat(32) })).ok).toBe(true);
+    expect((await s.enviarContato(contato)).ok).toBe(true);
+    expect(recebidas).toEqual(["ab".repeat(32), undefined]);
+    const ruim = await s.enviarContato({ ...contato, origem: "203.0.113.9" });
+    expect(ruim.ok).toBe(false);
+    expect(recebidas).toHaveLength(2);
+  });
+
   it("chave reutilizada em outro destino (23505) vira conflito tipado", async () => {
     const r = await servico(fake({ enviarContato: erroDb("23505") })).enviarContato(contato);
     expect(!r.ok && r.erro.codigo).toBe("CONFLITO_CHAVE");

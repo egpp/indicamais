@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   DECISOES_DENUNCIA,
   PERMISSOES,
@@ -31,6 +31,7 @@ import {
   validarInvalidacao,
   validarPermissao,
 } from "../_lib/validacao-ciclo-vida";
+import { CampoTurnstile } from "./campo-turnstile";
 import { Campo } from "./campos";
 import { CampoSelect, CampoTextoLongo } from "./campos-conteudo";
 import { FormAcao } from "./form-acao";
@@ -117,8 +118,13 @@ const ROTULO_ALVO: Record<AlvoDenuncia, string> = {
  * sempre a mesma mensagem neutra.
  */
 export function FormDenunciar({ alvoTipo, alvoId }: { alvoTipo: AlvoDenuncia; alvoId: string }) {
+  // O widget só é montado com o formulário aberto (iframe oculto não resolve o desafio direito).
+  const [aberto, setAberto] = useState(false);
   return (
-    <details className="secao-denuncia">
+    <details
+      className="secao-denuncia"
+      onToggle={(e) => setAberto((e.currentTarget as HTMLDetailsElement).open)}
+    >
       <summary className="botao-texto">Denunciar</summary>
       <Moldura
         acao={acaoDenunciar}
@@ -156,6 +162,7 @@ export function FormDenunciar({ alvoTipo, alvoId }: { alvoTipo: AlvoDenuncia; al
                 <input type="text" name="site" tabIndex={-1} autoComplete="off" defaultValue="" />
               </label>
             </div>
+            {aberto ? <CampoTurnstile reiniciar={estado} /> : null}
             <p className="ajuda">
               Para evitar abusos, há um limite de denúncias por pessoa em um período.
             </p>

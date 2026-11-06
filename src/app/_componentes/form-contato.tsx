@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { acaoEnviarContato } from "../acoes-indicacoes";
 import type { EstadoContato } from "../_lib/estado-indicacoes";
 import { validarContato } from "../_lib/validacao-indicacoes";
+import { CampoTurnstile } from "./campo-turnstile";
 import { Campo, CampoWhatsapp } from "./campos";
 import { CampoTextoLongo } from "./campos-conteudo";
 import { sacola, useSacola } from "./site/sacola-estado";
@@ -123,6 +124,7 @@ export function FormContato({
         este perfil ou anúncio, para ele responder ao seu pedido. Veja a{" "}
         <Link href="/politica-de-privacidade">política de privacidade (texto provisório)</Link>.
       </p>
+      <CampoTurnstile reiniciar={estado} />
       <BotaoEnviar
         enviando={enviando}
         rotulo="Enviar pedido de contato"

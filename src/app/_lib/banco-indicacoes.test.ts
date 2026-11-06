@@ -108,6 +108,24 @@ describe("adaptador do banco de indicações (sessão do usuário)", () => {
     ]);
   });
 
+  it("enviarContato manda p_origem_hash só quando há origem (RSA-05)", async () => {
+    const { cliente, chamadas } = falso({ data: [] });
+    const base = {
+      perfilId: ID,
+      itemId: null,
+      nome: "Carla",
+      whatsapp: "+5511987654321",
+      chave: "chave-de-teste-0123456789",
+      email: null,
+      mensagem: null,
+      codigo: null,
+    };
+    await criarBancoIndicacoes(cliente).enviarContato({ ...base, origem: "ab".repeat(32) });
+    await criarBancoIndicacoes(cliente).enviarContato({ ...base, origem: null });
+    expect((chamadas.rpc[0]![1] as Record<string, unknown>).p_origem_hash).toBe("ab".repeat(32));
+    expect(chamadas.rpc[1]![1]).not.toHaveProperty("p_origem_hash");
+  });
+
   it("chama cada RPC com os parâmetros certos", async () => {
     const { cliente, chamadas } = falso();
     const banco = criarBancoIndicacoes(cliente);
