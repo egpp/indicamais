@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { MENSAGENS_COMISSOES } from "@/modules/comissoes";
+import { exigirAdministrador } from "./_lib/exigir-administrador";
 import { obterContextoComissoes } from "./_lib/contexto-comissoes";
 import type { ChaveComissoes } from "./_lib/definicoes-comissoes";
 import type { EstadoComissoes } from "./_lib/estado-comissoes";
@@ -43,8 +44,11 @@ async function executar(
   }
 }
 
-const doAdmin = (chave: ChaveComissoes, f: FormData) =>
-  executar(ADMIN, chave, f, [ADMIN, MINHAS, NEGOCIO]);
+// RSA-06: papel de administrador conferido no servidor antes de qualquer chamada de negócio ao banco.
+const doAdmin = async (chave: ChaveComissoes, f: FormData) => {
+  await exigirAdministrador(ADMIN);
+  return executar(ADMIN, chave, f, [ADMIN, MINHAS, NEGOCIO]);
+};
 const doNegocio = (chave: ChaveComissoes, f: FormData) =>
   executar(MINHAS, chave, f, [ADMIN, MINHAS, NEGOCIO]);
 

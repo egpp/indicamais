@@ -29,27 +29,58 @@ describe("revisão de segurança do app: achados abertos", () => {
     expect(usos.length).toBeGreaterThan(0);
     for (const l of usos) expect(l).toMatch(/@[0-9a-f]{40}\b/);
   });
+});
 
-  it.fails(
-    "RSA-05: o limite de pedidos de contato não depende só do WhatsApp informado pelo visitante",
-    () => {
-      const sql = readdirSync(join(raiz, "supabase/migrations"))
-        .filter((f) => f.endsWith("_indicacoes_rpcs_link_contato.sql"))
-        .map((f) => ler(`supabase/migrations/${f}`))
-        .join("\n");
-      // Esperado após a correção: limite também por destino (perfil/item) ou por origem (hash de IP).
-      expect(sql).toMatch(/limite[^\n]*(destino|origem)|origem_hash/i);
-    },
-  );
+describe("revisão de segurança do app: achados corrigidos (D-033)", () => {
+  const migracao = () =>
+    readdirSync(join(raiz, "supabase/migrations"))
+      .filter((f) => f.endsWith("_indicacoes_contato_limites_destino_origem.sql"))
+      .map((f) => ler(`supabase/migrations/${f}`))
+      .join("\n");
 
-  it.fails(
-    "RSA-07: a origem da denúncia usa hash com segredo (HMAC/sal), não SHA-256 puro de IP+UA",
-    () => {
-      expect(ler("src/app/_lib/origem-denuncia.ts")).toMatch(
-        /HMAC|importKey|\bsal\b|\bsalt\b|pepper/i,
-      );
-    },
-  );
+  it("RSA-05: o limite de pedidos de contato também é por destino e por origem (hash), não só por WhatsApp", () => {
+    const sql = migracao();
+    expect(sql).toMatch(/contato_limite_por_destino/);
+    expect(sql).toMatch(/contato_limite_por_origem/);
+    expect(sql).toMatch(/p_origem_hash/);
+  });
+
+  it("RSA-05: contato e denúncia passam pelo Turnstile no servidor", () => {
+    expect(ler("src/app/_lib/protecao-publica.ts")).toMatch(/verificarTurnstile/);
+    expect(ler("src/app/acoes-indicacoes.ts")).toMatch(/protegerFormularioPublico/);
+    expect(ler("src/app/acoes-ciclo-vida.ts")).toMatch(/protegerFormularioPublico/);
+  });
+
+  it("RSA-07: a origem da denúncia usa HMAC com segredo do servidor, não SHA-256 puro de IP+UA", () => {
+    const fonte = ler("src/app/_lib/origem-denuncia.ts");
+    expect(fonte).toMatch(/HMAC/);
+    expect(fonte).toMatch(/DENUNCIA_HASH_SEGREDO/);
+    expect(fonte).not.toMatch(/subtle\.digest/);
+  });
+
+  it("RSA-05 e RSA-07: os exemplos de ambiente listam os nomes novos, sem valores", () => {
+    for (const arq of [".env.example", ".dev.vars.example"]) {
+      const e = ler(arq);
+      for (const nome of [
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+        "TURNSTILE_SECRET_KEY",
+        "DENUNCIA_HASH_SEGREDO",
+      ]) {
+        expect(e, `${arq} sem ${nome}`).toMatch(new RegExp(`^${nome}=$`, "m"));
+      }
+    }
+  });
+
+  it("os limites padrão de LIMITES.contato espelham os parâmetros da migração", async () => {
+    const { LIMITES } = await import("../src/shared/config/limites");
+    const sql = migracao();
+    expect(sql).toContain(
+      `('contato_limite_por_destino', ${LIMITES.contato.limitePorDestinoPadrao},`,
+    );
+    expect(sql).toContain(
+      `('contato_limite_por_origem', ${LIMITES.contato.limitePorOrigemPadrao},`,
+    );
+  });
 });
 
 describe("revisão de segurança do app: verificações que passam", () => {

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { MENSAGENS_PONTOS } from "@/modules/pontos";
+import { exigirAdministrador } from "./_lib/exigir-administrador";
 import { obterContextoPontos, type ContextoPontos } from "./_lib/contexto-pontos";
 import type { EstadoPontos } from "./_lib/estado-pontos";
 import {
@@ -52,6 +53,12 @@ async function executar(
   }
 }
 
+/** RSA-06: papel de administrador conferido no servidor antes de qualquer chamada de negócio ao banco. */
+async function executarAdmin(...args: Parameters<typeof executar>): Promise<EstadoPontos> {
+  await exigirAdministrador(args[0]);
+  return executar(...args);
+}
+
 const ADM_PONTOS = "/administracao/pontos";
 const ADM_BENEF = "/administracao/beneficios";
 const PERFIL_BENEF = ["/meus-perfis/[id]/beneficios", "page"] as const;
@@ -59,24 +66,24 @@ const VITRINES: readonly Rota[] = ["/beneficios", ["/perfil/[slug]", "page"]];
 
 // Administração
 export async function acaoDefinirParametroPontos(_: EstadoPontos, f: FormData) {
-  return executar("/administracao/parametros", definirParametroPontos, f, [
+  return executarAdmin("/administracao/parametros", definirParametroPontos, f, [
     "/administracao/parametros",
   ]);
 }
 export async function acaoReverterCredito(_: EstadoPontos, f: FormData) {
-  return executar(ADM_PONTOS, reverterCreditoAdmin, f, [ADM_PONTOS, "/pontos"]);
+  return executarAdmin(ADM_PONTOS, reverterCreditoAdmin, f, [ADM_PONTOS, "/pontos"]);
 }
 export async function acaoReprocessarPedido(_: EstadoPontos, f: FormData) {
-  return executar(ADM_PONTOS, reprocessarPedidoAdmin, f, [ADM_PONTOS, "/pontos"]);
+  return executarAdmin(ADM_PONTOS, reprocessarPedidoAdmin, f, [ADM_PONTOS, "/pontos"]);
 }
 export async function acaoDecidirBeneficio(_: EstadoPontos, f: FormData) {
-  return executar(ADM_BENEF, decidirBeneficioAdmin, f, [ADM_BENEF, PERFIL_BENEF]);
+  return executarAdmin(ADM_BENEF, decidirBeneficioAdmin, f, [ADM_BENEF, PERFIL_BENEF]);
 }
 export async function acaoCadastrarBeneficioAdmin(_: EstadoPontos, f: FormData) {
-  return executar(ADM_BENEF, cadastrarBeneficioAdmin, f, [ADM_BENEF, PERFIL_BENEF]);
+  return executarAdmin(ADM_BENEF, cadastrarBeneficioAdmin, f, [ADM_BENEF, PERFIL_BENEF]);
 }
 export async function acaoEditarPropostaAdmin(_: EstadoPontos, f: FormData) {
-  return executar(ADM_BENEF, editarPropostaAdmin, f, [ADM_BENEF, PERFIL_BENEF]);
+  return executarAdmin(ADM_BENEF, editarPropostaAdmin, f, [ADM_BENEF, PERFIL_BENEF]);
 }
 
 // Responsável

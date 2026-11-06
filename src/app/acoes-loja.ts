@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { exigirAdministrador } from "./_lib/exigir-administrador";
 import { obterContextoLojaAdmin } from "./_lib/contexto-loja";
 import type { EstadoFormulario } from "./_lib/estado-formulario";
 import { definirLiberacaoLoja } from "./_lib/tratadores-loja";
@@ -14,6 +15,8 @@ export async function acaoDefinirLiberacaoLoja(
   _: EstadoFormulario,
   f: FormData,
 ): Promise<EstadoFormulario> {
+  // RSA-06: papel de administrador conferido no servidor antes de qualquer chamada de negócio ao banco.
+  await exigirAdministrador("/administracao/loja");
   const ctx = await obterContextoLojaAdmin("/administracao/loja");
   const { destino, ...estado } = await definirLiberacaoLoja(ctx, f);
   void destino;
