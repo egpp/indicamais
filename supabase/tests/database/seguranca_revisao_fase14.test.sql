@@ -114,6 +114,9 @@ select is((select count(*)::int from public.indicacoes_pedido_contato where what
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select throws_ok($$insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia) values ('a0000000-0000-0000-0000-000000000001', 'Carga', '+5551900000006', 'chave-carga-0000006')$$,
   'P0429', null, 'service_role também passa pelo limite do destino');
+-- A linha de carga segue existindo (os testes de nível abaixo contam com ela): com o interruptor desligado, entra.
+update public.indicacoes_parametro set valor = 0 where chave = 'contato_recusar_excesso';
+insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia) values ('a0000000-0000-0000-0000-000000000001', 'Carga', '+5551900000006', 'chave-carga-0000006');
 select set_config('request.jwt.claims', '', true);
 
 -- Global: limiar 10; com o interruptor desligado só alarma.
