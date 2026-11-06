@@ -18,11 +18,40 @@ describe("revisão de segurança do app: achados corrigidos (D-033)", () => {
       .map((f) => ler(`supabase/migrations/${f}`))
       .join("\n");
 
-  it("RSA-05: o limite de pedidos de contato também é por destino e por origem (hash), não só por WhatsApp", () => {
+  it("RSA-05: o limite por origem (hash) recusa; o por destino é só alarme, com parâmetros do S-03 (uma casa só)", () => {
     const sql = migracao();
-    expect(sql).toMatch(/contato_limite_por_destino/);
-    expect(sql).toMatch(/contato_limite_por_origem/);
-    expect(sql).toMatch(/p_origem_hash/);
+    const semComentarios = sql.replace(/--.*$/gm, "");
+    expect(semComentarios).toMatch(/contato_limite_por_origem/);
+    expect(semComentarios).toMatch(/p_origem_hash/);
+    expect(semComentarios).toMatch(/errcode = 'P0429'/);
+    // Sem parâmetro próprio de destino (o do S-03 é contato_limite_por_destino_hora) e sem recusa por destino na RPC.
+    expect(semComentarios).not.toMatch(/contato_limite_por_destino(?!_hora)/);
+    expect(semComentarios).not.toMatch(/indicacoes_contato_destino/);
+  });
+
+  it("RSA-05: a migração vem DEPOIS do S-03 (db push aceita a ordem) e não isenta service_role na RPC", () => {
+    const nomes = readdirSync(join(raiz, "supabase/migrations")).sort();
+    const minha = nomes.find((f) => f.endsWith("_indicacoes_contato_limites_destino_origem.sql"))!;
+    const s03 = nomes.find((f) => f.endsWith("_seguranca_indicacoes_limites_contato.sql"))!;
+    expect(minha > s03).toBe(true);
+    const sql = ler(`supabase/migrations/${minha}`).replace(/--.*$/gm, "");
+    const rpc = sql.slice(
+      sql.indexOf("create function public.indicacoes_enviar_contato("),
+      sql.indexOf("revoke all on function public.indicacoes_enviar_contato("),
+    );
+    expect(rpc).not.toMatch(/service_role/);
+    // Ordem das travas: WhatsApp, origem (RPC) e depois link e destino (gatilho do S-03).
+    expect(rpc.indexOf("'indicacoes_contato:'")).toBeLessThan(
+      rpc.indexOf("'indicacoes_contato_origem:'"),
+    );
+    const gatilho = sql.slice(
+      sql.indexOf("create or replace function public.indicacoes_pedido_limitar"),
+    );
+    expect(gatilho.indexOf("indicacoes_link:")).toBeLessThan(
+      gatilho.indexOf("indicacoes_destino:"),
+    );
+    // O limite por link também conta a origem, sem recusar (só tira a atribuição).
+    expect(gatilho).toMatch(/p\.origem_hash = new\.origem_hash/);
   });
 
   it("RSA-05: contato e denúncia passam pelo Turnstile no servidor", () => {
@@ -54,9 +83,6 @@ describe("revisão de segurança do app: achados corrigidos (D-033)", () => {
   it("os limites padrão de LIMITES.contato espelham os parâmetros da migração", async () => {
     const { LIMITES } = await import("../src/shared/config/limites");
     const sql = migracao();
-    expect(sql).toContain(
-      `('contato_limite_por_destino', ${LIMITES.contato.limitePorDestinoPadrao},`,
-    );
     expect(sql).toContain(
       `('contato_limite_por_origem', ${LIMITES.contato.limitePorOrigemPadrao},`,
     );

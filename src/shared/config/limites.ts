@@ -58,11 +58,10 @@ export const LIMITES = {
     chaveMax: 100,
     /**
      * Limites padrão da janela de taxa (RSA-05, D-033): ESPELHAM os parâmetros do banco
-     * (indicacoes_parametro: contato_limite_por_destino e contato_limite_por_origem, migração 20261105170000). Quem
+     * (indicacoes_parametro: contato_limite_por_origem, migração 20261106120000; o limite por destino é alarme, parâmetro do S-03 em 20261106110000). Quem
      * impõe é o banco; o administrador ajusta em /administracao/parametros. Aqui ficam o valor de referência e
      * os textos; um teste confere que migração e este arquivo não divergem.
      */
-    limitePorDestinoPadrao: 30,
     limitePorOrigemPadrao: 10,
   },
   /**
