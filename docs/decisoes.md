@@ -334,6 +334,17 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-034 · 06/11/2026 · Decisões da revisão de segurança do banco (S-01 a S-03, M-01 a M-07)
+**IDs:** IM-029, IM-041, IM-076, IM-082, IM-086, IM-089. Aceito pelo Emerson em 06/11/2026 ("aceito" para cada uma das seis decisões de `docs/revisao-seguranca-banco.md`, seção "Precisa de decisão do Emerson"). Migrações S-02, S-03, limite por origem e S-01 aplicadas no dev em 06/11/2026.
+- **1. Limites do contato (S-03):** 20 por link por hora (acima disso o pedido perde a atribuição, sem recusa); 60 por destino e 1000 global por hora só geram alarme; 10 por origem por hora com recusa. O interruptor `contato_recusar_excesso` (padrão 0) só é ligado com o Turnstile no ar.
+- **2. Formulário público com CAPTCHA (S-03, M-01, M-03):** `indicacoes_enviar_contato` e `administracao_denunciar` deixam de ser chamáveis por anônimo; passam a ser chamadas por ação do servidor com Turnstile e limite por IP, usando `service_role` só nessa chamada. Custo R$ 0. Muda o desenho da D-014. **Implementação ainda não feita** (revogação de EXECUTE de anon só junto com a ação de servidor, para não quebrar o contato).
+- **3. Teto de pontos por indicador (S-03):** o ganho de pontos não pode depender só do ritmo; a regra concreta (por dia, por destino ou validação do visitante) e o valor ficam para desenho do `regras-negocio`, a ser apresentado ao Emerson antes de implementar.
+- **4. WhatsApp pessoal do anunciante particular (M-01):** mantém a entrega direta ao visitante após o formulário (IM-026), agora protegida pelo Turnstile e pelos limites.
+- **5. Teto de perfis e itens por conta e "Confirm email" (M-05, D-011):** religar "Confirm email" antes do lançamento e criar teto por conta; o valor do teto fica para proposta do gestor.
+- **6. Retenção e exclusão de dados do visitante (M-04, IM-082):** segue condicionada à revisão jurídica; nenhuma regra de retenção é implementada antes dela.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
