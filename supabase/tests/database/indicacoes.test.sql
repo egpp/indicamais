@@ -59,7 +59,7 @@ select is((select bool_and(relrowsecurity and relforcerowsecurity) from pg_class
   'public.indicacoes_parametro'::regclass, 'public.indicacoes_link'::regclass, 'public.indicacoes_pedido_contato'::regclass,
   'public.indicacoes_notificacao'::regclass, 'public.indicacoes_notificacao_historico'::regclass, 'public.indicacoes_evento'::regclass])),
   true, 'RLS ativa e forçada nas 6 tabelas do módulo');
-select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename like 'indicacoes\_%'), 28, '4 políticas (select, insert, update, delete) por tabela (7 tabelas, com o alarme de excesso)');
+select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename like 'indicacoes\_%'), 28, '4 políticas por tabela (7 tabelas, com o alarme de excesso)');
 select is((select bool_or(has_table_privilege('anon', t, p))
   from unnest(array['public.indicacoes_parametro', 'public.indicacoes_link', 'public.indicacoes_pedido_contato',
     'public.indicacoes_notificacao', 'public.indicacoes_notificacao_historico', 'public.indicacoes_evento']) t,
