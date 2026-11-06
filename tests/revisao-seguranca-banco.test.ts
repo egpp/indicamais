@@ -225,7 +225,8 @@ describe("revisão de segurança · tabelas (estado final)", () => {
 
   it("toda função criada ou removida usa o prefixo public. (senão a varredura não a enxerga)", () => {
     const fora: string[] = [];
-    const re = /(?:create\s+(?:or\s+replace\s+)?function|drop\s+function(?:\s+if\s+exists)?)\s+(?!public\.)("?[\w.]+"?)/gi;
+    const re =
+      /(?:create\s+(?:or\s+replace\s+)?function|drop\s+function(?:\s+if\s+exists)?)\s+(?!public\.)("?[\w.]+"?)/gi;
     for (const { n, t } of migracoes) {
       let m: RegExpExecArray | null;
       while ((m = re.exec(t))) fora.push(`${n}: ${m[1]}`);
