@@ -51,6 +51,7 @@ describe("varredura do app", () => {
       ({ c, t }) => !eServico(c) && /supabase\/servico["']/.test(t),
     );
     expect(importadores.map((i) => i.c.split(/[\\/]/).pop()).sort()).toEqual([
+      "chamada-publica-servidor.ts",
       "notificacoes-contato.ts",
       "rotinas.ts",
     ]);
@@ -58,7 +59,7 @@ describe("varredura do app", () => {
     expect(clientes.length).toBeGreaterThan(5);
     for (const { t } of clientes) {
       expect(t).not.toMatch(
-        /notificacoes-contato|supabase\/servico|supabase\/acesso-conta|agendador|banco-indicacoes/,
+        /notificacoes-contato|chamada-publica-servidor|supabase\/servico|supabase\/acesso-conta|agendador|banco-indicacoes/,
       );
     }
   });

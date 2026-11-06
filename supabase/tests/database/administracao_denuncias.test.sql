@@ -40,14 +40,15 @@ select columns_are('public', 'administracao_fila_denuncias',
   array['id', 'alvo_tipo', 'alvo_id', 'tipo', 'texto', 'situacao', 'denunciante_tipo', 'denunciante_ref', 'total_no_alvo', 'alvo_nome', 'criado_em', 'atualizado_em'],
   'a fila não traz id de conta do denunciante');
 select columns_are('public', 'administracao_denuncia_decisoes', array['denuncia_id', 'de_situacao', 'para_situacao', 'motivo', 'autor_ref', 'criado_em'], 'decisões com autor opaco');
-select is(has_function_privilege('anon', 'public.administracao_denunciar(text,uuid,text,text,text,text)', 'EXECUTE'), true, 'anon pode denunciar');
+select is(has_function_privilege('anon', 'public.administracao_denunciar(text,uuid,text,text,text,text)', 'EXECUTE'), false, 'anon não chama a denúncia direto (D-034): só a ação do servidor, com Turnstile, usa service_role');
+select is(has_function_privilege('service_role', 'public.administracao_denunciar(text,uuid,text,text,text,text)', 'EXECUTE'), true, 'service_role (ação do servidor) chama a denúncia');
 select is(has_function_privilege('authenticated', 'public.administracao_denunciar(text,uuid,text,text,text,text)', 'EXECUTE'), true, 'authenticated pode denunciar');
 select is(has_function_privilege('anon', 'public.administracao_decidir_denuncia(uuid,text,text)', 'EXECUTE')
   or has_function_privilege('anon', 'public.administracao_definir_parametro(text,integer,text)', 'EXECUTE'), false, 'anon não decide nem altera parâmetros');
 select is((select count(*)::int from public.administracao_parametro), 4, 'quatro parâmetros antispam');
 
 -- ===== Denúncia anônima =====
-set local role anon;
+set local role service_role;
 select lives_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', 'Perfil falso', repeat('a', 64))$$, 'anônimo denuncia o perfil');
 select lives_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', 'Perfil falso', repeat('a', 64), 'http://spam.example')$$, 'campo-armadilha preenchido: responde como aceita');
 select lives_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'conteudo_inadequado', 'de novo', repeat('a', 64))$$, 'denúncia repetida do mesmo denunciante é aceita em silêncio');
@@ -56,6 +57,9 @@ select throws_ok($$select public.administracao_denunciar('perfil', 'a0000000-000
 select throws_ok($$select public.administracao_denunciar('lugar', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', null, repeat('a', 64))$$, '22023', null, 'alvo inválido');
 select throws_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', repeat('x', 501), repeat('a', 64))$$, '22023', null, 'texto acima de 500 caracteres');
 select throws_ok($$select public.administracao_denunciar('perfil', 'a0000000-0000-0000-0000-000000000001', 'spam_fraude', null, 'origem-nao-hash')$$, '22023', null, 'origem fora do formato');
+reset role;
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select throws_ok($$select * from public.administracao_denuncia$$, '42501', null, 'anônimo não lê denúncias');
 reset role;
 select is((select count(*)::int from public.administracao_denuncia), 1, 'só uma denúncia gravada: armadilha, repetição e alvo inexistente não gravam');
@@ -63,7 +67,7 @@ select is((select denunciante_id from public.administracao_denuncia), null, 'den
 select is((select count(*)::int from public.administracao_denuncia_tentativa), 3, 'tentativas válidas registradas (inclusive a do alvo inexistente)');
 
 -- ===== Limite por pessoa (P0429) =====
-set local role anon;
+set local role service_role;
 select lives_ok($$select public.administracao_denunciar('perfil', gen_random_uuid(), 'spam_fraude', null, repeat('b', 64))$$, 'tentativa 1 da origem B');
 select lives_ok($$select public.administracao_denunciar('perfil', gen_random_uuid(), 'spam_fraude', null, repeat('b', 64))$$, 'tentativa 2');
 select lives_ok($$select public.administracao_denunciar('item', gen_random_uuid(), 'spam_fraude', null, repeat('b', 64))$$, 'tentativa 3');
