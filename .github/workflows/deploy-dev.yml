@@ -63,12 +63,21 @@ jobs:
           fi
           echo "Credenciais da Cloudflare presentes (valores nao exibidos)."
 
-      - name: Verificar NEXT_PUBLIC_APP_URL
+      - name: Verificar variaveis publicas do build
         env:
           NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         shell: bash
         run: |
           set -euo pipefail
+          # Sem URL e chave publica do Supabase o Worker responde 500 em todas as rotas (proxy lanca erro).
+          for nome in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY; do
+            if [ -z "${!nome:-}" ]; then
+              echo "::error::Falta a variavel de repositorio $nome (projeto Supabase de DEV; chave publica anon/publishable, nao a service_role). Crie em Settings > Secrets and variables > Actions > Variables."
+              exit 1
+            fi
+          done
           if [ -z "${NEXT_PUBLIC_APP_URL:-}" ]; then
             echo "::error::Falta a variavel de repositorio NEXT_PUBLIC_APP_URL (URL publica do app de dev). Sem ela, cadastro, login com Google e e-mails de conta falham em producao. Crie em Settings > Secrets and variables > Actions > Variables."
             exit 1
@@ -80,6 +89,9 @@ jobs:
         env:
           # Variavel de repositorio (nao secret): embutida no build do Next. Vazia = omitida.
           NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          # URL e chave publica (anon/publishable) do Supabase de DEV: embutidas no build, usadas no servidor e no navegador.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           # Chave publica do widget Turnstile (variavel de repositorio, nao secret). Ausente = contato recusado com mensagem clara.
           NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
