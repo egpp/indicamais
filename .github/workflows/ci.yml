@@ -41,3 +41,20 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:cf
+      # Carrega o Worker de verdade no workerd (wrangler dev local, sem publicar): o deploy dev de 07/11/2026
+      # falhou na Cloudflare (erro 10021, __dirname) por causa de next/server no caminho do `scheduled`.
+      # O erro de escopo global aparece ao carregar o script, antes de qualquer requisicao.
+      - name: Worker carrega no workerd sem erro de escopo global
+        run: |
+          pnpm wrangler dev --local --port 8787 > "$RUNNER_TEMP/wrangler-dev.log" 2>&1 &
+          WPID=$!
+          for i in $(seq 1 60); do
+            grep -q "Ready on" "$RUNNER_TEMP/wrangler-dev.log" && break
+            sleep 1
+          done
+          curl -s -o /dev/null --max-time 20 http://localhost:8787/ || true
+          sleep 3
+          kill $WPID 2>/dev/null || true
+          cat "$RUNNER_TEMP/wrangler-dev.log"
+          grep -q "Ready on" "$RUNNER_TEMP/wrangler-dev.log"
+          ! grep -q "__dirname is not defined" "$RUNNER_TEMP/wrangler-dev.log"
