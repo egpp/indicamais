@@ -41,3 +41,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:cf
+      # Valida o bundle do Worker sem publicar (--dry-run): o deploy dev de 07/11/2026 falhou na Cloudflare
+      # (erro 10021, __dirname) por causa de next/server no caminho do `scheduled`. Aqui falha antes.
+      - run: pnpm wrangler deploy --dry-run --outdir "$RUNNER_TEMP/wrangler-bundle"
+      - name: Bundle do Worker sem ua-parser-js do Next
+        run: |
+          if grep -rq "next/dist/compiled/ua-parser-js" "$RUNNER_TEMP/wrangler-bundle"; then
+            echo "O bundle da entrada puxa next/server (ua-parser-js usa __dirname)." >&2
+            exit 1
+          fi

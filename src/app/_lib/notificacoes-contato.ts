@@ -8,6 +8,7 @@ import {
 import { criarEnviadorDoAmbiente } from "@/shared/email/enviador-resend";
 import { criarClienteServico } from "@/shared/supabase/servico";
 import { criarBancoNotificacoes } from "./banco-indicacoes";
+import { CAMINHO_PAINEL_PEDIDOS } from "./caminhos-notificacoes";
 import { origemPublica } from "./site";
 
 /**
@@ -24,7 +25,7 @@ export function provedorEmailConfigurado(
 }
 
 /** Caminho do painel do responsável (aparece no e-mail). */
-export const CAMINHO_PAINEL_PEDIDOS = "/pedidos-de-contato";
+export { CAMINHO_PAINEL_PEDIDOS };
 
 export type DependenciasDisparo = {
   configurado: boolean;

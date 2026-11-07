@@ -8,7 +8,7 @@ import { LIMITES } from "@/shared/config/limites";
 import type { Database } from "@/shared/db/database.types";
 import { criarEnviadorResend, ERRO_EMAIL, lerConfigResend } from "@/shared/email/enviador-resend";
 import { criarBancoNotificacoes } from "./banco-indicacoes";
-import { CAMINHO_PAINEL_PEDIDOS } from "./notificacoes-contato";
+import { CAMINHO_PAINEL_PEDIDOS } from "./caminhos-notificacoes";
 
 /**
  * Reprocessamento das notificações de contato pelo cron (IM-027, IM-028, IM-080). Roda no Worker agendado, com o
