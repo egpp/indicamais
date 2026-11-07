@@ -302,24 +302,31 @@ describe("revisão de segurança · funções (estado final)", () => {
     expect(publicas).toEqual([]);
   });
 
-  it("anon executa só a lista fechada de leituras públicas e do formulário público", () => {
+  it("anon executa só a lista fechada de leituras públicas (contato e denúncia saíram em D-034)", () => {
     const anon = todas
       .filter((f) => f.acl.anon)
       .map((f) => f.nome)
       .sort();
     expect(anon).toEqual([
-      "administracao_denunciar",
       "busca_home_secao_perfis",
       "busca_home_secoes",
       "busca_normalizar",
       "busca_publica",
       "catalogo_imagem_publica",
-      "indicacoes_enviar_contato",
       "loja_listar_imoveis",
       "perfis_endereco_ref",
       "perfis_perfil_disponivel",
       "pontos_beneficio_no_prazo",
     ]);
+  });
+
+  it("D-034: contato e denúncia públicos só por service_role (ação do servidor) e sessão logada, nunca anon/PUBLIC", () => {
+    for (const nome of ["indicacoes_enviar_contato", "administracao_denunciar"]) {
+      const f = funcoes.get(nome)!;
+      expect(f.acl.anon || f.acl.public, nome).toBe(false);
+      expect(f.acl.service_role && f.grantExplicito.has("service_role"), nome).toBe(true);
+      expect(f.acl.authenticated, nome).toBe(true);
+    }
   });
 
   it("todo EXECUTE de authenticated é um GRANT explícito (nada por privilégio padrão)", () => {
@@ -542,10 +549,10 @@ describe("revisão de segurança · Storage e abuso (estado final)", () => {
     expect(tabelas.get("indicacoes_alarme_excesso")?.imutavel).toBe(true);
   });
 
-  it("S-03 (verificação independente): isenção só por auth.role(), alarme legível só pelo administrador, evento herda o link", () => {
+  it("S-03 (verificação independente): sem isenção de service_role (D-034), alarme legível só pelo administrador, evento herda o link", () => {
     const corpo = funcoes.get("indicacoes_pedido_limitar")?.corpo ?? "";
-    // A isenção deriva do JWT validado pelo PostgREST; nunca de papel escolhido pelo chamador nem isenção para todos.
-    expect(corpo).toMatch(/if \(select auth\.role\(\)\) = 'service_role' then\s+return new;/);
+    // D-034: o contato público chega como service_role; qualquer isenção por papel desligaria os limites do site.
+    expect(corpo).not.toMatch(/auth\.role\(\)|service_role|return new;\s+end if;\s+v_recusar/);
     expect(corpo).not.toMatch(/\bif true\b/i);
     // Ordem de aquisição dos locks: link antes de destino (evita deadlock entre as duas travas).
     expect(corpo.indexOf("indicacoes_link:")).toBeGreaterThan(-1);

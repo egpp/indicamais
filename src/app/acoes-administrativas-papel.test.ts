@@ -62,6 +62,7 @@ vi.mock("./_lib/contexto-localizacao", () => ({ obterServicoLocalizacao: vi.fn()
 vi.mock("./_lib/contexto-ciclo-vida", () => ({
   obterContextoCicloVida: contextos.cicloVida,
   obterContextoCicloVidaAberto: contextos.cicloVidaAberto,
+  obterContextoDenunciaPublica: contextos.cicloVidaAberto,
 }));
 vi.mock("./_lib/cache-home", () => ({ revalidarSecoesDaHome: vi.fn() }));
 vi.mock("@/shared/supabase/acesso-conta", () => ({

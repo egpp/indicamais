@@ -146,8 +146,8 @@ select is((select count(*)::int from public.pontos_lancamento), 0, 'link gerado 
 select is((select count(*)::int from public.pontos_decisao), 0, 'sem pedido, sem decisão');
 
 -- ===== Crédito no primeiro pedido atribuído e válido (fluxo real pelo RPC) =====
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select set_config('t.p1', (select o_pedido_id::text from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Maria Silva',
   p_whatsapp => '+5511988880001', p_chave => 'chave-pontos-rpc-0001', p_codigo => current_setting('t.cod_c_p1'))), true);
@@ -158,8 +158,8 @@ select is((select indicador_id from public.pontos_lancamento where pedido_id = c
 select is((select destino_nome from public.pontos_lancamento where pedido_id = current_setting('t.p1')::uuid), 'Loja Um', 'o lançamento guarda o nome do destino');
 
 -- Idempotência: repetir a mesma chave não cria pedido, decisão nem crédito.
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select is((select o_repetido from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Maria Silva',
   p_whatsapp => '+5511988880001', p_chave => 'chave-pontos-rpc-0001', p_codigo => current_setting('t.cod_c_p1'))), true, 'mesma chave: operação repetida');
@@ -221,8 +221,8 @@ select is(pg_temp.saldo('cccccccc-0000-0000-0000-00000000000c'), 30, 'C: 30 pont
 select is(pg_temp.saldo('ffffffff-0000-0000-0000-00000000000f'), 20, 'F: 20 pontos');
 
 -- ===== Autoindicação, sem atribuição e destino indisponível =====
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select set_config('t.p9', (select o_pedido_id::text from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Carlos C',
   p_whatsapp => '+5511999990003', p_chave => 'chave-pontos-rpc-0002', p_codigo => current_setting('t.cod_c_p1'))), true);
@@ -233,8 +233,8 @@ select is((select count(*)::int from public.indicacoes_pedido_contato where id =
 select set_config('t.p10', pg_temp.pedido('a0000000-0000-0000-0000-000000000001', null,
   pg_temp.lk('cccccccc-0000-0000-0000-00000000000c', 'a0000000-0000-0000-0000-000000000001', null), '+5511988880004', 11, 0, true)::text, true);
 select is(pg_temp.motivo(current_setting('t.p10')::uuid), 'autoindicacao', 'pedido marcado como autoindicação suspeita não pontua');
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select set_config('t.p11', (select o_pedido_id::text from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Sem Link',
   p_whatsapp => '+5511988880005', p_chave => 'chave-pontos-rpc-0003')), true);
@@ -414,8 +414,8 @@ select is(pg_temp.saldo('ffffffff-0000-0000-0000-00000000000f'), 40, 'saldo de F
 
 -- ===== Falha no crédito nunca impede o pedido (IM-028) =====
 alter table public.pontos_lancamento add constraint falha_simulada check (pontos > 100000) not valid;
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select set_config('t.p20', (select o_pedido_id::text from public.indicacoes_enviar_contato(
   p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null, p_nome => 'Falha Teste',
   p_whatsapp => '+5511988880020', p_chave => 'chave-pontos-rpc-0020', p_codigo => current_setting('t.cod_c_p1'))), true);

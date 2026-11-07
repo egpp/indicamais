@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { MENSAGENS_CICLO } from "@/modules/administracao";
 import {
   obterContextoCicloVida,
-  obterContextoCicloVidaAberto,
+  obterContextoDenunciaPublica,
   type ContextoCicloVida,
 } from "./_lib/contexto-ciclo-vida";
 import { exigirAdministrador } from "./_lib/exigir-administrador";
@@ -70,7 +70,7 @@ export async function acaoDenunciar(_: EstadoCicloVida, f: FormData): Promise<Es
       MENSAGENS_CICLO.denunciaIndisponivel,
     );
     if (!protecao.ok) return { erro: protecao.erro, valores: valoresDe(f, ["tipo", "texto"]) };
-    return await enviarDenuncia(await obterContextoCicloVidaAberto(), f, protecao.origem);
+    return await enviarDenuncia(await obterContextoDenunciaPublica(), f, protecao.origem);
   } catch (e) {
     if (ehRedirecionamento(e)) throw e;
     return { erro: MENSAGENS_CICLO.denunciaIndisponivel };

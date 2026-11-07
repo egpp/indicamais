@@ -15,6 +15,7 @@ vi.mock("./_lib/contexto-indicacoes", async (importar) => ({
   ...(await importar<typeof import("./_lib/contexto-indicacoes")>()),
   obterContextoIndicacoes: () => obter(),
   obterContextoIndicacoesAberto: () => obter(),
+  obterContextoContatoPublico: () => obter(),
 }));
 vi.mock("next/navigation", () => ({
   notFound: () => {

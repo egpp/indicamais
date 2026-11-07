@@ -75,8 +75,8 @@ select is(has_table_privilege('anon', 'public.indicacoes_alarme_excesso', 'selec
 insert into public.indicacoes_link (id, codigo, indicador_id, perfil_id) values
   ('c0000000-0000-0000-0000-000000000001', 'abcdef0123456789abcdef0123456789', 'bbbbbbbb-0000-0000-0000-00000000000b', 'a0000000-0000-0000-0000-000000000001');
 update public.indicacoes_parametro set valor = 2 where chave = 'contato_limite_por_link_hora';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato('a0000000-0000-0000-0000-000000000001', null, 'Visitante Um', '+5551900000001', 'chave-limite-0000001', null, null, 'abcdef0123456789abcdef0123456789')$$, 'link: pedido 1 passa');
 select lives_ok($$select * from public.indicacoes_enviar_contato('a0000000-0000-0000-0000-000000000001', null, 'Visitante Dois', '+5551900000002', 'chave-limite-0000002', null, null, 'abcdef0123456789abcdef0123456789')$$, 'link: pedido 2 passa');
 select lives_ok($$select * from public.indicacoes_enviar_contato('a0000000-0000-0000-0000-000000000001', null, 'Visitante Tres', '+5551900000003', 'chave-limite-0000003', null, null, 'abcdef0123456789abcdef0123456789')$$,
@@ -94,8 +94,8 @@ select is((select count(*)::int from public.indicacoes_alarme_excesso where tipo
 
 -- Destino: limiar 2 já excedido (3 pedidos): o próximo gera alarme e NÃO é recusado.
 update public.indicacoes_parametro set valor = 2 where chave = 'contato_limite_por_destino_hora';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato('a0000000-0000-0000-0000-000000000001', null, 'Visitante Quatro', '+5551900000004', 'chave-limite-0000004', null, null, null)$$,
   'destino acima do limiar, interruptor desligado: pedido aceito');
 reset role;
@@ -103,17 +103,20 @@ select is((select count(*)::int from public.indicacoes_alarme_excesso where tipo
 
 -- Recusa só com o interruptor ligado.
 update public.indicacoes_parametro set valor = 1 where chave = 'contato_recusar_excesso';
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select throws_ok($$select * from public.indicacoes_enviar_contato('a0000000-0000-0000-0000-000000000001', null, 'Visitante Cinco', '+5551900000005', 'chave-limite-0000005', null, null, null)$$,
   'P0429', null, 'interruptor ligado: o destino acima do limiar recusa');
 reset role;
 select is((select count(*)::int from public.indicacoes_pedido_contato where whatsapp_e164 = '+5551900000005'), 0, 'o pedido recusado não foi gravado');
 
--- service_role é isento (carga em massa), mesmo com o interruptor ligado.
+-- D-034: service_role NÃO é mais isento (o contato público chega como service_role): o interruptor ligado também recusa.
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
-select lives_ok($$insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia) values ('a0000000-0000-0000-0000-000000000001', 'Carga', '+5551900000006', 'chave-carga-0000006')$$,
-  'service_role não passa pelo limite');
+select throws_ok($$insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia) values ('a0000000-0000-0000-0000-000000000001', 'Carga', '+5551900000006', 'chave-carga-0000006')$$,
+  'P0429', null, 'service_role também passa pelo limite do destino');
+-- A linha de carga segue existindo (os testes de nível abaixo contam com ela): com o interruptor desligado, entra.
+update public.indicacoes_parametro set valor = 0 where chave = 'contato_recusar_excesso';
+insert into public.indicacoes_pedido_contato (perfil_id, nome, whatsapp_e164, chave_idempotencia) values ('a0000000-0000-0000-0000-000000000001', 'Carga', '+5551900000006', 'chave-carga-0000006');
 select set_config('request.jwt.claims', '', true);
 
 -- Global: limiar 10; com o interruptor desligado só alarma.

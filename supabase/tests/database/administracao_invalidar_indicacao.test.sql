@@ -37,8 +37,8 @@ select set_config('request.jwt.claims', '{"sub":"11111111-0000-0000-0000-0000000
 select lives_ok($$select * from public.indicacoes_gerar_link(p_perfil_id => 'a0000000-0000-0000-0000-000000000001')$$, 'I gera o link do perfil');
 select set_config('t.cod', (select codigo from public.indicacoes_meus_links where destino_id = 'a0000000-0000-0000-0000-000000000001'), true);
 reset role;
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null,
   p_nome => 'Visitante Um', p_whatsapp => '+5511988880001', p_chave => 'chave-inval-0000001', p_codigo => current_setting('t.cod'))$$, 'pedido 1 pelo link');
 select lives_ok($$select * from public.indicacoes_enviar_contato(p_perfil_id => 'a0000000-0000-0000-0000-000000000001', p_item_id => null,

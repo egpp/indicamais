@@ -97,17 +97,17 @@ describe("migrações: funções", () => {
       ...new Set(
         [...codigo.matchAll(/grant execute on function public\.(\w+)\([^)]*\)\s+to ([^;]+);/gi)]
           .filter(([, , para]) => /\banon\b/i.test(para!))
-          .map(([, nome]) => nome!),
+          .map(([, nome]) => nome!)
+          // D-034: contato e denúncia tiveram o EXECUTE de anon revogado em 20261106140000 (aqui é só histórico).
+          .filter((n) => !["administracao_denunciar", "indicacoes_enviar_contato"].includes(n)),
       ),
     ].sort();
     expect(concedidas).toEqual([
-      "administracao_denunciar",
       "busca_home_secao_perfis",
       "busca_home_secoes",
       "busca_normalizar",
       "busca_publica",
       "catalogo_imagem_publica",
-      "indicacoes_enviar_contato",
       "loja_listar_imoveis",
       "perfis_endereco_ref",
       "perfis_perfil_disponivel",
