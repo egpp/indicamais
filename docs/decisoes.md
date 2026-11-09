@@ -345,6 +345,15 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-035 · 09/11/2026 · Tetos de pontos por indicador e de perfis, itens e rascunhos por conta (IM-015, IM-030, IM-035, IM-006, IM-086, IM-089)
+**IDs:** IM-006, IM-015, IM-030, IM-035, IM-086, IM-089; completa os itens 3 e 5 da D-034. Aceito pelo Emerson em 09/11/2026 ("aceito") para as 11 respostas sugeridas em `docs/proposta-tetos.md`. O teto de pontos precisa estar valendo antes de ligar o resgate (IM-037).
+- **Pontos:** teto de **100 pontos por dia por indicador**, parâmetro auditado (motivo obrigatório). O pedido de contato nunca é recusado por causa do teto: só deixa de pontuar, com o motivo "limite diário" no histórico, e o indicador vê "Limite diário atingido". Verificação do WhatsApp do visitante (opção C) fica para depois, junto com IM-010.
+- **Criação por conta (fixa para todos, não varia por plano por ora):** 3 perfis comerciais por conta, 30 itens por perfil, 10 anúncios particulares por conta e 10 rascunhos abertos. Administradores sem teto. Valores como parâmetros auditados, no padrão de `indicacoes_parametro`. Mensagem clara ao atingir o teto.
+- **Imagens:** mantém 100 por conta e 6 por perfil ou item; subir esse limite consome o Storage gratuito e exige decisão de custo (IM-089).
+- **"Confirm email":** continua valendo religar antes do lançamento (D-034 item 5, D-011).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
