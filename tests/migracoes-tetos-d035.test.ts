@@ -20,7 +20,7 @@ const corpoFuncao = (sql: string, nome: string) =>
   ).exec(sql)?.[1] ?? "";
 
 describe("D-035 · teto diário de pontos (migração 20261109100000)", () => {
-  const avaliar = corpoFuncao(pontos, "pontos_avaliar_pedido");
+  const avaliar = corpoFuncao(pontos, "pontos_avaliar_pedido_interno");
 
   it("parâmetro auditado: 100 por dia, faixa 10 a 10000, na tabela de parâmetros de pontos", () => {
     expect(pontos).toMatch(
@@ -78,6 +78,28 @@ describe("D-035 · teto diário de pontos (migração 20261109100000)", () => {
     expect(chave).toBeGreaterThan(-1);
     expect(indicador).toBeGreaterThan(chave);
     expect(soma).toBeGreaterThan(indicador);
+  });
+
+  it("M1: reprocessamento usa a mesma ordem de locks, sem espera (try-lock), e pula pedido com lock ocupado", () => {
+    // Interno: modo sem espera usa try-lock na chave e depois no indicador; modo com espera (gatilho) mantém a ordem.
+    const tryChave = avaliar.indexOf("pg_try_advisory_xact_lock(hashtextextended('pontos_chave:'");
+    const tryInd = avaliar.indexOf("pg_try_advisory_xact_lock(hashtextextended('pontos_indicador_dia:'");
+    expect(tryChave).toBeGreaterThan(-1);
+    expect(tryInd).toBeGreaterThan(tryChave);
+    expect(avaliar.match(/return null;/g)).toHaveLength(2);
+    // Gatilho: assinatura original espera pelos locks (sem_espera = false).
+    expect(corpoFuncao(pontos, "pontos_avaliar_pedido")).toMatch(
+      /pontos_avaliar_pedido_interno\(p_pedido_id, false\)/,
+    );
+    // Lote: sem espera; pulado não conta nem vira falha. Pedido individual: erro 55P03 sem auditoria.
+    const lote = corpoFuncao(pontos, "pontos_reprocessar_pendentes");
+    expect(lote).toMatch(/if public\.pontos_avaliar_pedido_interno\(v_id, true\) is not null then\s+v_ok := v_ok \+ 1;/);
+    expect(lote).not.toMatch(/pontos_avaliar_pedido\(/);
+    const unico = corpoFuncao(pontos, "pontos_reprocessar_pedido");
+    expect(unico).toMatch(/pontos_avaliar_pedido_interno\(p_pedido_id, true\)/);
+    expect(unico.indexOf("55P03")).toBeLessThan(unico.indexOf("administracao_auditoria"));
+    expect(unico).toContain("administracao_exigir_permissao('reverter_pontos')");
+    expect(pontos).toMatch(/revoke all on function public\.pontos_avaliar_pedido_interno\(uuid, boolean\) from public, anon, authenticated/);
   });
 
   it("histórico só de inserção: nenhuma migração de teto faz UPDATE ou DELETE em decisão ou lançamento", () => {

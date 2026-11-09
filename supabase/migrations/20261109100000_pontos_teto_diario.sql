@@ -16,8 +16,10 @@
 --   * Ordem das regras (D-035): sem atribuição, autoindicação, destino indisponível, dentro do intervalo, DEPOIS o teto. As
 --     regras de duplicidade e autoindicação não mudam. O pedido de contato NUNCA é recusado por causa do teto: a decisão é
 --     gravada com pontuado = false, pontos = 0 e motivo `limite_diario`; o visitante é atendido normalmente.
---   * Concorrência: advisory lock por indicador (depois do lock por chave de duplicidade; ordem fixa, sem deadlock) serializa
---     avaliações do mesmo indicador; a soma é feita já com o lock.
+--   * Concorrência: advisory lock por indicador (depois do lock por chave de duplicidade; ordem fixa) serializa
+--     avaliações do mesmo indicador; a soma é feita já com o lock. Gatilho espera pelos locks. Reprocessamento (lote e
+--     pedido individual) usa a mesma ordem com pg_try_advisory_xact_lock: nunca espera, logo não forma deadlock; lock
+--     ocupado = pedido pulado e ainda pendente (lote) ou erro 55P03 (administrador).
 --   * Comissões e relacionamento não são tocados (IM-065): nenhuma tabela, função ou parâmetro deles muda aqui.
 --   * O indicador lê os contatos sem pontos por limite em pontos_meus_limites_diarios e o total do dia em
 --     pontos_meu_limite_diario(); sem dado do visitante (IM-029, IM-041).
@@ -47,7 +49,9 @@ $$;
 revoke all on function public.pontos_janela_dia(timestamptz) from public, anon, authenticated;
 
 -- Avaliação de UM pedido (mesma assinatura e mesmo contrato; acrescenta o teto diário) -----------------------------------
-create or replace function public.pontos_avaliar_pedido(p_pedido_id uuid) returns bigint
+-- Corpo interno: p_sem_espera = true (reprocessamento) adquire os locks com pg_try_advisory_xact_lock e devolve NULL
+-- se algum estiver ocupado (pedido pulado, segue pendente). false (gatilho) espera, como antes.
+create function public.pontos_avaliar_pedido_interno(p_pedido_id uuid, p_sem_espera boolean) returns bigint
 language plpgsql security definer set search_path = '' as $$
 declare
   v_p public.indicacoes_pedido_contato%rowtype;
@@ -102,14 +106,26 @@ begin
   end if;
 
   -- Concorrência: um só crédito por janela da mesma chave.
-  perform pg_advisory_xact_lock(hashtextextended('pontos_chave:' || v_chave, 0));
+  if p_sem_espera then
+    if not pg_try_advisory_xact_lock(hashtextextended('pontos_chave:' || v_chave, 0)) then
+      return null;
+    end if;
+  else
+    perform pg_advisory_xact_lock(hashtextextended('pontos_chave:' || v_chave, 0));
+  end if;
   select d.id into v_decisao from public.pontos_decisao d where d.pedido_id = p_pedido_id;
   if found then
     return v_decisao;
   end if;
   -- Teto diário: serializa as avaliações do mesmo indicador (sempre DEPOIS do lock da chave).
   if v_indicador is not null then
-    perform pg_advisory_xact_lock(hashtextextended('pontos_indicador_dia:' || v_indicador::text, 0));
+    if p_sem_espera then
+      if not pg_try_advisory_xact_lock(hashtextextended('pontos_indicador_dia:' || v_indicador::text, 0)) then
+        return null;
+      end if;
+    else
+      perform pg_advisory_xact_lock(hashtextextended('pontos_indicador_dia:' || v_indicador::text, 0));
+    end if;
   end if;
 
   v_pts := public.pontos_parametro_valor('pontos_por_indicacao');
@@ -158,6 +174,73 @@ begin
       (indicador_id, tipo, pontos, pedido_id, destino_perfil_id, destino_item_id, destino_nome)
     values (v_indicador, 'credito', v_pts, p_pedido_id, v_p.perfil_id, v_p.item_id,
             coalesce(nullif(btrim(left(v_nome, 100)), ''), 'Destino'));
+  end if;
+  return v_decisao;
+end $$;
+revoke all on function public.pontos_avaliar_pedido_interno(uuid, boolean) from public, anon, authenticated;
+
+-- Assinatura original (usada pelo gatilho): espera pelos locks, na ordem chave de duplicidade e depois indicador.
+create or replace function public.pontos_avaliar_pedido(p_pedido_id uuid) returns bigint
+language sql security definer set search_path = '' as $$
+  select public.pontos_avaliar_pedido_interno(p_pedido_id, false);
+$$;
+revoke all on function public.pontos_avaliar_pedido(uuid) from public, anon, authenticated;
+
+-- Reprocessamento sem deadlock (M1) -----------------------------------------------------------------------------------
+-- Mesma ordem de locks do gatilho (chave, depois indicador), mas SEM ESPERA: o reprocessamento nunca fica bloqueado
+-- segurando um lock enquanto espera outro, então não forma ciclo com um pedido novo. Lock ocupado = pedido pulado, sem
+-- falha e sem decisão; continua pendente para o próximo ciclo do cron. Cada pedido do lote roda em seu próprio bloco
+-- (subtransação); locks de transação só soltam no fim do lote, o que é inofensivo porque o lote nunca espera.
+create or replace function public.pontos_reprocessar_pendentes(p_limite integer default 20) returns integer
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_id uuid;
+  v_ok integer := 0;
+begin
+  for v_id in
+    select f.pedido_id
+    from public.pontos_falha f
+    where not exists (select 1 from public.pontos_decisao d where d.pedido_id = f.pedido_id)
+    group by f.pedido_id
+    order by min(f.criado_em)
+    limit least(greatest(coalesce(p_limite, 20), 1), 100)
+  loop
+    begin
+      if public.pontos_avaliar_pedido_interno(v_id, true) is not null then
+        v_ok := v_ok + 1;
+      end if;
+    exception when others then
+      insert into public.pontos_falha (pedido_id, erro) values (v_id, left(sqlstate || ': ' || sqlerrm, 200));
+    end;
+  end loop;
+  return v_ok;
+end $$;
+
+-- Administrador (definição de 20261102110000_administracao_permissoes.sql; muda só a chamada, sem espera).
+-- Lock ocupado: erro 55P03 claro, nada gravado (nem auditoria); o administrador repete em instantes.
+create or replace function public.pontos_reprocessar_pedido(p_pedido_id uuid, p_motivo text) returns bigint
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_admin uuid := public.administracao_exigir_permissao('reverter_pontos');
+  v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
+  v_antes bigint;
+  v_decisao bigint;
+  v_resultado text;
+begin
+  if v_motivo is null then
+    raise exception 'motivo obrigatório' using errcode = '22023';
+  end if;
+  select d.id into v_antes from public.pontos_decisao d where d.pedido_id = p_pedido_id;
+  v_decisao := public.pontos_avaliar_pedido_interno(p_pedido_id, true);
+  if v_decisao is null then
+    raise exception 'indicador em processamento, tente novamente' using errcode = '55P03';
+  end if;
+  if v_antes is null then
+    select d.motivo into v_resultado from public.pontos_decisao d where d.id = v_decisao;
+    insert into public.administracao_auditoria (autor_id, acao, alvo_tabela, alvo_id, motivo, valor_anterior, valor_novo)
+    values (v_admin, 'reprocessar_pontos_pedido', 'indicacoes_pedido_contato', p_pedido_id::text, v_motivo,
+            jsonb_build_object('decisao', null),
+            jsonb_build_object('decisao_id', v_decisao, 'motivo', v_resultado));
   end if;
   return v_decisao;
 end $$;

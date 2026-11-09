@@ -162,6 +162,11 @@ reset role;
 select is((select id::text from public.pontos_decisao where pedido_id = current_setting('t.pr1')::uuid), current_setting('t.d1'), 'reprocessar pedido já decidido devolve a mesma decisão');
 select is(pg_temp.saldo('cccccccc-0000-0000-0000-00000000000c'), 210, 'e o saldo não muda');
 
+-- M1: o corpo interno (com a opção sem espera) não é chamável por usuário nem por anon.
+select is(has_function_privilege('authenticated', 'public.pontos_avaliar_pedido_interno(uuid, boolean)', 'EXECUTE'), false, 'a avaliação interna não é exposta ao usuário');
+select is(has_function_privilege('anon', 'public.pontos_avaliar_pedido_interno(uuid, boolean)', 'EXECUTE'), false, 'nem ao anon');
+select is(has_function_privilege('service_role', 'public.pontos_reprocessar_pendentes(integer)', 'EXECUTE'), true, 'o lote segue executável pelo servidor');
+
 -- Reversão não reabre espaço no teto (o crédito revertido segue contado no dia).
 select set_config('t.pedido1', (select id::text from public.indicacoes_pedido_contato where chave_idempotencia = 'chave-teto-000001'), true);
 set local role authenticated;
