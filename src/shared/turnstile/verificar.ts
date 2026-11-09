@@ -37,6 +37,27 @@ const respostaSchema = z.object({
 
 const ERROS_NOSSOS = ["internal-error", "missing-input-secret", "invalid-input-secret"];
 
+/**
+ * Diagnóstico seguro: só o motivo, o status HTTP do siteverify e os `error-codes` (códigos fixos da Cloudflare,
+ * filtrados por formato). Nunca segredo, token, IP nem dado pessoal.
+ */
+function registrarFalha(motivo: MotivoFalhaTurnstile, status?: number, codigos?: string[]): void {
+  const seguros = (codigos ?? []).filter((c) => /^[a-z0-9-]{1,64}$/.test(c)).slice(0, 10);
+  const registro: Record<string, unknown> = { evento: "turnstile_falha", motivo };
+  if (status !== undefined) registro.status = status;
+  if (seguros.length > 0) registro.errorCodes = seguros;
+  console.warn(JSON.stringify(registro));
+}
+
+function falha(
+  motivo: MotivoFalhaTurnstile,
+  status?: number,
+  codigos?: string[],
+): { ok: false; motivo: MotivoFalhaTurnstile } {
+  registrarFalha(motivo, status, codigos);
+  return { ok: false, motivo };
+}
+
 export type OpcoesTurnstile = {
   env?: Record<string, string | undefined>;
   /** Injetável nos testes. */
@@ -50,14 +71,12 @@ export async function verificarTurnstile(
   const env = opcoes.env ?? process.env;
   const segredo = env.TURNSTILE_SECRET_KEY?.trim();
   if (!segredo) {
-    return emProducao(env)
-      ? { ok: false, motivo: "nao_configurado" }
-      : { ok: true, verificado: false };
+    return emProducao(env) ? falha("nao_configurado") : { ok: true, verificado: false };
   }
   const bruto = typeof entrada.token === "string" ? entrada.token.trim() : "";
-  if (bruto === "") return { ok: false, motivo: "ausente" };
+  if (bruto === "") return falha("ausente");
   const token = tokenSchema.safeParse(bruto);
-  if (!token.success) return { ok: false, motivo: "invalido" };
+  if (!token.success) return falha("invalido");
 
   const corpo = new URLSearchParams({ secret: segredo, response: token.data });
   if (entrada.ip) corpo.set("remoteip", entrada.ip);
@@ -67,15 +86,16 @@ export async function verificarTurnstile(
       body: corpo,
       signal: AbortSignal.timeout(LIMITES.turnstile.timeoutMs),
     });
-    if (!resposta.ok) return { ok: false, motivo: "indisponivel" };
+    if (!resposta.ok) return falha("indisponivel", resposta.status);
     const dados = respostaSchema.safeParse(await resposta.json());
-    if (!dados.success) return { ok: false, motivo: "indisponivel" };
+    if (!dados.success) return falha("indisponivel", resposta.status);
     if (dados.data.success) return { ok: true, verificado: true };
     // Erro da Cloudflare ou da nossa chave: indisponível. Token ruim, repetido ou vencido: inválido.
-    const nosso = (dados.data["error-codes"] ?? []).some((c) => ERROS_NOSSOS.includes(c));
-    return { ok: false, motivo: nosso ? "indisponivel" : "invalido" };
+    const codigos = dados.data["error-codes"] ?? [];
+    const nosso = codigos.some((c) => ERROS_NOSSOS.includes(c));
+    return falha(nosso ? "indisponivel" : "invalido", resposta.status, codigos);
   } catch {
-    return { ok: false, motivo: "indisponivel" };
+    return falha("indisponivel");
   }
 }
 

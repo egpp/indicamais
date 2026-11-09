@@ -132,3 +132,92 @@ describe("verificarTurnstile (RSA-05, IM-076)", () => {
     expect(chaveDoSiteTurnstile({})).toBeUndefined();
   });
 });
+
+describe("diagnóstico seguro de falha (log sem segredo nem token)", () => {
+  const SEGREDO = "SEGREDO-SUPER-SECRETO-123";
+  const TOKEN = "TOKEN-DO-VISITANTE-456";
+
+  async function capturar(fn: () => Promise<unknown>) {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await fn();
+      return aviso.mock.calls.map((c) => String(c[0]));
+    } finally {
+      aviso.mockRestore();
+    }
+  }
+
+  it("recusa da Cloudflare: registra motivo, status e error-codes", async () => {
+    const buscar = resposta({ success: false, "error-codes": ["invalid-input-secret"] });
+    const logs = await capturar(() =>
+      verificarTurnstile(
+        { token: TOKEN, ip: "203.0.113.9" },
+        { env: { TURNSTILE_SECRET_KEY: SEGREDO }, buscar },
+      ),
+    );
+    expect(logs).toHaveLength(1);
+    expect(JSON.parse(logs[0]!)).toEqual({
+      evento: "turnstile_falha",
+      motivo: "indisponivel",
+      status: 200,
+      errorCodes: ["invalid-input-secret"],
+    });
+    for (const l of logs) {
+      expect(l).not.toContain(SEGREDO);
+      expect(l).not.toContain(TOKEN);
+      expect(l).not.toContain("203.0.113.9");
+    }
+  });
+
+  it("HTTP não ok e rede fora: registra motivo e status quando houver", async () => {
+    const logs = await capturar(async () => {
+      await verificarTurnstile(
+        { token: TOKEN },
+        { env: { TURNSTILE_SECRET_KEY: SEGREDO }, buscar: resposta({}, 503) },
+      );
+      await verificarTurnstile(
+        { token: TOKEN },
+        {
+          env: { TURNSTILE_SECRET_KEY: SEGREDO },
+          buscar: vi.fn(async () => {
+            throw new Error(`falha com ${SEGREDO}`);
+          }),
+        },
+      );
+    });
+    expect(logs.map((l) => JSON.parse(l))).toEqual([
+      { evento: "turnstile_falha", motivo: "indisponivel", status: 503 },
+      { evento: "turnstile_falha", motivo: "indisponivel" },
+    ]);
+    for (const l of logs) expect(l).not.toContain(SEGREDO);
+  });
+
+  it("nao_configurado e ausente: só o motivo", async () => {
+    const logs = await capturar(async () => {
+      await verificarTurnstile({ token: TOKEN }, { env: { NODE_ENV: "production" } });
+      await verificarTurnstile({ token: "" }, { env: { TURNSTILE_SECRET_KEY: SEGREDO } });
+    });
+    expect(logs.map((l) => JSON.parse(l).motivo)).toEqual(["nao_configurado", "ausente"]);
+  });
+
+  it("error-codes fora do formato de código fixo não são registrados", async () => {
+    const buscar = resposta({
+      success: false,
+      "error-codes": ["Contém Espaço", "timeout-or-duplicate"],
+    });
+    const logs = await capturar(() =>
+      verificarTurnstile({ token: TOKEN }, { env: { TURNSTILE_SECRET_KEY: SEGREDO }, buscar }),
+    );
+    expect(JSON.parse(logs[0]!).errorCodes).toEqual(["timeout-or-duplicate"]);
+  });
+
+  it("sucesso não registra nada", async () => {
+    const logs = await capturar(() =>
+      verificarTurnstile(
+        { token: TOKEN },
+        { env: { TURNSTILE_SECRET_KEY: SEGREDO }, buscar: resposta({ success: true }) },
+      ),
+    );
+    expect(logs).toEqual([]);
+  });
+});
