@@ -272,3 +272,58 @@ language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function public.pontos_meu_limite_diario() from public, anon;
 grant execute on function public.pontos_meu_limite_diario() to authenticated;
+
+-- Parâmetros: nunca permitir configuração em que ninguém pontua (IM-030, IM-035, IM-086) ---------------------------------
+-- Definição de 20261031100000_pontos_modelo.sql, mais a regra cruzada. Com tudo ou nada, teto < pontos por indicação
+-- faria TODA indicação cair em limite_diario. Recusa:
+--   (a) teto_diario_pontos menor que o valor vigente de pontos_por_indicacao;
+--   (b) pontos_por_indicacao maior que o valor vigente de teto_diario_pontos.
+-- Erro estável: SQLSTATE P0431, message `pontos_teto_menor_que_indicacao`, detail `teto=<n>, indicacao=<n>` (valores que
+-- ficariam). Nada é gravado, nem auditoria. Ordem para subir os dois: primeiro o teto, depois os pontos por indicação
+-- (para descer, ao contrário). As duas linhas são travadas juntas em ordem fixa de chave: sem corrida nem deadlock entre
+-- dois administradores. Demais erros inalterados: 42501, 22023, P0002.
+create or replace function public.pontos_definir_parametro(p_chave text, p_valor integer, p_motivo text) returns void
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_admin uuid := public.administracao_exigir_admin();
+  v_motivo text := nullif(left(btrim(coalesce(p_motivo, '')), 500), '');
+  v_anterior integer;
+  v_min integer;
+  v_max integer;
+  v_pts integer;
+  v_teto integer;
+begin
+  if v_motivo is null then
+    raise exception 'motivo obrigatório' using errcode = '22023';
+  end if;
+  if p_valor is null then
+    raise exception 'valor obrigatório' using errcode = '22023';
+  end if;
+  -- Trava as duas linhas relacionadas em ordem fixa (pontos_por_indicacao < teto_diario_pontos).
+  perform 1 from public.pontos_parametro pa
+  where pa.chave in ('pontos_por_indicacao', 'teto_diario_pontos') order by pa.chave for update;
+  select pa.valor, pa.minimo, pa.maximo into v_anterior, v_min, v_max
+  from public.pontos_parametro pa where pa.chave = p_chave for update;
+  if not found then
+    raise exception 'parâmetro não encontrado' using errcode = 'P0002';
+  end if;
+  if p_valor < v_min or p_valor > v_max then
+    raise exception 'valor fora da faixa permitida (% a %)', v_min, v_max using errcode = '22023';
+  end if;
+  if p_chave in ('pontos_por_indicacao', 'teto_diario_pontos') then
+    v_pts := case when p_chave = 'pontos_por_indicacao' then p_valor
+                  else public.pontos_parametro_valor('pontos_por_indicacao') end;
+    v_teto := case when p_chave = 'teto_diario_pontos' then p_valor
+                   else public.pontos_parametro_valor('teto_diario_pontos') end;
+    if v_teto < v_pts then
+      raise exception 'pontos_teto_menor_que_indicacao' using errcode = 'P0431',
+        detail = 'teto=' || v_teto || ', indicacao=' || v_pts;
+    end if;
+  end if;
+  update public.pontos_parametro set valor = p_valor where chave = p_chave;
+  insert into public.administracao_auditoria (autor_id, acao, alvo_tabela, alvo_id, motivo, valor_anterior, valor_novo)
+  values (v_admin, 'definir_parametro_pontos', 'pontos_parametro', p_chave, v_motivo,
+          jsonb_build_object('valor', v_anterior), jsonb_build_object('valor', p_valor));
+end $$;
+revoke all on function public.pontos_definir_parametro(text, integer, text) from public, anon;
+grant execute on function public.pontos_definir_parametro(text, integer, text) to authenticated;

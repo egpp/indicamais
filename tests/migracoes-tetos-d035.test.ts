@@ -30,6 +30,25 @@ describe("D-035 · teto diário de pontos (migração 20261109100000)", () => {
     expect(pontos).not.toMatch(/create policy|grant (insert|update|delete)/i);
   });
 
+  it("regra cruzada: pontos_definir_parametro recusa teto < pontos por indicação (P0431), antes de gravar e auditar", () => {
+    const f = corpoFuncao(pontos, "pontos_definir_parametro");
+    expect(f).toContain("administracao_exigir_admin()");
+    expect(f).toMatch(/raise exception 'pontos_teto_menor_que_indicacao' using errcode = 'P0431'/);
+    expect(f).toMatch(/if v_teto < v_pts then/);
+    // Recusa vem depois da faixa e ANTES do update e da auditoria.
+    const faixa = f.indexOf("valor fora da faixa permitida");
+    const recusa = f.indexOf("P0431");
+    expect(faixa).toBeGreaterThan(-1);
+    expect(recusa).toBeGreaterThan(faixa);
+    expect(f.indexOf("update public.pontos_parametro")).toBeGreaterThan(recusa);
+    expect(f.indexOf("insert into public.administracao_auditoria")).toBeGreaterThan(recusa);
+    // Trava as duas linhas em ordem fixa de chave (sem corrida nem deadlock entre administradores).
+    expect(f).toMatch(/order by pa\.chave for update/);
+    expect(pontos).toMatch(
+      /grant execute on function public\.pontos_definir_parametro\(text, integer, text\) to authenticated/,
+    );
+  });
+
   it("o motivo limite_diario é aceito na decisão e exige o teto gravado", () => {
     expect(pontos).toMatch(/'dentro_do_intervalo', 'limite_diario'\)/);
     expect(pontos).toMatch(/motivo <> 'limite_diario' or teto_diario is not null/);

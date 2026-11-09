@@ -136,7 +136,32 @@ select is((select teto_diario from public.pontos_decisao where pedido_id = curre
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
 select lives_ok($$select public.pontos_definir_parametro('teto_diario_pontos', 100, 'volta ao padrão')$$, 'administrador volta o teto a 100');
+
+-- Regra cruzada (IM-030, IM-035): nunca uma configuração em que ninguém pontua. Estado: pontos 10, teto 100.
 reset role;
+create temp table t_aud_antes as select count(*)::int as n from public.administracao_auditoria where acao = 'definir_parametro_pontos';
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
+-- (b) pontos por indicação maior que o teto vigente (100): recusa P0431
+select throws_ok($$select public.pontos_definir_parametro('pontos_por_indicacao', 101, 'pontos acima do teto')$$, 'P0431', 'pontos_teto_menor_que_indicacao', 'pontos por indicação > teto vigente é recusado (P0431)');
+-- igualdade é permitida (1 indicação por dia pontua)
+select lives_ok($$select public.pontos_definir_parametro('pontos_por_indicacao', 100, 'igual ao teto')$$, 'pontos por indicação igual ao teto é aceito');
+-- (a) teto menor que os pontos por indicação vigentes (100): recusa P0431
+select throws_ok($$select public.pontos_definir_parametro('teto_diario_pontos', 99, 'teto abaixo dos pontos')$$, 'P0431', 'pontos_teto_menor_que_indicacao', 'teto < pontos por indicação vigentes é recusado (P0431)');
+-- ordem de subida: primeiro o teto, depois os pontos
+select lives_ok($$select public.pontos_definir_parametro('teto_diario_pontos', 500, 'sobe o teto primeiro')$$, 'subir o teto primeiro é aceito');
+select lives_ok($$select public.pontos_definir_parametro('pontos_por_indicacao', 300, 'depois sobe os pontos')$$, 'depois, subir os pontos (<= teto) é aceito');
+-- ordem de descida: primeiro os pontos, depois o teto (o contrário é recusado)
+select throws_ok($$select public.pontos_definir_parametro('teto_diario_pontos', 100, 'desce o teto antes')$$, 'P0431', 'pontos_teto_menor_que_indicacao', 'descer o teto antes dos pontos é recusado');
+select lives_ok($$select public.pontos_definir_parametro('pontos_por_indicacao', 10, 'desce os pontos primeiro')$$, 'descer os pontos primeiro é aceito');
+select lives_ok($$select public.pontos_definir_parametro('teto_diario_pontos', 100, 'volta ao padrão')$$, 'e depois o teto volta a 100');
+-- faixa e motivo continuam valendo antes da regra cruzada
+select throws_ok($$select public.pontos_definir_parametro('teto_diario_pontos', 9, 'abaixo da faixa')$$, '22023', null, 'faixa continua dando 22023');
+reset role;
+select is((select valor from public.pontos_parametro where chave = 'pontos_por_indicacao'), 10, 'estado final: pontos por indicação = 10 (recusas não gravaram)');
+select is((select valor from public.pontos_parametro where chave = 'teto_diario_pontos'), 100, 'estado final: teto = 100');
+-- 5 sucessos novos (100, 500, 300, 10, 100) = 5 auditorias; as 3 recusas P0431 não gravaram nada
+select is((select count(*)::int from public.administracao_auditoria where acao = 'definir_parametro_pontos') - (select n from t_aud_antes), 5, 'só os 5 sucessos geraram auditoria; recusas P0431 não gravam');
 select is(pg_temp.motivo(current_setting('t.pe_b')::uuid), 'limite_diario', 'decisão antiga não é reescrita');
 select is((select count(*)::int from public.pontos_lancamento where pedido_id = current_setting('t.pe_b')::uuid), 0, 'e continua sem crédito');
 

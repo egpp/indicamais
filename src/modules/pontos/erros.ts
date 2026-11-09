@@ -8,6 +8,8 @@ export const MENSAGENS_PONTOS = {
   dadosInvalidos: "Confira os dados informados.",
   motivoObrigatorio: "Informe o motivo.",
   valorForaDaFaixa: "O valor está fora da faixa permitida para este parâmetro.",
+  tetoMenorQueIndicacao:
+    "O teto diário não pode ser menor que os pontos por indicação, senão ninguém pontuaria. Para aumentar os dois, aumente primeiro o teto; para reduzir, reduza primeiro os pontos por indicação.",
   parametroNaoEncontrado: "Parâmetro não encontrado.",
   lancamentoNaoEncontrado: "Lançamento de pontos não encontrado.",
   soCreditoPodeSerRevertido: "Só um crédito de pontos pode ser revertido.",
@@ -56,12 +58,16 @@ const M = MENSAGENS_PONTOS;
 
 /**
  * SQLSTATE do banco -> erro tipado. O texto do banco (message, details) NUNCA sai daqui.
+ * P0431 teto diário menor que pontos por indicação (message `pontos_teto_menor_que_indicacao`);
  * P0409 crédito já revertido; P0410 reversão deixaria saldo negativo (exige confirmação);
  * 42501 não autenticado/sem permissão; 22023 motivo/valor inválido; 23514 campo fora das regras;
  * P0002 inexistente/indisponível; P0001 estado inválido.
  */
 export function mapearErroBancoPontos(e: ErroBanco, op: OperacaoPontos): ErroPontos {
   if (e.code === "P0409") return erroPontos("JA_REVERTIDO", M.jaRevertido);
+  if (e.code === "P0431") {
+    return erroPontos("VALIDACAO", M.tetoMenorQueIndicacao, { valor: M.tetoMenorQueIndicacao });
+  }
   if (e.code === "P0410") return erroPontos("SALDO_NEGATIVO", M.saldoNegativo);
   switch (classificarErroBanco(e)) {
     case "PERMISSAO":

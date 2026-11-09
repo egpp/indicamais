@@ -283,6 +283,18 @@ describe("parâmetros (IM-030, D-012)", () => {
     expect(b.definirParametro).not.toHaveBeenCalled();
   });
 
+  it("P0431 do banco (teto menor que pontos por indicação) vira mensagem clara no campo valor", async () => {
+    const r = await servico(
+      fake({ definirParametro: vi.fn(comErroSimples("P0431")) }),
+    ).definirParametro({ chave: "pontos_por_indicacao", valor: 500, motivo: "x" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.erro.codigo).toBe("VALIDACAO");
+      expect(r.erro.mensagem).toBe(MENSAGENS_PONTOS.tetoMenorQueIndicacao);
+      expect(r.erro.campos?.valor).toBe(MENSAGENS_PONTOS.tetoMenorQueIndicacao);
+    }
+  });
+
   it("22023 do banco (fora da faixa) vira mensagem de faixa; 42501 vira permissão", async () => {
     const e1 = await servico(
       fake({ definirParametro: vi.fn(comErroSimples("22023")) }),
