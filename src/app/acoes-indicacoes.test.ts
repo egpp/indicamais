@@ -10,6 +10,7 @@ let obter: () => Promise<ContextoIndicacoes>;
 let cabecalhos = new Headers({ "cf-connecting-ip": "203.0.113.9", "user-agent": "Teste/1" });
 const disparar = vi.fn(() => true);
 const revalidar = vi.fn();
+const exigir = vi.fn(async (v: string) => void v);
 
 vi.mock("./_lib/contexto-indicacoes", async (importar) => ({
   ...(await importar<typeof import("./_lib/contexto-indicacoes")>()),
@@ -29,9 +30,11 @@ vi.mock("./_lib/notificacoes-contato", () => ({
   dispararNotificacoesDoServidor: (...a: unknown[]) => disparar(...(a as [])),
 }));
 vi.mock("next/headers", () => ({ headers: async () => cabecalhos }));
+vi.mock("./_lib/exigir-administrador", () => ({ exigirAdministrador: (v: string) => exigir(v) }));
 vi.mock("next/cache", () => ({ revalidatePath: (...a: unknown[]) => revalidar(...a) }));
 
 import {
+  acaoDefinirParametroContato,
   acaoEnviarContato,
   acaoGerarLink,
   acaoPedirReenvio,
@@ -141,6 +144,27 @@ describe("Server Actions da Fase 3", () => {
     expect(a.erros?.motivo).toBe("Informe o motivo.");
     expect(b.erros?.motivo).toBe("Informe o motivo.");
     expect(disparar).not.toHaveBeenCalled();
+  });
+
+  it("acaoDefinirParametroContato: confere o papel antes, grava e atualiza a tela; erro não atualiza", async () => {
+    const m = mundo({ id: randomUUID(), admin: true });
+    m.parametros.push({
+      chave: "contato_recusar_excesso",
+      valor: 0,
+      minimo: 0,
+      maximo: 1,
+      descricao: "Interruptor.",
+      atualizado_em: "2026-11-06T12:00:00Z",
+    });
+    const f = { chave: "contato_recusar_excesso", valor: "1", motivo: "Turnstile já no ar" };
+    const ruim = await acaoDefinirParametroContato({}, formulario({ ...f, motivo: "curto" }));
+    expect(ruim.erros?.motivo).toBeTruthy();
+    expect(revalidar).not.toHaveBeenCalled();
+    const r = await acaoDefinirParametroContato({}, formulario(f));
+    expect(r.sucesso).toBe("Limite do contato atualizado.");
+    expect(exigir).toHaveBeenCalledWith("/administracao/limites-contato");
+    expect(revalidar).toHaveBeenCalledWith("/administracao/limites-contato");
+    expect(m.definicoes).toHaveLength(1);
   });
 });
 

@@ -209,3 +209,36 @@ export async function definirParametroAdmin(
   );
   return Object.keys(erros).length > 0 ? { erros, valores } : { erro: r.erro.mensagem, valores };
 }
+
+/** Tela "Limites do contato" (D-034 item 1, S-03, IM-076, IM-086). */
+export const MENSAGEM_LIMITE_CONTATO_ALTERADO = "Limite do contato atualizado.";
+
+/**
+ * Altera um parâmetro do contato (lista fechada de chaves no módulo, motivo de 10+ caracteres, faixa do banco).
+ * Sessão do administrador; o banco audita (autor, motivo, valor anterior). Campos do formulário: chave, valor, motivo.
+ */
+export async function definirParametroContatoAdmin(
+  ctx: ContextoIndicacoes,
+  f: FormData,
+): Promise<EstadoLink> {
+  const bloqueio = await soAdministrador(ctx);
+  if (bloqueio) return bloqueio;
+  const ler = lerDeFormData(f);
+  const valores = valoresDe(f, ["valor", "motivo"]);
+  const bruto = ler("valor").trim();
+  const r = await ctx.servico.definirParametroContato({
+    chave: ler("chave"),
+    valor: bruto === "" ? Number.NaN : Number(bruto),
+    motivo: ler("motivo"),
+  });
+  if (r.ok) {
+    return {
+      sucesso: MENSAGEM_LIMITE_CONTATO_ALTERADO,
+      valores: { valor: valores.valor ?? "", motivo: "" },
+    };
+  }
+  const erros = Object.fromEntries(
+    Object.entries(r.erro.campos ?? {}).filter(([k]) => k === "valor" || k === "motivo"),
+  );
+  return Object.keys(erros).length > 0 ? { erros, valores } : { erro: r.erro.mensagem, valores };
+}
