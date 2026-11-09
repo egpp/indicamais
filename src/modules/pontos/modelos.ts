@@ -23,6 +23,10 @@ export type LinhaAguardandoAceite = Visoes["administracao_beneficios_aguardando_
 export type LinhaBeneficioPublico = Visoes["pontos_beneficio_publico"]["Row"];
 export type LinhaParametrosAtuais =
   Database["public"]["Functions"]["pontos_parametros_atuais"]["Returns"][number];
+export type LinhaParametroPontos = Pick<
+  Tabelas["pontos_parametro"]["Row"],
+  "chave" | "valor" | "minimo" | "maximo"
+>;
 export type LinhaBeneficio = Pick<
   Tabelas["pontos_beneficio"]["Row"],
   "id" | "perfil_id" | "ativo" | "versao_aprovada_id" | "criado_em"
@@ -205,6 +209,19 @@ export function paraParametros(l: LinhaParametrosAtuais | undefined): Parametros
     return null;
   }
   return { pontosPorIndicacao: l.o_pontos_por_indicacao, intervaloDias: l.o_intervalo_dias };
+}
+
+/** Parâmetro com a faixa vinda do banco (só administrador enxerga as linhas; D-035). */
+export type ParametroPontosAdmin = {
+  chave: string;
+  valor: number;
+  minimo: number;
+  maximo: number;
+};
+
+export function paraParametroPontosAdmin(l: LinhaParametroPontos): ParametroPontosAdmin | null {
+  if (![l.valor, l.minimo, l.maximo].every(Number.isInteger)) return null;
+  return { chave: l.chave, valor: l.valor, minimo: l.minimo, maximo: l.maximo };
 }
 
 // Administrador (indicador identificado só por indicador_ref, hash opaco) -----------------------------------------

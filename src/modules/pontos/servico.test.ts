@@ -37,6 +37,9 @@ function fake(sobrescrever: Partial<ClienteBancoPontos> = {}) {
     lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 0 }])),
     listarMeusLimitesDiarios: vi.fn(ok<LinhaMeuLimiteContato[]>([])),
     lerParametrosAtuais: vi.fn(ok([{ o_pontos_por_indicacao: 10, o_intervalo_dias: 30 }])),
+    listarParametrosAdmin: vi.fn(
+      ok([{ chave: "teto_diario_pontos", valor: 100, minimo: 10, maximo: 10000 }]),
+    ),
     definirParametro: vi.fn(semErro),
     reverterCredito: vi.fn(ok<string>(ID2)),
     reprocessarPedido: vi.fn(ok<number>(7)),
@@ -252,6 +255,44 @@ describe("parâmetros (IM-030, D-012)", () => {
     const b = fake({ lerParametrosAtuais: vi.fn(ok([])) });
     const r = await servico(b).parametrosAtuais();
     expect(r.ok === false && r.erro.codigo).toBe("PERMISSAO");
+  });
+
+  it("lê o teto diário com a faixa vinda do banco (administrador)", async () => {
+    expect(await servico(fake()).parametrosAdmin()).toEqual({
+      ok: true,
+      valor: [{ chave: "teto_diario_pontos", valor: 100, minimo: 10, maximo: 10000 }],
+    });
+  });
+
+  it("não administrador (RLS devolve vazio) recebe permissão negada ao ler a faixa", async () => {
+    const r = await servico(fake({ listarParametrosAdmin: vi.fn(ok([])) })).parametrosAdmin();
+    expect(r.ok === false && r.erro.codigo).toBe("PERMISSAO");
+  });
+
+  it("define o teto diário com motivo; sem motivo é recusado antes do banco", async () => {
+    const b = fake();
+    const r = await servico(b).definirParametro({
+      chave: "teto_diario_pontos",
+      valor: 200,
+      motivo: " campanha ",
+    });
+    expect(r.ok).toBe(true);
+    expect(b.definirParametro).toHaveBeenCalledWith({
+      chave: "teto_diario_pontos",
+      valor: 200,
+      motivo: "campanha",
+    });
+    const sem = await servico(b).definirParametro({ chave: "teto_diario_pontos", valor: 200 });
+    expect(sem.ok === false && sem.erro.codigo).toBe("VALIDACAO");
+    expect(b.definirParametro).toHaveBeenCalledTimes(1);
+  });
+
+  it("teto fora da faixa (22023 do banco) mostra a mensagem de faixa, sem texto do banco", async () => {
+    const r = await servico(
+      fake({ definirParametro: vi.fn(comErroSimples("22023")) }),
+    ).definirParametro({ chave: "teto_diario_pontos", valor: 5, motivo: "x" });
+    expect(r.ok === false && r.erro.mensagem).toBe(MENSAGENS_PONTOS.valorForaDaFaixa);
+    expect(JSON.stringify(r)).not.toContain("texto interno");
   });
 
   it("define com motivo", async () => {

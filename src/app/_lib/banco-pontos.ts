@@ -119,6 +119,14 @@ export function criarBancoPontos(supabase: Cliente): ClienteBancoPontos {
         return { dados: data ?? [], erro: paraErro(error) };
       }),
 
+    listarParametrosAdmin: () =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("pontos_parametro")
+          .select("chave, valor, minimo, maximo");
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
     definirParametro: (a) =>
       protegidoErro(async () => {
         const { error } = await supabase.rpc("pontos_definir_parametro", {

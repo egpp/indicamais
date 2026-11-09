@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FormParametro } from "../../_componentes/form-indicacoes-admin";
-import { FormParametroPontos } from "../../_componentes/form-pontos";
+import { FormParametroPontos, ORIENTACAO_TETO_PONTOS } from "../../_componentes/form-pontos";
 import { PainelPagina } from "../../_componentes/painel";
 import { Aviso } from "../../_componentes/ui";
 import { formatarDataHora } from "../../_lib/apresentacao";
@@ -23,6 +23,8 @@ export default async function PaginaParametros() {
   const ctxPontos = await obterContextoPontos("/administracao/parametros");
   await exigirAdministradorPontos(ctxPontos);
   const pontos = await ctxPontos.servico.parametrosAtuais();
+  const faixas = await ctxPontos.servico.parametrosAdmin();
+  const teto = faixas.ok ? faixas.valor.find((x) => x.chave === "teto_diario_pontos") : undefined;
   return (
     <PainelPagina
       titulo="Parâmetros"
@@ -67,9 +69,10 @@ export default async function PaginaParametros() {
       <section aria-labelledby="titulo-pontos">
         <h2 id="titulo-pontos">Pontos</h2>
         <p className="ajuda">
-          Quantos pontos vale uma indicação válida e o intervalo para o mesmo contato pontuar de
-          novo no mesmo destino. Alterações valem para os próximos pedidos. Cada alteração exige
-          motivo e fica na auditoria; valores fora da faixa permitida são recusados.
+          Quantos pontos vale uma indicação válida, o intervalo para o mesmo contato pontuar de novo
+          no mesmo destino e o máximo de pontos por indicador por dia. Alterações valem para os
+          próximos pedidos. Cada alteração exige motivo e fica na auditoria; valores fora da faixa
+          permitida são recusados.
         </p>
         {!pontos.ok ? (
           <Aviso tipo="erro">{pontos.erro.mensagem}</Aviso>
@@ -93,6 +96,29 @@ export default async function PaginaParametros() {
                 <summary className="botao-texto">Alterar</summary>
                 <FormParametroPontos chave="intervalo_dias" valor={pontos.valor.intervaloDias} />
               </details>
+            </li>
+            <li className="cartao">
+              <h3>Teto diário de pontos por indicador</h3>
+              {teto ? (
+                <>
+                  <p>Valor atual: {teto.valor}</p>
+                  <p className="ajuda">
+                    O teto nunca pode ser menor que os pontos por indicação.{" "}
+                    {ORIENTACAO_TETO_PONTOS}
+                  </p>
+                  <details>
+                    <summary className="botao-texto">Alterar</summary>
+                    <FormParametroPontos
+                      chave="teto_diario_pontos"
+                      valor={teto.valor}
+                      minimo={teto.minimo}
+                      maximo={teto.maximo}
+                    />
+                  </details>
+                </>
+              ) : (
+                <Aviso tipo="atencao">Teto diário indisponível no momento.</Aviso>
+              )}
             </li>
           </ul>
         )}

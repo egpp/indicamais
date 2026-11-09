@@ -43,6 +43,10 @@ vi.mock("./_lib/contexto-pontos", async (importar) => ({
         ok: true,
         valor: { pontosPorIndicacao: 10, intervaloDias: 30 },
       }),
+      parametrosAdmin: async () => ({
+        ok: true,
+        valor: [{ chave: "teto_diario_pontos", valor: 100, minimo: 10, maximo: 10000 }],
+      }),
     },
   }),
 }));
@@ -520,6 +524,25 @@ describe("Administração dos pedidos e dos parâmetros (IM-028, IM-034)", () =>
     await u.click(screen.getByRole("button", { name: "Salvar" }));
     expect(await screen.findByText("Informe um número inteiro.")).toBeTruthy();
     expect(screen.getByText("Informe o motivo.")).toBeTruthy();
+    expect(semAcao).not.toHaveBeenCalled();
+  });
+});
+
+describe("parâmetro teto diário de pontos (D-035, IM-030)", () => {
+  it("mostra valor, faixa do banco e a orientação; recusa fora da faixa e sem motivo antes de enviar", async () => {
+    contextoCom({ id: randomUUID(), admin: true });
+    const u = userEvent.setup();
+    render(await PaginaParametros());
+    expect(screen.getByText("Teto diário de pontos por indicador")).toBeTruthy();
+    expect(screen.getAllByText(/aumente primeiro o teto/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Faixa permitida: de 10 a 10000.")).toBeTruthy();
+    const campo = screen.getAllByLabelText("Novo valor (pontos)").at(-1)!;
+    await u.clear(campo);
+    await u.type(campo, "5");
+    const salvar = screen.getAllByRole("button", { name: "Salvar pontos" }).at(-1)!;
+    await u.click(salvar);
+    expect(await screen.findByText("Informe um valor entre 10 e 10000.")).toBeTruthy();
+    expect(screen.getAllByText("Informe o motivo (até 500 caracteres).").length).toBeGreaterThan(0);
     expect(semAcao).not.toHaveBeenCalled();
   });
 });

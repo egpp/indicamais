@@ -26,6 +26,7 @@ import {
   paraMeuLancamento,
   paraMeuSaldo,
   paraParametros,
+  paraParametroPontosAdmin,
   paraSaldoAdmin,
   propostasAguardandoAceite,
   type BeneficioAguardandoAceite,
@@ -47,12 +48,14 @@ import {
   type LinhaMeuLimiteDiario,
   type LinhaMeuSaldo,
   type LinhaParametrosAtuais,
+  type LinhaParametroPontos,
   type LinhaSaldoAdmin,
   type LinhasBeneficiosDoPerfil,
   type MeuLancamento,
   type MeuLimiteDiario,
   type MeuSaldo,
   type ParametrosPontos,
+  type ParametroPontosAdmin,
   type PropostaAguardandoAceite,
   type SaldoAdmin,
 } from "./modelos";
@@ -103,6 +106,8 @@ export interface ClienteBancoPontos {
   listarMeusLimitesDiarios(): Promise<RespostaBanco<LinhaMeuLimiteContato[]>>;
   /** rpc pontos_parametros_atuais(). */
   lerParametrosAtuais(): Promise<RespostaBanco<LinhaParametrosAtuais[]>>;
+  /** select de pontos_parametro (RLS: só administrador enxerga linhas): chave, valor e faixa. */
+  listarParametrosAdmin(): Promise<RespostaBanco<LinhaParametroPontos[]>>;
   /** rpc pontos_definir_parametro(p_chave, p_valor, p_motivo). */
   definirParametro(a: {
     chave: ChaveParametroPontos;
@@ -287,6 +292,24 @@ export function criarServicoPontos(banco: ClienteBancoPontos, opcoes: OpcoesServ
       }),
 
     // Administrador --------------------------------------------------------------------------------------------
+
+    /**
+     * IM-030, D-035: parâmetros com a faixa vinda do banco (a tela mostra mínimo e máximo sem fixar nada no código).
+     * A RLS devolve vazio a quem não é administrador, o que aqui vira permissão negada.
+     */
+    parametrosAdmin: (): Promise<Resultado<ParametroPontosAdmin[]>> =>
+      seguro(async () => {
+        const r = await banco.listarParametrosAdmin();
+        if (r.erro) return falha(mapearErroBancoPontos(r.erro, "leitura"));
+        const linhas = r.dados ?? [];
+        if (linhas.length === 0) return falha(erroPontos("PERMISSAO", M.semPermissao));
+        const valor: ParametroPontosAdmin[] = [];
+        for (const l of linhas) {
+          const m = paraParametroPontosAdmin(l);
+          if (m) valor.push(m);
+        }
+        return { ok: true, valor };
+      }),
 
     /** IM-030, D-012: altera um parâmetro com motivo obrigatório (faixa e auditoria no banco). */
     definirParametro: (entrada: unknown): Promise<Resultado<null>> =>

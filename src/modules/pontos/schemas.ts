@@ -25,7 +25,11 @@ export const ROTULOS_CATEGORIA_REVERSAO: Record<CategoriaReversao, string> = {
 };
 
 /** Chaves de parâmetro do módulo (IM-030). A faixa de valores é conferida pelo banco. */
-export const CHAVES_PARAMETRO_PONTOS = ["pontos_por_indicacao", "intervalo_dias"] as const;
+export const CHAVES_PARAMETRO_PONTOS = [
+  "pontos_por_indicacao",
+  "intervalo_dias",
+  "teto_diario_pontos",
+] as const;
 export type ChaveParametroPontos = (typeof CHAVES_PARAMETRO_PONTOS)[number];
 
 const MSG_MOTIVO = "Informe o motivo (até 500 caracteres).";
