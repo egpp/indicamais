@@ -189,6 +189,7 @@ describe("migrações: visões", () => {
       "perfis_meus_perfis",
       "pontos_meu_saldo",
       "pontos_meus_lancamentos",
+      "pontos_meus_limites_diarios",
       "relacionamento_meu_resumo",
       "relacionamento_meus_membros",
       "relacionamento_minhas_participacoes",
@@ -385,7 +386,7 @@ describe("migrações: módulo pontos (IM-030 a IM-036, IM-078, IM-079, IM-086)"
       ultimas.set(m[1]!, m[2]!);
     }
     const visoes = [...ultimas].map(([nome, corpo]) => ({ nome, corpo }));
-    expect(visoes.length).toBe(9);
+    expect(visoes.length).toBe(10);
     for (const v of visoes) {
       const colunas = v.corpo.split(/\bfrom\b/i)[0]!.replace(/sha256\([\s\S]*?\), 'hex'\)/gi, "");
       expect(colunas, v.nome).not.toMatch(
