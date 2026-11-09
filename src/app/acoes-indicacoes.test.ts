@@ -156,7 +156,18 @@ describe("Server Actions da Fase 3", () => {
       descricao: "Interruptor.",
       atualizado_em: "2026-11-06T12:00:00Z",
     });
-    const f = { chave: "contato_recusar_excesso", valor: "1", motivo: "Turnstile já no ar" };
+    const f = {
+      chave: "contato_recusar_excesso",
+      valor: "1",
+      motivo: "Turnstile já no ar",
+      confirmo: "sim",
+    };
+    const semConfirmo = Object.fromEntries(Object.entries(f).filter(([k]) => k !== "confirmo"));
+    const sem = await acaoDefinirParametroContato({}, formulario(semConfirmo));
+    expect(sem.erros?.confirmo).toBe(
+      "Confirme que o Turnstile está no ar antes de ligar a recusa.",
+    );
+    expect(m.definicoes).toHaveLength(0);
     const ruim = await acaoDefinirParametroContato({}, formulario({ ...f, motivo: "curto" }));
     expect(ruim.erros?.motivo).toBeTruthy();
     expect(revalidar).not.toHaveBeenCalled();

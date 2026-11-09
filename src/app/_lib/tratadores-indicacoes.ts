@@ -211,6 +211,8 @@ export async function definirParametroAdmin(
 }
 
 /** Tela "Limites do contato" (D-034 item 1, S-03, IM-076, IM-086). */
+export const MENSAGEM_CONFIRMAR_TURNSTILE =
+  "Confirme que o Turnstile está no ar antes de ligar a recusa.";
 export const MENSAGEM_LIMITE_CONTATO_ALTERADO = "Limite do contato atualizado.";
 
 /**
@@ -226,6 +228,10 @@ export async function definirParametroContatoAdmin(
   const ler = lerDeFormData(f);
   const valores = valoresDe(f, ["valor", "motivo"]);
   const bruto = ler("valor").trim();
+  // Ligar a recusa de excesso exige confirmação explícita no SERVIDOR (a tela não basta). Desligar e os limites não.
+  if (ler("chave") === "contato_recusar_excesso" && bruto === "1" && ler("confirmo") !== "sim") {
+    return { erros: { confirmo: MENSAGEM_CONFIRMAR_TURNSTILE }, valores };
+  }
   const r = await ctx.servico.definirParametroContato({
     chave: ler("chave"),
     valor: bruto === "" ? Number.NaN : Number(bruto),

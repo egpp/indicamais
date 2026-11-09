@@ -22,7 +22,12 @@ function cenario(usuario: Usuario) {
   return { mundo, ctx: mundo.contexto(criarMundoPublico().contexto().leitura) };
 }
 
-const base = { chave: "contato_recusar_excesso", valor: "1", motivo: "Turnstile já está no ar" };
+const base = {
+  chave: "contato_recusar_excesso",
+  valor: "1",
+  motivo: "Turnstile já está no ar",
+  confirmo: "sim",
+};
 
 describe("definirParametroContatoAdmin", () => {
   it("administrador liga o interruptor: grava e limpa o motivo", async () => {
@@ -56,5 +61,23 @@ describe("definirParametroContatoAdmin", () => {
     );
     expect(chave.erro).toBe("Este parâmetro não pode ser alterado aqui.");
     expect(mundo.definicoes).toHaveLength(0);
+  });
+
+  it("ligar sem confirmo é recusado no servidor e não chega ao banco", async () => {
+    const { ctx, mundo } = cenario({ id: randomUUID(), admin: true });
+    const semConfirmo = Object.fromEntries(Object.entries(base).filter(([k]) => k !== "confirmo"));
+    const r = await definirParametroContatoAdmin(ctx, formulario(semConfirmo));
+    expect(r.erros?.confirmo).toBe("Confirme que o Turnstile está no ar antes de ligar a recusa.");
+    const errado = await definirParametroContatoAdmin(ctx, formulario({ ...base, confirmo: "on" }));
+    expect(errado.erros?.confirmo).toBeTruthy();
+    expect(mundo.definicoes).toHaveLength(0);
+  });
+
+  it("desligar sem confirmo grava", async () => {
+    const { ctx, mundo } = cenario({ id: randomUUID(), admin: true });
+    const semConfirmo = Object.fromEntries(Object.entries(base).filter(([k]) => k !== "confirmo"));
+    const r = await definirParametroContatoAdmin(ctx, formulario({ ...semConfirmo, valor: "0" }));
+    expect(r.sucesso).toBe("Limite do contato atualizado.");
+    expect(mundo.definicoes).toHaveLength(1);
   });
 });
