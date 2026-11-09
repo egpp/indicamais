@@ -10,6 +10,8 @@ import {
   type LinhaFalhaAdmin,
   type LinhaLancamentoAdmin,
   type LinhaMeuLancamento,
+  type LinhaMeuLimiteContato,
+  ROTULOS_MOTIVO_DECISAO,
 } from "./index";
 
 const ID = "11111111-1111-4111-8111-111111111111";
@@ -32,6 +34,8 @@ function fake(sobrescrever: Partial<ClienteBancoPontos> = {}) {
   const banco = {
     lerMeuSaldo: vi.fn(ok([])),
     listarMeusLancamentos: vi.fn(ok<LinhaMeuLancamento[]>([])),
+    lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 0 }])),
+    listarMeusLimitesDiarios: vi.fn(ok<LinhaMeuLimiteContato[]>([])),
     lerParametrosAtuais: vi.fn(ok([{ o_pontos_por_indicacao: 10, o_intervalo_dias: 30 }])),
     definirParametro: vi.fn(semErro),
     reverterCredito: vi.fn(ok<string>(ID2)),
@@ -496,6 +500,29 @@ describe("consultas administrativas", () => {
     expect(nao.ok && nao.valor.map((d) => [d.id, d.motivoRotulo])).toEqual([
       [2, "Dentro do intervalo do mesmo contato e destino"],
     ]);
+  });
+
+  it("decisão com motivo limite_diario aparece na lista, com o rótulo (D-035)", async () => {
+    const b = fake({
+      listarDecisoesAdmin: vi.fn(
+        ok([decisao({ id: 5, pontuado: false, motivo: "limite_diario", pontos: 0 })]),
+      ),
+    });
+    const todas = await servico(b).decisoesAdmin();
+    expect(todas.ok && todas.valor.map((d) => [d.id, d.motivo, d.motivoRotulo])).toEqual([
+      [5, "limite_diario", "Limite diário atingido"],
+    ]);
+    const nao = await servico(b).decisoesAdmin({ somenteNaoPontuadas: true });
+    expect(nao.ok && nao.valor).toHaveLength(1);
+    expect(ROTULOS_MOTIVO_DECISAO.limite_diario).toBe("Limite diário atingido");
+  });
+
+  it("motivo herdado do protótipo (toString) não vira decisão", async () => {
+    const b = fake({
+      listarDecisoesAdmin: vi.fn(ok([decisao({ id: 6, motivo: "toString" })])),
+    });
+    const r = await servico(b).decisoesAdmin();
+    expect(r).toEqual({ ok: true, valor: [] });
   });
 
   it("falhas: filtra pendentes", async () => {
@@ -973,5 +1000,106 @@ describe("proposta do administrador e aceite do responsável (IM-036, IM-079)", 
     expect(r.ok && r.valor.map((x) => x.versaoId)).toEqual(["a", "b"]);
     const vazio = await servico().listarAguardandoAceite();
     expect(vazio).toEqual({ ok: true, valor: [] });
+  });
+});
+
+describe("limite diário do indicador (D-035, IM-030)", () => {
+  const contato = (id: number, contato_em: string): LinhaMeuLimiteContato => ({
+    id,
+    contato_em,
+    destino_tipo: "perfil",
+    destino_id: ID2,
+    teto_diario: 100,
+  });
+
+  it("sem contato barrado e abaixo do teto: não atingido", async () => {
+    const b = fake({ lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 40 }])) });
+    const r = await servico(b).meuLimiteDiario();
+    expect(r).toEqual({
+      ok: true,
+      valor: { tetoDiario: 100, pontosHoje: 40, atingido: false, contatos: [] },
+    });
+  });
+
+  it("total do dia no teto: atingido", async () => {
+    const b = fake({ lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 100 }])) });
+    const r = await servico(b).meuLimiteDiario();
+    expect(r.ok && r.valor?.atingido).toBe(true);
+  });
+
+  it("contato barrado hoje (dia de São Paulo): atingido, mais recente primeiro, sem dado do visitante", async () => {
+    const b = fake({
+      lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 95 }])),
+      listarMeusLimitesDiarios: vi.fn(
+        ok([contato(1, "2026-11-10T13:00:00Z"), contato(2, "2026-11-10T14:00:00Z")]),
+      ),
+    });
+    const r = await servico(b).meuLimiteDiario();
+    expect(r.ok && r.valor?.atingido).toBe(true);
+    expect(r.ok && r.valor?.contatos.map((c) => c.id)).toEqual([2, 1]);
+    const json = JSON.stringify(r);
+    expect(json).not.toMatch(/whatsapp|telefone|e164|nome_visitante|email|solicitante/i);
+  });
+
+  it("contato barrado só em dia anterior e total abaixo do teto: não atingido hoje", async () => {
+    const b = fake({
+      lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 0 }])),
+      listarMeusLimitesDiarios: vi.fn(ok([contato(1, "2026-11-09T14:00:00Z")])),
+    });
+    const r = await servico(b).meuLimiteDiario();
+    expect(r.ok && r.valor?.atingido).toBe(false);
+    expect(r.ok && r.valor?.contatos).toHaveLength(1);
+  });
+
+  it("virada do dia usa America/Sao_Paulo, não UTC (02:00Z de 11/11 ainda é 10/11)", async () => {
+    const b = fake({
+      lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 0 }])),
+      listarMeusLimitesDiarios: vi.fn(ok([contato(1, "2026-11-11T02:00:00Z")])),
+    });
+    const s = criarServicoPontos(b, { agora: () => new Date("2026-11-10T23:00:00Z") });
+    const r = await s.meuLimiteDiario();
+    expect(r.ok && r.valor?.atingido).toBe(true);
+  });
+
+  it("visão ou função inexistente (migração não aplicada): ok com null, sem expor texto do banco", async () => {
+    const b = fake({
+      lerMeuLimiteDiario: vi.fn(comErro("42883")),
+      listarMeusLimitesDiarios: vi.fn(comErro("PGRST205")),
+    });
+    const r = await servico(b).meuLimiteDiario();
+    expect(r).toEqual({ ok: true, valor: null });
+  });
+
+  it("só a visão falha: mostra o total do dia sem a lista", async () => {
+    const b = fake({
+      lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 100 }])),
+      listarMeusLimitesDiarios: vi.fn(comErro("42P01")),
+    });
+    const r = await servico(b).meuLimiteDiario();
+    expect(r.ok && r.valor).toEqual({
+      tetoDiario: 100,
+      pontosHoje: 100,
+      atingido: true,
+      contatos: [],
+    });
+  });
+
+  it("exceção do banco: ok com null (a tela não quebra)", async () => {
+    const b = fake({
+      lerMeuLimiteDiario: vi.fn(async () => {
+        throw new Error("rede caiu");
+      }),
+    });
+    const r = await servico(b).meuLimiteDiario();
+    expect(r).toEqual({ ok: true, valor: null });
+  });
+
+  it("linha da função ausente ou inválida: null", async () => {
+    const r1 = await servico(fake({ lerMeuLimiteDiario: vi.fn(ok([])) })).meuLimiteDiario();
+    expect(r1).toEqual({ ok: true, valor: null });
+    const r2 = await servico(
+      fake({ lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 1.5, o_pontos_hoje: 0 }])) }),
+    ).meuLimiteDiario();
+    expect(r2).toEqual({ ok: true, valor: null });
   });
 });

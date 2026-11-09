@@ -14,10 +14,12 @@ import {
 } from "./erros";
 import {
   montarBeneficiosDoPerfil,
+  montarLimiteDiario,
   ordenarPorMaisRecente,
   paraAguardandoAceite,
   paraBeneficioPendente,
   paraBeneficioPublico,
+  paraContatoSemPontosPorLimite,
   paraDecisaoAdmin,
   paraFalhaCredito,
   paraLancamentoAdmin,
@@ -30,6 +32,7 @@ import {
   type BeneficioDoPerfil,
   type BeneficioPendente,
   type BeneficioPublico,
+  type ContatoSemPontosPorLimite,
   type DecisaoAdmin,
   type FalhaCredito,
   type LancamentoAdmin,
@@ -40,11 +43,14 @@ import {
   type LinhaFilaBeneficio,
   type LinhaLancamentoAdmin,
   type LinhaMeuLancamento,
+  type LinhaMeuLimiteContato,
+  type LinhaMeuLimiteDiario,
   type LinhaMeuSaldo,
   type LinhaParametrosAtuais,
   type LinhaSaldoAdmin,
   type LinhasBeneficiosDoPerfil,
   type MeuLancamento,
+  type MeuLimiteDiario,
   type MeuSaldo,
   type ParametrosPontos,
   type PropostaAguardandoAceite,
@@ -91,6 +97,10 @@ export interface ClienteBancoPontos {
   lerMeuSaldo(): Promise<RespostaBanco<LinhaMeuSaldo[]>>;
   /** select das colunas nomeadas de pontos_meus_lancamentos. */
   listarMeusLancamentos(): Promise<RespostaBanco<LinhaMeuLancamento[]>>;
+  /** rpc pontos_meu_limite_diario(): teto vigente e pontos já creditados hoje (D-035). */
+  lerMeuLimiteDiario(): Promise<RespostaBanco<LinhaMeuLimiteDiario[]>>;
+  /** select de pontos_meus_limites_diarios (contatos de hoje em diante sem pontos por limite; sem dado do visitante). */
+  listarMeusLimitesDiarios(): Promise<RespostaBanco<LinhaMeuLimiteContato[]>>;
   /** rpc pontos_parametros_atuais(). */
   lerParametrosAtuais(): Promise<RespostaBanco<LinhaParametrosAtuais[]>>;
   /** rpc pontos_definir_parametro(p_chave, p_valor, p_motivo). */
@@ -242,6 +252,30 @@ export function criarServicoPontos(banco: ClienteBancoPontos, opcoes: OpcoesServ
       seguro(() =>
         lista(() => banco.listarMeusLancamentos(), paraMeuLancamento, ordenarPorMaisRecente),
       ),
+
+    /**
+     * D-035, IM-030: situação do limite diário do indicador ("Limite diário atingido"). Falha graciosa: se a visão ou
+     * a função não existirem no banco (migração não aplicada) ou der qualquer erro, devolve ok com null e a tela
+     * simplesmente não mostra o bloco. Nunca lança nem expõe texto do banco.
+     */
+    meuLimiteDiario: (): Promise<Resultado<MeuLimiteDiario | null>> =>
+      (async (): Promise<Resultado<MeuLimiteDiario | null>> => {
+        try {
+          const [l, c] = await Promise.all([
+            banco.lerMeuLimiteDiario(),
+            banco.listarMeusLimitesDiarios(),
+          ]);
+          if (l.erro) return { ok: true, valor: null };
+          const contatos: ContatoSemPontosPorLimite[] = [];
+          for (const x of c.erro ? [] : (c.dados ?? [])) {
+            const m = paraContatoSemPontosPorLimite(x);
+            if (m) contatos.push(m);
+          }
+          return { ok: true, valor: montarLimiteDiario(l.dados?.[0], contatos, agora()) };
+        } catch {
+          return { ok: true, valor: null };
+        }
+      })(),
 
     /** IM-030: parâmetros vigentes (quem está logado pode ler). */
     parametrosAtuais: (): Promise<Resultado<ParametrosPontos>> =>

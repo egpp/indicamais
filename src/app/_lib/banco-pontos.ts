@@ -17,6 +17,7 @@ export const COLUNAS_PONTOS = {
     "id, tipo, pontos, situacao, destino_tipo, destino_id, destino_nome, categoria, original_id, criado_em",
   lancamentosAdmin:
     "id, indicador_ref, tipo, pontos, situacao, destino_tipo, destino_id, destino_nome, categoria, motivo, original_id, pedido_id, confirmou_saldo_negativo, criado_em",
+  meusLimitesDiarios: "id, contato_em, destino_tipo, destino_id, teto_diario",
   saldosAdmin: "indicador_ref, saldo, total_creditado, total_revertido, ultimo_lancamento_em",
   decisoesAdmin:
     "id, pedido_id, pedido_criado_em, destino_tipo, destino_id, indicador_ref, pontuado, motivo, pontos, intervalo_dias, decidido_em",
@@ -92,6 +93,23 @@ export function criarBancoPontos(supabase: Cliente): ClienteBancoPontos {
         const { data, error } = await supabase
           .from("pontos_meus_lancamentos")
           .select(COLUNAS_PONTOS.meusLancamentos);
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    // Visão/função da migração 20261109100000: se ainda não existir no banco, o erro volta e o módulo trata (sem quebrar).
+    lerMeuLimiteDiario: () =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("pontos_meu_limite_diario");
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    listarMeusLimitesDiarios: () =>
+      protegido(async () => {
+        const { data, error } = await supabase
+          .from("pontos_meus_limites_diarios")
+          .select(COLUNAS_PONTOS.meusLimitesDiarios)
+          .order("contato_em", { ascending: false })
+          .limit(30);
         return { dados: data ?? [], erro: paraErro(error) };
       }),
 

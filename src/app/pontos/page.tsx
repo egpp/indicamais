@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ROTULO_LIMITE_DIARIO } from "@/modules/pontos";
 import { PainelPagina, SeloEstado } from "../_componentes/painel";
 import { AVISO_SEM_RESGATE } from "../_componentes/pontos";
 import { Aviso } from "../_componentes/ui";
@@ -18,15 +19,19 @@ const ROTULO_SITUACAO = {
 
 /**
  * IM-035, IM-078: saldo único (sem expiração) e histórico do indicador. Mostra só a CATEGORIA da reversão, nunca a
- * observação interna, e nunca o motivo de um contato não ter pontuado (D-012). Resgate desativado (IM-037).
+ * observação interna. O ÚNICO motivo de não pontuar que o indicador vê é o limite diário (D-035), sem dado do
+ * visitante; os demais motivos seguem ocultos (D-012). Se a visão do limite não existir no banco, o bloco some e a
+ * página segue normal. Resgate desativado (IM-037).
  */
 export default async function PaginaMeusPontos() {
   const ctx = await obterContextoPontos("/pontos");
-  const [admin, saldo, lancamentos] = await Promise.all([
+  const [admin, saldo, lancamentos, limiteRes] = await Promise.all([
     ctx.ehAdministrador(),
     ctx.servico.meuSaldo(),
     ctx.servico.meusLancamentos(),
+    ctx.servico.meuLimiteDiario(),
   ]);
+  const limite = limiteRes.ok ? limiteRes.valor : null;
   return (
     <PainelPagina
       titulo="Meus pontos"
@@ -64,6 +69,34 @@ export default async function PaginaMeusPontos() {
           </div>
         )}
       </section>
+
+      {limite ? (
+        <section aria-labelledby="titulo-limite">
+          <h2 id="titulo-limite">Limite diário</h2>
+          <div className="cartao">
+            <p>
+              Hoje você recebeu {limite.pontosHoje.toLocaleString("pt-BR")} de{" "}
+              {limite.tetoDiario.toLocaleString("pt-BR")} pontos possíveis por dia.
+            </p>
+            {limite.atingido ? (
+              <Aviso tipo="atencao">
+                <strong>{ROTULO_LIMITE_DIARIO}.</strong> Os contatos que chegarem até amanhã
+                continuam sendo atendidos normalmente, mas não geram pontos.
+              </Aviso>
+            ) : null}
+            {limite.contatos.length > 0 ? (
+              <ul className="lista-cartoes">
+                {limite.contatos.slice(0, 5).map((c) => (
+                  <li key={c.id}>
+                    <SeloEstado rotulo={ROTULO_LIMITE_DIARIO} />{" "}
+                    <span className="ajuda">Contato em {formatarDataHora(c.contatoEm)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <section aria-labelledby="titulo-historico">
         <h2 id="titulo-historico">Histórico</h2>

@@ -5436,6 +5436,16 @@ export type Database = {
         }
         Relationships: []
       }
+      pontos_meus_limites_diarios: {
+        Row: {
+          contato_em: string | null
+          destino_id: string | null
+          destino_tipo: string | null
+          id: number | null
+          teto_diario: number | null
+        }
+        Relationships: []
+      }
       pontos_meus_lancamentos: {
         Row: {
           categoria: string | null
@@ -6471,6 +6481,13 @@ export type Database = {
       pontos_enviar_beneficio_versao: {
         Args: { p_versao_id: string }
         Returns: undefined
+      }
+      pontos_meu_limite_diario: {
+        Args: never
+        Returns: {
+          o_pontos_hoje: number
+          o_teto_diario: number
+        }[]
       }
       pontos_parametro_valor: { Args: { p_chave: string }; Returns: number }
       pontos_parametros_atuais: {
