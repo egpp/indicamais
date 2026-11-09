@@ -1,4 +1,4 @@
-import { alvoDoErro, classificarErroBanco } from "@/shared/conteudo/erros-banco";
+import { alvoDoErro, classificarErroBanco, lerTetoAtingido } from "@/shared/conteudo/erros-banco";
 import type { ErroBanco } from "@/shared/conteudo/resultado";
 
 /** Mensagens ao usuário (pt-BR). Nunca incluem texto vindo do banco. */
@@ -19,7 +19,24 @@ export const MENSAGENS_PERFIS = {
   whatsappInvalido: "Informe um WhatsApp comercial válido.",
   siteInvalido: "Informe um endereço de site válido.",
   textoInvalido: "Confira os dados informados.",
+  limiteGenerico:
+    "Você atingiu o limite de criação da sua conta. Para criar outro, fale com o suporte.",
 } as const;
+
+/** Tetos de criação por conta (D-035). Sem prometer exclusão: não existe excluir perfil. Só texto fixo + número. */
+export function mensagemLimitePerfis(
+  chave: "tetos_perfis_por_conta" | "tetos_rascunhos_abertos",
+  limite: number | null,
+): string {
+  if (chave === "tetos_perfis_por_conta") {
+    return limite === null
+      ? "Você atingiu o limite de perfis comerciais por conta. Para criar outro, fale com o suporte."
+      : `Você atingiu o limite de ${limite} ${limite === 1 ? "perfil comercial" : "perfis comerciais"} por conta. Para criar outro, fale com o suporte.`;
+  }
+  return limite === null
+    ? "Você atingiu o limite de rascunhos abertos. Envie um para aprovação antes de criar outro, ou fale com o suporte."
+    : `Você atingiu o limite de ${limite} ${limite === 1 ? "rascunho aberto" : "rascunhos abertos"}. Envie um para aprovação antes de criar outro, ou fale com o suporte.`;
+}
 
 export type CodigoErroPerfis =
   | "VALIDACAO"
@@ -36,6 +53,7 @@ export type CodigoErroPerfis =
   | "ESTADO_INVALIDO"
   | "ESTILO_INDISPONIVEL"
   | "LIMITE_BANNERS"
+  | "LIMITE_CONTA"
   | "ERRO_INTERNO";
 
 export type ErroPerfis = {
@@ -53,6 +71,13 @@ export const erroPerfis = (
 
 /** Mapeia erros do Postgres/funções para mensagens pt-BR genéricas (23505, 23514, 42501, P000x). */
 export function mapearErroBancoPerfis(e: ErroBanco): ErroPerfis {
+  const teto = lerTetoAtingido(e);
+  if (e.code === "P0430") {
+    if (teto?.chave === "tetos_perfis_por_conta" || teto?.chave === "tetos_rascunhos_abertos") {
+      return erroPerfis("LIMITE_CONTA", mensagemLimitePerfis(teto.chave, teto.limite));
+    }
+    return erroPerfis("LIMITE_CONTA", MENSAGENS_PERFIS.limiteGenerico);
+  }
   const classe = classificarErroBanco(e);
   const alvo = alvoDoErro(e);
   const M = MENSAGENS_PERFIS;

@@ -1,4 +1,4 @@
-import { alvoDoErro, classificarErroBanco } from "@/shared/conteudo/erros-banco";
+import { alvoDoErro, classificarErroBanco, lerTetoAtingido } from "@/shared/conteudo/erros-banco";
 import type { ErroBanco } from "@/shared/conteudo/resultado";
 
 /** Mensagens ao usuário (pt-BR). Nunca incluem texto vindo do banco. */
@@ -32,7 +32,25 @@ export const MENSAGENS_CATALOGO = {
   fotosExtrasLimite: "Envie no máximo 8 fotos adicionais.",
   fotoRepetida: "Não repita a mesma foto.",
   filtrosInvalidos: "Confira os filtros informados.",
+  limiteGenerico:
+    "Você atingiu o limite de criação da sua conta. Para criar outro, fale com o suporte.",
 } as const;
+
+type ChaveLimiteCatalogo =
+  "tetos_itens_por_perfil" | "tetos_anuncios_particulares" | "tetos_rascunhos_abertos";
+
+/** Tetos de criação por conta (D-035). Sem prometer exclusão: não existe excluir item. Só texto fixo + número. */
+export function mensagemLimiteCatalogo(chave: ChaveLimiteCatalogo, limite: number | null): string {
+  const n = (s: string, p: string) => (limite === null ? p : `${limite} ${limite === 1 ? s : p}`);
+  switch (chave) {
+    case "tetos_itens_por_perfil":
+      return `Este perfil atingiu o limite de ${n("item", "itens")}. Para cadastrar outro, fale com o suporte.`;
+    case "tetos_anuncios_particulares":
+      return `Você atingiu o limite de ${n("anúncio particular", "anúncios particulares")} por conta. Para criar outro, fale com o suporte.`;
+    case "tetos_rascunhos_abertos":
+      return `Você atingiu o limite de ${n("rascunho aberto", "rascunhos abertos")}. Envie um para aprovação antes de criar outro, ou fale com o suporte.`;
+  }
+}
 
 export type CodigoErroCatalogo =
   | "VALIDACAO"
@@ -46,6 +64,7 @@ export type CodigoErroCatalogo =
   | "CATEGORIA_INVALIDA"
   | "CATEGORIA_DUPLICADA"
   | "LIMITE_SOLICITACOES"
+  | "LIMITE_CONTA"
   | "ESTADO_INVALIDO"
   | "ERRO_INTERNO";
 
@@ -66,6 +85,13 @@ export const erroCatalogo = (
 
 /** Mapeia erros do Postgres/funções para mensagens pt-BR genéricas. */
 export function mapearErroBancoCatalogo(e: ErroBanco): ErroCatalogo {
+  if (e.code === "P0430") {
+    const teto = lerTetoAtingido(e);
+    if (teto && teto.chave !== "tetos_perfis_por_conta") {
+      return erroCatalogo("LIMITE_CONTA", mensagemLimiteCatalogo(teto.chave, teto.limite));
+    }
+    return erroCatalogo("LIMITE_CONTA", MENSAGENS_CATALOGO.limiteGenerico);
+  }
   const classe = classificarErroBanco(e);
   const alvo = alvoDoErro(e);
   const M = MENSAGENS_CATALOGO;

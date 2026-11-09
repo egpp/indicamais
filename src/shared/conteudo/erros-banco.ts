@@ -38,3 +38,29 @@ export function classificarErroBanco(e: ErroBanco): ClasseErroBanco {
 export function alvoDoErro(e: ErroBanco): string {
   return `${e.constraint ?? ""} ${e.message ?? ""} ${e.details ?? ""}`;
 }
+
+/** Chaves dos tetos de criação por conta (D-035). Fixas: o texto do banco nunca vira mensagem. */
+export const CHAVES_TETO_CRIACAO = [
+  "tetos_perfis_por_conta",
+  "tetos_itens_por_perfil",
+  "tetos_anuncios_particulares",
+  "tetos_rascunhos_abertos",
+] as const;
+export type ChaveTetoCriacao = (typeof CHAVES_TETO_CRIACAO)[number];
+
+export type TetoAtingido = { chave: ChaveTetoCriacao; limite: number | null };
+
+/**
+ * Teto de criação por conta atingido (D-035): SQLSTATE P0430, message `teto_atingido:<chave>`, detail
+ * `limite=<valor>`. Só chave conhecida vale; chave desconhecida devolve null (cai no erro genérico). O limite só é
+ * aceito se for inteiro positivo; senão vem null e a mensagem sai sem número.
+ */
+export function lerTetoAtingido(e: ErroBanco): TetoAtingido | null {
+  if (e.code !== "P0430") return null;
+  const chave = /^\s*teto_atingido:([a-z_]+)\s*$/.exec(e.message ?? "")?.[1];
+  const conhecida = CHAVES_TETO_CRIACAO.find((c) => c === chave);
+  if (!conhecida) return null;
+  const n = /^\s*limite=(\d{1,6})\s*$/.exec(e.details ?? "")?.[1];
+  const limite = n ? Number(n) : null;
+  return { chave: conhecida, limite: limite !== null && limite > 0 ? limite : null };
+}
