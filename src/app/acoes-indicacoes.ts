@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { exigirAdministrador } from "./_lib/exigir-administrador";
 import {
   obterContextoIndicacoes,
   obterContextoContatoPublico,
@@ -13,6 +14,7 @@ import { protegerFormularioPublico, type ProtecaoPublica } from "./_lib/protecao
 import {
   CAMPOS_CONTATO,
   definirParametroAdmin,
+  definirParametroContatoAdmin,
   enviarContatoVisitante,
   gerarLinkDeIndicacao,
   pedirReenvio,
@@ -159,5 +161,23 @@ export async function acaoDefinirParametro(_: EstadoLink, f: FormData): Promise<
     f,
   );
   if (estado.sucesso) revalidatePath("/administracao/parametros");
+  return estado;
+}
+
+/** Rota da tela "Limites do contato" (D-034 item 1). A interface cria a página neste caminho. */
+const ROTA_LIMITES_CONTATO = "/administracao/limites-contato";
+
+/**
+ * Liga/desliga contato_recusar_excesso e ajusta os limites do contato (IM-076, IM-086, S-03). RSA-06: o papel de
+ * administrador é conferido no servidor ANTES de montar o contexto. Campos: chave, valor, motivo (10+ caracteres).
+ */
+export async function acaoDefinirParametroContato(_: EstadoLink, f: FormData): Promise<EstadoLink> {
+  await exigirAdministrador(ROTA_LIMITES_CONTATO);
+  const estado = await comContexto(
+    () => obterContextoIndicacoes(ROTA_LIMITES_CONTATO),
+    definirParametroContatoAdmin,
+    f,
+  );
+  if (estado.sucesso) revalidatePath(ROTA_LIMITES_CONTATO);
   return estado;
 }

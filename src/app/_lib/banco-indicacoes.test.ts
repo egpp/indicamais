@@ -146,6 +146,17 @@ describe("adaptador do banco de indicações (sessão do usuário)", () => {
     ]);
   });
 
+  it("listarAlarmes chama a RPC paginada; sem tipo, não manda p_tipo", async () => {
+    const { cliente, chamadas } = falso({ data: [] });
+    const banco = criarBancoIndicacoes(cliente);
+    await banco.listarAlarmes({ tipo: null, limite: 50, deslocamento: 0 });
+    await banco.listarAlarmes({ tipo: "link", limite: 50, deslocamento: 100 });
+    expect(chamadas.rpc).toEqual([
+      ["indicacoes_admin_listar_alarmes", { p_limite: 50, p_deslocamento: 0 }],
+      ["indicacoes_admin_listar_alarmes", { p_tipo: "link", p_limite: 50, p_deslocamento: 100 }],
+    ]);
+  });
+
   it("erro do banco vira ErroBanco com o código; exceção de rede vira erro genérico sem texto", async () => {
     const comErro = falso({ error: { code: "P0403", message: "x", details: "y" } });
     const r = await criarBancoIndicacoes(comErro.cliente).gerarLink({ perfilId: ID, itemId: null });

@@ -183,3 +183,49 @@ export const definirParametroSchema = z.object({
     .int({ error: "Informe um número inteiro." }),
   motivo: motivoObrigatorio,
 });
+
+/**
+ * Tela "Limites do contato" (D-034 item 1, S-03, IM-076, IM-086): só estas chaves de indicacoes_parametro podem ser
+ * alteradas por ali. Ordem = ordem de exibição. A faixa (mínimo e máximo) vem do banco, nunca fixa aqui.
+ */
+export const CHAVES_PARAMETRO_CONTATO = [
+  "contato_recusar_excesso",
+  "contato_limite_por_link_hora",
+  "contato_limite_por_destino_hora",
+  "contato_limite_global_hora",
+] as const;
+export type ChaveParametroContato = (typeof CHAVES_PARAMETRO_CONTATO)[number];
+
+export const MOTIVO_MINIMO_PARAMETRO_CONTATO = 10;
+
+export const definirParametroContatoSchema = z.object({
+  chave: z.enum(CHAVES_PARAMETRO_CONTATO, { error: "Este parâmetro não pode ser alterado aqui." }),
+  valor: z
+    .number({ error: "Informe um número inteiro." })
+    .int({ error: "Informe um número inteiro." }),
+  motivo: z.preprocess(
+    (v) => (typeof v === "string" ? v.trim() : v),
+    z
+      .string({ error: "Informe o motivo." })
+      .min(MOTIVO_MINIMO_PARAMETRO_CONTATO, {
+        error: `O motivo deve ter ao menos ${MOTIVO_MINIMO_PARAMETRO_CONTATO} caracteres.`,
+      })
+      .max(LIMITES.revisao.motivoMax, {
+        error: `O motivo deve ter no máximo ${LIMITES.revisao.motivoMax} caracteres.`,
+      })
+      .refine((s) => !INVISIVEIS_MENSAGEM.test(s), { error: "O motivo tem caracteres inválidos." }),
+  ),
+});
+
+export const TIPOS_ALARME_CONTATO = ["link", "destino", "global"] as const;
+export const ALARMES_POR_PAGINA = 50;
+
+export const listarAlarmesSchema = z.object({
+  tipo: z.enum(TIPOS_ALARME_CONTATO, { error: "Tipo de alarme inválido." }).optional(),
+  pagina: z
+    .number({ error: "Página inválida." })
+    .int({ error: "Página inválida." })
+    .min(1, { error: "Página inválida." })
+    .max(LIMITES.busca.paginaMax, { error: "Página inválida." })
+    .default(1),
+});

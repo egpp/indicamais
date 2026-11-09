@@ -16,10 +16,13 @@ import {
   ordenarPorMaisRecente,
   paraContatoAdmin,
   paraMeuLink,
+  paraAlarme,
   paraMinhaIndicacao,
   paraParametro,
   paraPedidoContato,
   type ContatoAdmin,
+  type LinhaAlarme,
+  type PaginaAlarmes,
   type LinhaFilaContato,
   type LinhaMeuLink,
   type LinhaMeuPedido,
@@ -31,8 +34,12 @@ import {
   type PedidoContato,
 } from "./modelos";
 import {
+  ALARMES_POR_PAGINA,
+  CHAVES_PARAMETRO_CONTATO,
   compartilhamentoSchema,
+  definirParametroContatoSchema,
   definirParametroSchema,
+  listarAlarmesSchema,
   enviarContatoSchema,
   gerarLinkSchema,
   reenvioAdminSchema,
@@ -107,6 +114,12 @@ export interface ClienteBancoIndicacoes {
     valor: number;
     motivo: string;
   }): Promise<{ erro: ErroBanco | null }>;
+  /** rpc indicacoes_admin_listar_alarmes(p_tipo, p_limite, p_deslocamento): só administrador; sem dado pessoal. */
+  listarAlarmes(a: {
+    tipo: string | null;
+    limite: number;
+    deslocamento: number;
+  }): Promise<RespostaBanco<LinhaAlarme[]>>;
 }
 
 export type OpcoesServicoIndicacoes = {
@@ -351,6 +364,75 @@ export function criarServicoIndicacoes(
           );
         }
         return simples(() => banco.definirParametro(p.data), "parametro");
+      }),
+
+    /** Tela "Limites do contato": só as chaves permitidas, na ordem de exibição. Vazio para não administrador (RLS). */
+    listarParametrosContato: (): Promise<Resultado<Parametro[]>> =>
+      seguro(async () => {
+        const r = await banco.listarParametros();
+        if (r.erro) return falha(mapearErroBancoIndicacoes(r.erro, "leitura"));
+        const permitidas: readonly string[] = CHAVES_PARAMETRO_CONTATO;
+        const valor = (r.dados ?? [])
+          .filter((l) => permitidas.includes(l.chave))
+          .map(paraParametro)
+          .sort((a, b) => permitidas.indexOf(a.chave) - permitidas.indexOf(b.chave));
+        return { ok: true, valor };
+      }),
+
+    /**
+     * Administrador altera um parâmetro DO CONTATO (lista fechada de chaves). Motivo de ao menos 10 caracteres.
+     * Faixa conferida contra mínimo e máximo do banco; o banco confere de novo e audita (valor anterior).
+     */
+    definirParametroContato: (entrada: unknown): Promise<Resultado<null>> =>
+      seguro(async () => {
+        const p = definirParametroContatoSchema.safeParse(entrada);
+        if (!p.success) return falhaValidacao(p.error);
+        const atuais = await banco.listarParametros();
+        if (atuais.erro) return falha(mapearErroBancoIndicacoes(atuais.erro, "parametro"));
+        const alvo = (atuais.dados ?? []).find((x) => x.chave === p.data.chave);
+        if (!alvo) {
+          // Lista vazia = não administrador (RLS): sem permissão, sem revelar chaves.
+          return falha(
+            (atuais.dados ?? []).length === 0
+              ? erroIndicacoes("PERMISSAO", M.semPermissao)
+              : erroIndicacoes("NAO_ENCONTRADO", M.parametroNaoEncontrado),
+          );
+        }
+        if (p.data.valor < alvo.minimo || p.data.valor > alvo.maximo) {
+          return falha(
+            erroIndicacoes(
+              "VALIDACAO",
+              `O valor deve estar entre ${alvo.minimo} e ${alvo.maximo}.`,
+              {
+                valor: `Informe um valor entre ${alvo.minimo} e ${alvo.maximo}.`,
+              },
+            ),
+          );
+        }
+        return simples(() => banco.definirParametro(p.data), "parametro");
+      }),
+
+    /** Alarmes de excesso, mais recentes primeiro, 50 por página. Sem dado pessoal (S-03). */
+    listarAlarmesContato: (entrada: unknown = {}): Promise<Resultado<PaginaAlarmes>> =>
+      seguro(async () => {
+        const p = listarAlarmesSchema.safeParse(entrada ?? {});
+        if (!p.success) return falhaValidacao(p.error);
+        const r = await banco.listarAlarmes({
+          tipo: p.data.tipo ?? null,
+          limite: ALARMES_POR_PAGINA,
+          deslocamento: (p.data.pagina - 1) * ALARMES_POR_PAGINA,
+        });
+        if (r.erro) return falha(mapearErroBancoIndicacoes(r.erro, "leitura"));
+        const linhas = r.dados ?? [];
+        return {
+          ok: true,
+          valor: {
+            itens: linhas.map(paraAlarme).filter((a) => a !== null),
+            total: Number(linhas[0]?.o_total ?? 0),
+            pagina: p.data.pagina,
+            porPagina: ALARMES_POR_PAGINA,
+          },
+        };
       }),
   };
 }

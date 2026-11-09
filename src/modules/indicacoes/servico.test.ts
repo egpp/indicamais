@@ -3,6 +3,7 @@ import {
   criarServicoIndicacoes,
   novaChaveContato,
   type ClienteBancoIndicacoes,
+  type LinhaAlarme,
   type LinhaFilaContato,
   type LinhaMeuLink,
   type LinhaMeuPedido,
@@ -38,6 +39,7 @@ function fake(sobrescrever: Partial<ClienteBancoIndicacoes> = {}) {
     tratarAlerta: vi.fn(semErro),
     listarParametros: vi.fn(ok<LinhaParametro[]>([])),
     definirParametro: vi.fn(semErro),
+    listarAlarmes: vi.fn(ok<LinhaAlarme[]>([])),
     ...sobrescrever,
   } satisfies ClienteBancoIndicacoes;
   return banco;

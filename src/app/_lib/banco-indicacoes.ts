@@ -141,6 +141,16 @@ export function criarBancoIndicacoes(supabase: Cliente): ClienteBancoIndicacoes 
         return { dados: data ?? [], erro: paraErro(error) };
       }),
 
+    listarAlarmes: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("indicacoes_admin_listar_alarmes", {
+          ...(a.tipo ? { p_tipo: a.tipo } : {}),
+          p_limite: a.limite,
+          p_deslocamento: a.deslocamento,
+        });
+        return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
     definirParametro: (a) =>
       protegidoErro(async () => {
         const { error } = await supabase.rpc("indicacoes_definir_parametro", {

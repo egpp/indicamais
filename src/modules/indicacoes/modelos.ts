@@ -63,6 +63,43 @@ export type ContatoAdmin = PedidoContato & {
   alertaEstado: string;
 };
 
+export type LinhaAlarme =
+  Database["public"]["Functions"]["indicacoes_admin_listar_alarmes"]["Returns"][number];
+
+/** Alarme de excesso de pedidos numa hora. Sem dado pessoal: só tipo, alvo (id interno) e contagens (S-03). */
+export type AlarmeContato = {
+  id: number;
+  tipo: "link" | "destino" | "global";
+  janela: string;
+  alvoId: string | null;
+  /** 0 = 1 x o limite, 1 = 2 x, 2 = 4 x. */
+  nivel: number;
+  quantidade: number;
+  limite: number;
+  criadoEm: string;
+};
+
+export type PaginaAlarmes = {
+  itens: AlarmeContato[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+};
+
+export function paraAlarme(l: LinhaAlarme): AlarmeContato | null {
+  if (l.o_tipo !== "link" && l.o_tipo !== "destino" && l.o_tipo !== "global") return null;
+  return {
+    id: l.o_id,
+    tipo: l.o_tipo,
+    janela: l.o_janela,
+    alvoId: l.o_alvo_id,
+    nivel: l.o_nivel,
+    quantidade: l.o_quantidade,
+    limite: l.o_limite,
+    criadoEm: l.o_criado_em,
+  };
+}
+
 export type Parametro = {
   chave: string;
   valor: number;

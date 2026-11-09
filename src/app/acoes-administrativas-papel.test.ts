@@ -47,6 +47,7 @@ const contextos = vi.hoisted(() => {
     sessao: espiao(),
     cicloVida: espiao(),
     cicloVidaAberto: espiao(),
+    indicacoes: espiao(),
   };
 });
 vi.mock("./_lib/contexto-patrocinadores", () => ({
@@ -57,6 +58,7 @@ vi.mock("./_lib/contexto-pontos", () => ({ obterContextoPontos: contextos.pontos
 vi.mock("./_lib/contexto-home", () => ({ obterContextoHomeAdmin: contextos.home }));
 vi.mock("./_lib/contexto-loja", () => ({ obterContextoLojaAdmin: contextos.loja }));
 vi.mock("./_lib/contexto-aparencia", () => ({ obterContextoAparencia: contextos.aparencia }));
+vi.mock("./_lib/contexto-indicacoes", () => ({ obterContextoIndicacoes: contextos.indicacoes }));
 vi.mock("./_lib/contexto-sessao", () => ({ obterContexto: contextos.sessao }));
 vi.mock("./_lib/contexto-localizacao", () => ({ obterServicoLocalizacao: vi.fn() }));
 vi.mock("./_lib/contexto-ciclo-vida", () => ({
@@ -74,6 +76,7 @@ import * as aparencia from "./acoes-aparencia";
 import * as cicloVida from "./acoes-ciclo-vida";
 import * as comissoes from "./acoes-comissoes";
 import * as conteudo from "./acoes-conteudo";
+import * as indicacoes from "./acoes-indicacoes";
 import * as home from "./acoes-home";
 import * as loja from "./acoes-loja";
 import * as patrocinadores from "./acoes-patrocinadores";
@@ -101,6 +104,7 @@ const ADMINISTRATIVAS: [string, Acao, keyof typeof contextos][] = [
   ["acaoAvancarRepasse", comissoes.acaoAvancarRepasse as Acao, "comissoes"],
   ["acaoEncerrarVinculo", comissoes.acaoEncerrarVinculo as Acao, "comissoes"],
   ["acaoDefinirParametroPontos", pontos.acaoDefinirParametroPontos as Acao, "pontos"],
+  ["acaoDefinirParametroContato", indicacoes.acaoDefinirParametroContato as Acao, "indicacoes"],
   ["acaoReverterCredito", pontos.acaoReverterCredito as Acao, "pontos"],
   ["acaoReprocessarPedido", pontos.acaoReprocessarPedido as Acao, "pontos"],
   ["acaoDecidirBeneficio", pontos.acaoDecidirBeneficio as Acao, "pontos"],
@@ -133,7 +137,7 @@ beforeEach(() => {
 
 describe("ações administrativas conferem o papel no servidor (RSA-06, IM-086)", () => {
   it("cobre as ações administrativas conhecidas", () => {
-    expect(ADMINISTRATIVAS.length).toBe(31);
+    expect(ADMINISTRATIVAS.length).toBe(32);
     for (const [, fn] of ADMINISTRATIVAS) expect(typeof fn).toBe("function");
   });
 

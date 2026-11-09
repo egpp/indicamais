@@ -43,7 +43,12 @@ export {
   gerarLinkSchema,
   normalizarWhatsappVisitante,
   CANAIS_COMPARTILHAMENTO,
+  CHAVES_PARAMETRO_CONTATO,
+  TIPOS_ALARME_CONTATO,
+  ALARMES_POR_PAGINA,
+  MOTIVO_MINIMO_PARAMETRO_CONTATO,
 } from "./schemas";
+export type { ChaveParametroContato } from "./schemas";
 export type { CanalCompartilhamento, EnviarContato, DestinoLink } from "./schemas";
 export type {
   PedidoContato,
@@ -51,6 +56,9 @@ export type {
   MeuLink,
   ContatoAdmin,
   Parametro,
+  AlarmeContato,
+  PaginaAlarmes,
+  LinhaAlarme,
   TipoDestino,
   LinhaMeuPedido,
   LinhaMinhaIndicacao,

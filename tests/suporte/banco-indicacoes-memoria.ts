@@ -5,6 +5,7 @@ import type {
   LinhaMeuLink,
   LinhaMeuPedido,
   LinhaMinhaIndicacao,
+  LinhaAlarme,
   LinhaParametro,
 } from "@/modules/indicacoes";
 import { criarContextoIndicacoes, type ContextoIndicacoes } from "@/app/_lib/contexto-indicacoes";
@@ -73,6 +74,8 @@ export function criarMundoIndicacoes(
       atualizado_em: "2026-10-30T12:00:00Z",
     },
   ];
+  const alarmes: LinhaAlarme[] = [];
+  const consultasAlarmes: { tipo: string | null; limite: number; deslocamento: number }[] = [];
   const definicoes: { chave: string; valor: number; motivo: string }[] = [];
   /** Linhas das visões do indicador, com campos privados extras que a tela jamais pode mostrar. */
   let minhasIndicacoes: LinhaMinhaIndicacao[] = [];
@@ -149,6 +152,15 @@ export function criarMundoIndicacoes(
       definicoes.push(a);
       return { erro: null };
     },
+    listarAlarmes: async (a) => {
+      consultasAlarmes.push(a);
+      const dados = usuario?.admin
+        ? alarmes
+            .filter((x) => !a.tipo || x.o_tipo === a.tipo)
+            .slice(a.deslocamento, a.deslocamento + a.limite)
+        : [];
+      return ok(dados);
+    },
   };
 
   return {
@@ -160,6 +172,8 @@ export function criarMundoIndicacoes(
     alertasTratados,
     definicoes,
     parametros,
+    alarmes,
+    consultasAlarmes,
     definirMeusPedidos: (x: LinhaMeuPedido[]) => (meusPedidos = x),
     definirMinhasIndicacoes: (x: LinhaMinhaIndicacao[]) => (minhasIndicacoes = x),
     definirMeusLinks: (x: LinhaMeuLink[]) => (meusLinks = x),
