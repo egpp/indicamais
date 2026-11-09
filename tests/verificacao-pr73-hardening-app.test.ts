@@ -72,7 +72,14 @@ describe("Turnstile: token e segredo não vazam; uso único; timeout", () => {
       expect(JSON.stringify(r)).not.toContain(TOKEN_SECRETO);
       expect(JSON.stringify(r)).not.toContain(SEGREDO);
     }
-    for (const e of espioes) expect(e).not.toHaveBeenCalled();
+    // Diagnóstico seguro permitido em warn (só motivo/status/error-codes); nada de token, segredo ou IP.
+    const escrito = espioes.flatMap((e) => e.mock.calls.map((c) => JSON.stringify(c)));
+    for (const t of escrito) {
+      expect(t).not.toContain(TOKEN_SECRETO);
+      expect(t).not.toContain(SEGREDO);
+      expect(t).not.toContain("203.0.113.5");
+    }
+    for (const e of espioes.filter((_, i) => i !== 2)) expect(e).not.toHaveBeenCalled();
   });
 
   it("reaproveitar o mesmo token: a 2ª resposta 'timeout-or-duplicate' é recusada como inválida", async () => {

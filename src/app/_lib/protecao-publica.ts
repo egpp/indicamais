@@ -4,7 +4,12 @@ import {
   MENSAGENS_TURNSTILE,
   verificarTurnstile,
 } from "@/shared/turnstile/verificar";
-import { ipDoPedido, origemDoPedido, type ContextoOrigem } from "./origem-denuncia";
+import {
+  ipDoPedido,
+  origemDoPedido,
+  SegredoDeOrigemAusente,
+  type ContextoOrigem,
+} from "./origem-denuncia";
 
 /**
  * Proteção dos formulários públicos sem login (RSA-05, RSA-07, IM-076, D-033), sempre no SERVIDOR:
@@ -26,7 +31,17 @@ export async function protegerFormularioPublico(
   if (!turnstile.ok) return { ok: false, erro: MENSAGENS_TURNSTILE[turnstile.motivo] };
   try {
     return { ok: true, origem: await origemDoPedido(h, contexto) };
-  } catch {
+  } catch (e) {
+    // Diagnóstico seguro: só o nome do motivo, nunca o valor do segredo.
+    console.warn(
+      JSON.stringify({
+        evento: "protecao_publica_falha",
+        motivo:
+          e instanceof SegredoDeOrigemAusente
+            ? "denuncia_hash_segredo_ausente_ou_curto"
+            : "origem_erro",
+      }),
+    );
     return { ok: false, erro: recusaGenerica };
   }
 }
