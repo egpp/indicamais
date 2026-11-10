@@ -170,6 +170,44 @@ describe("Notificações pendentes (IM-103, IM-027, IM-028)", () => {
     expect(container.textContent).not.toMatch(/relation|SQLSTATE/);
   });
 
+  it("erro do servidor leva o foco ao aviso", async () => {
+    itens = [item(A, "falhou", "Padaria da Ana")];
+    total = 1;
+    acao.mockResolvedValue({ erro: "Não foi possível concluir agora." });
+    const u = userEvent.setup();
+    await abrir();
+    await u.click(screen.getByLabelText(/Padaria da Ana/));
+    await preencherEEnviar(u);
+    const alerta = await screen.findByRole("alert");
+    await vi.waitFor(() => expect(document.activeElement).toBe(alerta.parentElement));
+  });
+
+  it("página vazia com total maior que zero redireciona para a última página válida", async () => {
+    itens = [];
+    total = 120;
+    await expect(abrir({ estado: "falhou", pagina: "4" })).rejects.toThrow(
+      "REDIRECT:/administracao/notificacoes-pendentes?estado=falhou&pagina=3",
+    );
+    // Nunca redireciona para a mesma página (evita laço): pedir a 2 vazia volta à 1.
+    await expect(abrir({ pagina: "2" })).rejects.toThrow(
+      "REDIRECT:/administracao/notificacoes-pendentes",
+    );
+  });
+
+  it("cada item da lista tem alvo de toque de 44px (campo-marcar) e sem rolagem horizontal", async () => {
+    itens = [item(A, "falhou", "Padaria da Ana")];
+    total = 1;
+    const { container } = await abrir();
+    const rotulo = screen.getByLabelText(/Padaria da Ana/).closest("label")!;
+    expect(rotulo.parentElement?.classList.contains("campo-marcar")).toBe(true);
+    expect(container.querySelector(".cartao > label")).toBeNull();
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const css = readFileSync(join(__dirname, "globals.css"), "utf8");
+    expect(css).toMatch(/\.campo-marcar label\s*\{[^}]*min-height:\s*44px/);
+    expect(css).toMatch(/\.campo-marcar-item label\s*\{[^}]*overflow-wrap:\s*anywhere/);
+  });
+
   it("erro de leitura mostra a mensagem do módulo", async () => {
     listar.mockResolvedValueOnce({
       ok: false,

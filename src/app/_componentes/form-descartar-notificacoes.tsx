@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { acaoDescartarNotificacoes } from "../acoes-indicacoes";
 import type { EstadoLink } from "../_lib/estado-indicacoes";
 import { validarDescarteNotificacoes } from "../_lib/validacao-indicacoes";
@@ -27,11 +27,16 @@ const AJUDA_MOTIVO = "De 10 a 500 caracteres. Fica registrado na auditoria.";
  */
 export function FormDescartarNotificacoes({ itens }: { itens: ItemDescarte[] }) {
   const idConfirmo = useId();
+  const refErro = useRef<HTMLDivElement>(null);
   const [marcados, setMarcados] = useState<ReadonlySet<string>>(new Set());
   const { estado, action, enviando, erros, registrarForm, aoEnviar } = useFormulario<EstadoLink>(
     acaoDescartarNotificacoes,
     validarDescarteNotificacoes,
   );
+  // Erro do servidor: leva o foco ao aviso para quem usa leitor de tela ou teclado.
+  useEffect(() => {
+    if (estado.erro) refErro.current?.focus();
+  }, [estado]);
   // Só vale o que ainda está na lista: depois do descarte e da atualização da tela, as escolhas somem sozinhas.
   const presentes = new Set(itens.map((i) => i.id));
   const efetivos = [...marcados].filter((id) => presentes.has(id));
@@ -46,7 +51,11 @@ export function FormDescartarNotificacoes({ itens }: { itens: ItemDescarte[] }) 
 
   return (
     <form ref={registrarForm} action={action} onSubmit={aoEnviar} noValidate>
-      {estado.erro ? <Aviso tipo="erro">{estado.erro}</Aviso> : null}
+      {estado.erro ? (
+        <div ref={refErro} tabIndex={-1} className="foco-aviso">
+          <Aviso tipo="erro">{estado.erro}</Aviso>
+        </div>
+      ) : null}
       {estado.sucesso ? <Aviso tipo="sucesso">{estado.sucesso}</Aviso> : null}
 
       <fieldset className="campo">
@@ -64,18 +73,20 @@ export function FormDescartarNotificacoes({ itens }: { itens: ItemDescarte[] }) 
         <ul className="lista-cartoes">
           {itens.map((i) => (
             <li key={i.id} className="cartao">
-              <label>
-                <input
-                  type="checkbox"
-                  name="pedidoIds"
-                  value={i.id}
-                  checked={marcados.has(i.id)}
-                  onChange={(e) => alternar(i.id, e.target.checked)}
-                  aria-invalid={erros.pedidoIds ? true : undefined}
-                />{" "}
-                <strong>{i.destinoNome || "Destino sem nome"}</strong>
-                <span className="sr-only"> criada em {i.criadoEmTexto}</span>
-              </label>
+              <div className="campo-marcar campo-marcar-item">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="pedidoIds"
+                    value={i.id}
+                    checked={marcados.has(i.id)}
+                    onChange={(e) => alternar(i.id, e.target.checked)}
+                    aria-invalid={erros.pedidoIds ? true : undefined}
+                  />
+                  <strong>{i.destinoNome || "Destino sem nome"}</strong>
+                  <span className="sr-only"> criada em {i.criadoEmTexto}</span>
+                </label>
+              </div>
               <p>
                 <span className={`selo ${i.estado === "pendente" ? "selo-aviso" : "selo-erro"}`}>
                   {ROTULO_ESTADO[i.estado]}

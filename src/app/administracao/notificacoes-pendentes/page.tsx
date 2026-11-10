@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ESTADOS_NOTIFICACAO_DESCARTAVEIS } from "@/modules/indicacoes";
 import { FormDescartarNotificacoes } from "../../_componentes/form-descartar-notificacoes";
 import { PainelPagina } from "../../_componentes/painel";
@@ -44,6 +45,11 @@ export default async function PaginaNotificacoesPendentes({
     ...(estado ? { estado } : {}),
     pagina,
   });
+  // Página pedida ficou vazia (ex.: tudo descartado na última página): vai para a última página válida.
+  if (r.ok && r.valor.itens.length === 0 && r.valor.total > 0 && pagina > 1) {
+    const valida = Math.max(1, Math.ceil(r.valor.total / r.valor.porPagina));
+    redirect(href(estado, Math.min(valida, pagina - 1)));
+  }
   const ultima = r.ok ? Math.max(1, Math.ceil(r.valor.total / r.valor.porPagina)) : 1;
 
   return (

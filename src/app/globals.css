@@ -839,9 +839,25 @@ fieldset.grupo-imagens {
   font-weight: 600;
 }
 .campo-marcar input {
+  flex: none;
   width: 1.5rem;
   height: 1.5rem;
   accent-color: var(--coral-escuro);
+}
+/* Item de lista (cartão): área clicável inteira, sem rolagem horizontal em 360px. */
+.campo-marcar-item {
+  margin: 0 0 var(--e2);
+}
+.campo-marcar-item label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.foco-aviso:focus {
+  outline: none;
+}
+.foco-aviso:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 /* Fase 3: contato, indicação e pedidos. Celular primeiro, alvos de toque de 44px ou mais. */
