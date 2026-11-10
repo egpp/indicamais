@@ -566,7 +566,8 @@ select is((select valor_anterior::text from public.administracao_auditoria where
 set local role service_role;
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select is((select count(*)::int from public.indicacoes_notificacoes_pendentes(100) where o_pedido_id in (current_setting('t.ped_1')::uuid, current_setting('t.ped_auto')::uuid, current_setting('t.ped_errado')::uuid)), 0, 'descartada fica fora das pendentes do servidor');
-select is(public.indicacoes_notificacoes_recolocar_falhas(100, 5, -100), 0, 'o cron não recoloca descartada (mesmo elegível por tentativas e espera)');
+select ok(public.indicacoes_notificacoes_recolocar_falhas(100, 5, -100) >= 0, 'o cron roda com a descartada elegível por tentativas e espera');
+select is((select count(*)::int from public.indicacoes_notificacao where estado = 'descartada' and pedido_id in (current_setting('t.ped_1')::uuid, current_setting('t.ped_auto')::uuid, current_setting('t.ped_errado')::uuid)), 3, 'o cron não recoloca descartada (continuam descartadas)');
 select lives_ok($$select public.indicacoes_notificacao_registrar(current_setting('t.ped_1')::uuid, true, null)$$, 'registrar em descartada não falha');
 reset role;
 select is((select estado || ':' || tentativas::text from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_1')::uuid), 'descartada:1', 'registro tardio do servidor não altera a descartada');

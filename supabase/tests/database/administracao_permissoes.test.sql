@@ -38,7 +38,7 @@ select is((select array_agg(p.proname::text order by p.proname) from pg_proc p j
         'administracao_definir_parametro', 'administracao_definir_patrocinador_ativo', 'administracao_revogar_permissao',
         'comissoes_admin_listar_assinaturas', 'comissoes_admin_listar_comissoes', 'comissoes_admin_listar_negocios', 'comissoes_admin_listar_pagamentos', 'comissoes_admin_listar_vinculos', 'comissoes_admin_prazo_inadimplencia',
         'comissoes_avancar_repasse', 'comissoes_cancelar_assinatura', 'comissoes_confirmar_pagamento', 'comissoes_definir_habilitacao', 'comissoes_definir_parametro', 'comissoes_encerrar_vinculo', 'comissoes_estornar_pagamento', 'comissoes_listar_vinculos_vencidos', 'comissoes_registrar_assinatura', 'comissoes_registrar_vinculo', 'comissoes_reverter_comissao',
-        'contas_definir_parametro', 'indicacoes_admin_listar_alarmes', 'indicacoes_definir_parametro', 'indicacoes_tratar_alerta', 'loja_definir_liberacao', 'perfis_admin_definir_estilo_habilitado', 'pontos_definir_parametro'],
+        'contas_definir_parametro', 'indicacoes_admin_listar_alarmes', 'indicacoes_definir_parametro', 'indicacoes_notificacoes_descartar', 'indicacoes_tratar_alerta', 'loja_definir_liberacao', 'perfis_admin_definir_estilo_habilitado', 'pontos_definir_parametro'],
   'só as RPCs sem permissão específica seguem exigindo administrador geral');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.proname in ('perfis_decidir_versao', 'catalogo_decidir_item_versao', 'pontos_decidir_beneficio_versao',
