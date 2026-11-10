@@ -188,3 +188,16 @@ describe("Notificações pendentes (IM-103, IM-027, IM-028)", () => {
     expect(legendaNotificacao("descartada", true)).toBe("Descartada");
   });
 });
+
+describe("formulário no navegador (IM-103)", () => {
+  it("não importa módulos de servidor (painel arrasta next/headers e quebra o build)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const fonte = readFileSync(
+      join(__dirname, "_componentes", "form-descartar-notificacoes.tsx"),
+      "utf8",
+    );
+    expect(fonte.startsWith('"use client"')).toBe(true);
+    expect(fonte).not.toMatch(/from "\.\/painel"|next\/headers|supabase\/servidor/);
+  });
+});

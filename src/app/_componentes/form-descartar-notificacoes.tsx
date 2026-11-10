@@ -5,7 +5,6 @@ import { acaoDescartarNotificacoes } from "../acoes-indicacoes";
 import type { EstadoLink } from "../_lib/estado-indicacoes";
 import { validarDescarteNotificacoes } from "../_lib/validacao-indicacoes";
 import { CampoTextoLongo } from "./campos-conteudo";
-import { SeloEstado } from "./painel";
 import { Aviso, BotaoEnviar } from "./ui";
 import { useFormulario } from "./use-formulario";
 
@@ -19,6 +18,7 @@ export type ItemDescarte = {
 };
 
 const ROTULO_ESTADO = { pendente: "Pendente", falhou: "Falhou" } as const;
+/** Não importa "./painel" (servidor): este arquivo roda no navegador. */
 const AJUDA_MOTIVO = "De 10 a 500 caracteres. Fica registrado na auditoria.";
 
 /**
@@ -77,7 +77,9 @@ export function FormDescartarNotificacoes({ itens }: { itens: ItemDescarte[] }) 
                 <span className="sr-only"> criada em {i.criadoEmTexto}</span>
               </label>
               <p>
-                <SeloEstado rotulo={ROTULO_ESTADO[i.estado]} />
+                <span className={`selo ${i.estado === "pendente" ? "selo-aviso" : "selo-erro"}`}>
+                  {ROTULO_ESTADO[i.estado]}
+                </span>
               </p>
               <dl className="lista-dados">
                 <dt>Criada em</dt>
