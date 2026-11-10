@@ -469,6 +469,15 @@ describe("reprocessamento (IM-028)", () => {
     expect(b.reprocessarPedido).toHaveBeenCalledTimes(1);
   });
 
+  it("indicador ocupado (55P03): mensagem clara, sem texto do banco", async () => {
+    const b = fake({
+      reprocessarPedido: vi.fn(comErro("55P03")),
+    });
+    const r = await servico(b).reprocessarPedido({ pedidoId: PEDIDO, motivo: "x" });
+    expect(r.ok === false && r.erro.mensagem).toBe(MENSAGENS_PONTOS.indicadorOcupado);
+    expect(JSON.stringify(r)).not.toMatch(/texto interno|banco/i);
+  });
+
   it("pedido inexistente (P0002)", async () => {
     const r = await servico(fake({ reprocessarPedido: vi.fn(comErro("P0002")) })).reprocessarPedido(
       {
@@ -1070,7 +1079,7 @@ describe("limite diário do indicador (D-035, IM-030)", () => {
     const r = await servico(b).meuLimiteDiario();
     expect(r).toEqual({
       ok: true,
-      valor: { tetoDiario: 100, pontosHoje: 40, atingido: false, contatos: [] },
+      valor: { tetoDiario: 100, pontosHoje: 40, atingido: false, barradosHoje: 0, contatos: [] },
     });
   });
 
@@ -1080,7 +1089,7 @@ describe("limite diário do indicador (D-035, IM-030)", () => {
     expect(r.ok && r.valor?.atingido).toBe(true);
   });
 
-  it("contato barrado hoje (dia de São Paulo): atingido, mais recente primeiro, sem dado do visitante", async () => {
+  it("abaixo do teto com contatos barrados hoje: não atingido, mais recente primeiro, sem dado do visitante", async () => {
     const b = fake({
       lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 95 }])),
       listarMeusLimitesDiarios: vi.fn(
@@ -1088,7 +1097,8 @@ describe("limite diário do indicador (D-035, IM-030)", () => {
       ),
     });
     const r = await servico(b).meuLimiteDiario();
-    expect(r.ok && r.valor?.atingido).toBe(true);
+    expect(r.ok && r.valor?.atingido).toBe(false);
+    expect(r.ok && r.valor?.barradosHoje).toBe(2);
     expect(r.ok && r.valor?.contatos.map((c) => c.id)).toEqual([2, 1]);
     const json = JSON.stringify(r);
     expect(json).not.toMatch(/whatsapp|telefone|e164|nome_visitante|email|solicitante/i);
@@ -1111,7 +1121,25 @@ describe("limite diário do indicador (D-035, IM-030)", () => {
     });
     const s = criarServicoPontos(b, { agora: () => new Date("2026-11-10T23:00:00Z") });
     const r = await s.meuLimiteDiario();
-    expect(r.ok && r.valor?.atingido).toBe(true);
+    expect(r.ok && r.valor?.barradosHoje).toBe(1);
+    expect(r.ok && r.valor?.atingido).toBe(false);
+  });
+
+  it("no teto com contato barrado: atingido; teto aumentado depois: deixa de estar atingido", async () => {
+    const barrado = ok([contato(1, "2026-11-10T14:00:00Z")]);
+    const noTeto = fake({
+      lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 100, o_pontos_hoje: 100 }])),
+      listarMeusLimitesDiarios: vi.fn(barrado),
+    });
+    const a = await servico(noTeto).meuLimiteDiario();
+    expect(a.ok && a.valor?.atingido).toBe(true);
+    const aumentado = fake({
+      lerMeuLimiteDiario: vi.fn(ok([{ o_teto_diario: 200, o_pontos_hoje: 100 }])),
+      listarMeusLimitesDiarios: vi.fn(barrado),
+    });
+    const d = await servico(aumentado).meuLimiteDiario();
+    expect(d.ok && d.valor?.atingido).toBe(false);
+    expect(d.ok && d.valor?.barradosHoje).toBe(1);
   });
 
   it("visão ou função inexistente (migração não aplicada): ok com null, sem expor texto do banco", async () => {
@@ -1133,6 +1161,7 @@ describe("limite diário do indicador (D-035, IM-030)", () => {
       tetoDiario: 100,
       pontosHoje: 100,
       atingido: true,
+      barradosHoje: 0,
       contatos: [],
     });
   });

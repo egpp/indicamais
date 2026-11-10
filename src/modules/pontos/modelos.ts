@@ -169,13 +169,15 @@ export function paraContatoSemPontosPorLimite(
 }
 
 /**
- * Situação do dia do indicador. `atingido` = o total do dia já chegou ao teto OU algum contato de hoje (dia civil
- * em America/Sao_Paulo) deixou de pontuar por causa do limite. Tudo ou nada: o banco não credita parcial.
+ * Situação do dia do indicador. `atingido` deriva só do estado atual: total do dia >= teto vigente. Se o
+ * administrador subir o teto no mesmo dia, deixa de valer. `barradosHoje` = contatos de hoje (dia civil em
+ * America/Sao_Paulo) que já caíram em `limite_diario`; é só informação e não prevê o que acontece depois.
  */
 export type MeuLimiteDiario = {
   tetoDiario: number;
   pontosHoje: number;
   atingido: boolean;
+  barradosHoje: number;
   /** Mais recente primeiro. */
   contatos: ContatoSemPontosPorLimite[];
 };
@@ -190,11 +192,12 @@ export function montarLimiteDiario(
   }
   const hoje = hojeSaoPaulo(agora);
   const ordenados = [...contatos].sort((a, b) => Date.parse(b.contatoEm) - Date.parse(a.contatoEm));
-  const algumHoje = ordenados.some((c) => hojeSaoPaulo(new Date(c.contatoEm)) === hoje);
+  const barradosHoje = ordenados.filter((c) => hojeSaoPaulo(new Date(c.contatoEm)) === hoje).length;
   return {
     tetoDiario: linha.o_teto_diario,
     pontosHoje: linha.o_pontos_hoje,
-    atingido: linha.o_pontos_hoje >= linha.o_teto_diario || algumHoje,
+    atingido: linha.o_pontos_hoje >= linha.o_teto_diario,
+    barradosHoje,
     contatos: ordenados,
   };
 }
