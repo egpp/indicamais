@@ -105,6 +105,7 @@ const ADMINISTRATIVAS: [string, Acao, keyof typeof contextos][] = [
   ["acaoEncerrarVinculo", comissoes.acaoEncerrarVinculo as Acao, "comissoes"],
   ["acaoDefinirParametroPontos", pontos.acaoDefinirParametroPontos as Acao, "pontos"],
   ["acaoDefinirParametroContato", indicacoes.acaoDefinirParametroContato as Acao, "indicacoes"],
+  ["acaoDescartarNotificacoes", indicacoes.acaoDescartarNotificacoes as Acao, "indicacoes"],
   ["acaoReverterCredito", pontos.acaoReverterCredito as Acao, "pontos"],
   ["acaoReprocessarPedido", pontos.acaoReprocessarPedido as Acao, "pontos"],
   ["acaoDecidirBeneficio", pontos.acaoDecidirBeneficio as Acao, "pontos"],
@@ -137,7 +138,7 @@ beforeEach(() => {
 
 describe("ações administrativas conferem o papel no servidor (RSA-06, IM-086)", () => {
   it("cobre as ações administrativas conhecidas", () => {
-    expect(ADMINISTRATIVAS.length).toBe(32);
+    expect(ADMINISTRATIVAS.length).toBe(33);
     for (const [, fn] of ADMINISTRATIVAS) expect(typeof fn).toBe("function");
   });
 

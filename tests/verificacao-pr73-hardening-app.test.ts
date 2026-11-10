@@ -254,6 +254,7 @@ describe("RSA-06: toda ação exportada de src/app/acoes-*.ts está classificada
     "acaoEncerrarVinculo",
     "acaoDefinirParametroPontos",
     "acaoDefinirParametroContato",
+    "acaoDescartarNotificacoes",
     "acaoReverterCredito",
     "acaoReprocessarPedido",
     "acaoDecidirBeneficio",
@@ -282,8 +283,8 @@ describe("RSA-06: toda ação exportada de src/app/acoes-*.ts está classificada
     ),
   );
 
-  it("o helper existe e as 32 ações do administrador geral continuam em 32", () => {
-    expect(ADMIN_GERAL).toHaveLength(32);
+  it("o helper existe e as 33 ações do administrador geral continuam em 33", () => {
+    expect(ADMIN_GERAL).toHaveLength(33);
     expect(ADMIN_GERAL_COM_HELPER).toBe("exigirAdministrador");
   });
 

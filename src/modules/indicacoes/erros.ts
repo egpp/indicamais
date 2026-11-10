@@ -23,6 +23,9 @@ export const MENSAGENS_INDICACOES = {
   semAlertaAberto: "Não há alerta aberto para este pedido.",
   valorForaDaFaixa: "O valor está fora da faixa permitida para este parâmetro.",
   motivoObrigatorio: "Informe o motivo.",
+  descarteDadosInvalidos:
+    "Confira a seleção (de 1 a 500 notificações) e o motivo (de 10 a 500 caracteres).",
+  descarteIndisponivel: "O descarte de notificações ainda não está disponível neste ambiente.",
   linkIndisponivel: "Não foi possível montar o link agora. Tente novamente em instantes.",
 } as const;
 
@@ -54,10 +57,36 @@ export const erroIndicacoes = (
 
 /** Operação em curso: muda a leitura de P0002, 22023, 42501 e P0001. */
 export type OperacaoIndicacoes =
-  "gerar_link" | "compartilhar" | "contato" | "leitura" | "reenvio" | "alerta" | "parametro";
+  | "gerar_link"
+  | "compartilhar"
+  | "contato"
+  | "leitura"
+  | "reenvio"
+  | "alerta"
+  | "parametro"
+  | "descartar";
 
 const M = MENSAGENS_INDICACOES;
-const ehAdmin = (op: OperacaoIndicacoes) => op === "alerta" || op === "parametro";
+const ehAdmin = (op: OperacaoIndicacoes) =>
+  op === "alerta" || op === "parametro" || op === "descartar";
+
+/**
+ * IM-103: descarte em lote. 22023 = seleção ou motivo inválidos; 42501 = sem permissão. A RPC ainda pode não existir
+ * no ambiente (migração não aplicada): PGRST202 (cache do PostgREST) e 42883 (função inexistente) viram aviso
+ * próprio. Qualquer outro erro vira a mensagem genérica; o texto do banco nunca sai.
+ */
+function erroDescartar(e: ErroBanco): ErroIndicacoes {
+  switch (e.code) {
+    case "22023":
+      return erroIndicacoes("VALIDACAO", M.descarteDadosInvalidos);
+    case "42501":
+      return erroIndicacoes("PERMISSAO", M.semPermissao);
+    case "PGRST202":
+    case "42883":
+      return erroIndicacoes("INDISPONIVEL", M.descarteIndisponivel);
+  }
+  return erroIndicacoes("ERRO_INTERNO", M.generica);
+}
 
 /**
  * SQLSTATE do banco -> erro tipado. O texto do banco (message, details) NUNCA sai daqui.
@@ -76,6 +105,7 @@ export function mapearErroBancoIndicacoes(e: ErroBanco, op: OperacaoIndicacoes):
         op === "compartilhar" ? M.limiteCompartilhamento : M.limiteContato,
       );
   }
+  if (op === "descartar") return erroDescartar(e);
   switch (classificarErroBanco(e)) {
     case "NAO_ENCONTRADO":
       if (op === "gerar_link" || op === "contato") {

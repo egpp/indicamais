@@ -19,6 +19,8 @@ export const COLUNAS_INDICACOES = {
   meusLinks: "id, codigo, destino_tipo, destino_id, destino_nome, disponivel, criado_em",
   filaContatos:
     "id, destino_tipo, destino_id, destino_nome, nome, whatsapp_e164, email, mensagem, criado_em, veio_por_indicacao, notificacao_estado, autoindicacao_suspeita, tentativas, ultima_tentativa_em, ultimo_erro, reenvio_solicitado_em, alerta_estado",
+  /** IM-103: só o necessário para escolher o que descartar. NUNCA nome, WhatsApp, e-mail ou mensagem do visitante. */
+  notificacoesDescartaveis: "id, criado_em, notificacao_estado, tentativas, destino_nome",
   parametro: "chave, valor, minimo, maximo, descricao, atualizado_em",
 } as const;
 
@@ -149,6 +151,33 @@ export function criarBancoIndicacoes(supabase: Cliente): ClienteBancoIndicacoes 
           p_deslocamento: a.deslocamento,
         });
         return { dados: data ?? [], erro: paraErro(error) };
+      }),
+
+    descartarNotificacoes: (a) =>
+      protegido(async () => {
+        const { data, error } = await supabase.rpc("indicacoes_notificacoes_descartar", {
+          p_pedido_ids: a.pedidoIds,
+          p_motivo: a.motivo,
+        });
+        return { dados: data ?? null, erro: paraErro(error) };
+      }),
+
+    listarNotificacoesDescartaveis: (a) =>
+      protegido(async () => {
+        const base = supabase
+          .from("administracao_fila_contatos")
+          .select(COLUNAS_INDICACOES.notificacoesDescartaveis, { count: "exact" });
+        const filtrada = a.estado
+          ? base.eq("notificacao_estado", a.estado)
+          : base.in("notificacao_estado", ["pendente", "falhou"]);
+        const { data, error, count } = await filtrada
+          .order("criado_em", { ascending: false })
+          .order("id", { ascending: true })
+          .range(a.deslocamento, a.deslocamento + a.limite - 1);
+        return {
+          dados: error ? null : { linhas: data ?? [], total: count ?? 0 },
+          erro: paraErro(error),
+        };
       }),
 
     definirParametro: (a) =>

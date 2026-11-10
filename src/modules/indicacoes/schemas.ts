@@ -229,3 +229,39 @@ export const listarAlarmesSchema = z.object({
     .max(LIMITES.busca.paginaMax, { error: "Página inválida." })
     .default(1),
 });
+
+/** Descarte em lote de notificações de contato (IM-103, IM-027, IM-028). Espelha o banco: 1 a 500 pedidos, motivo 10 a 500. */
+export const DESCARTE_MAX_PEDIDOS = 500;
+export const NOTIFICACOES_POR_PAGINA = 50;
+export const ESTADOS_NOTIFICACAO_DESCARTAVEIS = ["pendente", "falhou"] as const;
+
+export const descartarNotificacoesSchema = z.object({
+  pedidoIds: z
+    .array(uuidSchema, { error: "Selecione ao menos uma notificação." })
+    .min(1, { error: "Selecione ao menos uma notificação." })
+    .max(DESCARTE_MAX_PEDIDOS, {
+      error: `Selecione no máximo ${DESCARTE_MAX_PEDIDOS} notificações por vez.`,
+    }),
+  motivo: z.preprocess(
+    (v) => (typeof v === "string" ? v.trim() : v),
+    z
+      .string({ error: "Informe o motivo." })
+      .min(MOTIVO_MINIMO_PARAMETRO_CONTATO, {
+        error: `O motivo deve ter ao menos ${MOTIVO_MINIMO_PARAMETRO_CONTATO} caracteres.`,
+      })
+      .max(LIMITES.revisao.motivoMax, {
+        error: `O motivo deve ter no máximo ${LIMITES.revisao.motivoMax} caracteres.`,
+      })
+      .refine((s) => !INVISIVEIS_MENSAGEM.test(s), { error: "O motivo tem caracteres inválidos." }),
+  ),
+});
+
+export const listarNotificacoesDescartaveisSchema = z.object({
+  estado: z.enum(ESTADOS_NOTIFICACAO_DESCARTAVEIS, { error: "Estado inválido." }).optional(),
+  pagina: z
+    .number({ error: "Página inválida." })
+    .int({ error: "Página inválida." })
+    .min(1, { error: "Página inválida." })
+    .max(LIMITES.busca.paginaMax, { error: "Página inválida." })
+    .default(1),
+});

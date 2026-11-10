@@ -18,9 +18,12 @@ import {
   paraMeuLink,
   paraAlarme,
   paraMinhaIndicacao,
+  paraNotificacaoDescartavel,
   paraParametro,
   paraPedidoContato,
   type ContatoAdmin,
+  type LinhaNotificacaoDescartavel,
+  type PaginaNotificacoesDescartaveis,
   type LinhaAlarme,
   type PaginaAlarmes,
   type LinhaFilaContato,
@@ -36,7 +39,10 @@ import {
 import {
   ALARMES_POR_PAGINA,
   CHAVES_PARAMETRO_CONTATO,
+  NOTIFICACOES_POR_PAGINA,
   compartilhamentoSchema,
+  descartarNotificacoesSchema,
+  listarNotificacoesDescartaveisSchema,
   definirParametroContatoSchema,
   definirParametroSchema,
   listarAlarmesSchema,
@@ -114,6 +120,20 @@ export interface ClienteBancoIndicacoes {
     valor: number;
     motivo: string;
   }): Promise<{ erro: ErroBanco | null }>;
+  /**
+   * rpc indicacoes_notificacoes_descartar(p_pedido_ids, p_motivo) -> quantidade descartada (IM-103). Sessão do
+   * administrador (auth.uid); NUNCA service_role.
+   */
+  descartarNotificacoes(a: { pedidoIds: string[]; motivo: string }): Promise<RespostaBanco<number>>;
+  /**
+   * select das colunas SEGURAS (id, criado_em, notificacao_estado, tentativas, destino_nome) de
+   * administracao_fila_contatos, só pendente/falhou, mais recentes primeiro, com contagem exata (IM-103).
+   */
+  listarNotificacoesDescartaveis(a: {
+    estado: "pendente" | "falhou" | null;
+    limite: number;
+    deslocamento: number;
+  }): Promise<RespostaBanco<{ linhas: LinhaNotificacaoDescartavel[]; total: number }>>;
   /** rpc indicacoes_admin_listar_alarmes(p_tipo, p_limite, p_deslocamento): só administrador; sem dado pessoal. */
   listarAlarmes(a: {
     tipo: string | null;
@@ -410,6 +430,51 @@ export function criarServicoIndicacoes(
           );
         }
         return simples(() => banco.definirParametro(p.data), "parametro");
+      }),
+
+    /**
+     * IM-103, IM-027, IM-028: administrador descarta em lote notificações pendentes/falhas, com motivo. A regra (só
+     * pendente/falhou, auditoria, idempotência) é do banco; devolve quantas foram de fato descartadas.
+     */
+    descartarNotificacoes: (entrada: unknown): Promise<Resultado<{ descartadas: number }>> =>
+      seguro(async () => {
+        const p = descartarNotificacoesSchema.safeParse(entrada);
+        if (!p.success) return falhaValidacao(p.error);
+        const r = await banco.descartarNotificacoes({
+          pedidoIds: [...new Set(p.data.pedidoIds)],
+          motivo: p.data.motivo,
+        });
+        if (r.erro) return falha(mapearErroBancoIndicacoes(r.erro, "descartar"));
+        const n = Number(r.dados);
+        if (!Number.isInteger(n) || n < 0) return falha(erroIndicacoes("ERRO_INTERNO", M.generica));
+        return { ok: true, valor: { descartadas: n } };
+      }),
+
+    /** IM-103: notificações pendentes/falhas para escolher o que descartar. 50 por página; sem dado do visitante. */
+    listarNotificacoesDescartaveis: (
+      entrada: unknown = {},
+    ): Promise<Resultado<PaginaNotificacoesDescartaveis>> =>
+      seguro(async () => {
+        const p = listarNotificacoesDescartaveisSchema.safeParse(entrada ?? {});
+        if (!p.success) return falhaValidacao(p.error);
+        const r = await banco.listarNotificacoesDescartaveis({
+          estado: p.data.estado ?? null,
+          limite: NOTIFICACOES_POR_PAGINA,
+          deslocamento: (p.data.pagina - 1) * NOTIFICACOES_POR_PAGINA,
+        });
+        if (r.erro) return falha(mapearErroBancoIndicacoes(r.erro, "leitura"));
+        const itens = (r.dados?.linhas ?? [])
+          .map(paraNotificacaoDescartavel)
+          .filter((x) => x !== null);
+        return {
+          ok: true,
+          valor: {
+            itens,
+            total: Number(r.dados?.total ?? 0),
+            pagina: p.data.pagina,
+            porPagina: NOTIFICACOES_POR_PAGINA,
+          },
+        };
       }),
 
     /** Alarmes de excesso, mais recentes primeiro, 50 por página. Sem dado pessoal (S-03). */

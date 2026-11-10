@@ -76,3 +76,17 @@ export function validarParametro(d: Record<string, string>): Record<string, stri
   if ((d.motivo ?? "").trim() === "") erros.motivo = MOTIVO_OBRIGATORIO;
   return Object.keys(erros).length > 0 ? erros : null;
 }
+
+/** Descarte de notificações (IM-103): ao menos uma escolhida, motivo de 10 a 500 e confirmação. A regra final é do servidor. */
+export function validarDescarteNotificacoes(
+  d: Record<string, string>,
+): Record<string, string> | null {
+  const erros: Record<string, string> = {};
+  if (!d.pedidoIds) erros.pedidoIds = "Selecione ao menos uma notificação.";
+  const m = validarMotivoContato(d.motivo ?? "");
+  if (m) erros.motivo = m;
+  if (d.confirmo !== "sim") {
+    erros.confirmo = "Marque a confirmação para descartar as notificações selecionadas.";
+  }
+  return Object.keys(erros).length > 0 ? erros : null;
+}

@@ -40,6 +40,8 @@ function fake(sobrescrever: Partial<ClienteBancoIndicacoes> = {}) {
     listarParametros: vi.fn(ok<LinhaParametro[]>([])),
     definirParametro: vi.fn(semErro),
     listarAlarmes: vi.fn(ok<LinhaAlarme[]>([])),
+    descartarNotificacoes: vi.fn(ok(0)),
+    listarNotificacoesDescartaveis: vi.fn(ok({ linhas: [], total: 0 })),
     ...sobrescrever,
   } satisfies ClienteBancoIndicacoes;
   return banco;

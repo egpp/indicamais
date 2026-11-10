@@ -14,6 +14,7 @@ import { protegerFormularioPublico, type ProtecaoPublica } from "./_lib/protecao
 import {
   CAMPOS_CONTATO,
   definirParametroAdmin,
+  descartarNotificacoesAdmin,
   definirParametroContatoAdmin,
   enviarContatoVisitante,
   gerarLinkDeIndicacao,
@@ -179,5 +180,27 @@ export async function acaoDefinirParametroContato(_: EstadoLink, f: FormData): P
     f,
   );
   if (estado.sucesso) revalidatePath(ROTA_LIMITES_CONTATO);
+  return estado;
+}
+
+/** Rota da tela "Notificações pendentes" (IM-103). */
+const ROTA_NOTIFICACOES_PENDENTES = "/administracao/notificacoes-pendentes";
+
+/**
+ * Descarta em lote notificações de contato pendentes/falhas (IM-103, IM-027, IM-028, IM-086). RSA-06: o papel de
+ * administrador é conferido no servidor ANTES de montar o contexto. Campos: pedidoIds (vários), motivo (10+), confirmo.
+ */
+export async function acaoDescartarNotificacoes(_: EstadoLink, f: FormData): Promise<EstadoLink> {
+  await exigirAdministrador(ROTA_NOTIFICACOES_PENDENTES);
+  const estado = await comContexto(
+    () => obterContextoIndicacoes(ROTA_NOTIFICACOES_PENDENTES),
+    descartarNotificacoesAdmin,
+    f,
+    valoresDe(f, ["motivo"]),
+  );
+  if (estado.sucesso) {
+    revalidatePath(ROTA_NOTIFICACOES_PENDENTES);
+    revalidatePath("/administracao/pedidos");
+  }
   return estado;
 }
