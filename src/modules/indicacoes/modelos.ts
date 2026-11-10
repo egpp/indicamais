@@ -10,7 +10,7 @@ export type LinhaFilaContato = Visoes["administracao_fila_contatos"]["Row"];
 export type LinhaParametro = Database["public"]["Tables"]["indicacoes_parametro"]["Row"];
 
 export type TipoDestino = "perfil" | "item";
-export type EstadoNotificacao = "pendente" | "enviada" | "falhou";
+export type EstadoNotificacao = "pendente" | "enviada" | "falhou" | "descartada";
 export type EstadoAlerta = "nenhum" | "aberto" | "tratado";
 
 const tipoDestino = (v: string | null): TipoDestino | null =>

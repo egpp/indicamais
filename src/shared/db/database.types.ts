@@ -6200,6 +6200,10 @@ export type Database = {
         Args: { p_erro?: string; p_pedido_id: string; p_sucesso: boolean }
         Returns: undefined
       }
+      indicacoes_notificacoes_descartar: {
+        Args: { p_motivo: string; p_pedido_ids: string[] }
+        Returns: number
+      }
       indicacoes_notificacoes_pendentes: {
         Args: { p_limite?: number }
         Returns: {

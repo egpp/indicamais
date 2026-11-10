@@ -510,5 +510,72 @@ reset role;
 select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_1')::uuid), 'pendente', 'espera zero libera a falha recente');
 select is((select count(*)::int from public.indicacoes_notificacao where estado = 'enviada' and pedido_id in (current_setting('t.ped_item')::uuid, current_setting('t.ped_1')::uuid)), 0, 'recolocar nunca marca como enviada');
 
+-- ===== Descartar notificações pendentes/falhas (IM-027, IM-028, IM-086) =====
+select is(has_function_privilege('anon', 'public.indicacoes_notificacoes_descartar(uuid[],text)', 'EXECUTE'), false, 'descartar: anon não executa');
+select is(has_function_privilege('authenticated', 'public.indicacoes_notificacoes_descartar(uuid[],text)', 'EXECUTE'), true, 'descartar: authenticated tem grant (o exigir_admin limita)');
+select is((select prosecdef from pg_proc where oid = 'public.indicacoes_notificacoes_descartar(uuid[],text)'::regprocedure), true, 'descartar: security definer');
+select ok((select proconfig::text from pg_proc where oid = 'public.indicacoes_notificacoes_descartar(uuid[],text)'::regprocedure) ~ 'search_path=', 'descartar: search_path vazio');
+-- Estados de partida: ped_1 falhou (alerta aberto, elegível ao cron), ped_item enviada, ped_auto falhou (3 tentativas), ped_errado pendente.
+update public.indicacoes_notificacao set estado = 'falhou', tentativas = 1, ultima_tentativa_em = now() - interval '2 hours', ultimo_erro = 'smtp_timeout', alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_1')::uuid;
+update public.indicacoes_notificacao set estado = 'enviada', tentativas = 1, alerta_estado = 'nenhum' where pedido_id = current_setting('t.ped_item')::uuid;
+update public.indicacoes_notificacao set estado = 'falhou', tentativas = 3, alerta_estado = 'aberto' where pedido_id = current_setting('t.ped_auto')::uuid;
+update public.indicacoes_notificacao set estado = 'pendente', tentativas = 0, alerta_estado = 'nenhum' where pedido_id = current_setting('t.ped_errado')::uuid;
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], 'teste de segurança do dono')$$, '42501', null, 'não-admin (dono do destino) não descarta');
+select throws_ok($$update public.indicacoes_notificacao set estado = 'descartada'$$, '42501', null, 'dono não altera a notificação direto na tabela');
+select throws_ok($$select * from public.indicacoes_notificacao$$, '42501', null, 'dono não lê a tabela de notificação');
+select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], 'teste de segurança do outro')$$, '42501', null, 'outro responsável não descarta');
+select is((select count(*)::int from public.indicacoes_meus_pedidos where id = current_setting('t.ped_attr')::uuid), 0, 'responsável de outro destino não lê o pedido nem a notificação alheia');
+select set_config('request.jwt.claims', '{"sub":"cccccccc-0000-0000-0000-00000000000c","role":"authenticated"}', true);
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], 'teste de segurança indicador')$$, '42501', null, 'indicador não descarta');
+reset role;
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], 'teste de segurança anônimo')$$, '42501', null, 'anon não descarta');
+reset role;
+select is((select count(*)::int from public.indicacoes_notificacao where estado = 'descartada'), 0, 'nada foi descartado pelos negados');
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], '')$$, '22023', null, 'motivo vazio é recusado');
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], null)$$, '22023', null, 'motivo nulo é recusado');
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], '   curto   ')$$, '22023', null, 'motivo com menos de 10 caracteres é recusado');
+select throws_ok($$select public.indicacoes_notificacoes_descartar(null, 'limpeza de notificações de teste')$$, '22023', null, 'array nulo é recusado');
+select throws_ok($$select public.indicacoes_notificacoes_descartar('{}'::uuid[], 'limpeza de notificações de teste')$$, '22023', null, 'array vazio é recusado');
+select throws_ok($$select public.indicacoes_notificacoes_descartar(array_fill(gen_random_uuid(), array[501]), 'limpeza de notificações de teste')$$, '22023', null, 'mais de 500 pedidos é recusado');
+select is(public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid, current_setting('t.ped_item')::uuid, current_setting('t.ped_auto')::uuid, current_setting('t.ped_errado')::uuid, current_setting('t.ped_1')::uuid, gen_random_uuid(), null], 'limpeza de notificações de teste'), 3,
+  'descarta só pendente/falhou (3); enviada, repetido, nulo e inexistente são ignorados');
+select is(public.indicacoes_notificacoes_descartar(array[current_setting('t.ped_1')::uuid], 'limpeza de notificações de teste'), 0, 'descartar de novo é idempotente (0)');
+reset role;
+
+select is((select estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_item')::uuid), 'enviada', 'enviada nunca é descartada');
+select is((select count(*)::int from public.indicacoes_notificacao where estado = 'descartada' and pedido_id in (current_setting('t.ped_1')::uuid, current_setting('t.ped_auto')::uuid, current_setting('t.ped_errado')::uuid)), 3, 'pendente e falhou viram descartada');
+select is((select tentativas from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_auto')::uuid), 3, 'tentativas intactas');
+select is((select alerta_estado from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_1')::uuid), 'tratado', 'alerta aberto da descartada fica tratado');
+select is((select count(*)::int from public.indicacoes_pedido_contato where id in (current_setting('t.ped_1')::uuid, current_setting('t.ped_item')::uuid, current_setting('t.ped_auto')::uuid, current_setting('t.ped_errado')::uuid)), 4, 'nenhum pedido é apagado');
+select is((select count(*)::int from public.indicacoes_notificacao_historico where evento = 'descartada' and origem = 'admin'), 3, 'histórico grava o evento descartada (origem admin) por pedido');
+select is((select count(*)::int from public.administracao_auditoria where acao = 'descartar_notificacao_contato'
+  and autor_id = 'dddddddd-0000-0000-0000-00000000000d' and motivo = 'limpeza de notificações de teste'
+  and valor_novo ->> 'estado' = 'descartada'), 3, 'auditoria por pedido: autor, motivo e estado novo');
+select is((select valor_anterior::text from public.administracao_auditoria where acao = 'descartar_notificacao_contato' and alvo_id = current_setting('t.ped_1')),
+  '{"estado": "falhou", "tentativas": 1, "alerta_estado": "aberto"}', 'auditoria guarda estado, tentativas e alerta anteriores');
+
+set local role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+select is((select count(*)::int from public.indicacoes_notificacoes_pendentes(100) where o_pedido_id in (current_setting('t.ped_1')::uuid, current_setting('t.ped_auto')::uuid, current_setting('t.ped_errado')::uuid)), 0, 'descartada fica fora das pendentes do servidor');
+select is(public.indicacoes_notificacoes_recolocar_falhas(100, 5, -100), 0, 'o cron não recoloca descartada (mesmo elegível por tentativas e espera)');
+select lives_ok($$select public.indicacoes_notificacao_registrar(current_setting('t.ped_1')::uuid, true, null)$$, 'registrar em descartada não falha');
+reset role;
+select is((select estado || ':' || tentativas::text from public.indicacoes_notificacao where pedido_id = current_setting('t.ped_1')::uuid), 'descartada:1', 'registro tardio do servidor não altera a descartada');
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
+select throws_ok($$select public.indicacoes_solicitar_reenvio(current_setting('t.ped_1')::uuid, 'tentando ressuscitar a descartada')$$, 'P0001', null, 'nem o administrador reenvia descartada');
+select is((select notificacao_estado from public.administracao_fila_contatos where id = current_setting('t.ped_1')::uuid), 'descartada', 'a fila do administrador mostra o estado descartada');
+reset role;
+
 select * from finish();
 rollback;

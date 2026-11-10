@@ -19,6 +19,8 @@ export function legendaNotificacao(estado: string, emailConfigurado: boolean): s
       return "Aviso por e-mail enviado";
     case "falhou":
       return "O aviso por e-mail falhou";
+    case "descartada":
+      return "Descartada";
     default:
       return emailConfigurado ? "Aviso por e-mail pendente" : LEGENDA_EMAIL_NAO_CONFIGURADO;
   }
