@@ -248,3 +248,44 @@ export async function definirParametroContatoAdmin(
   );
   return Object.keys(erros).length > 0 ? { erros, valores } : { erro: r.erro.mensagem, valores };
 }
+
+// Descarte em lote de notificações (IM-103, IM-027, IM-028) -------------------------------------------------
+
+export const MENSAGEM_CONFIRMAR_DESCARTE =
+  "Marque a confirmação para descartar as notificações selecionadas.";
+
+/** "1 notificação descartada." / "N notificações descartadas." / zero (todas já enviadas ou descartadas). */
+export function mensagemDescarte(n: number): string {
+  if (n === 0) {
+    return "Nenhuma notificação foi descartada: as selecionadas já tinham sido enviadas ou descartadas.";
+  }
+  return n === 1 ? "1 notificação descartada." : `${n} notificações descartadas.`;
+}
+
+/**
+ * Descarta notificações pendentes/falhas escolhidas na tela. Campos: pedidoIds (vários), motivo (10 a 500) e
+ * confirmo = "sim" (confirmação explícita, conferida AQUI no servidor). Sessão do administrador; o banco audita.
+ */
+export async function descartarNotificacoesAdmin(
+  ctx: ContextoIndicacoes,
+  f: FormData,
+): Promise<EstadoLink> {
+  const bloqueio = await soAdministrador(ctx);
+  if (bloqueio) return bloqueio;
+  const valores = valoresDe(f, ["motivo"]);
+  const ids = f.getAll("pedidoIds").filter((v): v is string => typeof v === "string");
+  if (lerDeFormData(f)("confirmo") !== "sim") {
+    return { erros: { confirmo: MENSAGEM_CONFIRMAR_DESCARTE }, valores };
+  }
+  const r = await ctx.servico.descartarNotificacoes({
+    pedidoIds: ids,
+    motivo: lerDeFormData(f)("motivo"),
+  });
+  if (r.ok) {
+    return { sucesso: mensagemDescarte(r.valor.descartadas), valores: { motivo: "" } };
+  }
+  const motivo = r.erro.campos?.motivo;
+  if (motivo) return { erros: { motivo }, valores };
+  // Seleção inválida (vazia ou acima de 500) é erro geral do formulário; a lista não tem campo próprio.
+  return { erro: r.erro.campos?.pedidoIds ?? r.erro.mensagem, valores };
+}

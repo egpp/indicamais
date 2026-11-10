@@ -35,6 +35,7 @@ vi.mock("next/cache", () => ({ revalidatePath: (...a: unknown[]) => revalidar(..
 
 import {
   acaoDefinirParametroContato,
+  acaoDescartarNotificacoes,
   acaoEnviarContato,
   acaoGerarLink,
   acaoPedirReenvio,
@@ -248,5 +249,70 @@ describe("proteção do contato público (RSA-05, RSA-07, IM-026, IM-076)", () =
     const r = await acaoEnviarContato({}, formulario({ ...dados, "cf-turnstile-response": "bom" }));
     expect(r.erro).toBe("Não foi possível concluir agora. Tente novamente em instantes.");
     expect(m.chamadasContato).toHaveLength(0);
+  });
+});
+
+describe("acaoDescartarNotificacoes (IM-103, IM-027, IM-028)", () => {
+  const A = randomUUID();
+  const B = randomUUID();
+  const MOTIVO = "Notificações de teste antigas";
+  const ok = { pedidoIds: [A, B], motivo: MOTIVO, confirmo: "sim" };
+
+  it("confere o papel ANTES de tudo, descarta, mostra a contagem e revalida a tela", async () => {
+    const m = mundo({ id: randomUUID(), admin: true });
+    const r = await acaoDescartarNotificacoes({}, formulario(ok));
+    expect(exigir).toHaveBeenCalledWith("/administracao/notificacoes-pendentes");
+    expect(r.sucesso).toBe("2 notificações descartadas.");
+    expect(m.descartes).toEqual([{ pedidoIds: [A, B], motivo: MOTIVO }]);
+    expect(revalidar).toHaveBeenCalledWith("/administracao/notificacoes-pendentes");
+  });
+
+  it("um item: singular", async () => {
+    mundo({ id: randomUUID(), admin: true });
+    const r = await acaoDescartarNotificacoes({}, formulario({ ...ok, pedidoIds: [A] }));
+    expect(r.sucesso).toBe("1 notificação descartada.");
+  });
+
+  it("sem confirmação explícita, motivo curto, lista vazia e lote acima de 500: nada chega ao banco", async () => {
+    const m = mundo({ id: randomUUID(), admin: true });
+    const sem = await acaoDescartarNotificacoes({}, formulario({ ...ok, confirmo: "" }));
+    expect(sem.erros?.confirmo).toMatch(/confirmação/);
+    const curto = await acaoDescartarNotificacoes({}, formulario({ ...ok, motivo: "curto" }));
+    expect(curto.erros?.motivo).toBe("O motivo deve ter ao menos 10 caracteres.");
+    expect(curto.valores?.motivo).toBe("curto");
+    const vazia = await acaoDescartarNotificacoes({}, formulario({ ...ok, pedidoIds: [] }));
+    expect(vazia.erro).toBe("Selecione ao menos uma notificação.");
+    const muitos = Array.from({ length: 501 }, () => randomUUID());
+    const grande = await acaoDescartarNotificacoes({}, formulario({ ...ok, pedidoIds: muitos }));
+    expect(grande.erro).toBe("Selecione no máximo 500 notificações por vez.");
+    expect(m.descartes).toHaveLength(0);
+    expect(revalidar).not.toHaveBeenCalled();
+  });
+
+  it("não administrador: o tratador também recusa (defesa em profundidade) e o banco nunca é chamado", async () => {
+    const m = mundo({ id: randomUUID() });
+    const r = await acaoDescartarNotificacoes({}, formulario(ok));
+    expect(r.erro).toBe("Você não tem permissão para esta ação.");
+    expect(m.descartes).toHaveLength(0);
+    expect(revalidar).not.toHaveBeenCalled();
+  });
+
+  it("erro do banco não vaza texto e não revalida", async () => {
+    const m = mundo({ id: randomUUID(), admin: true });
+    m.banco.descartarNotificacoes = async () => ({
+      dados: null,
+      erro: { code: "XX000", message: "relation segredo_interno" },
+    });
+    const r = await acaoDescartarNotificacoes({}, formulario(ok));
+    expect(r.erro).toBe("Não foi possível concluir agora. Tente novamente em instantes.");
+    expect(JSON.stringify(r)).not.toContain("segredo_interno");
+    expect(revalidar).not.toHaveBeenCalled();
+  });
+
+  it("RPC ainda não aplicada no ambiente: aviso próprio, sem erro bruto", async () => {
+    const m = mundo({ id: randomUUID(), admin: true });
+    m.banco.descartarNotificacoes = async () => ({ dados: null, erro: { code: "PGRST202" } });
+    const r = await acaoDescartarNotificacoes({}, formulario(ok));
+    expect(r.erro).toBe("O descarte de notificações ainda não está disponível neste ambiente.");
   });
 });

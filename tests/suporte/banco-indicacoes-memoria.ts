@@ -76,6 +76,7 @@ export function criarMundoIndicacoes(
   ];
   const alarmes: LinhaAlarme[] = [];
   const consultasAlarmes: { tipo: string | null; limite: number; deslocamento: number }[] = [];
+  const descartes: { pedidoIds: string[]; motivo: string }[] = [];
   const definicoes: { chave: string; valor: number; motivo: string }[] = [];
   /** Linhas das visões do indicador, com campos privados extras que a tela jamais pode mostrar. */
   let minhasIndicacoes: LinhaMinhaIndicacao[] = [];
@@ -152,7 +153,10 @@ export function criarMundoIndicacoes(
       definicoes.push(a);
       return { erro: null };
     },
-    descartarNotificacoes: async () => ok(0),
+    descartarNotificacoes: async (a) => {
+      descartes.push(a);
+      return usuario?.admin ? ok(a.pedidoIds.length) : erro("42501");
+    },
     listarNotificacoesDescartaveis: async () => ok({ linhas: [], total: 0 }),
     listarAlarmes: async (a) => {
       consultasAlarmes.push(a);
@@ -173,6 +177,7 @@ export function criarMundoIndicacoes(
     reenvios,
     alertasTratados,
     definicoes,
+    descartes,
     parametros,
     alarmes,
     consultasAlarmes,
