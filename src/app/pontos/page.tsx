@@ -83,6 +83,12 @@ export default async function PaginaMeusPontos() {
                 <strong>{ROTULO_LIMITE_DIARIO}.</strong> Os contatos que chegarem até amanhã
                 continuam sendo atendidos normalmente, mas não geram pontos.
               </Aviso>
+            ) : limite.barradosHoje > 0 ? (
+              <p className="ajuda">
+                Hoje {limite.barradosHoje === 1 ? "um contato" : `${limite.barradosHoje} contatos`}{" "}
+                chegou com o limite já atingido e não gerou pontos. O limite pode ter mudado desde
+                então; os próximos contatos seguem a situação atual.
+              </p>
             ) : null}
             {limite.contatos.length > 0 ? (
               <ul className="lista-cartoes">

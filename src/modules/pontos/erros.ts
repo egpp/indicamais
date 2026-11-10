@@ -20,6 +20,7 @@ export const MENSAGENS_PONTOS = {
   beneficioNaoEncontrado: "Benefício não encontrado ou perfil indisponível.",
   beneficioForaDasRegras: "Os dados do benefício estão fora das regras. Confira os campos.",
   beneficioEstadoInvalido: "Esta ação não é possível no estado atual do benefício.",
+  indicadorOcupado: "Este indicador está sendo processado agora. Tente novamente em instantes.",
   semVersaoAprovada: "Só um benefício aprovado pode ser ativado.",
 } as const;
 
@@ -59,7 +60,7 @@ const M = MENSAGENS_PONTOS;
 /**
  * SQLSTATE do banco -> erro tipado. O texto do banco (message, details) NUNCA sai daqui.
  * P0431 teto diário menor que pontos por indicação (message `pontos_teto_menor_que_indicacao`);
- * P0409 crédito já revertido; P0410 reversão deixaria saldo negativo (exige confirmação);
+ * 55P03 indicador ocupado no reprocessamento manual (lock não obtido); P0409 crédito já revertido; P0410 reversão deixaria saldo negativo (exige confirmação);
  * 42501 não autenticado/sem permissão; 22023 motivo/valor inválido; 23514 campo fora das regras;
  * P0002 inexistente/indisponível; P0001 estado inválido.
  */
@@ -68,6 +69,7 @@ export function mapearErroBancoPontos(e: ErroBanco, op: OperacaoPontos): ErroPon
   if (e.code === "P0431") {
     return erroPontos("VALIDACAO", M.tetoMenorQueIndicacao, { valor: M.tetoMenorQueIndicacao });
   }
+  if (e.code === "55P03") return erroPontos("ESTADO_INVALIDO", M.indicadorOcupado);
   if (e.code === "P0410") return erroPontos("SALDO_NEGATIVO", M.saldoNegativo);
   switch (classificarErroBanco(e)) {
     case "PERMISSAO":
