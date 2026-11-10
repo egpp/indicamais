@@ -56,6 +56,17 @@ export const validarReprocessar = (d: Dados) =>
   validar(reprocessarPedidoSchema, lerReprocessar(lerDeRegistro(d)));
 export const validarParametroPontos = (d: Dados) =>
   validar(definirParametroSchema, lerParametroPontos(lerDeRegistro(d)));
+
+/** Mesma validação, com a faixa vinda do banco (D-035): valor fora dela é recusado antes do envio. */
+export const criarValidadorParametroPontos =
+  (minimo?: number, maximo?: number) =>
+  (d: Dados): Record<string, string> | null => {
+    const base = validarParametroPontos(d);
+    if (base?.valor || minimo === undefined || maximo === undefined) return base;
+    const valor = lerParametroPontos(lerDeRegistro(d)).valor;
+    if (typeof valor !== "number" || (valor >= minimo && valor <= maximo)) return base;
+    return { ...base, valor: `Informe um valor entre ${minimo} e ${maximo}.` };
+  };
 export const validarDecisao = (d: Dados) =>
   validar(decidirBeneficioSchema, lerDecisao(lerDeRegistro(d)));
 export const validarResposta = (d: Dados) =>

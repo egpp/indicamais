@@ -125,7 +125,7 @@ select is((select count(*)::int from pg_indexes where schemaname = 'public'
 -- ===== Parâmetros iniciais (D-012) =====
 select is((select valor from public.pontos_parametro where chave = 'pontos_por_indicacao'), 10, '10 pontos por indicação (D-012)');
 select is((select valor from public.pontos_parametro where chave = 'intervalo_dias'), 30, 'intervalo de 30 dias (D-012)');
-select is((select count(*)::int from public.pontos_parametro where chave not in ('pontos_por_indicacao', 'intervalo_dias')), 0, 'só os parâmetros de pontos; os de comissão serão separados (IM-065)');
+select is((select count(*)::int from public.pontos_parametro where chave not in ('pontos_por_indicacao', 'intervalo_dias', 'teto_diario_pontos')), 0, 'só os parâmetros de pontos (inclui o teto diário, D-035); os de comissão são separados (IM-065)');
 
 -- ===== Links, compartilhamento e visita não pontuam =====
 set local role authenticated;
@@ -265,7 +265,7 @@ select is((select count(*)::int from public.pontos_parametro), 0, 'não administ
 select is((select o_pontos_por_indicacao from public.pontos_parametros_atuais()), 10, 'a interface lê os pontos vigentes por função');
 select is((select o_intervalo_dias from public.pontos_parametros_atuais()), 30, 'a interface lê o intervalo vigente por função');
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
-select is((select count(*)::int from public.pontos_parametro), 2, 'administrador lê os parâmetros');
+select is((select count(*)::int from public.pontos_parametro), 3, 'administrador lê os parâmetros');
 select throws_ok($$select public.pontos_definir_parametro('pontos_por_indicacao', 20, '')$$, '22023', null, 'motivo obrigatório');
 select throws_ok($$select public.pontos_definir_parametro('pontos_por_indicacao', 20, null)$$, '22023', null, 'motivo nulo recusado');
 select throws_ok($$select public.pontos_definir_parametro('pontos_por_indicacao', 0, 'faixa')$$, '22023', null, 'pontos abaixo da faixa recusados');

@@ -465,6 +465,7 @@ describe("revisão de segurança · visões (estado final)", () => {
       "relacionamento_minhas_participacoes",
       "pontos_meu_saldo",
       "pontos_meus_lancamentos",
+      "pontos_meus_limites_diarios",
     ]) {
       const v = visoes.get(nome)!;
       const colunas = v.corpo.split(/\bfrom\b/i)[0]!;

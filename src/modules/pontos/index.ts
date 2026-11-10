@@ -29,11 +29,19 @@ export {
   responderPropostaSchema,
 } from "./schemas";
 export type { CategoriaReversao, ChaveParametroPontos, ReverterCredito } from "./schemas";
-export { ROTULOS_MOTIVO_DECISAO, hojeSaoPaulo, prazoResgateVigente } from "./modelos";
+export {
+  ROTULOS_MOTIVO_DECISAO,
+  ROTULO_LIMITE_DIARIO,
+  hojeSaoPaulo,
+  prazoResgateVigente,
+} from "./modelos";
 export type {
   MeuSaldo,
   MeuLancamento,
+  MeuLimiteDiario,
+  ContatoSemPontosPorLimite,
   ParametrosPontos,
+  ParametroPontosAdmin,
   LancamentoAdmin,
   SaldoAdmin,
   DecisaoAdmin,
@@ -52,7 +60,10 @@ export type {
   TipoDestinoPontos,
   LinhaMeuSaldo,
   LinhaMeuLancamento,
+  LinhaMeuLimiteContato,
+  LinhaMeuLimiteDiario,
   LinhaParametrosAtuais,
+  LinhaParametroPontos,
   LinhaLancamentoAdmin,
   LinhaSaldoAdmin,
   LinhaDecisaoAdmin,

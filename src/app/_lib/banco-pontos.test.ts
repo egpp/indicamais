@@ -18,6 +18,8 @@ function falso(resposta: { data?: unknown; error?: unknown } = {}, lancar = fals
   const consulta = {
     eq: () => consulta,
     in: () => consulta,
+    order: () => consulta,
+    limit: () => consulta,
     then: (res: (v: unknown) => unknown) => Promise.resolve(pronto()).then(res),
   };
   const cliente = {
@@ -65,6 +67,26 @@ describe("adaptador do banco de pontos (sessão do usuário)", () => {
         /(^|[ ,])(conta_id|indicador_id|autor_id|responsavel_id|whatsapp|email)([ ,]|$)/,
       );
     }
+  });
+
+  it("limite diário: função e visão com colunas nomeadas, sem dado do visitante", async () => {
+    const { cliente, chamadas } = falso({ data: [] });
+    const banco = criarBancoPontos(cliente as never);
+    await banco.lerMeuLimiteDiario();
+    await banco.listarMeusLimitesDiarios();
+    expect(chamadas.rpc.map(([n]) => n)).toEqual(["pontos_meu_limite_diario"]);
+    expect(chamadas.selects).toEqual([
+      ["pontos_meus_limites_diarios", COLUNAS_PONTOS.meusLimitesDiarios],
+    ]);
+    expect(COLUNAS_PONTOS.meusLimitesDiarios).not.toContain("*");
+    expect(COLUNAS_PONTOS.meusLimitesDiarios).not.toMatch(/whatsapp|solicitante|email|indicador/);
+  });
+
+  it("limite diário: erro do banco (visão inexistente) volta como código, sem lançar", async () => {
+    const { cliente } = falso({ error: { code: "PGRST205", message: "segredo-interno" } });
+    const banco = criarBancoPontos(cliente as never);
+    const r = await banco.listarMeusLimitesDiarios();
+    expect(r.erro?.code).toBe("PGRST205");
   });
 
   it("reverter: categoria fixa em p_categoria e observação interna em p_motivo", async () => {

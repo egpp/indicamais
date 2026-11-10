@@ -75,6 +75,29 @@ describe("tratadores de pontos (Fase 4)", () => {
     expect(JSON.stringify(r)).not.toContain("interno");
   });
 
+  it("P0431 mostra a orientação de ordem (teto primeiro ao aumentar, pontos primeiro ao reduzir)", async () => {
+    const definirParametro = vi
+      .fn()
+      .mockResolvedValue({ erro: { code: "P0431", message: "pontos_teto_menor_que_indicacao" } });
+    const r = await definirParametroPontos(
+      ctx({ definirParametro }),
+      form({ chave: "teto_diario_pontos", valor: "20", motivo: "teste" }),
+    );
+    expect(r.erros?.valor).toContain("aumente primeiro o teto");
+    expect(r.erros?.valor).toContain("reduza primeiro os pontos por indicação");
+    expect(JSON.stringify(r)).not.toContain("pontos_teto_menor_que_indicacao");
+  });
+
+  it("teto diário sem motivo é recusado antes do banco", async () => {
+    const definirParametro = vi.fn();
+    const r = await definirParametroPontos(
+      ctx({ definirParametro }),
+      form({ chave: "teto_diario_pontos", valor: "200", motivo: "" }),
+    );
+    expect(r.sucesso).toBeFalsy();
+    expect(definirParametro).not.toHaveBeenCalled();
+  });
+
   it("rejeitar benefício sem motivo é recusado antes do banco", async () => {
     const decidirVersao = vi.fn();
     const r = await decidirBeneficioAdmin(

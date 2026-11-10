@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { ROTULOS_CATEGORIA_REVERSAO } from "@/modules/pontos";
 import {
   acaoCadastrarBeneficioAdmin,
@@ -13,7 +14,7 @@ import {
 import type { EstadoPontos } from "../_lib/estado-pontos";
 import {
   validarBeneficio,
-  validarParametroPontos,
+  criarValidadorParametroPontos,
   validarReprocessar,
   validarResposta,
   validarReversao,
@@ -140,22 +141,42 @@ export function FormMotivoDecisao({
   );
 }
 
+/** D-035: ordem das alterações que mantêm teto >= pontos por indicação (o banco recusa o contrário, P0431). */
+export const ORIENTACAO_TETO_PONTOS =
+  "Para aumentar os dois, aumente primeiro o teto; para reduzir, reduza primeiro os pontos por indicação.";
+
 /** IM-030, D-012: parâmetro de pontos com motivo (auditado). A faixa é conferida pelo banco. */
-export function FormParametroPontos({ chave, valor }: { chave: string; valor: number }) {
+export function FormParametroPontos({
+  chave,
+  valor,
+  minimo,
+  maximo,
+}: {
+  chave: string;
+  valor: number;
+  minimo?: number;
+  maximo?: number;
+}) {
+  const validador = useMemo(() => criarValidadorParametroPontos(minimo, maximo), [minimo, maximo]);
   const { estado, action, enviando, erros, registrarForm, aoEnviar } = useFormulario<EstadoPontos>(
     acaoDefinirParametroPontos,
-    validarParametroPontos,
+    validador,
   );
+  const faixa = minimo !== undefined && maximo !== undefined;
   return (
     <form ref={registrarForm} action={action} onSubmit={aoEnviar} noValidate>
       <Mensagens estado={estado} />
       <Ocultos campos={{ chave }} />
+      {chave === "pontos_por_indicacao" || chave === "teto_diario_pontos" ? (
+        <p className="ajuda">{ORIENTACAO_TETO_PONTOS}</p>
+      ) : null}
       <Campo
         nome="valor"
         rotulo="Novo valor (pontos)"
         inputMode="numeric"
         valorInicial={estado.valores?.valor ?? String(valor)}
         erro={erros.valor}
+        ajuda={faixa ? `Faixa permitida: de ${minimo} a ${maximo}.` : undefined}
       />
       <CampoTextoLongo
         nome="motivo"

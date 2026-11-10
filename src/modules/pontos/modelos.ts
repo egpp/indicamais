@@ -14,12 +14,19 @@ export type LinhaMeuLancamento = Visoes["pontos_meus_lancamentos"]["Row"];
 export type LinhaLancamentoAdmin = Visoes["administracao_pontos_lancamentos"]["Row"];
 export type LinhaSaldoAdmin = Visoes["administracao_pontos_saldos"]["Row"];
 export type LinhaDecisaoAdmin = Visoes["administracao_pontos_decisoes"]["Row"];
+export type LinhaMeuLimiteContato = Visoes["pontos_meus_limites_diarios"]["Row"];
+export type LinhaMeuLimiteDiario =
+  Database["public"]["Functions"]["pontos_meu_limite_diario"]["Returns"][number];
 export type LinhaFalhaAdmin = Visoes["administracao_pontos_falhas"]["Row"];
 export type LinhaFilaBeneficio = Visoes["administracao_fila_beneficios"]["Row"];
 export type LinhaAguardandoAceite = Visoes["administracao_beneficios_aguardando_aceite"]["Row"];
 export type LinhaBeneficioPublico = Visoes["pontos_beneficio_publico"]["Row"];
 export type LinhaParametrosAtuais =
   Database["public"]["Functions"]["pontos_parametros_atuais"]["Returns"][number];
+export type LinhaParametroPontos = Pick<
+  Tabelas["pontos_parametro"]["Row"],
+  "chave" | "valor" | "minimo" | "maximo"
+>;
 export type LinhaBeneficio = Pick<
   Tabelas["pontos_beneficio"]["Row"],
   "id" | "perfil_id" | "ativo" | "versao_aprovada_id" | "criado_em"
@@ -134,6 +141,64 @@ export function paraMeuLancamento(l: LinhaMeuLancamento): MeuLancamento | null {
   };
 }
 
+// Limite diário (D-035, IM-030) -------------------------------------------------------------------------------------
+
+export const ROTULO_LIMITE_DIARIO = "Limite diário atingido";
+
+/** Contato aceito que não pontuou por causa do teto do dia. Só ids opacos do destino; nada do visitante. */
+export type ContatoSemPontosPorLimite = {
+  id: number;
+  contatoEm: string;
+  destinoTipo: TipoDestinoPontos;
+  destinoId: string;
+  tetoDiario: number | null;
+};
+
+export function paraContatoSemPontosPorLimite(
+  l: LinhaMeuLimiteContato,
+): ContatoSemPontosPorLimite | null {
+  const dest = tipoDestino(l.destino_tipo);
+  if (l.id === null || !l.contato_em || !dest || !l.destino_id) return null;
+  return {
+    id: l.id,
+    contatoEm: l.contato_em,
+    destinoTipo: dest,
+    destinoId: l.destino_id,
+    tetoDiario: l.teto_diario,
+  };
+}
+
+/**
+ * Situação do dia do indicador. `atingido` = o total do dia já chegou ao teto OU algum contato de hoje (dia civil
+ * em America/Sao_Paulo) deixou de pontuar por causa do limite. Tudo ou nada: o banco não credita parcial.
+ */
+export type MeuLimiteDiario = {
+  tetoDiario: number;
+  pontosHoje: number;
+  atingido: boolean;
+  /** Mais recente primeiro. */
+  contatos: ContatoSemPontosPorLimite[];
+};
+
+export function montarLimiteDiario(
+  linha: LinhaMeuLimiteDiario | undefined,
+  contatos: ContatoSemPontosPorLimite[],
+  agora: Date,
+): MeuLimiteDiario | null {
+  if (!linha || !Number.isInteger(linha.o_teto_diario) || !Number.isInteger(linha.o_pontos_hoje)) {
+    return null;
+  }
+  const hoje = hojeSaoPaulo(agora);
+  const ordenados = [...contatos].sort((a, b) => Date.parse(b.contatoEm) - Date.parse(a.contatoEm));
+  const algumHoje = ordenados.some((c) => hojeSaoPaulo(new Date(c.contatoEm)) === hoje);
+  return {
+    tetoDiario: linha.o_teto_diario,
+    pontosHoje: linha.o_pontos_hoje,
+    atingido: linha.o_pontos_hoje >= linha.o_teto_diario || algumHoje,
+    contatos: ordenados,
+  };
+}
+
 // Parâmetros -----------------------------------------------------------------------------------------------------
 
 export type ParametrosPontos = { pontosPorIndicacao: number; intervaloDias: number };
@@ -144,6 +209,19 @@ export function paraParametros(l: LinhaParametrosAtuais | undefined): Parametros
     return null;
   }
   return { pontosPorIndicacao: l.o_pontos_por_indicacao, intervaloDias: l.o_intervalo_dias };
+}
+
+/** Parâmetro com a faixa vinda do banco (só administrador enxerga as linhas; D-035). */
+export type ParametroPontosAdmin = {
+  chave: string;
+  valor: number;
+  minimo: number;
+  maximo: number;
+};
+
+export function paraParametroPontosAdmin(l: LinhaParametroPontos): ParametroPontosAdmin | null {
+  if (![l.valor, l.minimo, l.maximo].every(Number.isInteger)) return null;
+  return { chave: l.chave, valor: l.valor, minimo: l.minimo, maximo: l.maximo };
 }
 
 // Administrador (indicador identificado só por indicador_ref, hash opaco) -----------------------------------------
@@ -176,7 +254,12 @@ export function paraSaldoAdmin(l: LinhaSaldoAdmin): SaldoAdmin | null {
 }
 
 export type MotivoDecisao =
-  "pontuado" | "sem_atribuicao" | "autoindicacao" | "destino_indisponivel" | "dentro_do_intervalo";
+  | "pontuado"
+  | "sem_atribuicao"
+  | "autoindicacao"
+  | "destino_indisponivel"
+  | "dentro_do_intervalo"
+  | "limite_diario";
 
 export const ROTULOS_MOTIVO_DECISAO: Record<MotivoDecisao, string> = {
   pontuado: "Pontuou",
@@ -184,10 +267,11 @@ export const ROTULOS_MOTIVO_DECISAO: Record<MotivoDecisao, string> = {
   autoindicacao: "Autoindicação",
   destino_indisponivel: "Destino indisponível",
   dentro_do_intervalo: "Dentro do intervalo do mesmo contato e destino",
+  limite_diario: "Limite diário atingido",
 };
 
 const motivoDecisao = (v: string | null): MotivoDecisao | null =>
-  v && v in ROTULOS_MOTIVO_DECISAO ? (v as MotivoDecisao) : null;
+  v && Object.hasOwn(ROTULOS_MOTIVO_DECISAO, v) ? (v as MotivoDecisao) : null;
 
 /** Decisão por pedido, só para administrador (auditoria). Nada do visitante; só ids opacos. */
 export type DecisaoAdmin = {
