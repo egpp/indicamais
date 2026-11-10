@@ -3248,6 +3248,7 @@ export type Database = {
           pedido_id: string
           pontos: number
           pontuado: boolean
+          teto_diario: number | null
         }
         Insert: {
           chave_hash: string
@@ -3263,6 +3264,7 @@ export type Database = {
           pedido_id: string
           pontos?: number
           pontuado: boolean
+          teto_diario?: number | null
         }
         Update: {
           chave_hash?: string
@@ -3278,6 +3280,7 @@ export type Database = {
           pedido_id?: string
           pontos?: number
           pontuado?: boolean
+          teto_diario?: number | null
         }
         Relationships: [
           {
@@ -5436,16 +5439,6 @@ export type Database = {
         }
         Relationships: []
       }
-      pontos_meus_limites_diarios: {
-        Row: {
-          contato_em: string | null
-          destino_id: string | null
-          destino_tipo: string | null
-          id: number | null
-          teto_diario: number | null
-        }
-        Relationships: []
-      }
       pontos_meus_lancamentos: {
         Row: {
           categoria: string | null
@@ -5458,6 +5451,16 @@ export type Database = {
           pontos: number | null
           situacao: string | null
           tipo: string | null
+        }
+        Relationships: []
+      }
+      pontos_meus_limites_diarios: {
+        Row: {
+          contato_em: string | null
+          destino_id: string | null
+          destino_tipo: string | null
+          id: number | null
+          teto_diario: number | null
         }
         Relationships: []
       }
@@ -6120,6 +6123,17 @@ export type Database = {
         Args: { p_limite?: number }
         Returns: number
       }
+      contas_exigir_teto_criacao: {
+        Args: { p_conta: string; p_perfil_id?: string; p_tipo: string }
+        Returns: undefined
+      }
+      contas_limites_criacao_atuais: {
+        Args: never
+        Returns: {
+          o_chave: string
+          o_valor: number
+        }[]
+      }
       contas_meu_estado: {
         Args: never
         Returns: {
@@ -6197,7 +6211,11 @@ export type Database = {
         }[]
       }
       indicacoes_notificacoes_recolocar_falhas: {
-        Args: { p_espera_minutos?: number; p_limite?: number; p_tentativas_max?: number }
+        Args: {
+          p_espera_minutos?: number
+          p_limite?: number
+          p_tentativas_max?: number
+        }
         Returns: number
       }
       indicacoes_parametro_valor: { Args: { p_chave: string }; Returns: number }
@@ -6441,6 +6459,10 @@ export type Database = {
         Returns: string
       }
       pontos_avaliar_pedido: { Args: { p_pedido_id: string }; Returns: number }
+      pontos_avaliar_pedido_interno: {
+        Args: { p_pedido_id: string; p_sem_espera: boolean }
+        Returns: number
+      }
       pontos_beneficio_no_prazo: {
         Args: { p_versao_id: string }
         Returns: boolean
@@ -6481,6 +6503,13 @@ export type Database = {
       pontos_enviar_beneficio_versao: {
         Args: { p_versao_id: string }
         Returns: undefined
+      }
+      pontos_janela_dia: {
+        Args: { p_em: string }
+        Returns: {
+          o_fim: string
+          o_ini: string
+        }[]
       }
       pontos_meu_limite_diario: {
         Args: never
