@@ -500,6 +500,16 @@ describe("Administração dos pedidos e dos parâmetros (IM-028, IM-034)", () =>
     ).toBe("page");
   });
 
+  it("notificação descartada: mostra Descartada e não oferece reenvio (IM-103)", async () => {
+    const { mundo } = contextoCom({ id: randomUUID(), admin: true });
+    mundo.definirFila([linhaFila({ nome: "Pedido encerrado", notificacao_estado: "descartada" })]);
+    render(await PaginaPedidosAdmin(args()));
+    expect(screen.getByText("Descartada")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Reenviar" })).toBeNull();
+    expect(screen.queryByText("Reenviar aviso")).toBeNull();
+    expect(screen.getByText("Notificação descartada: não volta à fila.")).toBeTruthy();
+  });
+
   it("reenviar sem motivo é barrado no navegador com o mesmo texto do servidor", async () => {
     const { mundo } = contextoCom({ id: randomUUID(), admin: true });
     mundo.definirFila([linhaFila({ alerta_estado: "aberto", notificacao_estado: "falhou" })]);

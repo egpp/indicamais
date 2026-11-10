@@ -83,10 +83,14 @@ export default async function PaginaPedidosAdmin({
               tipoItem={tipos.get(p.destinoId)}
               emailConfigurado={emailConfigurado}
             >
-              <details>
-                <summary className="botao-texto">Reenviar aviso</summary>
-                <FormReenviarAdmin pedidoId={p.id} />
-              </details>
+              {p.notificacaoEstado === "descartada" ? (
+                <p className="ajuda">Notificação descartada: não volta à fila.</p>
+              ) : (
+                <details>
+                  <summary className="botao-texto">Reenviar aviso</summary>
+                  <FormReenviarAdmin pedidoId={p.id} />
+                </details>
+              )}
               {podeInvalidar ? (
                 <details>
                   <summary className="botao-texto">Invalidar indicação</summary>

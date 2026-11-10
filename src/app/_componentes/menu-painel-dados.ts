@@ -34,6 +34,7 @@ export function itensAdministracao({ geral, permissoes }: AcessoAdministracao): 
     geral && { href: "/administracao/beneficios", texto: "Benefícios (administração)" },
     geral && { href: "/administracao/parametros", texto: "Parâmetros" },
     geral && { href: "/administracao/limites-contato", texto: "Limites do contato" },
+    geral && { href: "/administracao/notificacoes-pendentes", texto: "Notificações pendentes" },
     geral && { href: "/administracao/patrocinadores", texto: "Patrocinadores" },
     geral && { href: "/administracao/home", texto: "Seções da página inicial" },
     geral && { href: "/administracao/categorias", texto: "Categorias" },
