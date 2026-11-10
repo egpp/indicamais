@@ -362,6 +362,14 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-037 · 10/11/2026 · Descarte de notificações de contato é irreversível (IM-103, IM-027, IM-028)
+**IDs:** IM-103, IM-027, IM-028, IM-086. Aceito pelo Emerson em 10/11/2026 ("aceito").
+- **Irreversível:** uma notificação **descartada** não volta à fila: nem o cron nem o reenvio (inclusive o forçado do administrador) a reativam. O pedido de contato e o histórico permanecem, e o responsável continua vendo o pedido no painel. Serve para pedidos de teste e pendências antigas antes de ativar ou durante a operação do e-mail (D-032).
+- **Alerta aberto:** descartar a notificação trata o alerta aberto dela (registrado na auditoria).
+- **Envio em andamento:** se o e-mail já saiu quando o administrador descarta, ele pode chegar sem registro no histórico (consequência aceita do desenho).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
