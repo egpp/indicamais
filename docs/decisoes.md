@@ -354,6 +354,14 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-036 · 10/11/2026 · Domínio de produção: indicamais.net (IM-082, IM-085, IM-089)
+**IDs:** IM-082, IM-085, IM-089; relaciona D-003, D-032 e D-033. Informado pelo Emerson em 10/11/2026: o domínio **indicamais.net** já está registrado na Cloudflare (nenhum custo novo de registro).
+- **Uso:** domínio do ambiente de **produção**; o desenvolvimento segue em `indicamais-dev.egpp1234.workers.dev` (D-003, ambientes separados).
+- **E-mail (D-032):** o Resend verifica este domínio; os registros DNS ficam na própria Cloudflare. O remetente exato (por exemplo, um subdomínio só para envios) será definido na configuração do Resend.
+- **Não decidido ainda:** vincular o domínio ao Worker de produção `indicamais` e a data de abertura ao público (exposição pública e deploy em produção só com aprovação do Emerson naquele momento, IM-089); `NEXT_PUBLIC_APP_URL` de produção e a lista de URLs de redirecionamento do Auth de produção usarão este domínio; HSTS `includeSubDomains`/`preload` só depois de o domínio estar definitivo (D-033).
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
