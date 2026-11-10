@@ -213,3 +213,92 @@ describe("adaptador do banco de notificações (cliente de serviço do servidor)
     });
   });
 });
+
+describe("adaptador: descarte de notificações (IM-103)", () => {
+  /** Cadeia do supabase-js para a leitura paginada com contagem. */
+  function cadeia(resultado: { data?: unknown; error?: unknown; count?: number | null }) {
+    const reg: [string, unknown[]][] = [];
+    const nó: Record<string, unknown> = {};
+    for (const m of ["select", "eq", "in", "order", "range"]) {
+      nó[m] = (...a: unknown[]) => {
+        reg.push([m, a]);
+        return nó;
+      };
+    }
+    nó.then = (res: (v: unknown) => unknown) =>
+      Promise.resolve({
+        data: resultado.data ?? null,
+        error: resultado.error ?? null,
+        count: resultado.count ?? null,
+      }).then(res);
+    const cliente = { from: (t: string) => (reg.push(["from", [t]]), nó) };
+    return { cliente: cliente as unknown as ClienteSupabaseFase2, reg };
+  }
+
+  it("descartar chama a RPC com a sessão (cliente do usuário) e devolve a contagem", async () => {
+    const { cliente, chamadas } = falso({ data: 3 });
+    const r = await criarBancoIndicacoes(cliente).descartarNotificacoes({
+      pedidoIds: [ID],
+      motivo: "Notificações de teste",
+    });
+    expect(chamadas.rpc).toEqual([
+      [
+        "indicacoes_notificacoes_descartar",
+        { p_pedido_ids: [ID], p_motivo: "Notificações de teste" },
+      ],
+    ]);
+    expect(r).toEqual({ dados: 3, erro: null });
+  });
+
+  it("descartar: erro vira código; queda de rede vira erro genérico sem texto", async () => {
+    const e = falso({ error: { code: "PGRST202", message: "segredo-interno" } });
+    expect(
+      (
+        await criarBancoIndicacoes(e.cliente).descartarNotificacoes({
+          pedidoIds: [ID],
+          motivo: "m",
+        })
+      ).erro,
+    ).toMatchObject({ code: "PGRST202" });
+    const q = falso({}, true);
+    const r = await criarBancoIndicacoes(q.cliente).descartarNotificacoes({
+      pedidoIds: [ID],
+      motivo: "m",
+    });
+    expect(r.erro).toEqual({ code: "XX000" });
+  });
+
+  it("a leitura pede só colunas seguras, só pendente/falhou, ordenada e paginada com contagem", async () => {
+    const { cliente, reg } = cadeia({ data: [{ id: ID }], count: 77 });
+    const r = await criarBancoIndicacoes(cliente).listarNotificacoesDescartaveis({
+      estado: null,
+      limite: 50,
+      deslocamento: 50,
+    });
+    expect(r).toEqual({ dados: { linhas: [{ id: ID }], total: 77 }, erro: null });
+    const select = reg.find(([m]) => m === "select")!;
+    expect(select[1]).toEqual([
+      "id, criado_em, notificacao_estado, tentativas, destino_nome",
+      { count: "exact" },
+    ]);
+    expect(String(select[1][0])).not.toMatch(/nome,|whatsapp|email|mensagem|\*/);
+    expect(reg.find(([m]) => m === "in")![1]).toEqual([
+      "notificacao_estado",
+      ["pendente", "falhou"],
+    ]);
+    expect(reg.find(([m]) => m === "range")![1]).toEqual([50, 99]);
+    expect(reg.map(([m]) => m)).toContain("order");
+  });
+
+  it("a leitura com filtro usa igualdade e erro do banco não devolve dados", async () => {
+    const { cliente, reg } = cadeia({ error: { code: "42501", message: "segredo" } });
+    const r = await criarBancoIndicacoes(cliente).listarNotificacoesDescartaveis({
+      estado: "falhou",
+      limite: 50,
+      deslocamento: 0,
+    });
+    expect(reg.find(([m]) => m === "eq")![1]).toEqual(["notificacao_estado", "falhou"]);
+    expect(r.dados).toBeNull();
+    expect(r.erro).toMatchObject({ code: "42501" });
+  });
+});

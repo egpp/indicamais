@@ -9,6 +9,28 @@ export type LinhaMeuLink = Visoes["indicacoes_meus_links"]["Row"];
 export type LinhaFilaContato = Visoes["administracao_fila_contatos"]["Row"];
 export type LinhaParametro = Database["public"]["Tables"]["indicacoes_parametro"]["Row"];
 
+/** Colunas SEGURAS da fila administrativa para o descarte (IM-103): nada do visitante (nome, WhatsApp, e-mail, mensagem). */
+export type LinhaNotificacaoDescartavel = Pick<
+  LinhaFilaContato,
+  "id" | "criado_em" | "notificacao_estado" | "tentativas" | "destino_nome"
+>;
+
+export type NotificacaoDescartavel = {
+  /** Id do pedido de contato (identificador interno, não é dado pessoal). */
+  id: string;
+  criadoEm: string;
+  estado: "pendente" | "falhou";
+  tentativas: number;
+  destinoNome: string;
+};
+
+export type PaginaNotificacoesDescartaveis = {
+  itens: NotificacaoDescartavel[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+};
+
 export type TipoDestino = "perfil" | "item";
 export type EstadoNotificacao = "pendente" | "enviada" | "falhou" | "descartada";
 export type EstadoAlerta = "nenhum" | "aberto" | "tratado";
@@ -178,6 +200,21 @@ export function paraContatoAdmin(l: LinhaFilaContato): ContatoAdmin | null {
     ultimoErro: l.ultimo_erro,
     reenvioSolicitadoEm: l.reenvio_solicitado_em,
     alertaEstado: l.alerta_estado ?? "nenhum",
+  };
+}
+
+/** Só copia os campos permitidos, um a um (nunca espalha a linha da fila). Estado fora de pendente/falhou é descartado. */
+export function paraNotificacaoDescartavel(
+  l: LinhaNotificacaoDescartavel,
+): NotificacaoDescartavel | null {
+  const estado = l.notificacao_estado;
+  if (!l.id || !l.criado_em || (estado !== "pendente" && estado !== "falhou")) return null;
+  return {
+    id: l.id,
+    criadoEm: l.criado_em,
+    estado,
+    tentativas: l.tentativas ?? 0,
+    destinoNome: l.destino_nome ?? "",
   };
 }
 

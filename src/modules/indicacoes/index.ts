@@ -47,6 +47,9 @@ export {
   TIPOS_ALARME_CONTATO,
   ALARMES_POR_PAGINA,
   MOTIVO_MINIMO_PARAMETRO_CONTATO,
+  DESCARTE_MAX_PEDIDOS,
+  NOTIFICACOES_POR_PAGINA,
+  ESTADOS_NOTIFICACAO_DESCARTAVEIS,
 } from "./schemas";
 export type { ChaveParametroContato } from "./schemas";
 export type { CanalCompartilhamento, EnviarContato, DestinoLink } from "./schemas";
@@ -59,6 +62,9 @@ export type {
   AlarmeContato,
   PaginaAlarmes,
   LinhaAlarme,
+  LinhaNotificacaoDescartavel,
+  NotificacaoDescartavel,
+  PaginaNotificacoesDescartaveis,
   TipoDestino,
   LinhaMeuPedido,
   LinhaMinhaIndicacao,

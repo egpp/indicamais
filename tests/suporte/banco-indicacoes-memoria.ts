@@ -152,6 +152,8 @@ export function criarMundoIndicacoes(
       definicoes.push(a);
       return { erro: null };
     },
+    descartarNotificacoes: async () => ok(0),
+    listarNotificacoesDescartaveis: async () => ok({ linhas: [], total: 0 }),
     listarAlarmes: async (a) => {
       consultasAlarmes.push(a);
       const dados = usuario?.admin
