@@ -95,7 +95,7 @@ export default async function PaginaMinhaConta({ searchParams }: PageProps<"/min
               Ao encerrar, há uma carência de 30 dias para você desistir. Enquanto isso e depois:
             </p>
             <ul>
-              <li>Seus perfis ficam despublicados, sem transferência para outra pessoa.</li>
+              <li>Seus sites ficam despublicados, sem transferência para outra pessoa.</li>
               <li>
                 Ao fim da carência, seus dados pessoais (nome, telefone e e-mail) são anonimizados.
               </li>

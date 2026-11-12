@@ -279,10 +279,10 @@ export function EditorBanners({
 
       {itens.length === 0 ? (
         <p className="ajuda">
-          Você ainda não tem banners. Sem banner, a página mostra a imagem principal do perfil.
+          Você ainda não tem banners. Sem banner, a página mostra a imagem principal do site.
         </p>
       ) : (
-        <ol className="lista-banners" aria-label="Banners do perfil, na ordem em que aparecem">
+        <ol className="lista-banners" aria-label="Banners do site, na ordem em que aparecem">
           {itens.map((b, i) => {
             const idAlt = `${idCampo}-alt-${i}`;
             const idDest = `${idCampo}-dest-${i}`;

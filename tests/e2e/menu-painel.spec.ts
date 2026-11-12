@@ -74,7 +74,7 @@ test.describe("menu do painel (dono)", () => {
       await expect(sino).toBeVisible();
       const grupoConteudo = nav.locator("details", { hasText: "Meu conteúdo" }).first();
       await expect(grupoConteudo).toHaveJSProperty("open", true);
-      await expect(nav.getByRole("link", { name: "Meus perfis" })).toHaveAttribute(
+      await expect(nav.getByRole("link", { name: "Meus sites" })).toHaveAttribute(
         "aria-current",
         "page",
       );

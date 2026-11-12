@@ -13,7 +13,7 @@ export const MENSAGENS_ADMINISTRACAO = {
   dadosInvalidos: "Confira os dados informados.",
   patrocinadorNaoEncontrado: "Patrocinador não encontrado.",
   patrocinadorInvalido: "Confira os dados do patrocinador.",
-  perfilDestinoInvalido: "Perfil de destino não encontrado. Escolha um perfil existente.",
+  perfilDestinoInvalido: "Site de destino não encontrado. Escolha um site existente.",
 } as const;
 
 export type CodigoErroAdministracao =

@@ -84,7 +84,7 @@ describe("fila de revisão (IM-021, IM-023)", () => {
 });
 
 describe("decidir (IM-021, IM-023)", () => {
-  it("aprova perfil pelo banco e devolve a decisão", async () => {
+  it("aprova site pelo banco e devolve a decisão", async () => {
     const banco = fake();
     const r = await criarServicoAdministracao(banco).decidir({
       alvo: "perfil",
@@ -410,7 +410,7 @@ describe("resultado da revisão para o responsável (IM-023)", () => {
     ); // prettier-ignore
   });
 
-  it("versao_vigente nula (perfil sem aprovação) nunca gera link", () => {
+  it("versao_vigente nula (site sem aprovação) nunca gera link", () => {
     const r = resultadoDaRevisao({ ...base, versao_vigente: null });
     expect(r.linkPublicado).toBeNull();
   });

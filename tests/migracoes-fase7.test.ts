@@ -467,7 +467,7 @@ describe("comissoes: leituras do administrador e nome público do negócio (migr
     }
   });
 
-  it("indicador: invólucro sem parâmetros, filtro fixo em auth.uid() e só nome de perfil público", () => {
+  it("indicador: invólucro sem parâmetros, filtro fixo em auth.uid() e só nome de site público", () => {
     const c = corpo(leiturasAdmin, "comissoes_meus_negocios_vinculados");
     expect(c).toMatch(/function public\.comissoes_meus_negocios_vinculados\(\)/);
     expect(c).toMatch(/cv\.indicador_id = \(select auth\.uid\(\)\)/);
@@ -525,7 +525,7 @@ describe("comissoes: leituras do administrador, revisão adversarial do verifica
     }
   });
 
-  it("nome do negócio só sai de versão aprovada e perfil publicado, nas duas visões", () => {
+  it("nome do negócio só sai de versão aprovada e site publicado, nas duas visões", () => {
     const c1 = corpo(leiturasAdmin, "comissoes_admin_listar_negocios");
     const c2 = corpo(leiturasAdmin, "comissoes_meus_negocios_vinculados");
     for (const c of [c1, c2]) {

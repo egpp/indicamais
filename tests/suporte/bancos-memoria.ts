@@ -124,7 +124,7 @@ export function criarMundo(opcoes: { administradores?: string[] } = {}) {
       },
       async gravarVersao(perfilId, c) {
         const p = perfis.get(perfilId);
-        if (!p || p.dono !== contaId) return erro("42501", "perfil não encontrado");
+        if (!p || p.dono !== contaId) return erro("42501", "site não encontrado");
         const todas = versoesPerfil.filter((v) => v.perfil_id === perfilId);
         if (todas.some((v) => v.situacao === "pendente")) {
           return erro("P0001", "já existe versão pendente");

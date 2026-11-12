@@ -26,7 +26,7 @@ import {
 } from "../../_lib/pagina";
 import { valoresIniciaisPerfil } from "../../_lib/valores-iniciais";
 
-export const metadata: Metadata = { title: "Perfil | IndicaMais", ...SEM_INDEXACAO };
+export const metadata: Metadata = { title: "Site | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaPerfil({
@@ -39,7 +39,7 @@ export default async function PaginaPerfil({
   if (!r.ok) {
     if (r.erro.codigo === "NAO_ENCONTRADO") notFound();
     return (
-      <PainelPagina titulo="Perfil" atual="perfis">
+      <PainelPagina titulo="Site" atual="perfis">
         <Aviso tipo="erro">{r.erro.mensagem}</Aviso>
       </PainelPagina>
     );
@@ -69,14 +69,14 @@ export default async function PaginaPerfil({
   const rascunho = p.estado.aberta === "rascunho";
 
   return (
-    <PainelPagina titulo={c.nome ?? "Perfil sem nome"} atual="perfis">
+    <PainelPagina titulo={c.nome ?? "Site sem nome"} atual="perfis">
       <p>
         <SeloEstado rotulo={p.estado.rotulo} />
       </p>
       <p className="ajuda">Endereço da página: {p.slug}</p>
       <p>
         <LinkPaginaPublica
-          nome={c.nome ?? "Perfil sem nome"}
+          nome={c.nome ?? "Site sem nome"}
           href={p.estado.noAr ? hrefPerfilPublico(p.slug) : null}
         />
       </p>
@@ -90,7 +90,7 @@ export default async function PaginaPerfil({
       </p>
       <p>
         <Link className="botao botao-secundario" href={`/meus-perfis/${p.id}/beneficios`}>
-          Benefícios do perfil
+          Benefícios do site
         </Link>
       </p>
       <p>
@@ -116,7 +116,7 @@ export default async function PaginaPerfil({
         <Aviso tipo="info">
           {p.estado.noAr
             ? "A versão aprovada continua no ar enquanto esta edição não for aprovada."
-            : "A versão aprovada continua valendo, mas o perfil está despublicado. Aprovar a edição não o publica de novo."}
+            : "A versão aprovada continua valendo, mas o site está despublicado. Aprovar a edição não o publica de novo."}
         </Aviso>
       ) : null}
       {rascunho ? (
@@ -169,20 +169,20 @@ export default async function PaginaPerfil({
           <FormAcao
             acao={acaoPublicarPerfil}
             campos={{ id: p.id }}
-            rotulo="Publicar perfil"
+            rotulo="Publicar site"
             rotuloEnviando="Publicando..."
           />
         ) : null}
         {p.publicado ? (
           <>
             <p className="ajuda">
-              Despublicar tira o perfil e seus itens do ar imediatamente. Você pode publicar de novo
+              Despublicar tira o site e seus itens do ar imediatamente. Você pode publicar de novo
               quando quiser.
             </p>
             <FormAcao
               acao={acaoDespublicarPerfil}
               campos={{ id: p.id }}
-              rotulo="Despublicar perfil"
+              rotulo="Despublicar site"
               rotuloEnviando="Despublicando..."
               secundario
             />
@@ -199,7 +199,7 @@ export default async function PaginaPerfil({
         <h2 id="titulo-mapa">Mapa</h2>
         <SecaoMapa
           perfilId={p.id}
-          nome={c.nome ?? "Perfil sem nome"}
+          nome={c.nome ?? "Site sem nome"}
           mostrarMapa={mapa?.mostrarMapa ?? false}
           latitude={mapa?.latitude ?? null}
           longitude={mapa?.longitude ?? null}
@@ -211,7 +211,7 @@ export default async function PaginaPerfil({
       {emAnalise ? null : (
         <>
           <section aria-labelledby="titulo-dados">
-            <h2 id="titulo-dados">Dados do perfil</h2>
+            <h2 id="titulo-dados">Dados do site</h2>
             {p.versaoAprovadaId && !rascunho ? (
               <p className="ajuda">
                 Ao salvar, criamos um rascunho. Depois clique em Enviar para aprovação. A versão

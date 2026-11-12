@@ -33,7 +33,7 @@ function CamposPerfil({
   const v = (n: string) => valores[n] ?? "";
   return (
     <>
-      <Campo nome="nome" rotulo="Nome do perfil" valorInicial={v("nome")} erro={erros.nome} />
+      <Campo nome="nome" rotulo="Nome do site" valorInicial={v("nome")} erro={erros.nome} />
       <CampoTextoLongo
         nome="descricaoBreve"
         rotulo="Descrição breve"
@@ -213,7 +213,7 @@ export function FormImagensPerfil({
       <input type="hidden" name="id" value={perfilId} />
       <GerenciadorImagens
         nome="imagemPath"
-        rotulo="Imagem do perfil"
+        rotulo="Imagem do site"
         pasta="perfil"
         donoId={perfilId}
         limite={1}

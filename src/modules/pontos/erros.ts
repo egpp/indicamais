@@ -17,7 +17,7 @@ export const MENSAGENS_PONTOS = {
   saldoNegativo:
     "Reverter este crédito deixaria o saldo do indicador negativo. Analise o caso e confirme para continuar.",
   pedidoNaoEncontrado: "Pedido de contato não encontrado.",
-  beneficioNaoEncontrado: "Benefício não encontrado ou perfil indisponível.",
+  beneficioNaoEncontrado: "Benefício não encontrado ou site indisponível.",
   beneficioForaDasRegras: "Os dados do benefício estão fora das regras. Confira os campos.",
   beneficioEstadoInvalido: "Esta ação não é possível no estado atual do benefício.",
   indicadorOcupado: "Este indicador está sendo processado agora. Tente novamente em instantes.",

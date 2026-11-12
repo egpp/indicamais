@@ -41,7 +41,7 @@ export const filtrosBuscaSchema = z.object({
       const x = vazioParaUndefined(v);
       return typeof x === "string" ? x.trim().toLowerCase() : x;
     },
-    z.enum(TIPOS_BUSCA, { error: "Escolha perfil, produto ou serviço." }).optional(),
+    z.enum(TIPOS_BUSCA, { error: "Escolha site, produto ou serviço." }).optional(),
   ),
   categoriaId: z.preprocess(vazioParaUndefined, uuidSchema.optional()),
   uf: z.preprocess(

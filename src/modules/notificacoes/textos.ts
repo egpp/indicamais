@@ -63,7 +63,7 @@ export function textoDoAviso(
     case "banner_aguardando_aceite":
       return {
         titulo: "Banner aguardando aceite",
-        texto: `Um banner novo aguarda o seu aceite no perfil ${destino}.`,
+        texto: `Um banner novo aguarda o seu aceite no site ${destino}.`,
       };
     // IM-072: avisos de inadimplência. Sem valores, sem nomes de pessoas e sem prometer encerramento automático.
     case "inadimplencia_atraso_indicador":

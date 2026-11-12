@@ -19,7 +19,7 @@ import { obterContextoAparencia } from "../../../_lib/contexto-aparencia";
 import { obterContexto } from "../../../_lib/contexto-sessao";
 import { SEM_INDEXACAO, caminhosDoPerfil, categoriasParaTela, um } from "../../../_lib/pagina";
 
-export const metadata: Metadata = { title: "Prévia do perfil | IndicaMais", ...SEM_INDEXACAO };
+export const metadata: Metadata = { title: "Prévia do site | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 /** IM-017: o responsável confere o perfil como ele aparecerá, sem torná-lo público. */
@@ -86,7 +86,7 @@ export default async function PaginaPreviaPerfil({
           <Aviso tipo="info">
             Prévia do estilo {TEMAS[estilo].rotulo}: só você vê.{" "}
             {semConteudo
-              ? "Seu perfil ainda não tem nome e descrição, então a página mostra um negócio de exemplo."
+              ? "Seu site ainda não tem nome e descrição, então a página mostra um negócio de exemplo."
               : "Os produtos e os benefícios aparecem aqui como exemplo; os de verdade aparecem na página publicada."}{" "}
             Os botões de contato funcionam só na página publicada.
           </Aviso>
@@ -113,9 +113,9 @@ export default async function PaginaPreviaPerfil({
   }
 
   return (
-    <PainelPagina titulo="Prévia do perfil" atual="perfis">
+    <PainelPagina titulo="Prévia do site" atual="perfis">
       <Aviso tipo="info">
-        Esta é uma prévia: só você a vê. O perfil só aparece para o público depois de aprovado e
+        Esta é uma prévia: só você a vê. O site só aparece para o público depois de aprovado e
         publicado.
       </Aviso>
       <PerfilVisao perfil={previa.perfil} categorias={categorias} urls={urls} />

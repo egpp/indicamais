@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps<"/perfil/[slug]">):
   const d = await carregarPerfilPublico(slug);
   if (!d) return { title: "Página não encontrada | IndicaMais", ...SEM_INDEXACAO };
   const p = d.perfil;
-  const nome = p.nome ?? "Perfil";
+  const nome = p.nome ?? "Site";
   const local = localTexto(p.cidade, p.uf);
   return metadadosPublicos({
     titulo: `${nome} | IndicaMais`,

@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Minhas indicações | IndicaMais", .
 export const dynamic = "force-dynamic";
 
 const ROTULO_STATUS: Record<string, string> = { recebido: "Pedido de contato recebido" };
-const ROTULO_TIPO = { perfil: "Perfil", item: "Produto, serviço ou anúncio" } as const;
+const ROTULO_TIPO = { perfil: "Site", item: "Produto, serviço ou anúncio" } as const;
 
 /**
  * IM-024, IM-029: links que o usuário gerou (para copiar ou compartilhar de novo) e as indicações que
@@ -39,7 +39,7 @@ export default async function PaginaMinhasIndicacoes() {
           <Aviso tipo="erro">{links.erro.mensagem}</Aviso>
         ) : links.valor.length === 0 ? (
           <p className="ajuda">
-            Você ainda não gerou links. Abra um perfil ou anúncio e use o botão &quot;Indique&quot;.{" "}
+            Você ainda não gerou links. Abra um site ou anúncio e use o botão &quot;Indique&quot;.{" "}
             <Link href="/">Ir para a página inicial</Link>
           </p>
         ) : (

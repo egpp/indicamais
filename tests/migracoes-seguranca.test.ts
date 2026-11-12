@@ -40,7 +40,7 @@ describe("migrações: RLS", () => {
     expect(codigo).toMatch(new RegExp(`revoke all on public\\.${t} from anon, authenticated`, "i"));
   });
 
-  it("nenhuma política concede escrita a anon nas tabelas de perfis, itens e administração", () => {
+  it("nenhuma política concede escrita a anon nas tabelas de sites, itens e administração", () => {
     const politicas = [
       ...codigo.matchAll(
         /create policy (\w+) on public\.(\w+)\s+for (\w+) to ([^\n]+?)(?:\s+using|\s+with)/gi,

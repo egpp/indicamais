@@ -40,7 +40,7 @@ export default async function PaginaBannersDoPerfil({
     );
   }
   const p = r.valor;
-  const nome = p.conteudoEdicao.nome ?? "Perfil sem nome";
+  const nome = p.conteudoEdicao.nome ?? "Site sem nome";
   const { servico } = await obterContextoAparencia(`/meus-perfis/${id}/banners`);
   const lista = await servico.bannersDoMeuPerfil(id);
   if (!lista.ok) {
@@ -101,17 +101,17 @@ export default async function PaginaBannersDoPerfil({
         <p className="ajuda">
           Você pode ter até {LIMITE_BANNERS} banners no total, contando os do administrador que você
           aceitou. As imagens giram devagar e a pessoa pode pausar. Sem banner, a página mostra a
-          imagem principal do perfil.
+          imagem principal do site.
         </p>
         {emAnalise ? (
           <Aviso tipo="info">
-            A versão atual do perfil está em análise. Você poderá mudar os banners quando o
-            resultado sair.
+            A versão atual do site está em análise. Você poderá mudar os banners quando o resultado
+            sair.
           </Aviso>
         ) : (
           <Aviso tipo="info">
-            Salvar grava no rascunho do perfil. A mudança só vai ao ar depois que você enviar o
-            perfil para aprovação.
+            Salvar grava no rascunho do site. A mudança só vai ao ar depois que você enviar o site
+            para aprovação.
           </Aviso>
         )}
         <EditorBanners
@@ -152,7 +152,7 @@ export default async function PaginaBannersDoPerfil({
           Estilo da página
         </Link>
         <Link className="botao botao-secundario" href={`/meus-perfis/${id}`}>
-          Voltar para o perfil
+          Voltar para o site
         </Link>
       </p>
     </PainelPagina>

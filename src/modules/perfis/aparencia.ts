@@ -36,7 +36,7 @@ export const MENSAGENS_APARENCIA = {
   limiteBanners: "O banner aceita no máximo 6 imagens.",
   bannerIndisponivel: "Este banner não está mais disponível para esta ação.",
   motivoObrigatorio: "Informe o motivo.",
-  perfilIndisponivel: "Este perfil não está disponível para receber banner agora.",
+  perfilIndisponivel: "Este site não está disponível para receber banner agora.",
   dadosInvalidos: "Confira os dados informados.",
 } as const;
 

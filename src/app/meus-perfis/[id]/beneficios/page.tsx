@@ -17,7 +17,7 @@ import { obterContextoPontos } from "../../../_lib/contexto-pontos";
 import { obterContexto } from "../../../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../../../_lib/pagina";
 
-export const metadata: Metadata = { title: "Benefícios do perfil | IndicaMais", ...SEM_INDEXACAO };
+export const metadata: Metadata = { title: "Benefícios do site | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 /** Versão que alimenta o formulário: rascunho, senão a aprovada, senão a mais recente. */
@@ -54,7 +54,7 @@ export default async function PaginaBeneficiosDoPerfil({
     ctx.servico.listarBeneficiosDoPerfil({ perfilId: id }),
     ctx.servico.propostasAguardandoAceite({ perfilId: id }),
   ]);
-  const nome = perfil.valor.conteudoEdicao.nome ?? "Perfil sem nome";
+  const nome = perfil.valor.conteudoEdicao.nome ?? "Site sem nome";
 
   return (
     <PainelPagina
@@ -64,7 +64,7 @@ export default async function PaginaBeneficiosDoPerfil({
     >
       <p>
         <Link className="botao botao-secundario" href={`/meus-perfis/${id}`}>
-          Voltar para o perfil
+          Voltar para o site
         </Link>
       </p>
       <Aviso tipo="info">

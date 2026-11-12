@@ -105,7 +105,7 @@ function Moldura({
 }
 
 const ROTULO_ALVO: Record<AlvoDenuncia, string> = {
-  perfil: "este perfil",
+  perfil: "este site",
   item: "este item",
   conta: "esta conta",
   pedido: "este pedido",
@@ -302,7 +302,7 @@ export function FormSuspenderConta() {
             rotulo="Identificador da conta"
             valorInicial={estado.valores?.contaId}
             erro={erros.contaId}
-            ajuda="Suspensa, a conta não entra, perfis e itens saem do ar e ela não recebe contatos."
+            ajuda="Suspensa, a conta não entra, sites e itens saem do ar e ela não recebe contatos."
           />
           <CampoTextoLongo
             nome="motivo"
@@ -334,7 +334,7 @@ export function FormReativarConta({ contaId }: { contaId: string }) {
           linhas={2}
           valorInicial={estado.valores?.motivo}
           erro={erros.motivo}
-          ajuda={`${AJUDA_AUDITORIA} Os perfis voltam despublicados.`}
+          ajuda={`${AJUDA_AUDITORIA} Os sites voltam despublicados.`}
         />
       )}
     </Moldura>

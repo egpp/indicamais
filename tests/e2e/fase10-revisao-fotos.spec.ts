@@ -45,7 +45,7 @@ async function definirLoja(pagina: Page, liberar: boolean) {
     .fill(`E2E Fase 10: ${liberar ? "liberar" : "retirar"} a Loja para teste`);
   await cartao.getByRole("button", { name: liberar ? "Liberar a Loja" : "Retirar a Loja" }).click();
   await expect(
-    cartao.getByText(liberar ? "Loja liberada para o perfil." : "Loja retirada do perfil."),
+    cartao.getByText(liberar ? "Loja liberada para o site." : "Loja retirada do site."),
   ).toBeVisible({ timeout: 60_000 });
 }
 

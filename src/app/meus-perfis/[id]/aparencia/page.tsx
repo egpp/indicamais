@@ -33,7 +33,7 @@ export default async function PaginaAparenciaDoPerfil({
     );
   }
   const p = r.valor;
-  const nome = p.conteudoEdicao.nome ?? "Perfil sem nome";
+  const nome = p.conteudoEdicao.nome ?? "Site sem nome";
   const { servico } = await obterContextoAparencia(`/meus-perfis/${id}/aparencia`);
   const [lista, atualR] = await Promise.all([
     servico.listarEstilos(),
@@ -90,7 +90,7 @@ export default async function PaginaAparenciaDoPerfil({
           Banners da página
         </Link>
         <Link className="botao botao-secundario" href={`/meus-perfis/${id}`}>
-          Voltar para o perfil
+          Voltar para o site
         </Link>
       </p>
     </PainelPagina>

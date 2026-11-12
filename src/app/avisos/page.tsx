@@ -23,7 +23,7 @@ export default async function PaginaAvisos({ searchParams }: PageProps<"/avisos"
   return (
     <PainelPagina
       titulo="Avisos"
-      subtitulo="Novidades sobre seus perfis, itens e indicações."
+      subtitulo="Novidades sobre seus sites, itens e indicações."
       admin={admin}
       atual="avisos"
     >

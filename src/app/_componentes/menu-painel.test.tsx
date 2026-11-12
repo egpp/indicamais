@@ -36,7 +36,7 @@ describe("menu lateral do painel (D-015; IM-005, IM-014, IM-047)", () => {
     for (const t of ["Meu conteúdo", "Relacionamento", "Indicações e pontos", "Minha conta"])
       expect(within(nav).getByText(t, { selector: "summary" })).toBeTruthy();
     for (const t of [
-      "Meus perfis",
+      "Meus sites",
       "Meus itens",
       "Meus anúncios",
       "Pedidos de contato",
@@ -126,7 +126,7 @@ describe("menu lateral do painel (D-015; IM-005, IM-014, IM-047)", () => {
     expect(botao.getAttribute("aria-expanded")).toBe("false");
 
     fireEvent.click(botao);
-    const link = screen.getByRole("link", { name: "Meus perfis" });
+    const link = screen.getByRole("link", { name: "Meus sites" });
     link.addEventListener("click", (e) => e.preventDefault());
     fireEvent.click(link);
     expect(botao.getAttribute("aria-expanded")).toBe("false");
@@ -137,18 +137,18 @@ describe("menu lateral do painel (D-015; IM-005, IM-014, IM-047)", () => {
     const resumo = screen.getByText("Meu conteúdo", { selector: "summary" });
     resumo.focus();
     fireEvent.keyDown(resumo, { key: "ArrowDown" });
-    expect(document.activeElement).toBe(screen.getByRole("link", { name: "Meus perfis" }));
+    expect(document.activeElement).toBe(screen.getByRole("link", { name: "Meus sites" }));
     fireEvent.keyDown(document.activeElement as Element, { key: "ArrowUp" });
     expect(document.activeElement).toBe(resumo);
   });
 
   it("PainelPagina mantém título e conteúdo ao lado do menu", () => {
     render(
-      <PainelPagina titulo="Meus perfis" subtitulo="Algo" atual="perfis">
+      <PainelPagina titulo="Meus sites" subtitulo="Algo" atual="perfis">
         <p>Corpo</p>
       </PainelPagina>,
     );
-    expect(screen.getByRole("heading", { level: 1, name: "Meus perfis" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "Meus sites" })).toBeTruthy();
     expect(screen.getByText("Corpo")).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Principal" })).toBeTruthy();
   });

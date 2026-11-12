@@ -81,7 +81,7 @@ export function criarMundoPublico(opcoes: { agora?: Date } = {}) {
       id,
       slug: c.slug,
       nome: c.nome,
-      descricao_breve: c.descricao_breve === undefined ? "Descrição do perfil." : c.descricao_breve,
+      descricao_breve: c.descricao_breve === undefined ? "Descrição do site." : c.descricao_breve,
       imagem_path: c.imagem_path === undefined ? caminhoImg("perfil", id) : c.imagem_path,
       categoria_principal_id: c.categoria_principal_id ?? categorias[0]!.id,
       categoria_secundaria_1_id: c.categoria_secundaria_1_id ?? null,

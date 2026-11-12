@@ -239,7 +239,7 @@ export function CartaoNegocioAdmin({ n }: { n: NegocioAdmin }) {
       <h3>{n.nome ?? n.slug}</h3>
       <p>
         <SeloEstado rotulo={n.moduloAtivo ? "Módulo ativo" : "Módulo desligado"} />{" "}
-        {n.publicado ? null : <SeloEstado rotulo="Perfil não publicado" />}
+        {n.publicado ? null : <SeloEstado rotulo="Site não publicado" />}
       </p>
       <p className="ajuda quebra-total">
         Endereço: {n.slug}

@@ -417,7 +417,7 @@ describe("categorias e administração", () => {
     expect(rpcs[1]!.args).toEqual({ p_versao_id: "iv1", p_aprovar: true, p_motivo: undefined });
   });
 
-  it("revisão de perfil: lê versão e id/slug, sem contato e sem responsável", async () => {
+  it("revisão de site: lê versão e id/slug, sem contato e sem responsável", async () => {
     const { cliente, consultas } = simular([
       { data: VERSAO, error: null },
       { data: { id: "p1", slug: "loja" }, error: null },
@@ -608,7 +608,7 @@ describe("patrocinadores (IM-020)", () => {
   });
 });
 
-describe("leitura pública de perfil e item (IM-011, IM-014, IM-079)", () => {
+describe("leitura pública de site e item (IM-011, IM-014, IM-079)", () => {
   it("lê só as visões públicas, com colunas nomeadas, sem responsável nem WhatsApp", async () => {
     const { cliente, consultas } = simular([
       {

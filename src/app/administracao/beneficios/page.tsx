@@ -74,7 +74,7 @@ export default async function PaginaBeneficiosAdmin({
                     />
                   </p>
                   <p className="ajuda">
-                    Enviado em {formatarDataHora(b.enviadaEm)} · Perfil {b.perfilId}
+                    Enviado em {formatarDataHora(b.enviadaEm)} · Site {b.perfilId}
                   </p>
                   {v ? (
                     <>
@@ -133,7 +133,7 @@ export default async function PaginaBeneficiosAdmin({
               <li key={b.versaoId} className="cartao">
                 <h3>{b.nome || "Benefício sem nome"}</h3>
                 <p className="ajuda">
-                  Enviada em {formatarDataHora(b.enviadaEm)} · Perfil {b.perfilId}
+                  Enviada em {formatarDataHora(b.enviadaEm)} · Site {b.perfilId}
                 </p>
               </li>
             ))}
@@ -142,9 +142,9 @@ export default async function PaginaBeneficiosAdmin({
       </section>
 
       <section aria-labelledby="titulo-cadastrar">
-        <h2 id="titulo-cadastrar">Cadastrar benefício para um perfil</h2>
+        <h2 id="titulo-cadastrar">Cadastrar benefício para um site</h2>
         <p className="ajuda">
-          O benefício nasce desligado e só vale depois que o responsável do perfil aceitar.
+          O benefício nasce desligado e só vale depois que o responsável do site aceitar.
         </p>
         <FormBeneficio
           modo="admin-cadastrar"

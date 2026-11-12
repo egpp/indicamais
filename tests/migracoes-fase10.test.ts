@@ -15,7 +15,7 @@ const itens = ler("20261103140000_loja_itens_imovel.sql");
 const leitura = ler("20261103150000_loja_leitura_publica.sql");
 const direta = ler("20261103160000_loja_leitura_direta_imovel.sql");
 
-describe("Loja: liberação por perfil (IM-099, D-020)", () => {
+describe("Loja: liberação por site (IM-099, D-020)", () => {
   it("tabela com RLS forçada, política por operação e sem privilégio de escrita", () => {
     expect(liberacao).toMatch(/alter table public\.loja_liberacao enable row level security/);
     expect(liberacao).toMatch(/alter table public\.loja_liberacao force row level security/);
@@ -88,7 +88,7 @@ describe("Loja: itens e imóveis (IM-098, IM-021, IM-022)", () => {
 describe("Loja: leitura pública (IM-029, IM-079)", () => {
   const visao = leitura.match(/create view public\.loja_item_publico[\s\S]*?;/)![0];
 
-  it("visão pública é security_invoker, filtra Loja liberada e perfil disponível", () => {
+  it("visão pública é security_invoker, filtra Loja liberada e site disponível", () => {
     expect(visao).toMatch(/with \(security_invoker = true\)/);
     expect(visao).toMatch(/l\.liberada/);
     expect(visao).toMatch(/perfis_perfil_disponivel\(/);

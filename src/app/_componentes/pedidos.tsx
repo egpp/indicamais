@@ -51,9 +51,7 @@ export function CartaoPedido({
     <li className="cartao">
       <h2>{pedido.visitanteNome}</h2>
       <p>
-        <SeloEstado
-          rotulo={pedido.destinoTipo === "perfil" ? "Perfil" : rotuloTipoItem(tipoItem)}
-        />{" "}
+        <SeloEstado rotulo={pedido.destinoTipo === "perfil" ? "Site" : rotuloTipoItem(tipoItem)} />{" "}
         {pedido.destinoNome}
       </p>
       <dl className="lista-dados">

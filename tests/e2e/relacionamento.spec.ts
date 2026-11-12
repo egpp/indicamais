@@ -64,7 +64,7 @@ test.describe("logado", () => {
     expect(alheio?.status()).toBe(404);
   });
 
-  test("dono: base do próprio perfil sem dado privado", async ({ page }) => {
+  test("dono: base do próprio site sem dado privado", async ({ page }) => {
     exigirConta("dono");
     await entrar(page, "dono");
     await page.goto("/meus-perfis");

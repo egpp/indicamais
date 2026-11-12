@@ -53,7 +53,7 @@ describe("GerenciadorImagens (D-006: 2 MB, jpeg/png/webp, envio direto ao Storag
   };
   const semCompressao = async (b: Blob) => b;
 
-  it("envia ao Storage na pasta do perfil e guarda só o caminho no formulário", async () => {
+  it("envia ao Storage na pasta do site e guarda só o caminho no formulário", async () => {
     const enviar = vi.fn(async () => true);
     const { container } = render(
       <form>
@@ -151,7 +151,7 @@ describe("GerenciadorImagens (D-006: 2 MB, jpeg/png/webp, envio direto ao Storag
 describe("FormImagensPerfil", () => {
   it("tem campos de imagem, banners (até 3) e fotos (até 6) com rótulos", () => {
     render(<FormImagensPerfil perfilId={PERFIL} imagem={[]} banners={[]} fotos={[]} />);
-    expect(screen.getByText("Imagem do perfil")).toBeTruthy();
+    expect(screen.getByText("Imagem do site")).toBeTruthy();
     expect(screen.getByText("Banners")).toBeTruthy();
     expect(screen.getByText("Fotos")).toBeTruthy();
     expect(screen.getByText(/Opcional\. Até 3\./)).toBeTruthy();
@@ -163,7 +163,7 @@ describe("FormImagensPerfil", () => {
 describe("FormNovoPerfil", () => {
   it("rótulos em português, WhatsApp comercial obrigatório e informações sociais só texto", () => {
     render(<FormNovoPerfil categorias={CATEGORIAS} />);
-    for (const r of ["Nome do perfil", "Descrição breve", "Cidade", "UF", "WhatsApp comercial"]) {
+    for (const r of ["Nome do site", "Descrição breve", "Cidade", "UF", "WhatsApp comercial"]) {
       expect(screen.getByLabelText(new RegExp(`^${r}`))).toBeTruthy();
     }
     expect(screen.getByLabelText(/Categoria principal/)).toBeTruthy();
@@ -188,7 +188,7 @@ describe("FormNovoPerfil", () => {
   it("valida no navegador com o schema do módulo e não envia", async () => {
     render(<FormNovoPerfil categorias={CATEGORIAS} />);
     await usuario().click(screen.getByRole("button", { name: "Criar rascunho" }));
-    expect(await screen.findByText("Informe o nome do perfil.")).toBeTruthy();
+    expect(await screen.findByText("Informe o nome do site.")).toBeTruthy();
     expect(screen.getByText("Informe o WhatsApp comercial.")).toBeTruthy();
     expect(acaoLenta).not.toHaveBeenCalled();
     expect(screen.getByLabelText(/WhatsApp comercial/).getAttribute("aria-invalid")).toBe("true");
@@ -197,7 +197,7 @@ describe("FormNovoPerfil", () => {
   it("trava o botão durante o envio (IM-028)", async () => {
     const u = usuario();
     render(<FormNovoPerfil categorias={CATEGORIAS} />);
-    await u.type(screen.getByLabelText(/^Nome do perfil/), "Padaria");
+    await u.type(screen.getByLabelText(/^Nome do site/), "Padaria");
     await u.type(screen.getByLabelText(/^Cidade/), "Canoas");
     await u.selectOptions(screen.getByLabelText(/^UF/), "RS");
     await u.type(screen.getByLabelText(/WhatsApp comercial/), "51981237661");
@@ -215,9 +215,9 @@ describe("FormNovoPerfil", () => {
 });
 
 describe("FormNovoItem", () => {
-  it("anúncio particular: sem perfil e sem escolha de tipo; preço com R$", () => {
+  it("anúncio particular: sem site e sem escolha de tipo; preço com R$", () => {
     const { container } = render(<FormNovoItem origem="anuncio" categorias={CATEGORIAS} />);
-    expect(screen.queryByLabelText(/^Perfil/)).toBeNull();
+    expect(screen.queryByLabelText(/^Site/)).toBeNull();
     expect(container.querySelector<HTMLInputElement>('input[name="tipo"]')?.value).toBe("produto");
     expect(screen.getByLabelText(/^Preço/)).toBeTruthy();
     expect(screen.getByLabelText(/Valor \(R\$\)/)).toBeTruthy();
@@ -229,7 +229,7 @@ describe("FormNovoItem", () => {
     expect(uf.options.length).toBe(28);
   });
 
-  it("anúncio particular sem cidade e UF mostra os erros; item de perfil não tem esses campos", async () => {
+  it("anúncio particular sem cidade e UF mostra os erros; item de site não tem esses campos", async () => {
     const u = usuario();
     const { unmount } = render(<FormNovoItem origem="anuncio" categorias={CATEGORIAS} />);
     await u.type(screen.getByLabelText(/^Nome/), "Bike");
@@ -243,7 +243,7 @@ describe("FormNovoItem", () => {
     expect(screen.queryByLabelText(/^UF/)).toBeNull();
   });
 
-  it("item de perfil pede o perfil; preço inválido mostra a mensagem do módulo", async () => {
+  it("item de site pede o site; preço inválido mostra a mensagem do módulo", async () => {
     const u = usuario();
     render(
       <FormNovoItem
@@ -258,7 +258,7 @@ describe("FormNovoItem", () => {
     await u.selectOptions(screen.getByLabelText(/^Preço/), "fixo");
     await u.type(screen.getByLabelText(/Valor \(R\$\)/), "abc");
     await u.click(screen.getByRole("button", { name: "Criar rascunho" }));
-    expect(await screen.findByText("Escolha o perfil do item.")).toBeTruthy();
+    expect(await screen.findByText("Escolha o site do item.")).toBeTruthy();
     expect(screen.getByText(/^Informe um valor entre R\$ 0,01 e R\$/)).toBeTruthy();
     expect(acaoLenta).not.toHaveBeenCalled();
   });

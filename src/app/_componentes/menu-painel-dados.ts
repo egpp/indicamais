@@ -39,7 +39,7 @@ export function itensAdministracao({ geral, permissoes }: AcessoAdministracao): 
     geral && { href: "/administracao/home", texto: "Seções da página inicial" },
     geral && { href: "/administracao/categorias", texto: "Categorias" },
     geral && { href: "/administracao/pedidos", texto: "Pedidos (administração)" },
-    geral && { href: "/administracao/negocios", texto: "Perfis e itens" },
+    geral && { href: "/administracao/negocios", texto: "Sites e itens" },
     geral && { href: "/administracao/estilos", texto: "Estilos de página" },
     geral && { href: "/administracao/loja", texto: "Loja (administração)" },
   ];
@@ -52,7 +52,7 @@ export function gruposDoMenu(acesso: AcessoAdministracao): GrupoMenu[] {
       id: "conteudo",
       titulo: "Meu conteúdo",
       itens: [
-        { href: "/meus-perfis", texto: "Meus perfis" },
+        { href: "/meus-perfis", texto: "Meus sites" },
         { href: "/meus-itens", texto: "Meus itens" },
         { href: "/meus-anuncios", texto: "Meus anúncios" },
         { href: "/minhas-revisoes", texto: "Minhas revisões" },

@@ -130,7 +130,7 @@ export const novoPerfilSchema = camposPerfilSchema
   .extend({ slug: z.string({ error: "Endereço inválido." }).trim().optional() })
   .superRefine((d, ctx) => {
     if (!d.slug && !d.nome) {
-      ctx.addIssue({ code: "custom", path: ["nome"], message: "Informe o nome do perfil." });
+      ctx.addIssue({ code: "custom", path: ["nome"], message: "Informe o nome do site." });
     }
     if (!d.whatsappComercial) {
       ctx.addIssue({

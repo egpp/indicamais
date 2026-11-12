@@ -121,7 +121,7 @@ export function FormContato({
       />
       <p className="ajuda">
         Seus dados (nome, WhatsApp, e-mail e mensagem) serão enviados somente ao responsável por
-        este perfil ou anúncio, para ele responder ao seu pedido. Veja a{" "}
+        este site ou anúncio, para ele responder ao seu pedido. Veja a{" "}
         <Link href="/politica-de-privacidade">política de privacidade (texto provisório)</Link>.
       </p>
       <CampoTurnstile reiniciar={estado} />

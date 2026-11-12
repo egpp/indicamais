@@ -28,7 +28,7 @@ export default async function PaginaPedidosDeContato() {
   return (
     <PainelPagina
       titulo="Pedidos de contato"
-      subtitulo="Pessoas que pediram contato com seus perfis, produtos, serviços e anúncios. Do mais recente ao mais antigo."
+      subtitulo="Pessoas que pediram contato com seus sites, produtos, serviços e anúncios. Do mais recente ao mais antigo."
       admin={admin}
       atual="pedidos"
     >

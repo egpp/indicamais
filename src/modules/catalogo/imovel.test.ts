@@ -103,12 +103,12 @@ const imovelCompleto = {
 };
 
 describe("imóvel: validação de entrada (IM-098, espelha os CHECKs)", () => {
-  it("aceita imóvel completo com cidade e UF próprias, em item de perfil", () => {
+  it("aceita imóvel completo com cidade e UF próprias, em item de site", () => {
     const r = novoItemSchema.safeParse(imovelCompleto);
     expect(r.success).toBe(true);
   });
 
-  it("imóvel sem perfil é recusado (anúncio particular não tem Loja)", () => {
+  it("imóvel sem site é recusado (anúncio particular não tem Loja)", () => {
     const r = novoItemSchema.safeParse({ ...imovelCompleto, perfilId: null });
     expect(r.success).toBe(false);
     expect(!r.success && r.error.issues[0]!.path).toEqual(["perfilId"]);
@@ -282,11 +282,11 @@ describe("imóvel: serviço de itens (criar, editar, enviar)", () => {
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.erro.codigo).toBe("LOJA_NAO_LIBERADA");
-    expect(r.erro.mensagem).toBe("A Loja não está liberada para este perfil.");
+    expect(r.erro.mensagem).toBe("A Loja não está liberada para este site.");
     expect(f.itens.size).toBe(0);
   });
 
-  it("produto de perfil com campo de imóvel é recusado antes do banco", async () => {
+  it("produto de site com campo de imóvel é recusado antes do banco", async () => {
     const f = fakeBanco(true);
     const r = await criarServicoItens(f.banco).criarRascunho({
       tipo: "produto",
@@ -460,7 +460,7 @@ describe("imóvel: tradução de erros do banco (neutros, em português)", () =>
     ).toBe("Envie no máximo 8 fotos adicionais.");
     expect(
       mapearErroBancoCatalogo({ code: "23514", message: "imóvel pertence a um perfil" }).mensagem,
-    ).toBe("O imóvel pertence a um perfil. Escolha o perfil.");
+    ).toBe("O imóvel pertence a um site. Escolha o site.");
   });
 
   it("erros antigos seguem iguais (regressão)", () => {

@@ -27,12 +27,12 @@ export default function PaginaPolitica() {
       <h2>Pedido de contato</h2>
       <p>
         Ao pedir contato, você informa nome, WhatsApp e, se quiser, e-mail e mensagem. Esses dados
-        são enviados somente ao responsável pelo perfil ou anúncio escolhido, para que ele responda
-        ao seu pedido. A administração do IndicaMais pode consultá-los para suporte e segurança.
+        são enviados somente ao responsável pelo site ou anúncio escolhido, para que ele responda ao
+        seu pedido. A administração do IndicaMais pode consultá-los para suporte e segurança.
       </p>
       <p>
-        Quem indicou o perfil ou anúncio não recebe seus dados: vê apenas que a indicação resultou
-        em um pedido de contato. Você não precisa criar conta para pedir contato.
+        Quem indicou o site ou anúncio não recebe seus dados: vê apenas que a indicação resultou em
+        um pedido de contato. Você não precisa criar conta para pedir contato.
       </p>
       <p>
         Para pedir a remoção dos seus dados, fale com o responsável ou com o IndicaMais. O canal de

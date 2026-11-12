@@ -59,7 +59,7 @@ export default async function PaginaBeneficiosPublica() {
           nomeDoPerfil={(id) => {
             const p = perfis.get(id);
             return p ? (
-              <Link href={ROTAS_PUBLICAS.perfil(p.slug)}>{p.nome ?? "Ver perfil"}</Link>
+              <Link href={ROTAS_PUBLICAS.perfil(p.slug)}>{p.nome ?? "Ver site"}</Link>
             ) : null;
           }}
         />

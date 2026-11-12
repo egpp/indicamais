@@ -6,7 +6,7 @@ import { Aviso } from "../../_componentes/ui";
 import { obterContexto } from "../../_lib/contexto-sessao";
 import { SEM_INDEXACAO, categoriasParaTela } from "../../_lib/pagina";
 
-export const metadata: Metadata = { title: "Novo perfil | IndicaMais", ...SEM_INDEXACAO };
+export const metadata: Metadata = { title: "Novo site | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaNovoPerfil() {
@@ -14,7 +14,7 @@ export default async function PaginaNovoPerfil() {
   const { categorias, erro } = await categoriasParaTela(ctx);
   return (
     <PainelPagina
-      titulo="Novo perfil"
+      titulo="Novo site"
       subtitulo="Preencha os dados. Você poderá conferir a prévia antes de enviar para aprovação."
       atual="perfis"
     >

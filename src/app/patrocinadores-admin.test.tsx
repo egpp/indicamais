@@ -171,7 +171,7 @@ describe("tratadores (administrador)", () => {
     expect(m.patrocinadores).toHaveLength(1);
   });
 
-  it("criar com destino perfil e sem ativar: nasce inativo", async () => {
+  it("criar com destino site e sem ativar: nasce inativo", async () => {
     m.definirAdmin(true);
     const perfil = m.novoPerfil({ nome: "Padaria da Ana", slug: "padaria-da-ana" });
     const id = randomUUID();
@@ -308,7 +308,7 @@ describe("páginas de administração", () => {
 describe("formulários de patrocinador", () => {
   const usuario = () => userEvent.setup({ applyAccept: false });
 
-  it("novo: campos com rótulo, destino por perfil ou texto, datas e nenhum campo de preço ou URL", () => {
+  it("novo: campos com rótulo, destino por site ou texto, datas e nenhum campo de preço ou URL", () => {
     const novoId = randomUUID();
     const { container } = render(
       <FormNovoPatrocinador
@@ -317,7 +317,7 @@ describe("formulários de patrocinador", () => {
       />,
     );
     expect(screen.getByLabelText("Título")).toBeTruthy();
-    expect(screen.getByLabelText(/^Perfil de destino/)).toBeTruthy();
+    expect(screen.getByLabelText(/^Site de destino/)).toBeTruthy();
     expect(screen.getByRole("option", { name: "Padaria da Ana" })).toBeTruthy();
     expect(screen.getByLabelText(/^Texto de destino/)).toBeTruthy();
     expect((screen.getByLabelText(/^Início/) as HTMLInputElement).type).toBe("datetime-local");

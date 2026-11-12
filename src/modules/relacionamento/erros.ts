@@ -5,8 +5,8 @@ export const MENSAGENS_RELACIONAMENTO = {
   generica: "Não foi possível concluir agora. Tente novamente em instantes.",
   semLogin: "Entre na sua conta para continuar.",
   dadosInvalidos: "Confira os dados informados.",
-  perfilIndisponivel: "Este perfil não está disponível no momento.",
-  proprioPerfil: "Você não pode curtir o seu próprio perfil.",
+  perfilIndisponivel: "Este site não está disponível no momento.",
+  proprioPerfil: "Você não pode curtir o seu próprio site.",
   limite: "Muitas alterações em pouco tempo. Tente novamente mais tarde.",
 } as const;
 

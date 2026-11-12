@@ -41,7 +41,7 @@ export default async function PaginaBaseDoPerfil({ params }: PageProps<"/meus-pe
   ]);
   const resumo = resumos.ok ? resumos.valor.find((r) => r.perfilId === id) : undefined;
   const lista = membros.ok ? membros.valor.filter((m) => m.perfilId === id) : [];
-  const nome = perfil.valor.conteudoEdicao.nome ?? "Perfil sem nome";
+  const nome = perfil.valor.conteudoEdicao.nome ?? "Site sem nome";
   const totais = [
     ["Pessoas na base", resumo?.membros ?? 0],
     ["Curtidas", resumo?.curtidasAtivas ?? 0],
@@ -53,7 +53,7 @@ export default async function PaginaBaseDoPerfil({ params }: PageProps<"/meus-pe
   return (
     <PainelPagina titulo="Base de relacionamento" subtitulo={nome} atual="perfis">
       <p>
-        <Link href={`/meus-perfis/${id}`}>Voltar ao perfil</Link>
+        <Link href={`/meus-perfis/${id}`}>Voltar ao site</Link>
       </p>
       <Aviso tipo="info">
         Por privacidade, aparece só o nome reduzido de cada pessoa. Não mostramos WhatsApp, e-mail
@@ -79,7 +79,7 @@ export default async function PaginaBaseDoPerfil({ params }: PageProps<"/meus-pe
         {!membros.ok ? (
           <Aviso tipo="erro">{membros.erro.mensagem}</Aviso>
         ) : lista.length === 0 ? (
-          <p className="ajuda">Ainda não há pessoas na base deste perfil.</p>
+          <p className="ajuda">Ainda não há pessoas na base deste site.</p>
         ) : (
           <>
             <ul className="lista-cartoes">

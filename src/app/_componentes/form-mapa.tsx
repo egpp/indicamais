@@ -21,7 +21,7 @@ import { useFormulario } from "./use-formulario";
  * versão aprovada, coordenadas) está no módulo perfis. O mapa é fornecido pelo OpenStreetMap.
  */
 export const TEXTO_MAPA_APROVACAO =
-  "O mapa só aparece na página depois que a versão do perfil for aprovada.";
+  "O mapa só aparece na página depois que a versão do site for aprovada.";
 export const TEXTO_MAPA_OSM =
   "O mapa é fornecido pelo OpenStreetMap: ao abrir sua página, o navegador do visitante carrega o mapa do site do OpenStreetMap.";
 

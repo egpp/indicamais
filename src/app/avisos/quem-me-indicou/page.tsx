@@ -9,7 +9,7 @@ import { SEM_INDEXACAO } from "../../_lib/pagina";
 export const metadata: Metadata = { title: "Quem me indicou | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
-const ROTULO_TIPO = { perfil: "Perfil", item: "Produto, serviço ou anúncio" } as const;
+const ROTULO_TIPO = { perfil: "Site", item: "Produto, serviço ou anúncio" } as const;
 
 /**
  * IM-048, IM-050, IM-045: quem indicou algo sob sua responsabilidade e qual item foi indicado. O indicador aparece
@@ -21,7 +21,7 @@ export default async function PaginaQuemMeIndicou() {
   return (
     <PainelPagina
       titulo="Quem me indicou"
-      subtitulo="Pessoas que indicaram seus perfis, produtos e serviços e resultaram em contato."
+      subtitulo="Pessoas que indicaram seus sites, produtos e serviços e resultaram em contato."
       admin={admin}
       atual="quem"
     >
@@ -44,7 +44,7 @@ export default async function PaginaQuemMeIndicou() {
                   <SeloEstado rotulo={ROTULO_TIPO[i.destinoTipo]} />
                 </p>
                 {i.destinoTipo === "item" && i.perfilDestinoNome ? (
-                  <p>Perfil de destino: {i.perfilDestinoNome}</p>
+                  <p>Site de destino: {i.perfilDestinoNome}</p>
                 ) : null}
                 <p>
                   Indicado por:{" "}

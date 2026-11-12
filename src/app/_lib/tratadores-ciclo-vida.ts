@@ -20,7 +20,7 @@ export const MENSAGENS_TELA_CICLO = {
   suspensa: "Conta suspensa. O acesso foi bloqueado.",
   suspensaSemBloqueio:
     "Conta suspensa, mas o bloqueio de acesso no login não pôde ser aplicado agora. Use Sincronizar acesso para repetir.",
-  reativada: "Conta reativada. Os perfis voltam despublicados; o responsável republica.",
+  reativada: "Conta reativada. Os sites voltam despublicados; o responsável republica.",
   reativadaSemLiberar:
     "Conta reativada, mas a liberação do login não pôde ser aplicada agora. Use Sincronizar acesso para repetir.",
   sincronizada: "Acesso sincronizado com a situação da conta.",
@@ -28,7 +28,7 @@ export const MENSAGENS_TELA_CICLO = {
   invalidada: "Indicação invalidada. Os pontos dela foram revertidos.",
   invalidadaSemCredito: "Indicação invalidada. Não havia pontos creditados para reverter.",
   encerramentoSolicitado: "Encerramento solicitado.",
-  encerramentoCancelado: "Encerramento cancelado. Seus perfis continuam despublicados.",
+  encerramentoCancelado: "Encerramento cancelado. Seus sites continuam despublicados.",
 } as const;
 
 export async function enviarDenuncia(

@@ -66,7 +66,7 @@ describe("imagens (D-006, IM-011, IM-014)", () => {
   it.each([0, -5, Number.NaN, Number.POSITIVE_INFINITY])("recusa tamanho %s", (t) => {
     expect(validarImagem({ tipoMime: "image/png", tamanhoBytes: t }).ok).toBe(false);
   });
-  it("caminho precisa estar na pasta do próprio perfil/item, com uuid e extensão permitida", () => {
+  it("caminho precisa estar na pasta do próprio site/item, com uuid e extensão permitida", () => {
     const U = "33333333-3333-4333-8333-333333333333";
     expect(caminhoDaPasta("perfil", CONTA, `perfil/${CONTA}/${U}.jpg`)).toBe(true);
     expect(caminhoDaPasta("item", CONTA, `item/${CONTA}/${U}.webp`)).toBe(true);
@@ -83,7 +83,7 @@ describe("imagens (D-006, IM-011, IM-014)", () => {
     expect(formatoDeCaminhoValido(`perfil/${CONTA}/${U}.png`, "item")).toBe(false);
     expect(formatoDeCaminhoValido(`${CONTA}/${U}.png`)).toBe(false);
   });
-  it("aceita adm- só em perfil/<perfil>/adm-<uuid>.<ext> (IM-093)", () => {
+  it("aceita adm- só em site/<site>/adm-<uuid>.<ext> (IM-093)", () => {
     const U = "55555555-5555-4555-8555-555555555555";
     expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-${U}.webp`)).toBe(true);
     expect(formatoDeCaminhoValido(`perfil/${CONTA}/adm-${U}.webp`, "perfil")).toBe(true);
@@ -201,7 +201,7 @@ describe("ciclo de versões (IM-021, IM-022, IM-079)", () => {
     expect(podePublicar({ versao_aprovada_id: null })).toBe(false);
     expect(podePublicar({ versao_aprovada_id: "a" })).toBe(true);
   });
-  it("IM-079: item de perfil indisponível não fica disponível", () => {
+  it("IM-079: item de site indisponível não fica disponível", () => {
     const base = { publicado: true, versao_aprovada_id: "a" };
     expect(disponivelPublicamente({ ...base, perfilDisponivel: false })).toBe(false);
     expect(disponivelPublicamente({ ...base, perfilDisponivel: true })).toBe(true);

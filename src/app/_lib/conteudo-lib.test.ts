@@ -54,17 +54,15 @@ describe("entrada dos formulários", () => {
 });
 
 describe("validação no navegador com os schemas dos módulos", () => {
-  it("novo perfil: campos obrigatórios e mensagens em português", () => {
+  it("novo site: campos obrigatórios e mensagens em português", () => {
     expect(validarNovoPerfil(perfilValido)).toBeNull();
     const e = validarNovoPerfil({ ...perfilValido, whatsappComercial: "", uf: "ZZ", nome: "" });
     expect(e?.whatsappComercial).toBe("Informe o WhatsApp comercial.");
     expect(e?.uf).toBe("Escolha uma UF válida.");
-    expect(validarNovoPerfil({ ...perfilValido, nome: "" })?.nome).toBe(
-      "Informe o nome do perfil.",
-    );
+    expect(validarNovoPerfil({ ...perfilValido, nome: "" })?.nome).toBe("Informe o nome do site.");
   });
 
-  it("perfil: informações sociais só texto e erros de lista caem no campo certo", () => {
+  it("site: informações sociais só texto e erros de lista caem no campo certo", () => {
     expect(
       validarEdicaoPerfil({ ...perfilValido, informacoesSociais: "https://x.com/a" })
         ?.informacoesSociais,
@@ -78,7 +76,7 @@ describe("validação no navegador com os schemas dos módulos", () => {
     );
   });
 
-  it("item: preço inválido aparece no campo de valor; item de perfil exige perfil", () => {
+  it("item: preço inválido aparece no campo de valor; item de site exige site", () => {
     const base = {
       tipo: "produto",
       nome: "Bike",
@@ -98,14 +96,14 @@ describe("validação no navegador com os schemas dos módulos", () => {
       validarNovoItem({ ...base, origem: "perfil", perfilId: UUID, cidade: "", uf: "" }),
     ).toBeNull();
     expect(validarNovoItem({ ...base, origem: "perfil", perfilId: "", cidade: "" })).toEqual({
-      perfilId: "Escolha o perfil do item.",
+      perfilId: "Escolha o site do item.",
     });
     expect(
       validarNovoItem({ ...base, origem: "anuncio", precoModo: "fixo", precoValor: "x" })
         ?.precoValor,
     ).toMatch(/^Informe um valor entre R\$ 0,01 e R\$/);
     expect(validarNovoItem({ ...base, origem: "perfil", perfilId: "" })?.perfilId).toBe(
-      "Escolha o perfil do item.",
+      "Escolha o site do item.",
     );
     expect(validarNovoItem({ ...base, tipo: "", origem: "anuncio" })?.tipo).toBeTruthy();
     expect(

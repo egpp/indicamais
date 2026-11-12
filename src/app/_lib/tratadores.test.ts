@@ -77,8 +77,8 @@ async function perfilEnviado(m: Mundo, aprovar = false) {
   return id;
 }
 
-describe("perfil: criar rascunho (IM-011, IM-012, IM-016)", () => {
-  it("cria o rascunho, normaliza o WhatsApp para E.164 e leva à tela do perfil", async () => {
+describe("site: criar rascunho (IM-011, IM-012, IM-016)", () => {
+  it("cria o rascunho, normaliza o WhatsApp para E.164 e leva à tela do site", async () => {
     const m = mundo();
     const id = await novoPerfil(m);
     const versao = m.versoesPerfil.find((v) => v.perfil_id === id)!;
@@ -142,7 +142,7 @@ describe("perfil: criar rascunho (IM-011, IM-012, IM-016)", () => {
   });
 });
 
-describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
+describe("site: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
   it("editar rascunho salva; imagem de outra pasta é recusada", async () => {
     const m = mundo();
     const id = await novoPerfil(m);
@@ -161,7 +161,7 @@ describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
     expect(alheia.erros?.imagemPath).toBe("Imagem inválida. Envie novamente.");
   });
 
-  it("salva imagem do perfil, banners (até 3) e fotos (até 6)", async () => {
+  it("salva imagem do site, banners (até 3) e fotos (até 6)", async () => {
     const m = mundo();
     const id = await novoPerfil(m);
     const ana = m.contexto(ANA);
@@ -194,7 +194,7 @@ describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
     const ana = m.contexto(ANA);
     const incompleto = await enviarPerfil(ana, formulario({ id }));
     expect(incompleto.erro).toContain("Preencha os campos obrigatórios");
-    expect(incompleto.erro).toContain("Envie a imagem do perfil.");
+    expect(incompleto.erro).toContain("Envie a imagem do site.");
     await salvarImagensPerfil(ana, formulario({ id, imagemPath: caminhoDe("perfil", id) }));
     const ok = await enviarPerfil(ana, formulario({ id }));
     expect(ok.sucesso).toContain("Enviado para aprovação");
@@ -205,7 +205,7 @@ describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
     const id = await perfilEnviado(m);
     const ana = m.contexto(ANA);
     const bloqueada = await editarPerfil(ana, formulario({ id, ...dadosPerfil(m) }));
-    expect(bloqueada.erro).toBe("Este perfil está em análise. Aguarde a decisão antes de editar.");
+    expect(bloqueada.erro).toBe("Este site está em análise. Aguarde a decisão antes de editar.");
 
     const pendente = m.versoesPerfil.find((v) => v.perfil_id === id && v.situacao === "pendente")!;
     await decidirRevisao(
@@ -225,13 +225,13 @@ describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
     expect(m.versoesPerfil.filter((v) => v.perfil_id === id)).toHaveLength(2);
   });
 
-  it("outra conta não enxerga nem altera o perfil (tratado como inexistente)", async () => {
+  it("outra conta não enxerga nem altera o site (tratado como inexistente)", async () => {
     const m = mundo();
     const id = await novoPerfil(m);
     const r = await editarPerfil(m.contexto(BIA), formulario({ id, ...dadosPerfil(m) }));
-    expect(r.erro).toBe("Perfil não encontrado.");
+    expect(r.erro).toBe("Site não encontrado.");
     const pub = await publicarPerfil(m.contexto(BIA), formulario({ id }));
-    expect(pub.erro).toBe("Perfil não encontrado.");
+    expect(pub.erro).toBe("Site não encontrado.");
   });
 
   it("endereço da página só muda antes da primeira aprovação", async () => {
@@ -253,24 +253,24 @@ describe("perfil: edição, imagens e envio (IM-017, IM-021, IM-022)", () => {
   });
 });
 
-describe("perfil: publicar e despublicar (IM-079)", () => {
+describe("site: publicar e despublicar (IM-079)", () => {
   it("só publica depois de aprovado; despublica na hora", async () => {
     const m = mundo();
     const id = await novoPerfil(m);
     const ana = m.contexto(ANA);
     const antes = await publicarPerfil(ana, formulario({ id }));
-    expect(antes.erro).toBe("Só é possível publicar um perfil depois de aprovado.");
+    expect(antes.erro).toBe("Só é possível publicar um site depois de aprovado.");
 
     const aprovado = await perfilEnviado(m, true);
     const pub = await publicarPerfil(ana, formulario({ id: aprovado }));
-    expect(pub.sucesso).toBe("Perfil publicado.");
+    expect(pub.sucesso).toBe("Site publicado.");
     expect(m.perfis.get(aprovado)!.publicado).toBe(true);
     const des = await despublicarPerfil(ana, formulario({ id: aprovado }));
     expect(des.sucesso).toContain("saiu do ar");
     expect(m.perfis.get(aprovado)!.publicado).toBe(false);
   });
 
-  it("editar um perfil despublicado não o republica (IM-022)", async () => {
+  it("editar um site despublicado não o republica (IM-022)", async () => {
     const m = mundo();
     const id = await perfilEnviado(m, true);
     const ana = m.contexto(ANA);
@@ -302,7 +302,7 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
     return id;
   }
 
-  it("anúncio particular não tem perfil; o preço em R$ vira centavos", async () => {
+  it("anúncio particular não tem site; o preço em R$ vira centavos", async () => {
     const m = mundo();
     const id = await novoItemId(m);
     expect(m.itens.get(id)!.perfil_id).toBeNull();
@@ -312,7 +312,7 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
     expect([v.cidade, v.uf]).toEqual(["Porto Alegre", "RS"]);
   });
 
-  it("anúncio particular exige cidade e UF; item de perfil nao leva cidade/UF (herda do perfil)", async () => {
+  it("anúncio particular exige cidade e UF; item de site nao leva cidade/UF (herda do site)", async () => {
     const m = mundo();
     const semCidade = await criarItem(
       m.contexto(ANA),
@@ -352,13 +352,13 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
     expect(semValor.erros?.precoValor).toBeTruthy();
   });
 
-  it("item de perfil exige escolher o perfil e só aceita perfil da própria conta", async () => {
+  it("item de site exige escolher o site e só aceita site da própria conta", async () => {
     const m = mundo();
     const faltando = await criarItem(
       m.contexto(ANA),
       formulario(dadosItem(m, { origem: "perfil", perfilId: "" })),
     );
-    expect(faltando.erros?.perfilId).toBe("Escolha o perfil do item.");
+    expect(faltando.erros?.perfilId).toBe("Escolha o site do item.");
     const perfilDeBia = await novoPerfil(m, BIA);
     const alheio = await criarItem(
       m.contexto(ANA),
@@ -366,7 +366,7 @@ describe("itens e anúncios particulares (IM-014, IM-015)", () => {
     );
     expect(alheio.destino).toBeUndefined();
     expect(alheio.erro ?? alheio.erros?.perfilId).toBe(
-      "Perfil não encontrado ou não pertence à sua conta.",
+      "Site não encontrado ou não pertence à sua conta.",
     );
     const meuPerfil = await novoPerfil(m, ANA);
     const ok = await criarItem(

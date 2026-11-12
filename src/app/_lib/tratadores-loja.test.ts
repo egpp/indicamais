@@ -32,13 +32,13 @@ describe("tratador da liberação da Loja (administrador geral)", () => {
       c,
       form({ perfilId: P1, liberada: "true", motivo: "Teste" }),
     );
-    expect(a.sucesso).toBe("Loja liberada para o perfil.");
+    expect(a.sucesso).toBe("Loja liberada para o site.");
     expect(a.valores?.motivo).toBe("");
     const b = await definirLiberacaoLoja(
       c,
       form({ perfilId: P1, liberada: "false", motivo: "Fim" }),
     );
-    expect(b.sucesso).toBe("Loja retirada do perfil.");
+    expect(b.sucesso).toBe("Loja retirada do site.");
   });
 
   it("sem motivo: erro por campo e nada vai ao banco", async () => {
@@ -56,9 +56,9 @@ describe("tratador da liberação da Loja (administrador geral)", () => {
     expect(banco.definirLiberacao).not.toHaveBeenCalled();
   });
 
-  it("perfil inexistente (P0002) vira aviso neutro", async () => {
+  it("site inexistente (P0002) vira aviso neutro", async () => {
     const { c } = ctx(true, { code: "P0002" });
     const r = await definirLiberacaoLoja(c, form({ perfilId: P1, liberada: "true", motivo: "x" }));
-    expect(r.erro).toBe("Perfil não encontrado.");
+    expect(r.erro).toBe("Site não encontrado.");
   });
 });

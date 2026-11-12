@@ -26,7 +26,7 @@ export default async function PaginaFilaRevisao({
   return (
     <PainelPagina
       titulo="Fila de revisão"
-      subtitulo="Perfis, produtos e serviços aguardando aprovação, do mais antigo ao mais novo."
+      subtitulo="Sites, produtos e serviços aguardando aprovação, do mais antigo ao mais novo."
       admin
       atual="administracao"
     >
@@ -42,13 +42,13 @@ export default async function PaginaFilaRevisao({
             <li key={i.versaoId} className="cartao">
               <h2>
                 <Link href={`/administracao/revisao/${i.alvo}/${i.versaoId}`}>
-                  {i.nome ?? (i.alvo === "perfil" ? "Perfil sem nome" : "Item sem nome")}
+                  {i.nome ?? (i.alvo === "perfil" ? "Site sem nome" : "Item sem nome")}
                 </Link>
               </h2>
               <p>
                 <SeloEstado
                   rotulo={
-                    i.alvo === "perfil" ? "Perfil" : (tipos.get(i.alvoId) ?? rotuloTipoItem(null))
+                    i.alvo === "perfil" ? "Site" : (tipos.get(i.alvoId) ?? rotuloTipoItem(null))
                   }
                 />{" "}
                 {i.ehEdicao ? <SeloEstado rotulo="Edição de conteúdo aprovado" /> : null}{" "}

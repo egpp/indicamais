@@ -33,7 +33,7 @@ describe("seção Mapa do painel (IM-018, IM-092)", () => {
   it("explica aprovação e OpenStreetMap, e tem interruptor com estado", () => {
     render(<SecaoMapa {...base} />);
     expect(
-      screen.getByText(/só aparece na página depois que a versão do perfil for aprovada/),
+      screen.getByText(/só aparece na página depois que a versão do site for aprovada/),
     ).toBeTruthy();
     expect(screen.getAllByText(/OpenStreetMap/).length).toBeGreaterThan(0);
     const chave = screen.getByRole("switch", { name: /Mostrar mapa na minha página: desligado/ });
