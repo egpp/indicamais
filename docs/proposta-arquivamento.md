@@ -1,5 +1,7 @@
 # Proposta: arquivar perfil, item e anúncio particular (IM-102)
 
+> **Substituída em 13/11/2026 por D-040 e `docs/plano-itens-portal.md`.** Onde esta proposta diz "arquivado não conta no teto", fixa limites de arquivados ou exclui a exclusão pelo dono, vale a D-040 (excluir esconde e libera a vaga; despublicar e arquivar contam; aviso sem bloquear na pergunta 9). Mantida abaixo como registro histórico.
+
 Data: 12/11/2026 · Para decisão do Emerson · IDs: IM-102, IM-104, IM-006, IM-011, IM-014, IM-015, IM-079, IM-086, IM-089.
 
 **Tudo aqui é SUGESTÃO.** Nada foi implementado (sem migração, sem código). Só vale o que o Emerson aceitar; o aceite vira uma decisão nova (D-039 ou a próxima livre) e só então o trabalho começa. Formato igual ao de `docs/proposta-tetos.md`.

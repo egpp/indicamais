@@ -401,6 +401,63 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 **Ainda não decidido pelo Emerson:** se os 10 itens incluem os anúncios particulares; a quem vale a validade de 7 dias; aviso de vencimento só no painel; renovação com ou sem nova aprovação; prazo como parâmetro.
 
+**Atualização de 13/11/2026:** todos os pontos acima foram respondidos pelo Emerson e estão registrados na D-040.
+
+---
+
+## D-040 · 13/11/2026 · Itens da conta, teto único, validade de 7 dias, exclusão e site gratuito simples (IM-105 a IM-111, IM-006, IM-015, IM-079, IM-098, IM-102, D-035, D-039)
+**IDs:** IM-105, IM-106, IM-107, IM-108, IM-109, IM-110, IM-111; ajusta IM-006, IM-015, IM-079, IM-098, IM-102 e IM-104; refina D-035, D-038 e D-039. Decisões do **Emerson**, aceitas em 12 e 13/11/2026 (nas palavras dele ou por "aceito as recomendações") para as 15 perguntas de `docs/analise-impacto-portal-site.md` e para a pergunta 9 de `docs/proposta-arquivamento.md`. Esta decisão **só registra**: sem migração, sem código, sem tela. O plano de entrega está em `docs/plano-itens-portal.md`.
+
+**P1 · Um teto só por conta.** 10 itens = anúncios de **venda** + anúncios de **compra** + **serviços** (e imóveis em card, P2). Aparecem **só em cards** na categoria respectiva. **Sites não contam** nos 10 (são produto à parte).
+- **Anúncio de compra ("Procura-se"):** novo tipo de item. Contato pelo mesmo formulário (WhatsApp + Turnstile), mesma aprovação, validade de 7 dias, selo "Procura-se" no card. Indicação de terceiros e pontos do anúncio de compra ficam para **etapa à parte, fora do lançamento**. Implementação **depois do IM-102**. O item passa a ter o campo **tipo** (oferta, procura, serviço, imóvel).
+
+**P2 · Imóvel é um tipo de item** (card, sem precisar de site), conta nos 10 itens e vence em 7 dias, **exceto** dentro do **site imobiliário contratado** (premium, futuro). O site imobiliário dá vitrine própria: endereço do site, só os imóveis do corretor, filtros, sem validade. Isso **ajusta o IM-098**: hoje um gatilho recusa imóvel sem perfil e `loja_liberacao` é por perfil.
+
+**P3 · Só a exclusão libera espaço no teto.** Despublicar, arquivar e vencer continuam contando. **Limite diário de criação por conta** (sugerido 20; parâmetro do administrador).
+
+**P4 · Todos os itens vencem em 7 dias**, inclusive os de site gratuito. Só o site **premium pago** (futuro, módulo de planos, F) isenta. Se o premium acabar, o item volta a vencer com novo prazo de 7 dias. Cada item tem **um estado só** (vence no card e no site ao mesmo tempo).
+
+**Site gratuito:** **1 site gratuito, simples e limitado** no lançamento (layout simples que o Emerson vai elaborar). Modelos premium pagos são futuros (planos e pagamentos, F): **sem implementar**. Benefícios de pontos, relacionamento e comissões valem **só para quem tem site** no lançamento; o item solto anuncia, indica e pontua. O carrossel da home passa a **incluir itens de conta**.
+
+**P5 · Renovar** não pede nova aprovação se o conteúdo não mudou. A edição segue o fluxo normal (versão pendente, IM-022) e o conteúdo antigo aprovado continua no ar. Item retirado por moderação **não volta** com a renovação. Renovações **ilimitadas**.
+
+**P6 · Aviso de vencimento só no painel**, cerca de 2 dias antes, **sem e-mail**. Item vencido fica **despublicado**, aguardando renovar ou excluir, **sem exclusão automática**.
+
+**P7 · Prazo de validade é parâmetro do administrador** (faixa 1 a 90 dias, padrão 7, auditado), valendo daqui para a frente, sem alterar itens no ar. O **mesmo link de indicação volta a valer ao renovar**; vencido, mostra "anúncio indisponível" sem gerar contato nem pontos.
+
+**P8 · Localização própria.** Item tem **cidade e UF próprias e obrigatórias** (padrão preenchido com a do site, editável). Itens existentes herdam a do perfil. Só cidade e UF, **nunca endereço**. Imóvel segue o padrão de privacidade (IM-098, D-020).
+
+**P9 · Duplicidade de pontos (IM-032)** mantém a regra atual: WhatsApp + site; sem site, WhatsApp + conta.
+
+**P10 · Site despublicado ou oculto** mantém os itens da conta no ar. **Suspensão ou encerramento da conta** continuam derrubando tudo. Isso **ajusta o IM-079**.
+
+**P11 · "Excluir" esconde** (exclusão lógica): some do painel do dono, libera a vaga, e histórico, indicações e pontos são preservados. A eliminação real de dados pessoais fica para a revisão jurídica (IM-082).
+
+**P12 · Itens existentes no dev** ganham prazo novo de 7 dias a partir da migração.
+
+**P13 · Rota pública:** `/perfil/...` **não muda por ora** (links compartilhados). "Site" na interface e nos textos.
+
+**P14 · Contas acima de 1 site e 10 itens no dev** mantêm o que têm e só não criam novos.
+
+**P15 · Requisitos novos aceitos:** IM-105 a IM-108 (textos ajustados a esta decisão), **IM-109** (anúncio de compra, "Procura-se"), **IM-110** (site gratuito simples) e **IM-111** (limite diário de criação). **1 site e 10 itens por conta** substituem "3 perfis e 30 itens por perfil" da D-035 como **valores iniciais**, em parâmetros do administrador (`tetos_perfis_por_conta` hoje aceita faixa 1 a 50, então comporta 1).
+
+**IM-102 (proposta de arquivamento):** pergunta 9 = ao excluir ou arquivar site ou item com comissão ou resgate em andamento, **só avisar** (sem bloquear). As demais respostas da proposta que contrariam P1 a P15 ficam **SUBSTITUÍDAS** por esta decisão: "arquivado não conta no teto", os limites de arquivados por conta (perguntas 4 a 6 e 8) e "sem exclusão pelo dono". Vale: o dono pode **despublicar/arquivar** (continua contando no teto) e **excluir** (esconde e libera a vaga).
+
+**O que esta decisão substitui ou refina:**
+- **D-035:** os valores "3 perfis, 30 itens por perfil, 10 anúncios particulares" são substituídos por **1 site e 10 itens por conta** (teto único). Segue valendo o resto: 100 pontos/dia, 10 rascunhos abertos, imagens (100 por conta, 6 por item), "Confirm email".
+- **D-039:** responde as pendências ("Ainda não decidido") e **confirma** os pontos 1 a 7; a validade de 7 dias vale a todos os itens (P4), com exceção só do premium futuro.
+- **D-038:** IM-104 continua válido (pós-lançamento, depois do IM-102); ocultar o site **não** derruba os itens da conta (P10). O texto passa a dizer "site".
+- **IM-079, IM-098, IM-102, IM-015, IM-006:** ajustes por acréscimo nos próprios requisitos, e IM-105 a IM-111 novos.
+- **`docs/proposta-arquivamento.md`:** substituída por `docs/plano-itens-portal.md` (a proposta fica como registro histórico).
+
+**Dúvidas que seguem para o Emerson (não decididas aqui):**
+1. Valor padrão do limite diário de criação (sugestão 20) e dias do aviso de vencimento (sugestão 2) são sugestões do gestor, a confirmar na hora de configurar.
+2. Imóvel como tipo de item: migrar os imóveis já cadastrados na Loja para o modelo de item (e como ficam `loja_liberacao` e os campos próprios) é desenho técnico do PR de imóvel; se houver perda de função, volta para decisão.
+3. O layout do site gratuito simples (IM-110) depende do Emerson; sem ele o PR do site simples não começa.
+4. Rascunhos e itens aguardando aprovação contam nos 10 itens (conta todas as linhas não excluídas, como hoje): confirmar se é isso mesmo.
+
+---
+
 ---
 
 ## Pendências antes do lançamento (Fase 1)
