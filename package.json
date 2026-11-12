@@ -19,6 +19,7 @@
     "db:types": "supabase gen types typescript --linked --schema public > src/shared/db/database.types.ts",
     "supabase": "supabase",
     "check:supabase": "node --env-file=.env.local scripts/checar-supabase.mjs",
+    "trocar:email-teste": "node --env-file=.env.local scripts/trocar-email-teste.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
