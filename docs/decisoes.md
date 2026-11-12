@@ -379,6 +379,30 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 
 ---
 
+## D-039 · 12/11/2026 · IndicaMais como portal de anúncios; "perfil" passa a se chamar "site" (IM-006, IM-014, IM-015, IM-079, IM-102, IM-104, D-035)
+**IDs:** IM-006, IM-011, IM-014, IM-015, IM-079, IM-097, IM-099, IM-102, IM-104, D-035. Definição do Emerson em 12/11/2026, nas palavras dele, registrada aqui **somente** nos pontos 1 a 7. O detalhamento e as perguntas abertas estão em `docs/analise-impacto-portal-site.md`. Nenhum requisito IM existente foi alterado; ajustes viram proposta (IM-105 em diante) a aceitar. Esta decisão não muda código, migração nem tela.
+1. O IndicaMais é um **portal** em que o usuário cadastrado conta com serviço de anúncios de produtos, serviços e itens à venda.
+2. O "perfil" passa a se chamar **"site"** e é um **serviço à parte**, a ser contratado ou não.
+3. Os **itens pertencem ao usuário (conta)** e ficam publicados independentemente do site. Se o usuário tem site, os itens também aparecem dentro dele (como no Marketplace do Facebook: o item tem vida própria).
+4. O usuário deve poder **despublicar e/ou excluir** site ou item que não queira mais exibir.
+5. Um item **arquivado ou despublicado conta** no limite definido.
+6. **Plano básico: 1 site e 10 itens por usuário.** Planos maiores acrescentam sites. O módulo de planos é futuro (F) e não é implementado: por ora há um único plano básico, com limites em parâmetros editáveis pelo administrador.
+7. **Validade de 7 dias**, como no Facebook: findo o prazo, o sistema despublica o item automaticamente, que fica aguardando "Renovar anúncio" ou "Excluir anúncio" do dono.
+
+**Terminologia:** a partir de agora, "site" na interface e nos textos (documentos, mensagens, e-mails). Identificadores de código e banco (`perfis_*`, `perfil_id`, rotas, módulo `perfis`) **não são renomeados por ora**; renomear exige migração e decisão própria.
+
+**Decisões que esta altera ou refina (a confirmar pelo Emerson, ver a análise):**
+- **D-035 (tetos):** "3 perfis por conta, 30 itens por perfil, 10 anúncios particulares por conta" passa a "1 site e 10 itens por conta" como **valores iniciais a confirmar** (itens contados na conta, não por site). O restante da D-035 (100 pontos/dia, 10 rascunhos, imagens, "Confirm email") segue como está.
+- **IM-079 (despublicação):** hoje "perfil indisponível retira itens". Pelo ponto 3, o item tem vida própria: despublicar o site não deve retirar o item da vitrine geral, só de dentro do site. Precisa de redação nova (proposta IM-106).
+- **IM-015 e IM-006:** o anúncio particular (item sem perfil) deixa de ser um tipo à parte? Ver pergunta 1 da análise.
+- **IM-102 e `docs/proposta-arquivamento.md`:** a proposta dizia "arquivado não conta nos tetos"; o ponto 5 diz o contrário. Rever a proposta antes de implementar. O ponto 4 acrescenta "excluir".
+- **IM-104:** continua válido; o texto passa a dizer "site".
+- **D-020, IM-097, IM-099 (Loja e plano):** a Loja continua ligada ao site? Ver a análise.
+
+**Ainda não decidido pelo Emerson:** se os 10 itens incluem os anúncios particulares; a quem vale a validade de 7 dias; aviso de vencimento só no painel; renovação com ou sem nova aprovação; prazo como parâmetro.
+
+---
+
 ## Pendências antes do lançamento (Fase 1)
 | Pendência | Situação |
 |---|---|
