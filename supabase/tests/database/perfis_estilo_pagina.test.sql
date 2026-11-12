@@ -34,14 +34,14 @@ select is((select bool_and(relrowsecurity and relforcerowsecurity) from pg_class
 select is((select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'perfis_estilo_pagina'), 4, 'catálogo de estilos: política explícita por operação');
 select is((select bool_or(has_table_privilege(r, 'public.perfis_estilo_pagina', p))
   from unnest(array['anon', 'authenticated']) r, unnest(array['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p), false, 'ninguém escreve direto no catálogo de estilos');
-select is((select count(*)::int from public.perfis_estilo_pagina), 21, 'os 20 estilos de IM-091 e o moto_bike (D-021) existem');
+select is((select count(*)::int from public.perfis_estilo_pagina), 22, 'os 20 estilos de IM-091, o moto_bike (D-021) e o basico (IM-110) existem');
 -- A migração 20261104130000 liberou os estilos 6 a 21; os testes abaixo partem da primeira entrega (D-016), dentro da transação.
-select is((select count(*)::int from public.perfis_estilo_pagina where habilitado), 21, 'liberação inicial: os 21 estilos estão habilitados');
+select is((select count(*)::int from public.perfis_estilo_pagina where habilitado), 22, 'liberação inicial: os 22 estilos estão habilitados (o basico já nasce habilitado)');
 update public.perfis_estilo_pagina set habilitado = false
-  where id not in ('minimalista', 'saude_bem_estar', 'beleza_estetica', 'gastronomia', 'construcao_reformas');
+  where id not in ('minimalista', 'saude_bem_estar', 'beleza_estetica', 'gastronomia', 'construcao_reformas', 'basico');
 select is((select array_agg(id order by id) from public.perfis_estilo_pagina where habilitado),
-  array['beleza_estetica', 'construcao_reformas', 'gastronomia', 'minimalista', 'saude_bem_estar'], 'primeira entrega: só 5 estilos habilitados (D-016)');
-select is((select column_default from information_schema.columns where table_name = 'perfis_perfil' and column_name = 'estilo_pagina'), '''minimalista''::text', 'padrão minimalista');
+  array['basico', 'beleza_estetica', 'construcao_reformas', 'gastronomia', 'minimalista', 'saude_bem_estar'], 'primeira entrega: 5 estilos de D-016 mais o basico (IM-110) habilitados');
+select is((select column_default from information_schema.columns where table_name = 'perfis_perfil' and column_name = 'estilo_pagina'), '''basico''::text', 'padrão dos perfis novos é basico (IM-110)');
 select is(has_column_privilege('authenticated', 'public.perfis_perfil', 'estilo_pagina', 'UPDATE'), false, 'o cliente não altera estilo por UPDATE direto');
 select is(has_column_privilege('anon', 'public.perfis_perfil', 'estilo_pagina', 'SELECT'), true, 'estilo é leitura pública');
 select is(has_function_privilege('anon', 'public.perfis_definir_estilo(uuid,text)', 'EXECUTE')
@@ -54,13 +54,20 @@ select is((select count(*)::int from information_schema.columns where table_name
 select throws_ok($$update public.perfis_estilo_pagina set rotulo = 'Outro' where id = 'pet'$$, '42501', null, 'rótulo do estilo é imutável');
 select throws_ok($$delete from public.perfis_estilo_pagina where id = 'pet'$$, '42501', null, 'estilo não é apagado');
 select throws_ok($$update public.perfis_estilo_pagina set habilitado = false where id = 'minimalista'$$, '23514', null, 'o estilo padrão não pode ficar desabilitado');
-select throws_ok($$insert into public.perfis_estilo_pagina (id, rotulo, ordem) values ('inventado', 'X', 99)$$, '23514', null, 'só os 21 ids fixos existem');
+select throws_ok($$insert into public.perfis_estilo_pagina (id, rotulo, ordem) values ('inventado', 'X', 99)$$, '23514', null, 'só os 22 ids fixos existem');
+
+-- Trocar o default não reescreve perfis existentes (IM-110): um perfil que já está em 'minimalista' continua nele.
+insert into public.perfis_perfil (id, responsavel_id, slug, estilo_pagina) values
+  ('a0000000-0000-0000-0000-000000000009', 'cccccccc-0000-0000-0000-00000000000c', 'loja-antiga', 'minimalista');
+alter table public.perfis_perfil alter column estilo_pagina set default 'basico';
+select is((select estilo_pagina from public.perfis_perfil where id = 'a0000000-0000-0000-0000-000000000009'), 'minimalista', 'perfil existente mantém o estilo ao reafirmar o default');
+select is((select estilo_pagina from public.perfis_perfil where id = 'a0000000-0000-0000-0000-000000000003'), 'basico', 'perfil criado sem escolher nasce basico');
 
 -- ===== Leitura pública =====
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
-select is((select estilo_pagina from public.perfis_perfil_publico where id = 'a0000000-0000-0000-0000-000000000001'), 'minimalista', 'perfil novo é publicado como minimalista');
-select is((select count(*)::int from public.perfis_estilo_pagina), 21, 'visitante lê o catálogo de estilos (21 estilos, D-021)');
+select is((select estilo_pagina from public.perfis_perfil_publico where id = 'a0000000-0000-0000-0000-000000000001'), 'basico', 'perfil novo é publicado como basico (IM-110)');
+select is((select count(*)::int from public.perfis_estilo_pagina), 22, 'visitante lê o catálogo de estilos (22 estilos, D-021, IM-110)');
 select throws_ok($$select public.perfis_definir_estilo('a0000000-0000-0000-0000-000000000001', 'gastronomia')$$, '42501', null, 'anon não define estilo');
 select throws_ok($$update public.perfis_perfil set estilo_pagina = 'premium'$$, '42501', null, 'anon não altera estilo');
 reset role;
@@ -82,7 +89,7 @@ select is((select count(*)::int from public.administracao_auditoria), 0, 'respon
 reset role;
 
 select is((select count(*)::int from public.administracao_auditoria where acao = 'definir_estilo_pagina' and alvo_id = 'a0000000-0000-0000-0000-000000000001'), 1, 'auditoria gravou a troca uma vez (a repetição não duplica)');
-select is((select valor_anterior ->> 'estilo_pagina' from public.administracao_auditoria where acao = 'definir_estilo_pagina'), 'minimalista', 'auditoria guarda o valor anterior');
+select is((select valor_anterior ->> 'estilo_pagina' from public.administracao_auditoria where acao = 'definir_estilo_pagina'), 'basico', 'auditoria guarda o valor anterior');
 select is((select valor_novo ->> 'estilo_pagina' from public.administracao_auditoria where acao = 'definir_estilo_pagina'), 'gastronomia', 'e o novo');
 select is((select autor_id from public.administracao_auditoria where acao = 'definir_estilo_pagina'), 'aaaaaaaa-0000-0000-0000-00000000000a'::uuid, 'e o autor');
 select is((select count(*)::int from public.perfis_perfil_versao where perfil_id = 'a0000000-0000-0000-0000-000000000001'), 1, 'mudar o estilo não cria versão (sem revisão, IM-094)');

@@ -456,6 +456,12 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 3. O layout do site gratuito simples (IM-110) depende do Emerson; sem ele o PR do site simples não começa.
 4. Rascunhos e itens aguardando aprovação contam nos 10 itens (conta todas as linhas não excluídas, como hoje): confirmar se é isso mesmo.
 
+**Atualização de 13/11/2026:** o Emerson aceitou as recomendações do gestor para as dúvidas acima.
+- **A (estilo do site novo):** sites **novos** nascem com o estilo `basico` (22º estilo, IM-110, `docs/modelo-basico-site.md`). O default de `perfis.estilo_pagina` passa a `basico`; sites **existentes mantêm o estilo que têm**. A migração `20261113100000_perfis_estilo_basico.sql` está escrita e **não aplicada**: o `db push` no dev exige "aprovado" do Emerson. A queda segura da leitura pública (estilo recolhido) continua `minimalista` no banco até decisão sobre o padrão do código (`ESTILO_PADRAO`).
+- **Limite diário de criação:** 20 por conta, parâmetro do administrador (dúvida 1).
+- **Aviso de vencimento:** 2 dias antes, só no painel, parâmetro do administrador (dúvida 1).
+- **Rascunhos e itens aguardando aprovação contam nos 10 itens** (dúvida 4); só a exclusão libera vaga (P3).
+
 ---
 
 ---
