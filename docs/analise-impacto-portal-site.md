@@ -142,3 +142,53 @@ Todos em dev, cada um com pgTAP de RLS e isolamento; nenhum depende de produçã
 13. **Terminologia:** "site" também no endereço público (hoje `/perfil/...`)? Sugestão: manter a rota por ora e decidir junto do lançamento, porque mudar rota quebra links já compartilhados.
 14. **Plano básico por ora:** vale 1 site e 10 itens para **todos**, inclusive contas que hoje já têm 3 perfis no dev? Sugestão: contas existentes acima do limite continuam como estão (não perdem nada), só não criam novos.
 15. **Aceita os textos IM-105 a IM-108** da seção 7 (ou ajustes)? Sugestão: aceitar, para o catálogo refletir a D-039 antes de qualquer migração.
+
+---
+
+## 12. Dependências do perfil (se o lançamento NÃO oferecer site gratuito)
+
+Pergunta do Emerson: sem site (perfil) gratuito, que funções ficam inutilizáveis? Só leitura do código e das migrações (sem dados). **Análise, não decisão.** Aqui "perfil" é `perfis_perfil`; "site" é o nome na tela (D-039). `catalogo_item` com `perfil_id` nulo é o anúncio particular / item da conta (IM-015).
+
+Legenda: **Funciona** = funciona só com a conta e o item; **Depende** = exige `perfis_perfil`; **Parcial** = funciona com limitações.
+
+### 12.1 Mapa por função
+
+| # | Função (IDs) | Situação | Evidência |
+|---|---|---|---|
+| 1 | Item/anúncio particular: criar, moderar, publicar (IM-015, IM-021, IM-022) | **Funciona** | `catalogo_item.perfil_id` é opcional; a leitura pública usa `(perfil_id is null or perfis_perfil_disponivel(perfil_id))` (20261024130000:145,164,308; 20261029100000:135). Localização própria na versão (20261029100000) |
+| 2 | Indicar item particular: link, pedido de contato, atribuição (IM-024, IM-025, IM-026) | **Funciona** | `indicacoes_link` e `indicacoes_pedido_contato` têm `perfil_id` OU `item_id` (`check (perfil_id is null) <> (item_id is null)`, 20261030100000:56,79). `indicacoes_resolver_destino` usa o WhatsApp da conta quando o item não tem perfil (20261030110000:19-45) |
+| 3 | Contato público, aviso ao anunciante, painel de pedidos (IM-013, IM-027, IM-028, IM-029) | **Funciona** | Mesmo `indicacoes_resolver_destino` (dono = `i.conta_id`). Página pública `src/app/item/[id]/page.tsx` com formulário e `?ind=` (linha 21) |
+| 4 | Pontos por indicação e duplicidade (IM-032 a IM-035) | **Funciona** | `pontos_lancamento.destino_item_id` existe junto de `destino_perfil_id` (20261031100000:87-96). Chave de duplicidade de item sem perfil: `'conta':<conta_id>` (linhas 265-280). `pontos_parametro` é global, não por perfil |
+| 5 | Benefícios de pontos por negócio (IM-036) | **Depende** | `pontos_beneficio.perfil_id uuid not null references perfis_perfil` (20261031120000:29); criar exige perfil disponível e do usuário (linhas 209-213). Não existe benefício de conta sem site. Resgate ainda não existe no modelo |
+| 6 | Relacionamento: base por negócio, curtir, avisos (IM-039 a IM-045) | **Depende** | `relacionamento_membro.perfil_id not null`, `unique (perfil_id, conta_id)`; `_saida`, `_evento`, `_alternancia` idem (20261101100000:32-62,113). `base_perfil_id` obrigatório quando `incluido_na_base` (linha 82). A própria migração diz: "Anúncio particular (sem perfil) é válido para avisos, mas não tem base" (linha 378). Indicação de item particular é válida e **não entra em base alguma** |
+| 7 | Comissões e redes (IM-063 a IM-070) | **Depende** | "Negócio = perfil comercial" (20261105100000:5). `comissoes_rede` (perfil_id unique), `_oferta`, `_vinculo`, `_assinatura`, `_comissao`, `_lancamento` têm `perfil_id not null` (linhas 44,59,70,109,138,208,243). Oferta exige `i.perfil_id = p_perfil` (20261105110000:154); habilitação é por perfil (`comissoes_modulo_ativo`). Item particular não participa |
+| 8 | Loja de produtos e serviços (IM-097, IM-099) | **Depende** | `loja_liberacao.perfil_id` PK (20261103130000:24); liberação manual por perfil |
+| 9 | Loja de imóveis (IM-098) | **Depende** | Gatilho recusa imóvel sem perfil: "anúncio particular não tem Loja" (20261103140000:69-72) |
+| 10 | Busca e vitrine de itens (IM-011, IM-019) | **Funciona** | `busca_publica` traz item com `left join perfis_perfil_publico` (`perfil_slug` nulo para particular; 20261029100000:189-194). `catalogo_item_publico` usa cidade/UF do item ou do perfil (linhas 130-131) |
+| 11 | Busca de perfis e carrosséis da home (IM-095, IM-096) | **Depende** | `busca_home_secao.tipo_item check in ('perfil')` e a leitura só elege `perfis_perfil` disponíveis (20261103100000:43; 20261103110000:69-73). Sem site, as seções da home ficam vazias: item não entra |
+| 12 | Página como site, banner, menu, estilos (IM-092 a IM-094) | **Depende** | `perfis_perfil`, `perfis_estilo_pagina`, banner (20261102160000, 20261102170000). É o próprio site |
+| 13 | Mapa e rota (IM-018) | **Parcial** | Coordenadas só em `perfis_perfil_versao_local` (20261102190000:51-66). Item particular tem só cidade/UF, sem mapa |
+| 14 | Open Graph e compartilhamento | **Funciona** | Rota `src/app/og/item/[id]` e `generateMetadata` em `src/app/item/[id]/page.tsx:34,59`, além de `og/perfil` |
+| 15 | Curtir a partir do item (IM-043) | **Parcial** | Na página do item, curtir é o do "perfil de origem" (item/[id]/page.tsx:21,132); só se o item tem perfil |
+| 16 | Administração: moderação, suspensão, denúncia, invalidar indicação, auditoria (IM-021, IM-079) | **Funciona** | Denúncia aceita alvo `item` (20261102120000:60,203); consulta de negócios lista item particular (20261029120000:26-63); invalidar indicação trata perfil e item (20261102150000:77). Auditoria é genérica (autor, alvo, motivo) |
+| 17 | Administração: patrocinadores, ocultar perfil (IM-104) | **Parcial** | `administracao_patrocinador.perfil_destino_id` (20261028110000:45); o destino alternativo é texto livre e não exige perfil. Ocultar perfil só faz sentido com perfil |
+| 18 | Tetos de criação (D-035) | **Funciona** | `contas_exigir_teto_criacao` tem tipo `anuncio` (item sem perfil, 10 por conta; 20261109110000:72) e `perfil` (3 por conta). `tetos_perfis_por_conta` tem faixa 1 a 50 (linha 30): **não aceita 0** |
+
+### 12.2 Conclusões
+
+**(a) Lançamento sem site gratuito é viável?** Sim, para o núcleo "anunciar, indicar e pontuar": o anúncio particular funciona de ponta a ponta no formulário, aviso, pedido, atribuição, pontos, duplicidade (IM-032), busca, Open Graph e administração (linhas 1 a 4, 10, 14, 16). Ficam **de fora**, sem uso até existir site: benefícios de pontos (5), base de relacionamento e curtir (6, 15), comissões e redes (7), Loja e imóveis (8, 9), carrosséis da home (11), página-site com banner e estilos (12) e mapa (13). Ou seja, perdem-se justamente relacionamento, comissões e benefícios. Nada do já construído quebra; esses módulos só ficam sem usuário.
+
+**(b) Manter 1 site gratuito limitado é mais seguro?** Sugestão, não decisão: **sim em risco técnico**. Reaproveita sem mudar schema os itens 5 a 9 e 11 a 13 e mantém o que foi verificado (IM-036, IM-039 a IM-045, IM-063 a IM-070, IM-092 a IM-099). `tetos_perfis_por_conta` já é parâmetro auditado (D-035), aceita 1 (faixa 1 a 50), e baixar o valor não afeta contas existentes. O "limitado" quase já existe por padrão: Loja desligada (`loja_liberacao` nasce `false`), comissões desligadas (habilitação só pelo admin) e estilos controlados por liberação (20261104130000). O risco restante é de produto (mais perfis para moderar, IM-021; custo de suporte), não de código. Observação: com tetos no mínimo 1, não existe "0 sites" por parâmetro; sem site gratuito seria preciso esconder a criação de perfil na interface ou exigir liberação por conta (isso ainda não existe).
+
+**(c) Esforço aproximado em PRs** (estimativa):
+
+| Caminho | PRs | O que entra |
+|---|---|---|
+| 1. Sem site gratuito; só item de conta; relacionamento, comissões e benefícios ficam sem uso | 2 a 3 | esconder entradas de interface de perfil, Loja, comissões e benefícios; bloquear criação de perfil sem liberação (hoje só o teto, mínimo 1, limita); textos; testes. Sem mudança de modelo. Validade de 7 dias, exclusão e parâmetros (seção 10, PRs 3 a 6) seguem à parte |
+| 2. Sem site, mas com relacionamento, comissões e benefícios por conta | 8 a 12 | redesenho de `relacionamento_*`, `comissoes_*` (6 tabelas) e `pontos_beneficio`; migração de compatibilidade; reverificação de IM-036, IM-039 a IM-045, IM-063 a IM-070 e IM-032 a IM-035; risco alto em regras verificadas. Não aparenta compensar antes do lançamento |
+| 3. 1 site gratuito limitado (`tetos_perfis_por_conta`=1, estilo simples) | 1 a 2 | ajustar parâmetro e padrões, textos do limite, conferir moderação. O resto já existe. Não inclui regras de plano pago (IM-060, futuro) |
+
+**Dúvidas de requisito para o Emerson** (nenhuma decidida aqui):
+1. Benefícios (IM-036), relacionamento (IM-039 a IM-045) e comissões (IM-063 a IM-070) valem só para quem tem site, ou também para conta com item solto? IM-039 e IM-063 dizem "por empresa" e "por negócio".
+2. O carrossel da home (IM-095, hoje só perfis) deve incluir itens de conta para não ficar vazio sem site?
+3. Quem anuncia item solto tem base de relacionamento: por site ou por conta?
