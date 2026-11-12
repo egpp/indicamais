@@ -368,6 +368,13 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 - **Alerta aberto:** descartar a notificação trata o alerta aberto dela (registrado na auditoria).
 - **Envio em andamento:** se o e-mail já saiu quando o administrador descarta, ele pode chegar sem registro no histórico (consequência aceita do desenho).
 
+
+## D-038 · 12/11/2026 · Ocultar perfil pelo administrador master e Turnstile para logados (IM-104, IM-102, IM-086, D-032)
+**IDs:** IM-104, IM-102, IM-086, IM-027, IM-028. Aceito pelo Emerson em 12/11/2026.
+- **(a) IM-104 aceito:** o administrador master pode ocultar de forma permanente um perfil (opção A: some da vitrine, da busca e do painel do dono; indicações, pontos, comissões e histórico preservados no banco, sem apagar linhas nem cascata). Implementação pós-lançamento, depois do IM-102. Os perfis de teste do dev não vão para a produção (D-003), então não é necessário para o lançamento.
+- **(b) Segurança aceita:** motivo obrigatório (mínimo 10 caracteres), confirmação no servidor, auditoria (autor, data, motivo, valor original) e somente administrador master.
+- **(c) Aviso ao dono:** o dono é avisado quando o administrador ocultar o perfil dele. O aviso não expõe dado privado do visitante e segue os limites do e-mail (D-032). Adotado por recomendação do gestor aceita pelo Emerson ("faça como suas recomendações").
+- **(d) Turnstile para logados:** o Turnstile continua exigido também para quem está logado no formulário de contato até o lançamento; reavaliar depois com dados de uso. Nenhuma dispensa implementada. Adotado por recomendação do gestor aceita pelo Emerson ("faça como suas recomendações").
 ---
 
 ## Pendências antes do lançamento (Fase 1)
