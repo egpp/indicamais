@@ -231,7 +231,10 @@ test.describe("Fase 12 · 22 estilos a 360px (DEV)", () => {
         await focoPorTeclado(page, id);
         await card.getByLabel("Tamanho").selectOption("M");
         await card.getByLabel("Cor").selectOption("azul");
-        await card.getByRole("button", { name: /Adicionar à lista/ }).click();
+        // Básico: o botão é "Tenho interesse" (IM-110); nos outros 21 segue "Adicionar à lista".
+        await card
+          .getByRole("button", { name: id === "basico" ? /Tenho interesse/ : /Adicionar à lista/ })
+          .click();
         await expect(
           page.getByRole("heading", { name: /Sua lista de interesse \(1 item\)/ }),
         ).toBeVisible();
@@ -250,7 +253,7 @@ test.describe("Fase 12 · 22 estilos a 360px (DEV)", () => {
   test("Envio real do contato esvazia a lista (um estilo)", async ({ page }) => {
     await page.goto(`/perfil/${SLUG}`);
     const card = page.locator("#produtos .st-card", { hasText: PROD_A }).first();
-    await card.getByRole("button", { name: /Adicionar à lista/ }).click();
+    await card.getByRole("button", { name: /Adicionar à lista|Tenho interesse/ }).click();
     await page.getByRole("button", { name: "Enviar a lista ao contato" }).click();
     await expect(page.getByLabel("Mensagem")).toHaveValue(new RegExp(PROD_A));
     await page.getByLabel("Seu nome").fill("Teste E2E 360");

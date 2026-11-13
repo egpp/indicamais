@@ -1098,6 +1098,19 @@ html:has(.site) {
   object-fit: cover;
   border-radius: calc(var(--s-raio-pequeno) / 2);
 }
+.st-mini-icone {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--s-raio-pequeno);
+  background: var(--s-destaque-fundo);
+  color: var(--s-destaque-icone);
+}
+.st-mini-icone .st-svg {
+  width: 14px;
+  height: 14px;
+}
 .st-mini-card b {
   color: var(--s-titulo);
   font-family: var(--s-fonte-titulo), var(--s-fonte-texto), sans-serif;

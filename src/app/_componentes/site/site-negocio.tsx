@@ -156,6 +156,8 @@ function CartaoItem({
   variacoes = [],
   acao,
   semPrecoTexto,
+  icones,
+  posicao = 0,
 }: {
   dados: DadosCard;
   url?: string;
@@ -165,6 +167,9 @@ function CartaoItem({
   acao?: ReactNode;
   /** Texto quando o item não tem valor (estilo Básico: "Valores sob consulta"); ausente = não mostra nada. */
   semPrecoTexto?: string;
+  /** Ícones do cartão sem foto, em rodízio pela posição (estilo Básico: conversa, ferramentas, lista). */
+  icones?: NomeIcone[];
+  posicao?: number;
 }) {
   const sobConsulta = !dados.precoTexto || /^sob consulta$/i.test(dados.precoTexto.trim());
   const precoTexto = semPrecoTexto && sobConsulta ? semPrecoTexto : dados.precoTexto;
@@ -175,10 +180,12 @@ function CartaoItem({
           <img src={url} alt="" loading="lazy" decoding="async" />
         ) : (
           <span className="st-card-sem-imagem" aria-hidden="true">
-            <Icone nome="produtos" />
+            <Icone
+              nome={icones && icones.length > 0 ? icones[posicao % icones.length]! : "produtos"}
+            />
           </span>
         )}
-        {precoTexto ? <p className="st-card-preco">{precoTexto}</p> : null}
+        {!semPrecoTexto && precoTexto ? <p className="st-card-preco">{precoTexto}</p> : null}
       </div>
       <div className="st-card-corpo">
         <p className="st-card-tipo">{dados.rotuloTipo}</p>
@@ -192,6 +199,8 @@ function CartaoItem({
           )}
         </h3>
         {dados.descricao ? <p className="st-card-desc">{dados.descricao}</p> : null}
+        {/* Básico: o preço fica no DOM depois da descrição, na mesma ordem em que aparece (leitura de tela). */}
+        {semPrecoTexto && precoTexto ? <p className="st-card-preco">{precoTexto}</p> : null}
         {dados.chips && dados.chips.length > 0 ? (
           <ul className="st-chips st-chips-imovel" aria-label="Características do imóvel">
             {dados.chips.map((c) => (
@@ -213,6 +222,8 @@ function CartaoItem({
     </article>
   );
 }
+
+const ICONES_BASICO: NomeIcone[] = ["conversa", "ferramentas", "lista"];
 
 const rotuloPlural = (g: DetalhesItem["variacoes"][number]) =>
   g.opcoes.length < 2
@@ -472,7 +483,7 @@ export function SiteNegocio({
               </p>
             ) : null}
             <ul className="st-grade-cards">
-              {itensCatalogo.map((i) => {
+              {itensCatalogo.map((i, posicao) => {
                 const d = detalhes.get(i.id) ?? detalhesDoItem(i.descricao);
                 // A descrição do cartão não repete as linhas de variação nem de periodicidade.
                 const dados = dadosDeItem({ ...i, descricao: d.descricao }, [...categorias], local);
@@ -484,6 +495,8 @@ export function SiteNegocio({
                       exemplo={Boolean(exemplo.itens)}
                       variacoes={d.variacoes}
                       semPrecoTexto={basico ? "Valores sob consulta" : undefined}
+                      icones={basico ? ICONES_BASICO : undefined}
+                      posicao={posicao}
                       acao={
                         exemplo.itens ? undefined : (
                           <AcaoCompra

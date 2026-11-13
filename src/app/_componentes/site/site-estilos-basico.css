@@ -183,11 +183,7 @@
 .site-basico .st-card:hover {
   box-shadow: var(--s-sombra-forte);
 }
-.site-basico .st-card-imagem {
-  display: contents;
-}
 .site-basico .st-card-imagem img {
-  order: 1;
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 3;
@@ -195,7 +191,6 @@
 }
 /* Sem foto: ícone em quadrado azul-claro no alto do cartão, como no modelo. */
 .site-basico .st-card-sem-imagem {
-  order: 1;
   width: 56px;
   height: 56px;
   margin: var(--e4) var(--e4) 0;
@@ -208,7 +203,6 @@
   height: 28px;
 }
 .site-basico .st-card-corpo {
-  order: 2;
   padding-bottom: var(--e2);
 }
 .site-basico .st-card-corpo h3 {
@@ -218,9 +212,9 @@
   display: none;
 }
 .site-basico .st-card-preco {
-  order: 3;
   position: static;
-  padding: 0 var(--e4);
+  margin: var(--e3) 0 0;
+  padding: 0;
   background: transparent;
   box-shadow: none;
   color: var(--s-text);
