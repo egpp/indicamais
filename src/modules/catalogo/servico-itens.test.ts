@@ -161,7 +161,7 @@ async function criarPronto(f = fakeBanco()) {
 }
 
 describe("itens: criação (IM-014, IM-015)", () => {
-  it("cria produto de perfil e serviço sem preço", async () => {
+  it("cria produto de site e serviço sem preço", async () => {
     const f = fakeBanco();
     const svc = criarServicoItens(f.banco);
     const r = await svc.criarRascunho({ ...validoPerfil, perfilId: PERFIL });
@@ -177,7 +177,7 @@ describe("itens: criação (IM-014, IM-015)", () => {
     expect(s.ok && s.valor.estado.rotulo).toBe("Rascunho");
   });
 
-  it("anúncio particular fica vinculado à conta, sem perfil", async () => {
+  it("anúncio particular fica vinculado à conta, sem site", async () => {
     const f = fakeBanco();
     const r = await criarServicoItens(f.banco).criarRascunho(valido);
     expect(r.ok && r.valor.anuncioParticular).toBe(true);
@@ -241,7 +241,7 @@ describe("itens: criação (IM-014, IM-015)", () => {
     ["fixo sem valor", { ...valido, preco: { modo: "fixo" } }],
     ["nome muito longo", { ...valido, nome: "a".repeat(101) }],
     ["descrição muito longa", { ...valido, descricao: "a".repeat(1501) }],
-    ["perfil não é uuid", { ...validoPerfil, perfilId: "abc" }],
+    ["site não é uuid", { ...validoPerfil, perfilId: "abc" }],
   ])("recusa %s sem tocar no banco", async (_n, entrada) => {
     const f = fakeBanco();
     const r = await criarServicoItens(f.banco).criarRascunho(entrada);
@@ -679,12 +679,12 @@ describe("itens: localização do anúncio particular (D-008, IM-015)", () => {
     await rejeita({ ...valido, uf: 12 }, "uf");
   });
 
-  it("item de PERFIL com cidade ou UF é recusado (herda do perfil)", async () => {
+  it("item de PERFIL com cidade ou UF é recusado (herda do site)", async () => {
     await rejeita({ ...validoPerfil, perfilId: PERFIL, cidade: "Campinas" }, "cidade");
     await rejeita({ ...validoPerfil, perfilId: PERFIL, uf: "SP" }, "uf");
   });
 
-  it("item de perfil sem localização continua sendo criado, com cidade/UF nulas", async () => {
+  it("item de site sem localização continua sendo criado, com cidade/UF nulas", async () => {
     const f = fakeBanco();
     const r = await criarServicoItens(f.banco).criarRascunho({ ...validoPerfil, perfilId: PERFIL });
     expect(r.ok && r.valor.conteudoEdicao.cidade).toBeNull();
@@ -701,7 +701,7 @@ describe("itens: localização do anúncio particular (D-008, IM-015)", () => {
     expect(!ufRuim.ok && ufRuim.erro.codigo).toBe("VALIDACAO");
   });
 
-  it("edição de item de perfil não aceita cidade nem UF", async () => {
+  it("edição de item de site não aceita cidade nem UF", async () => {
     const f = fakeBanco();
     const svc = criarServicoItens(f.banco);
     const c = await svc.criarRascunho({ ...validoPerfil, perfilId: PERFIL });
@@ -712,7 +712,7 @@ describe("itens: localização do anúncio particular (D-008, IM-015)", () => {
     expect(f.banco.atualizarVersao).not.toHaveBeenCalled();
   });
 
-  it("modelo público do anúncio particular mostra cidade/UF; item de perfil mostra null", () => {
+  it("modelo público do anúncio particular mostra cidade/UF; item de site mostra null", () => {
     const base = {
       id: "i1",
       perfil_id: null,

@@ -20,7 +20,7 @@ function conferirSeguro(r: Response) {
 }
 
 describe("imagem estável de prévia (IM-079, IM-029)", () => {
-  it("perfil publicado: 302 para a URL assinada gerada agora, com cache curto e noindex", async () => {
+  it("site publicado: 302 para a URL assinada gerada agora, com cache curto e noindex", async () => {
     const p = m.novoPerfil({ nome: "Padaria", slug: "padaria" });
     const r = await imagemPreviaPerfil(m.contexto(), "padaria");
     expect(r.status).toBe(302);

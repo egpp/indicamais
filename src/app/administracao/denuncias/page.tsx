@@ -21,7 +21,7 @@ const ROTULO_SITUACAO: Record<SituacaoDenuncia, string> = {
   improcedente: "Improcedente",
 };
 const ROTULO_ALVO = {
-  perfil: "Perfil",
+  perfil: "Site",
   item: "Item",
   conta: "Conta",
   pedido: "Pedido",

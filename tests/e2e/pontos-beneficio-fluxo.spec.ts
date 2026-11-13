@@ -39,7 +39,7 @@ test("proposta do admin: responsável vê, aceita (ativa) e a vitrine anônima o
     [NOME_VENCIDO, "2020-01-01"],
   ]) {
     await admin.goto("/administracao/beneficios");
-    await admin.getByLabel("Identificador do perfil").fill(perfilId!);
+    await admin.getByLabel("Identificador do site").fill(perfilId!);
     await admin.getByLabel("Nome do benefício").fill(nome);
     await admin.getByLabel("Descrição").fill("Benefício de teste automatizado");
     await admin.getByLabel("Pontos necessários").fill("50");

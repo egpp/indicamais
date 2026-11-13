@@ -19,12 +19,12 @@ export default async function PaginaMeusItens() {
   ]);
   const nomes: Record<string, string> = {};
   if (perfis.ok)
-    for (const p of perfis.valor) nomes[p.id] = p.conteudoEdicao.nome ?? "Perfil sem nome";
+    for (const p of perfis.valor) nomes[p.id] = p.conteudoEdicao.nome ?? "Site sem nome";
   const doPerfil = itens.ok ? itens.valor.filter((i) => !i.anuncioParticular) : [];
   return (
     <PainelPagina
       titulo="Meus itens"
-      subtitulo="Produtos e serviços dos seus perfis."
+      subtitulo="Produtos e serviços dos seus sites."
       admin={admin}
       atual="itens"
     >

@@ -60,7 +60,7 @@ export function pendenciasDoPerfil(c: ConteudoPerfil): string[] {
   const p: string[] = [];
   if (!c.nome) p.push("Informe o nome.");
   if (!c.descricaoBreve) p.push("Informe a descrição breve.");
-  if (!c.imagemPath) p.push("Envie a imagem do perfil.");
+  if (!c.imagemPath) p.push("Envie a imagem do site.");
   if (!c.categoriaPrincipalId) p.push("Escolha a categoria principal.");
   if (!c.cidade) p.push("Informe a cidade.");
   if (!c.uf) p.push("Escolha a UF.");

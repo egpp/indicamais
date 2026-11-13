@@ -78,7 +78,7 @@ describe("patrocinadores: leitura pública (IM-020, IM-079)", () => {
     expect(p?.identificacao).toBe("Patrocinado");
   });
 
-  it("destino perfil vira link interno /perfil/<slug>, sem id do perfil", () => {
+  it("destino site vira link interno /perfil/<slug>, sem id do site", () => {
     const [p] = montarCarrossel([
       pub({
         destino_tipo: "perfil",
@@ -100,7 +100,7 @@ describe("patrocinadores: leitura pública (IM-020, IM-079)", () => {
     expect(r.map((p) => p.ordem)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
   });
 
-  it("linhas inutilizáveis somem: sem título, sem imagem, perfil sem slug, tipo desconhecido", () => {
+  it("linhas inutilizáveis somem: sem título, sem imagem, site sem slug, tipo desconhecido", () => {
     const r = montarCarrossel([
       pub({ titulo: " " }),
       pub({ imagem_path: null }),
@@ -246,7 +246,7 @@ describe("patrocinadores: criar", () => {
     });
   });
 
-  it("destino perfil; padrões: ordem 0, inativo, sem período, sem motivo", async () => {
+  it("destino site; padrões: ordem 0, inativo, sem período, sem motivo", async () => {
     const f = fake();
     const base = sem(valido, "textoDestino", "motivo");
     await criarServicoPatrocinadores(f).criarPatrocinador({ ...base, perfilDestinoId: PERFIL });
@@ -285,7 +285,7 @@ describe("patrocinadores: criar", () => {
     }
   });
 
-  it("dois destinos (perfil e texto) são recusados; nenhum destino também", async () => {
+  it("dois destinos (site e texto) são recusados; nenhum destino também", async () => {
     const f = fake();
     const svc = criarServicoPatrocinadores(f);
     const dois = await svc.criarPatrocinador({ ...valido, perfilDestinoId: PERFIL });
@@ -420,7 +420,7 @@ describe("patrocinadores: criar", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("perfil de destino inexistente (23503) vira erro de validação em pt-BR", async () => {
+  it("site de destino inexistente (23503) vira erro de validação em pt-BR", async () => {
     const f = fake({
       criar: async () => ({
         id: null,
@@ -437,7 +437,7 @@ describe("patrocinadores: criar", () => {
       perfilDestinoId: PERFIL,
     });
     expect(!r.ok && r.erro.codigo).toBe("VALIDACAO");
-    expect(!r.ok && r.erro.mensagem).toMatch(/Perfil de destino/);
+    expect(!r.ok && r.erro.mensagem).toMatch(/Site de destino/);
     expect(JSON.stringify(r)).not.toMatch(/foreign key|fkey/);
   });
 

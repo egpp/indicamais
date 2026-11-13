@@ -66,7 +66,7 @@ describe("estilo (IM-091, IM-094)", () => {
     expect(!r.ok && r.erro.codigo).toBe("ESTILO_INDISPONIVEL");
     expect(JSON.stringify(r)).not.toContain("segredo-interno");
   });
-  it("sem login, perfil alheio ou conta suspensa (42501) respondem igual", async () => {
+  it("sem login, site alheio ou conta suspensa (42501) respondem igual", async () => {
     const b = banco({ definirEstilo: async () => err("42501") });
     const r = await criarServicoAparencia(b).definirEstilo({ perfilId: P, estilo: "gastronomia" });
     expect(!r.ok && r.erro.codigo).toBe("SEM_PERMISSAO");
@@ -167,7 +167,7 @@ describe("banners do responsável (IM-093)", () => {
       true,
     );
   });
-  it("imagem de outro perfil, URL, formato ou repetida é recusada", async () => {
+  it("imagem de outro site, URL, formato ou repetida é recusada", async () => {
     const s = criarServicoAparencia(banco());
     const outro = "33333333-3333-4333-8333-333333333333";
     for (const imagem_path of [
@@ -186,7 +186,7 @@ describe("banners do responsável (IM-093)", () => {
     ]);
     expect(r.ok).toBe(false);
   });
-  it("perfil inválido não chega ao banco", async () => {
+  it("site inválido não chega ao banco", async () => {
     const b = banco();
     expect((await criarServicoAparencia(b).gravarBanners("x", [])).ok).toBe(false);
     expect(b.gravarBanners).not.toHaveBeenCalled();
@@ -275,7 +275,7 @@ describe("banners do administrador (IM-093)", () => {
     );
     expect(b.adicionarBannerAdmin).not.toHaveBeenCalled();
   });
-  it("sem permissão 'aprovar' (42501) e perfil indisponível (P0002)", async () => {
+  it("sem permissão 'aprovar' (42501) e site indisponível (P0002)", async () => {
     let r = await criarServicoAparencia(
       banco({ adicionarBannerAdmin: async () => err("42501") }),
     ).adicionarBannerAdmin(entrada);

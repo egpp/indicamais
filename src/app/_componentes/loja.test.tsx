@@ -108,7 +108,7 @@ describe("detalhes e galeria", () => {
   });
 });
 
-describe("filtros dos imóveis do perfil", () => {
+describe("filtros dos imóveis do site", () => {
   it("tem rótulos, preserva ?ind e mostra o erro do preço", () => {
     render(
       <FiltrosImoveis
@@ -205,19 +205,19 @@ describe("cadastro de item com e sem a Loja (IM-097, IM-099)", () => {
     render(
       <FormNovoItem origem="perfil" categorias={[]} perfis={perfis} perfisComLoja={["p-com"]} />,
     );
-    await u.selectOptions(screen.getByLabelText("Perfil"), "p-sem");
+    await u.selectOptions(screen.getByLabelText("Site"), "p-sem");
     expect(screen.queryByRole("option", { name: "Imóvel" })).toBeNull();
     expect(screen.queryByLabelText("Tipo do imóvel")).toBeNull();
-    expect(screen.getByText("Loja não liberada para este perfil.")).toBeTruthy();
+    expect(screen.getByText("Loja não liberada para este site.")).toBeTruthy();
     expect(screen.queryByText(/plano|R\$ \d+.*mês/i)).toBeNull();
   });
 
-  it("com a Loja: Imóvel mostra os campos, em português, e trocar para perfil sem Loja os esconde", async () => {
+  it("com a Loja: Imóvel mostra os campos, em português, e trocar para site sem Loja os esconde", async () => {
     const u = userEvent.setup();
     render(
       <FormNovoItem origem="perfil" categorias={[]} perfis={perfis} perfisComLoja={["p-com"]} />,
     );
-    await u.selectOptions(screen.getByLabelText("Perfil"), "p-com");
+    await u.selectOptions(screen.getByLabelText("Site"), "p-com");
     await u.selectOptions(screen.getByLabelText("Tipo"), "imovel");
     for (const r of [
       "Tipo do imóvel",
@@ -235,7 +235,7 @@ describe("cadastro de item com e sem a Loja (IM-097, IM-099)", () => {
     expect(screen.getByLabelText(/IPTU/)).toBeTruthy();
     expect(screen.getByLabelText(/Aceita financiamento/)).toBeTruthy();
     expect(screen.queryByLabelText(/endereço/i)).toBeNull();
-    await u.selectOptions(screen.getByLabelText("Perfil"), "p-sem");
+    await u.selectOptions(screen.getByLabelText("Site"), "p-sem");
     expect(screen.queryByLabelText("Tipo do imóvel")).toBeNull();
   });
 
@@ -262,7 +262,7 @@ describe("liberação da Loja pelo administrador", () => {
     expect(acaoLoja).not.toHaveBeenCalled();
   });
 
-  it("perfil com a Loja liberada oferece retirar; com motivo, envia uma vez", async () => {
+  it("site com a Loja liberada oferece retirar; com motivo, envia uma vez", async () => {
     const u = userEvent.setup();
     render(
       <FormLiberacaoLoja

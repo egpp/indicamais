@@ -26,7 +26,7 @@ function servico(parcial: Partial<Record<keyof ServicoLoja, unknown>>): ServicoL
 }
 const assinar = vi.fn(async () => ({}));
 
-describe("filtros da Loja do perfil", () => {
+describe("filtros da Loja do site", () => {
   it("lê os filtros da URL e converte o preço máximo de reais para centavos", () => {
     const f = lerFiltrosLoja({ finalidade: "venda", quartos: ["2", "3"], precoMax: "350.000,00" });
     expect(f).toEqual({
@@ -72,7 +72,7 @@ describe("carregarLojaDoPerfil (IM-097, D-020)", () => {
     expect(await carregarLojaDoPerfil(PERFIL, {}, { servico: quebra, assinar })).toBeNull();
   });
 
-  it("sem filtro lista tudo; com filtro lista só os imóveis que casam, do próprio perfil", async () => {
+  it("sem filtro lista tudo; com filtro lista só os imóveis que casam, do próprio site", async () => {
     const s = servico({});
     const sem = await carregarLojaDoPerfil(PERFIL, {}, { servico: s, assinar });
     expect(sem?.itens).toHaveLength(2);
@@ -99,7 +99,7 @@ describe("carregarLojaDoPerfil (IM-097, D-020)", () => {
     expect(r?.erro).toBe("Filtros inválidos.");
   });
 
-  it("perfil sem imóveis ignora os filtros (só catálogo)", async () => {
+  it("site sem imóveis ignora os filtros (só catálogo)", async () => {
     const s = servico({
       listarItensDoPerfil: vi.fn(async () => ({ ok: true, valor: [cartao("a", "produto")] })),
     });

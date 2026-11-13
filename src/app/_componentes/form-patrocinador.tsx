@@ -59,13 +59,13 @@ function CamposPatrocinador({
       />
       <CampoSelect
         nome="perfilDestinoId"
-        rotulo="Perfil de destino"
+        rotulo="Site de destino"
         opcional
         vazio="Nenhum (usar texto)"
         valorInicial={v("perfilDestinoId")}
         erro={erros.perfilDestinoId}
         opcoes={perfis.map((p) => ({ valor: p.id, rotulo: p.nome }))}
-        ajuda="Só perfis publicados. Preencha o perfil OU o texto, não os dois."
+        ajuda="Só sites publicados. Preencha o site OU o texto, não os dois."
       />
       <CampoTextoLongo
         nome="textoDestino"

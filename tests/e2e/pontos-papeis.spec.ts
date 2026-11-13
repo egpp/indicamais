@@ -30,7 +30,7 @@ test.describe("papéis nas rotas de pontos", () => {
     expect(alheio?.status()).toBe(404);
   });
 
-  test("dono comum: sem acesso à administração; benefícios só do próprio perfil", async ({
+  test("dono comum: sem acesso à administração; benefícios só do próprio site", async ({
     page,
   }) => {
     exigirConta("dono");

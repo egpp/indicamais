@@ -108,7 +108,7 @@ export default async function PaginaItemPublico({ params, searchParams }: PagePr
         {perfil ? (
           <p>
             Oferecido por{" "}
-            <Link href={ROTAS_PUBLICAS.perfil(perfil.slug)}>{perfil.nome ?? "ver perfil"}</Link>
+            <Link href={ROTAS_PUBLICAS.perfil(perfil.slug)}>{perfil.nome ?? "ver site"}</Link>
           </p>
         ) : null}
       </article>

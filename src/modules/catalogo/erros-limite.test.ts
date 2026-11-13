@@ -8,11 +8,11 @@ const teto = (chave: string, limite = "limite=3") => ({
 });
 
 describe("teto de criação de item e anúncio (D-035, IM-006, IM-015)", () => {
-  it("itens por perfil", () => {
+  it("itens por site", () => {
     const r = mapearErroBancoCatalogo(teto("tetos_itens_por_perfil", "limite=30"));
     expect(r.codigo).toBe("LIMITE_CONTA");
     expect(r.mensagem).toBe(
-      "Este perfil atingiu o limite de 30 itens. Para cadastrar outro, fale com o suporte.",
+      "Este site atingiu o limite de 30 itens. Para cadastrar outro, fale com o suporte.",
     );
   });
 
@@ -40,9 +40,9 @@ describe("teto de criação de item e anúncio (D-035, IM-006, IM-015)", () => {
     }
   });
 
-  it("sem detail: sem número; chave de perfil ou desconhecida: genérica, sem texto do banco", () => {
+  it("sem detail: sem número; chave de site ou desconhecida: genérica, sem texto do banco", () => {
     expect(mapearErroBancoCatalogo(teto("tetos_itens_por_perfil", "")).mensagem).toBe(
-      "Este perfil atingiu o limite de itens. Para cadastrar outro, fale com o suporte.",
+      "Este site atingiu o limite de itens. Para cadastrar outro, fale com o suporte.",
     );
     for (const chave of ["tetos_perfis_por_conta", "chave_estranha"]) {
       const r = mapearErroBancoCatalogo({

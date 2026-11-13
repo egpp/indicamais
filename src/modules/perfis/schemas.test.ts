@@ -34,8 +34,8 @@ const completo = {
   informacoesSociais: "Atendemos também por encomenda.",
 };
 
-describe("schema do perfil (IM-011, IM-012, IM-016)", () => {
-  it("aceita perfil completo e normaliza WhatsApp, UF, site e áreas", () => {
+describe("schema do site (IM-011, IM-012, IM-016)", () => {
+  it("aceita site completo e normaliza WhatsApp, UF, site e áreas", () => {
     const r = camposPerfilSchema.parse(completo);
     expect(r.whatsappComercial).toBe("+5519999990001");
     expect(r.uf).toBe("SP");
@@ -126,7 +126,7 @@ describe("schema do perfil (IM-011, IM-012, IM-016)", () => {
     ).toBe(true);
   });
 
-  it("novo perfil exige nome ou slug", () => {
+  it("novo site exige nome ou slug", () => {
     expect(novoPerfilSchema.safeParse({}).success).toBe(false);
     expect(novoPerfilSchema.safeParse({ cidade: "Campinas" }).success).toBe(false);
     expect(

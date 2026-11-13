@@ -243,7 +243,7 @@ describe("carrossel de banner (IM-093)", () => {
 });
 
 describe("menu Aparência do painel (D-015, D-016)", () => {
-  it("existe o grupo Aparência e a rota por perfil o destaca", () => {
+  it("existe o grupo Aparência e a rota por site o destaca", () => {
     const g = gruposDoMenu({ geral: false, permissoes: [] });
     expect(g.find((x) => x.id === "aparencia")?.itens.map((i) => i.href)).toEqual([
       "/aparencia",

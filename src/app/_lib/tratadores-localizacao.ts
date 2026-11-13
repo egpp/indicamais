@@ -11,12 +11,12 @@ import { lerCoordenadas } from "./validacao-localizacao";
  */
 export const MENSAGENS_TELA_MAPA = {
   localizado:
-    "Endereço localizado no mapa. O mapa só aparece na página depois que a versão do perfil for aprovada.",
+    "Endereço localizado no mapa. O mapa só aparece na página depois que a versão do site for aprovada.",
   naoLocalizado:
     "Não encontramos este endereço no mapa. Confira endereço, cidade e UF, ou informe as coordenadas abaixo.",
-  semEndereco: "Preencha endereço, cidade e UF do perfil para localizar no mapa.",
+  semEndereco: "Preencha endereço, cidade e UF do site para localizar no mapa.",
   informado:
-    "Coordenadas salvas. O mapa só aparece na página depois que a versão do perfil for aprovada.",
+    "Coordenadas salvas. O mapa só aparece na página depois que a versão do site for aprovada.",
   foraDoBrasil: " Atenção: estas coordenadas ficam fora do Brasil. Confira se estão certas.",
   removido: "Coordenadas removidas. A página fica sem mapa.",
   ligado: "Mapa ligado. Ele aparece na página assim que houver coordenadas na versão aprovada.",

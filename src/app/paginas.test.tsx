@@ -166,8 +166,8 @@ describe("administração: acesso restrito (IM-077)", () => {
   });
 });
 
-describe("responsável: prévia e perfil (IM-017, IM-022, IM-079)", () => {
-  it("a prévia mostra o perfil no formato público, sem o WhatsApp comercial", async () => {
+describe("responsável: prévia e site (IM-017, IM-022, IM-079)", () => {
+  it("a prévia mostra o site no formato público, sem o WhatsApp comercial", async () => {
     const id = await perfilPronto(ANA, false);
     como(ANA);
     const tela = render(await PaginaPreviaPerfil(args({ id })));
@@ -182,7 +182,7 @@ describe("responsável: prévia e perfil (IM-017, IM-022, IM-079)", () => {
     }
   });
 
-  it("detalhe do perfil em rascunho avisa que não foi enviado e oferece o envio no topo; a lista traz a etiqueta", async () => {
+  it("detalhe do site em rascunho avisa que não foi enviado e oferece o envio no topo; a lista traz a etiqueta", async () => {
     const id = await perfilPronto(ANA, false);
     como(ANA);
     render(await PaginaPerfil(args({ id })));
@@ -210,11 +210,11 @@ describe("responsável: prévia e perfil (IM-017, IM-022, IM-079)", () => {
     );
     const id = /meus-perfis\/([0-9a-f-]{36})/.exec(r.destino!)![1]!;
     render(await PaginaPreviaPerfil(args({ id })));
-    expect(screen.getByText("Envie a imagem do perfil.")).toBeTruthy();
+    expect(screen.getByText("Envie a imagem do site.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Enviar para aprovação" })).toBeNull();
   });
 
-  it("perfil de outra conta é 404", async () => {
+  it("site de outra conta é 404", async () => {
     const id = await perfilPronto(ANA, false);
     como(BIA);
     await expect(PaginaPerfil(args({ id }))).rejects.toThrow("NEXT_NOT_FOUND");
@@ -244,7 +244,7 @@ describe("responsável: prévia e perfil (IM-017, IM-022, IM-079)", () => {
     expect(
       screen.getByText("A versão aprovada continua no ar enquanto esta edição não for aprovada."),
     ).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Despublicar perfil" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Despublicar site" })).toBeTruthy();
     expect((screen.getByLabelText(/WhatsApp comercial/) as HTMLInputElement).value).toBe(
       WHATSAPP_DIGITADO,
     );
@@ -265,7 +265,7 @@ describe("responsável: prévia e perfil (IM-017, IM-022, IM-079)", () => {
 });
 
 describe("itens, anúncios e revisões (IM-014, IM-015, IM-023)", () => {
-  it("lista separa itens de perfil e anúncios particulares", async () => {
+  it("lista separa itens de site e anúncios particulares", async () => {
     const perfilId = await perfilPronto(ANA, false);
     const ctx = como(ANA);
     const base = {

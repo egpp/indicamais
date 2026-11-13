@@ -56,7 +56,7 @@ export interface ClienteBancoNotificacoes {
 function nomePublico(nome: string | null, tipo: string): string {
   const limpo = (nome ?? "").replace(INVISIVEIS_GLOBAL, " ").replace(/\s+/g, " ").trim();
   if (limpo) return Array.from(limpo).slice(0, LIMITES.link.nomeDestinoMax).join("");
-  return tipo === "item" ? "seu anúncio" : "seu perfil";
+  return tipo === "item" ? "seu anúncio" : "seu site";
 }
 
 /** IM-050: o único texto que o responsável recebe por e-mail. */

@@ -79,7 +79,7 @@ describe("Fase 8: estilo da página (IM-091, IM-094)", () => {
     expect(estilo).not.toMatch(/grant update \([^)]*estilo_pagina/i);
   });
 
-  it("a escolha é só por RPC auditada, restrita ao próprio perfil e a conta com acesso", () => {
+  it("a escolha é só por RPC auditada, restrita ao próprio site e a conta com acesso", () => {
     const c = corpo(estilo, "perfis_definir_estilo");
     expect(c).toMatch(/security definer set search_path = ''/);
     expect(c).toMatch(/responsavel_id = v_uid/);
@@ -130,7 +130,7 @@ describe("Fase 8: banner rotativo (IM-093, IM-012)", () => {
     expect(tabela).not.toMatch(/\b(url|link|href|site)\b/i);
   });
 
-  it("texto alternativo obrigatório, caminho opaco na pasta do perfil e tipo de arquivo", () => {
+  it("texto alternativo obrigatório, caminho opaco na pasta do site e tipo de arquivo", () => {
     expect(banner).toMatch(/texto_alternativo text not null/);
     expect(banner).toMatch(/char_length\(btrim\(texto_alternativo\)\) between 1 and 200/);
     expect(banner).toMatch(/'\^perfil\/' \|\| perfil_id::text/);
@@ -178,7 +178,7 @@ describe("Fase 8: banner rotativo (IM-093, IM-012)", () => {
     }
   });
 
-  it("leitura pública: só ativo, de perfil disponível, aprovado ou aceito (despublicar e suspender ocultam)", () => {
+  it("leitura pública: só ativo, de site disponível, aprovado ou aceito (despublicar e suspender ocultam)", () => {
     const v = banner.match(/create view public\.perfis_banner_publico[\s\S]*?;/i)![0];
     expect(v).toMatch(/security_invoker = true/);
     expect(v).toMatch(/b\.ativo/);
@@ -349,7 +349,7 @@ describe("Fase 8: mapa do OpenStreetMap, coordenadas do endereço (IM-018, IM-09
     expect(v).toMatch(/where p\.publicado/);
   });
 
-  it("política pública exige perfil disponível e versão aprovada", () => {
+  it("política pública exige site disponível e versão aprovada", () => {
     const pol = mapa.match(/create policy perfis_local_select_publico[\s\S]*?;/i)![0];
     expect(pol).toMatch(/perfis_perfil_disponivel\(perfil_id\)/);
     expect(pol).toMatch(/versao_aprovada_id = perfis_perfil_versao_local\.versao_id/);

@@ -325,12 +325,12 @@ describe("Indique (IM-024)", () => {
     a.unmount();
 
     acaoLink.mockResolvedValueOnce({
-      erro: "Você não pode gerar link de indicação para o seu próprio perfil ou anúncio.",
+      erro: "Você não pode gerar link de indicação para o seu próprio site ou anúncio.",
       passo: "autoindicacao",
     });
     render(<IndicarDestino {...props} />);
     await u.click(screen.getByRole("button", { name: "Indique esta empresa" }));
-    expect(await screen.findByText(/seu próprio perfil ou anúncio/)).toBeTruthy();
+    expect(await screen.findByText(/seu próprio site ou anúncio/)).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Cadastrar meu WhatsApp" })).toBeNull();
     expect(screen.queryByLabelText("Seu link de indicação")).toBeNull();
   });

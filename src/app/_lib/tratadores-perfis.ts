@@ -20,8 +20,8 @@ export const MENSAGENS_TELA_PERFIL = {
     "Edição salva como rascunho. Ela ainda NÃO foi enviada: clique em Enviar para aprovação. A versão aprovada continua no ar até a nova ser aprovada.",
   imagensSalvas: "Imagens salvas.",
   enviado: "Enviado para aprovação. O resultado aparece em Minhas revisões.",
-  publicado: "Perfil publicado.",
-  despublicado: "Perfil despublicado. Ele saiu do ar agora.",
+  publicado: "Site publicado.",
+  despublicado: "Site despublicado. Ele saiu do ar agora.",
   enderecoSalvo: "Endereço da página atualizado.",
 } as const;
 

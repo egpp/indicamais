@@ -81,7 +81,7 @@ test.describe("responsável: seção Mapa e prévia dos estilos", () => {
     await page.goto(`/meus-perfis/${id}`);
     const secao = page.getByRole("region", { name: "Mapa" });
     await expect(secao).toBeVisible();
-    await expect(secao.getByText(/depois que a versão do perfil for aprovada/)).toBeVisible();
+    await expect(secao.getByText(/depois que a versão do site for aprovada/)).toBeVisible();
     await expect(secao.getByText(/fornecido pelo OpenStreetMap/).first()).toBeVisible();
     const chave = secao.getByRole("switch");
     await expect(chave).toBeVisible();

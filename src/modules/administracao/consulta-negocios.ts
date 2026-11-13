@@ -115,7 +115,7 @@ export function rotuloSituacaoNegocio(situacao: string | null, temVersaoAprovada
 }
 
 function rotuloTipo(tipo: "perfil" | "item", itemTipo: string | null): string {
-  if (tipo === "perfil") return "Perfil";
+  if (tipo === "perfil") return "Site";
   if (itemTipo === "servico") return "Serviço";
   if (itemTipo === "produto") return "Produto";
   if (itemTipo === "imovel") return "Imóvel";
@@ -140,7 +140,7 @@ export function paraNegocioConsultado(l: LinhaConsultaNegocio): NegocioConsultad
     chave: `${tipo}:${l.alvo_id}`,
     tipo,
     tipoRotulo: rotuloTipo(tipo, l.item_tipo),
-    nome: l.nome?.trim() || (tipo === "perfil" ? "Perfil sem nome" : "Item sem nome"),
+    nome: l.nome?.trim() || (tipo === "perfil" ? "Site sem nome" : "Item sem nome"),
     categoria: l.categoria,
     local,
     donoId: l.dono_id,

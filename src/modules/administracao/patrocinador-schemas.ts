@@ -99,7 +99,7 @@ function validarCruzado(v: Comum, ctx: z.RefinementCtx): void {
     ctx.addIssue({
       code: "custom",
       path: [temPerfil ? "textoDestino" : "perfilDestinoId"],
-      message: "Escolha um perfil OU escreva um texto de destino (apenas um dos dois).",
+      message: "Escolha um site OU escreva um texto de destino (apenas um dos dois).",
     });
   }
   if (v.inicioEm && v.fimEm && Date.parse(v.fimEm) <= Date.parse(v.inicioEm)) {

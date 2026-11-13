@@ -4,13 +4,13 @@ import type { ErroBanco } from "@/shared/conteudo/resultado";
 /** Mensagens ao usuário (pt-BR). Nunca incluem texto vindo do banco. */
 export const MENSAGENS_PERFIS = {
   generica: "Não foi possível concluir agora. Tente novamente em instantes.",
-  naoEncontrado: "Perfil não encontrado.",
+  naoEncontrado: "Site não encontrado.",
   semPermissao: "Você não tem permissão para esta ação.",
-  emAnalise: "Este perfil está em análise. Aguarde a decisão antes de editar.",
-  naoAprovado: "Só é possível publicar um perfil depois de aprovado.",
+  emAnalise: "Este site está em análise. Aguarde a decisão antes de editar.",
+  naoAprovado: "Só é possível publicar um site depois de aprovado.",
   incompleto: "Preencha os campos obrigatórios antes de enviar para aprovação.",
-  conflito: "Já existe uma edição em andamento neste perfil. Recarregue a página.",
-  nenhumRascunho: "Não há rascunho para enviar. Edite o perfil e tente de novo.",
+  conflito: "Já existe uma edição em andamento neste site. Recarregue a página.",
+  nenhumRascunho: "Não há rascunho para enviar. Edite o site e tente de novo.",
   slugIndisponivel: "Este endereço já está em uso. Escolha outro.",
   slugCongelado: "O endereço não pode mais ser alterado depois da primeira aprovação.",
   categoriaInvalida: "Confira as categorias escolhidas.",
@@ -30,8 +30,8 @@ export function mensagemLimitePerfis(
 ): string {
   if (chave === "tetos_perfis_por_conta") {
     return limite === null
-      ? "Você atingiu o limite de perfis comerciais por conta. Para criar outro, fale com o suporte."
-      : `Você atingiu o limite de ${limite} ${limite === 1 ? "perfil comercial" : "perfis comerciais"} por conta. Para criar outro, fale com o suporte.`;
+      ? "Você atingiu o limite de sites comerciais por conta. Para criar outro, fale com o suporte."
+      : `Você atingiu o limite de ${limite} ${limite === 1 ? "site comercial" : "sites comerciais"} por conta. Para criar outro, fale com o suporte.`;
   }
   return limite === null
     ? "Você atingiu o limite de rascunhos abertos. Envie um para aprovação antes de criar outro, ou fale com o suporte."

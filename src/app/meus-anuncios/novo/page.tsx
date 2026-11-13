@@ -15,7 +15,7 @@ export default async function PaginaNovoAnuncio() {
   return (
     <PainelPagina
       titulo="Novo anúncio"
-      subtitulo="Anúncio particular, sem perfil comercial. Passa por aprovação antes de aparecer."
+      subtitulo="Anúncio particular, sem site comercial. Passa por aprovação antes de aparecer."
       atual="anuncios"
     >
       {erro ? <Aviso tipo="erro">{erro}</Aviso> : null}

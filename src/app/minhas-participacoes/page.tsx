@@ -27,16 +27,16 @@ export default async function PaginaMinhasParticipacoes({
   return (
     <PainelPagina
       titulo="Minhas participações"
-      subtitulo="Perfis em que você curtiu ou cujas indicações geraram contato."
+      subtitulo="Sites em que você curtiu ou cujas indicações geraram contato."
       admin={admin}
       atual="participacoes"
     >
-      {aviso === "saiu" ? <Aviso tipo="sucesso">Você saiu da base deste perfil.</Aviso> : null}
+      {aviso === "saiu" ? <Aviso tipo="sucesso">Você saiu da base deste site.</Aviso> : null}
       {!participacoes.ok ? (
         <Aviso tipo="erro">{participacoes.erro.mensagem}</Aviso>
       ) : participacoes.valor.length === 0 ? (
         <p className="ajuda">
-          Você ainda não participa da base de nenhum perfil.{" "}
+          Você ainda não participa da base de nenhum site.{" "}
           <Link href="/">Ir para a página inicial</Link>
         </p>
       ) : (
@@ -44,7 +44,7 @@ export default async function PaginaMinhasParticipacoes({
           {participacoes.valor.map((p) => (
             <li key={p.perfilId} className="cartao">
               <h2>
-                <Link href={ROTAS_PUBLICAS.perfil(p.perfilSlug)}>{p.perfilNome || "Perfil"}</Link>
+                <Link href={ROTAS_PUBLICAS.perfil(p.perfilSlug)}>{p.perfilNome || "Site"}</Link>
               </h2>
               <p>
                 {p.curtiu ? <SeloEstado rotulo="Curtiu" /> : null}{" "}
@@ -60,7 +60,7 @@ export default async function PaginaMinhasParticipacoes({
               {p.curtiu ? (
                 <CurtirPerfil perfilId={p.perfilId} logado curtiu retorno="/minhas-participacoes" />
               ) : null}
-              <SairDaBase perfilId={p.perfilId} perfilNome={p.perfilNome || "este perfil"} />
+              <SairDaBase perfilId={p.perfilId} perfilNome={p.perfilNome || "este site"} />
             </li>
           ))}
         </ul>

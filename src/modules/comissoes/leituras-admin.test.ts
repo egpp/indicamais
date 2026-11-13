@@ -286,7 +286,7 @@ describe("vínculos: vencido derivado e prazo vigente (IM-068, IM-072)", () => {
 });
 
 describe("nome público para o indicador (IM-072)", () => {
-  it("devolve nome e slug, com nulos quando o perfil não é público", async () => {
+  it("devolve nome e slug, com nulos quando o site não é público", async () => {
     const r = await servico({
       listarNegociosVinculados: vi.fn(
         ok([

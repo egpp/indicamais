@@ -17,14 +17,14 @@ export default async function PaginaBanners() {
   return (
     <PainelPagina
       titulo="Banners da página"
-      subtitulo="Escolha de qual perfil você quer cuidar dos banners."
+      subtitulo="Escolha de qual site você quer cuidar dos banners."
       atual="aparencia"
     >
       {!r.ok ? (
         <Aviso tipo="erro">{r.erro.mensagem}</Aviso>
       ) : r.valor.length === 0 ? (
         <Aviso tipo="info">
-          Você ainda não tem perfis. <Link href="/meus-perfis/novo">Crie o primeiro</Link> para
+          Você ainda não tem sites. <Link href="/meus-perfis/novo">Crie o primeiro</Link> para
           montar o banner da página.
         </Aviso>
       ) : (
@@ -33,7 +33,7 @@ export default async function PaginaBanners() {
             <li key={p.id} className="cartao">
               <h2>
                 <Link href={`/meus-perfis/${p.id}/banners`}>
-                  {p.conteudoEdicao.nome ?? "Perfil sem nome"}
+                  {p.conteudoEdicao.nome ?? "Site sem nome"}
                 </Link>
               </h2>
             </li>

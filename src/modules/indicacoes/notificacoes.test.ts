@@ -69,7 +69,7 @@ describe("e-mail ao responsável (IM-027, IM-050)", () => {
       { emailResponsavel: "a@b.com", destinoTipo: "perfil", destinoNome: "  " },
       PAINEL,
     );
-    expect(perfil.texto).toContain("em seu perfil.");
+    expect(perfil.texto).toContain("em seu site.");
     const sujo = montarEmailNovoPedido(
       { emailResponsavel: "a@b.com", destinoTipo: "perfil", destinoNome: "Loja\n\nCC: x@y.com" },
       PAINEL,

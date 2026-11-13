@@ -10,9 +10,9 @@ import type { EstadoRelacionamento } from "./estado-relacionamento";
  * Nenhuma mensagem promete pontos, benefício ou ganho por curtir (IM-042).
  */
 export const MENSAGENS_TELA_RELACIONAMENTO = {
-  curtiu: "Você curtiu este perfil.",
+  curtiu: "Você curtiu este site.",
   descurtiu: "Curtida removida.",
-  saiu: "Você saiu da base deste perfil.",
+  saiu: "Você saiu da base deste site.",
   marcada: "Aviso marcado como lido.",
   todasMarcadas: "Todos os avisos foram marcados como lidos.",
 } as const;

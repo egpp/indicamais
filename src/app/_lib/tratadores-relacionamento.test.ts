@@ -41,11 +41,11 @@ const form = (o: Record<string, string>) => {
 describe("tratadores de relacionamento (IM-043, IM-042)", () => {
   it("curtir com sucesso responde mensagem neutra, sem pontos nem ganho", async () => {
     const e = await curtirPerfil(ctx(ok(true)), form({ perfilId: PERFIL }));
-    expect(e.sucesso).toBe("Você curtiu este perfil.");
+    expect(e.sucesso).toBe("Você curtiu este site.");
     expect(JSON.stringify(e)).not.toMatch(/ponto|ganh|benef|comiss/i);
   });
   it.each([
-    ["P0403", /próprio perfil/],
+    ["P0403", /próprio site/],
     ["P0429", /Muitas alterações/],
     ["P0002", /não está disponível/],
   ])("erro %s vira mensagem neutra do módulo", async (codigo, texto) => {
@@ -88,7 +88,7 @@ describe("caminhoDoAviso (IM-052)", () => {
     } as never;
     expect(await caminhoDoAviso(b, slug)).toBe("/meus-itens/i1");
   });
-  it("banner aguardando aceite abre os banners do perfil (IM-093)", async () => {
+  it("banner aguardando aceite abre os banners do site (IM-093)", async () => {
     const a = {
       ...base,
       origem: "banner_aceite",

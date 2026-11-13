@@ -7,19 +7,19 @@ const teto = (chave: string, limite = "limite=3") => ({
   details: limite,
 });
 
-describe("teto de criação de perfil (D-035, IM-006, IM-015)", () => {
-  it("perfis por conta: mensagem com o limite vigente e sem prometer exclusão", () => {
+describe("teto de criação de site (D-035, IM-006, IM-015)", () => {
+  it("sites por conta: mensagem com o limite vigente e sem prometer exclusão", () => {
     const r = mapearErroBancoPerfis(teto("tetos_perfis_por_conta", "limite=5"));
     expect(r.codigo).toBe("LIMITE_CONTA");
     expect(r.mensagem).toBe(
-      "Você atingiu o limite de 5 perfis comerciais por conta. Para criar outro, fale com o suporte.",
+      "Você atingiu o limite de 5 sites comerciais por conta. Para criar outro, fale com o suporte.",
     );
     expect(r.mensagem).not.toMatch(/exclu|apag|arquiv|remov/i);
   });
 
   it("limite 1 usa o singular", () => {
     expect(mapearErroBancoPerfis(teto("tetos_perfis_por_conta", "limite=1")).mensagem).toContain(
-      "limite de 1 perfil comercial por conta",
+      "limite de 1 site comercial por conta",
     );
   });
 
@@ -33,7 +33,7 @@ describe("teto de criação de perfil (D-035, IM-006, IM-015)", () => {
   it("sem detail: mensagem sem número", () => {
     const r = mapearErroBancoPerfis(teto("tetos_perfis_por_conta", ""));
     expect(r.mensagem).toBe(
-      "Você atingiu o limite de perfis comerciais por conta. Para criar outro, fale com o suporte.",
+      "Você atingiu o limite de sites comerciais por conta. Para criar outro, fale com o suporte.",
     );
   });
 

@@ -106,7 +106,7 @@ function fakeBanco(contaId = DONO, slugsOcupados: string[] = []) {
     })),
     gravarVersao: vi.fn(async (pid, c) => {
       if (!meu(pid)) {
-        return { dados: null, erro: { code: "42501", message: "perfil não encontrado" } };
+        return { dados: null, erro: { code: "42501", message: "site não encontrado" } };
       }
       if (!c.whatsapp_comercial_e164) {
         return {
@@ -220,8 +220,8 @@ async function publicado() {
   return { ...ctx, versaoAprovadaId: v.id };
 }
 
-describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
-  it("cria perfil + rascunho com slug do nome e WhatsApp normalizado", async () => {
+describe("sites: criar rascunho (IM-006, IM-011, IM-012)", () => {
+  it("cria site + rascunho com slug do nome e WhatsApp normalizado", async () => {
     const f = fakeBanco();
     const c = await criarServicoPerfis(f.banco).criarRascunho(valido);
     if (!c.ok) throw new Error();
@@ -238,7 +238,7 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
     expect(f.donos.get(perfil.id)).toBe(DONO);
   });
 
-  it("uma conta pode ter vários perfis; slug gerado ganha sufixo se já existir", async () => {
+  it("uma conta pode ter vários sites; slug gerado ganha sufixo se já existir", async () => {
     const f = fakeBanco(DONO, ["padaria-pao-quente"]);
     const svc = criarServicoPerfis(f.banco);
     const a = await svc.criarRascunho(valido);
@@ -324,7 +324,7 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
     expect(f.perfis.size).toBe(0);
   });
 
-  it("imagens não entram na criação (o perfil precisa existir antes do upload)", async () => {
+  it("imagens não entram na criação (o site precisa existir antes do upload)", async () => {
     const f = fakeBanco();
     await criarServicoPerfis(f.banco).criarRascunho({
       ...valido,
@@ -364,7 +364,7 @@ describe("perfis: criar rascunho (IM-006, IM-011, IM-012)", () => {
   });
 });
 
-describe("perfis: prévia e envio (IM-017, IM-021)", () => {
+describe("sites: prévia e envio (IM-017, IM-021)", () => {
   it("prévia no formato público, sem WhatsApp nem responsável, e sem publicar", async () => {
     const { svc, perfil, perfis } = await criarPronto();
     const r = await svc.previa(perfil.id);
@@ -387,7 +387,7 @@ describe("perfis: prévia e envio (IM-017, IM-021)", () => {
     expect(!r.ok && r.erro.codigo).toBe("INCOMPLETO");
     expect(!r.ok && r.erro.pendencias).toEqual([
       "Informe a descrição breve.",
-      "Envie a imagem do perfil.",
+      "Envie a imagem do site.",
       "Escolha a categoria principal.",
       "Informe a cidade.",
       "Escolha a UF.",
@@ -414,7 +414,7 @@ describe("perfis: prévia e envio (IM-017, IM-021)", () => {
   });
 });
 
-describe("perfis: edição e versões (IM-022)", () => {
+describe("sites: edição e versões (IM-022)", () => {
   it("editar rascunho atualiza a mesma versão", async () => {
     const { svc, perfil, versoes } = await criarPronto();
     const r = await svc.editar(perfil.id, { descricaoBreve: "Nova descrição" });
@@ -474,7 +474,7 @@ describe("perfis: edição e versões (IM-022)", () => {
     expect(!r2.ok && r2.erro.codigo).toBe("EM_ANALISE");
   });
 
-  it("imagens: só caminhos opacos da pasta do PRÓPRIO perfil; limites 6 fotos e 3 banners", async () => {
+  it("imagens: só caminhos opacos da pasta do PRÓPRIO site; limites 6 fotos e 3 banners", async () => {
     const { svc, perfil } = await criarPronto();
     const id = perfil.id;
     const fotos = (n: number) => Array.from({ length: n }, (_, i) => img(id, 10 + i, "webp"));
@@ -503,7 +503,7 @@ describe("perfis: edição e versões (IM-022)", () => {
     }
   });
 
-  it("editar perfil público cria versão nova (copiando o contato) e mantém a aprovada no ar", async () => {
+  it("editar site público cria versão nova (copiando o contato) e mantém a aprovada no ar", async () => {
     const { svc, perfil, versoes, perfis, versaoAprovadaId, contatos } = await publicado();
     const r = await svc.editar(perfil.id, { nome: "Padaria Nova" });
     expect(r.ok && r.valor.criouNovaVersao).toBe(true);
@@ -543,7 +543,7 @@ describe("perfis: edição e versões (IM-022)", () => {
     expect(o.ok && o.valor.estado.rotulo).toBe("Edição rejeitada");
   });
 
-  it("editar perfil DESPUBLICADO não o republica", async () => {
+  it("editar site DESPUBLICADO não o republica", async () => {
     const { svc, perfil, banco, perfis } = await publicado();
     const d = await svc.despublicar(perfil.id);
     expect(d.ok && d.valor.publicado).toBe(false);
@@ -597,7 +597,7 @@ describe("perfis: edição e versões (IM-022)", () => {
     expect(vazia.ok && vazia.valor).toEqual([]);
   });
 
-  it("perfil de outra conta é tratado como inexistente", async () => {
+  it("site de outra conta é tratado como inexistente", async () => {
     const f = fakeBanco();
     const svc = criarServicoPerfis(f.banco);
     const c = await svc.criarRascunho(valido);
@@ -624,7 +624,7 @@ describe("perfis: edição e versões (IM-022)", () => {
   });
 });
 
-describe("perfis: slug congelado depois da primeira aprovação", () => {
+describe("sites: slug congelado depois da primeira aprovação", () => {
   it("antes da aprovação o slug pode mudar; reservado e duplicado são recusados", async () => {
     const { svc, perfil, slugs } = await criarPronto();
     slugs.add("ocupado");
@@ -645,7 +645,7 @@ describe("perfis: slug congelado depois da primeira aprovação", () => {
   });
 });
 
-describe("perfis: publicar e despublicar (IM-079)", () => {
+describe("sites: publicar e despublicar (IM-079)", () => {
   it("despublicar é imediato; a versão aprovada permanece", async () => {
     const { svc, perfil } = await publicado();
     const r = await svc.despublicar(perfil.id);
@@ -657,7 +657,7 @@ describe("perfis: publicar e despublicar (IM-079)", () => {
   });
 });
 
-describe("perfis: erros do banco (23505, 23514, 42501) sem vazar texto", () => {
+describe("sites: erros do banco (23505, 23514, 42501) sem vazar texto", () => {
   it("mapeia para mensagens pt-BR genéricas", () => {
     const segredo = "SEGREDO-DO-BANCO";
     const casos = [
@@ -672,7 +672,7 @@ describe("perfis: erros do banco (23505, 23514, 42501) sem vazar texto", () => {
       { code: "42501", message: segredo },
       { code: "XX000", message: segredo },
       { code: "P0001", message: `versão pendente não pode ser editada ${segredo}` },
-      { code: "42501", message: `perfil não encontrado ${segredo}` },
+      { code: "42501", message: `site não encontrado ${segredo}` },
     ];
     for (const c of casos) {
       const e = mapearErroBancoPerfis(c);
@@ -711,7 +711,7 @@ describe("perfis: erros do banco (23505, 23514, 42501) sem vazar texto", () => {
   });
 });
 
-describe("perfis: privacidade dos modelos públicos (IM-029)", () => {
+describe("sites: privacidade dos modelos públicos (IM-029)", () => {
   const linhaPublica = {
     id: "p1",
     slug: "padaria",
@@ -787,7 +787,7 @@ describe("perfis: privacidade dos modelos públicos (IM-029)", () => {
   });
 });
 
-describe("perfis: obterVersaoParaRevisao (IM-021, IM-023, IM-029)", () => {
+describe("sites: obterVersaoParaRevisao (IM-021, IM-023, IM-029)", () => {
   const ADMIN = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
   /** Banco do administrador: lê qualquer versão; o WhatsApp e um dono "vazam" na linha de propósito. */

@@ -69,7 +69,7 @@ function semMarcacaoInjetada() {
 }
 
 describe("XSS: texto de usuário é sempre texto (IM-086)", () => {
-  it("perfil público escapa nome, descrição, endereço e áreas; metadados guardam o texto cru para o framework escapar", async () => {
+  it("site público escapa nome, descrição, endereço e áreas; metadados guardam o texto cru para o framework escapar", async () => {
     const p = m.novoPerfil({
       nome: XSS_NOME,
       slug: "xss-perfil",
@@ -251,7 +251,7 @@ describe("/administracao/negocios (D-009, IM-077 parte, IM-029)", () => {
       }),
       linhaAdm({
         alvo_id: "00000000-0000-4000-8000-0000000000c3",
-        nome: "Perfil <script>1</script>",
+        nome: "Site <script>1</script>",
         slug: "perfil-slug",
         disponivel: false,
         situacao: "rascunho",

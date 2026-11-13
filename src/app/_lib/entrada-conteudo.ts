@@ -174,4 +174,4 @@ export function perfilObrigatorioFaltando(ler: Ler): boolean {
   return ler("origem") === "perfil" && vazioParaNulo(ler("perfilId")) === null;
 }
 
-export const MENSAGEM_ESCOLHA_PERFIL = "Escolha o perfil do item.";
+export const MENSAGEM_ESCOLHA_PERFIL = "Escolha o site do item.";

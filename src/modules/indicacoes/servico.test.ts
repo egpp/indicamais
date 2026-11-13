@@ -57,7 +57,7 @@ const erroSimples = (code: string) => async () => ({
 });
 
 describe("gerarLink (IM-024)", () => {
-  it("perfil: URL do destino com ?ind=, texto e wa.me", async () => {
+  it("site: URL do destino com ?ind=, texto e wa.me", async () => {
     const b = fake();
     const r = await servico(b).gerarLink({
       tipo: "perfil",
