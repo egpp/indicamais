@@ -1,5 +1,5 @@
 /**
- * Fase 12 · e2e a 360px dos 21 estilos com plano e variações reais (IM-097, IM-101, D-022, D-023) no DEV.
+ * Fase 12 · e2e a 360px dos 22 estilos com plano e variações reais (IM-097, IM-101, D-022, D-023) no DEV.
  * Itens FIXOS (obterItemFixo: reaproveita a capa, não envia imagem nova; a cota do dev não cresce). A Loja do perfil de
  * teste é ligada pelo admin E2E (motivo registrado) e DESLIGADA no fim (finally), conferindo liberada=false.
  * Para cada estilo (prévia ?estilo= do responsável): sem rolagem horizontal, cards de mesma largura e altura, foco por
@@ -186,7 +186,7 @@ async function focoPorTeclado(page: Page, rotulo: string) {
 }
 
 test.describe.configure({ mode: "serial", timeout: 900_000 });
-test.describe("Fase 12 · 21 estilos a 360px (DEV)", () => {
+test.describe("Fase 12 · 22 estilos a 360px (DEV)", () => {
   test.use({ viewport: { width: 360, height: 800 } });
   test.skip(({ isMobile }) => !isMobile, "projeto celular");
   exigirConta("dono");
@@ -212,7 +212,7 @@ test.describe("Fase 12 · 21 estilos a 360px (DEV)", () => {
     }
   });
 
-  test("Loja desligada: 21 estilos com 'Produtos e serviços', sem Loja nem Planos; layout e lista de interesse", async ({
+  test("Loja desligada: 22 estilos com 'Produtos e serviços', sem Loja nem Planos; layout e lista de interesse", async ({
     page,
   }) => {
     await entrar(page, "dono");
@@ -261,7 +261,7 @@ test.describe("Fase 12 · 21 estilos a 360px (DEV)", () => {
     });
   });
 
-  test("Loja ligada: 21 estilos com 'Loja' e 'Planos', cards iguais, sem rolagem horizontal", async ({
+  test("Loja ligada: 22 estilos com 'Loja' e 'Planos', cards iguais, sem rolagem horizontal", async ({
     page,
   }) => {
     await definirLoja(true);

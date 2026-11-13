@@ -3,10 +3,10 @@ import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 
 // Verificação independente do PR #35 (IM-101, D-023): contraste do ícone da Equipe medido em PIXELS reais (captura
-// de tela a 360px) nos 21 estilos, na base e na faixa escura (.st-faixa-alt). Não depende de servidor nem de conta:
+// de tela a 360px) nos 22 estilos, na base e na faixa escura (.st-faixa-alt). Não depende de servidor nem de conta:
 // monta a mesma marcação de site-negocio.tsx com o CSS real do site.
 const RAIZ = join(process.cwd(), "src/app/_componentes/site");
-const CSS = ["site.css", "site-estilos.css", "site-estilos-novos.css"]
+const CSS = ["site.css", "site-estilos.css", "site-estilos-novos.css", "site-estilos-basico.css"]
   .map((f) => readFileSync(join(RAIZ, f), "utf8"))
   .join("\n");
 const IDS = [

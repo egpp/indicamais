@@ -6,7 +6,7 @@ import { IDS_ESTILOS } from "./estilos";
 
 // Verificação independente da Fase 12 (PR #33; IM-097, IM-101; D-023).
 const DIR = __dirname;
-const css = ["site-estilos.css", "site-estilos-novos.css"]
+const css = ["site-estilos.css", "site-estilos-novos.css", "site-estilos-basico.css"]
   .map((f) => readFileSync(join(DIR, f), "utf8"))
   .join("\n");
 
@@ -32,7 +32,7 @@ const razao = (a: string, b: string) => {
   return (x + 0.05) / (y + 0.05);
 };
 
-describe("contraste dos novos elementos nos 21 estilos (D-023, WCAG AA)", () => {
+describe("contraste dos novos elementos nos 22 estilos (D-023, WCAG AA)", () => {
   for (const id of IDS_ESTILOS) {
     it(`${id}: planos, equipe, lista e variações`, () => {
       const base = variaveis(`\\.site-${id}`);
@@ -61,7 +61,7 @@ describe("contraste dos novos elementos nos 21 estilos (D-023, WCAG AA)", () => 
 });
 
 // Ícone decorativo da Equipe (aria-hidden): fundo --s-surface e cor --s-link (corrigido; IM-101).
-// Conferido na base e na faixa escura, nos 21 estilos.
+// Conferido na base e na faixa escura, nos 22 estilos.
 describe("ícone decorativo da Equipe: link/surface >= 3 (base e faixa escura)", () => {
   for (const id of IDS_ESTILOS) {
     it(id, () => {

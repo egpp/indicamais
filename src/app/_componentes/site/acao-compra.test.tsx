@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { ItemExibicao } from "@/modules/catalogo";
 import { demonstracaoDoEstilo } from "./demonstracao";
 import { resolverAcaoCompra } from "./acao-compra-regras";
-import { sacola } from "./sacola-estado";
+import { sacola, useSacola } from "./sacola-estado";
 import { SiteNegocio } from "./site-negocio";
 
 afterEach(() => {
@@ -132,5 +132,43 @@ describe("planos e equipe (D-023, D-022)", () => {
     expect(within(equipe).getByText("Ana Souza")).toBeTruthy();
     expect(within(equipe).getByText("Fisioterapeuta")).toBeTruthy();
     expect(equipe.querySelector("img")).toBeNull();
+  });
+});
+
+describe("estilo Básico: Tenho interesse e Valores sob consulta (IM-110, D-040)", () => {
+  function Sonda() {
+    const { itens, envio } = useSacola();
+    return (
+      <output data-testid="sonda">
+        {envio}|{itens.map((i) => `${i.quantidade}x ${i.nome}`).join(";")}
+      </output>
+    );
+  }
+
+  it("item sem preço mostra 'Valores sob consulta'; com preço mostra o valor real", () => {
+    const semPreco = { ...item("a", "Atendimento", "Conversa inicial."), precoTexto: null };
+    render(pagina([semPreco, item("b", "Camiseta", "")], { estilo: "basico" }));
+    const secao = document.getElementById("produtos")!;
+    expect(within(secao).getAllByText("Valores sob consulta")).toHaveLength(1);
+    expect(within(secao).getByText("R$ 149,00")).toBeTruthy();
+  });
+
+  it("os outros estilos não ganham o texto 'Valores sob consulta'", () => {
+    const semPreco = { ...item("a", "Atendimento", "x"), precoTexto: null };
+    render(pagina([semPreco]));
+    expect(document.body.textContent).not.toContain("Valores sob consulta");
+  });
+
+  it("'Tenho interesse' põe o item na lista, pede o envio ao formulário de contato e o item é citado", () => {
+    render(
+      <>
+        {pagina([item("a", "Atendimento inicial", "x")], { estilo: "basico" })}
+        <Sonda />
+      </>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Tenho interesse/ }));
+    expect(screen.getByTestId("sonda").textContent).toBe("1|1x Atendimento inicial");
+    // Sem botão "Adicionar à lista" nem rótulo de compra: é um pedido de contato, não uma compra (IM-090).
+    expect(screen.queryByRole("button", { name: /Adicionar à lista/ })).toBeNull();
   });
 });

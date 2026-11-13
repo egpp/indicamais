@@ -1,5 +1,5 @@
 /**
- * Verificação da liberação dos estilos 6 a 21 no dev (IM-091, IM-100): a tela Aparência do responsável lista os 21
+ * Verificação da liberação dos estilos 6 a 22 no dev (IM-091, IM-100): a tela Aparência do responsável lista os 22
  * estilos e permite salvar um dos novos. Só DESENVOLVIMENTO. O estilo original do perfil de teste é restaurado no fim.
  */
 import { expect, test, type Page } from "@playwright/test";
@@ -18,7 +18,7 @@ async function abrirAparencia(page: Page) {
   await expect(page).toHaveURL(/\/meus-perfis\/[0-9a-f-]{36}\/aparencia$/, { timeout: 15000 });
 }
 
-test("Aparência lista os 21 estilos e salva um novo (moto_bike), devolvendo o original", async ({
+test("Aparência lista os 22 estilos e salva um novo (moto_bike), devolvendo o original", async ({
   page,
 }, info) => {
   test.skip(info.project.name !== "desktop", "Um projeto basta; grava no perfil de teste.");
@@ -27,9 +27,9 @@ test("Aparência lista os 21 estilos e salva um novo (moto_bike), devolvendo o o
   await entrar(page, "dono");
   await abrirAparencia(page);
 
-  await expect(page.locator("ul.grade-estilos > li")).toHaveCount(21);
+  await expect(page.locator("ul.grade-estilos > li")).toHaveCount(22);
   await expect(page.getByRole("button", { name: /^Em breve/ })).toHaveCount(0);
-  await expect(page.getByRole("radio")).toHaveCount(21);
+  await expect(page.getByRole("radio")).toHaveCount(22);
   for (const [, rotulo] of NOVOS)
     await expect(page.getByRole("radio", { name: new RegExp(rotulo) })).toBeEnabled();
 

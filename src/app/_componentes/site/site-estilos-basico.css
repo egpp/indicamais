@@ -1,0 +1,280 @@
+/*
+ * Estilo 22 "Básico" (IM-110, D-040): modelo do site gratuito. Referência: docs/marca/modelos-sites/estilo/22.basico.png.
+ * Branco e azul, apresentação centralizada, "Um pouco sobre a gente" em duas colunas, catálogo em cartões, contato
+ * em duas colunas e rodapé claro. Celular primeiro (360px): tudo em coluna única; 3 cartões só a partir de 768px.
+ *
+ * Contraste (WCAG AA; texto normal >= 4,5:1, bordas e ícones >= 3:1), cores abaixo:
+ *   texto #0f172a / fundo #ffffff 17,9 · texto / alt #f1f5fd 16,3 · suave #475569 / #ffffff 7,6 · suave / alt 6,9
+ *   azul #1d4ed8 / #ffffff 6,7 · azul / alt #f1f5fd 6,1 · azul / hero #eef3fc 6,2 · #ffffff sobre azul #1d4ed8 6,7
+ *   borda-forte #64748b / #ffffff 4,8 · foco azul #1d4ed8 / #ffffff 6,7 · #0f172a sobre rodapé #f1f5fd 16,3
+ */
+.site-basico {
+  --s-bg: #ffffff;
+  --s-alt: #f1f5fd;
+  --s-surface: #ffffff;
+  --s-text: #0f172a;
+  --s-titulo: #0f172a;
+  --s-suave: #475569;
+  --s-link: #1d4ed8;
+  --s-borda: #d5deef;
+  --s-borda-forte: #64748b;
+  --s-botao-fundo: #1d4ed8;
+  --s-botao-texto: #ffffff;
+  --s-botao-borda: #1d4ed8;
+  --s-foco: #1d4ed8;
+  --s-foco-halo: #ffffff;
+  --s-raio: 12px;
+  --s-raio-pequeno: 8px;
+  --s-raio-botao: 8px;
+  --s-raio-chip: 999px;
+  --s-raio-img: 10px;
+  --s-raio-avatar: 12px;
+  --s-sombra: none;
+  --s-sombra-forte: 0 8px 24px rgb(29 78 216 / 0.12);
+  --s-fonte-titulo: var(--f-jakarta);
+  --s-fonte-texto: var(--f-inter);
+  --s-peso-titulo: 800;
+  --s-tracking: -0.03em;
+  --s-tracking-botao: 0;
+  --s-caixa: none;
+  --s-caixa-botao: none;
+  --s-menu-bg: #ffffff;
+  --s-menu-texto: #0f172a;
+  --s-menu-borda: 1px solid #d5deef;
+  --s-menu-sombra: none;
+  --s-menu-foco: #1d4ed8;
+  --s-menu-foco-halo: #ffffff;
+  --s-menu-hover: #f1f5fd;
+  --s-menu-ativo-bg: #dbe6ff;
+  --s-menu-ativo-texto: #0f172a;
+  --s-hero-fundo: #eef3fc;
+  --s-hero-texto: #0f172a;
+  --s-hero-foco: #1d4ed8;
+  --s-hero-foco-halo: #ffffff;
+  --s-acento: #1d4ed8;
+  --s-acento-texto: #ffffff;
+  --s-preco-fundo: transparent;
+  --s-preco-texto: #0f172a;
+  --s-destaque-fundo: #dbe6ff;
+  --s-destaque-icone: #1d4ed8;
+  --s-rodape-fundo: #f1f5fd;
+  --s-rodape-texto: #0f172a;
+}
+
+/* ---- Apresentação: centralizada, sem formas decorativas ---- */
+.site-basico .st-decor,
+.site-basico .st-faixa-deco {
+  display: none;
+}
+.site-basico .st-hero {
+  min-height: 0;
+  align-items: center;
+}
+.site-basico .st-hero-marca .st-hero-miolo {
+  padding: 3rem var(--e4);
+  text-align: center;
+}
+.site-basico .st-hero-marca .st-hero-texto {
+  margin: 0 auto;
+  max-width: 46rem;
+}
+.site-basico .st-hero-marca .st-avatar {
+  margin-inline: auto;
+}
+.site-basico .st-hero h1 {
+  font-size: clamp(2rem, 8vw, 3.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+.site-basico .st-sobretitulo {
+  color: var(--s-link);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.site-basico .st-hero-imagem .st-sobretitulo {
+  color: inherit;
+}
+.site-basico .st-hero-marca .st-acoes-inicio {
+  justify-items: center;
+  margin-inline: auto;
+}
+.site-basico .st-hero-marca .st-acoes-inicio .botao {
+  min-height: 48px;
+}
+/* "Conhecer o catálogo" como link sublinhado, como no modelo. */
+.site-basico .st-hero-marca .st-acoes-inicio .botao-secundario {
+  width: auto;
+  border-color: transparent;
+  background: transparent;
+  color: var(--s-link);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+.site-basico .st-hero-marca .st-acoes-inicio .botao-secundario:hover {
+  background: rgb(29 78 216 / 0.08);
+}
+/* Com banner de imagem o hero continua escuro (texto branco legível); o botão principal fica branco. */
+.site-basico .st-hero-imagem {
+  --s-hero-foco: #ffffff;
+  --s-hero-foco-halo: #000000;
+}
+.site-basico .st-hero-imagem .botao:not(.botao-secundario) {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #ffffff;
+}
+.site-basico .botao {
+  font-weight: 700;
+}
+
+/* ---- Seções ---- */
+.site-basico .st-faixa {
+  padding-block: clamp(2.5rem, 7vw, 4.5rem);
+}
+.site-basico .st-cab h2 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  line-height: 1.1;
+}
+.site-basico .st-texto-destaque {
+  font-size: 1.125rem;
+  color: var(--s-suave);
+}
+/* Sobre: título à esquerda, texto à direita com fio vertical (a partir de 768px). */
+.site-basico .st-secao-sobre .st-sobre {
+  gap: var(--e6);
+}
+@media (min-width: 768px) {
+  .site-basico .st-secao-sobre .st-miolo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    column-gap: 2.5rem;
+    align-items: start;
+  }
+  .site-basico .st-secao-sobre .st-cab {
+    margin-bottom: 0;
+  }
+  .site-basico .st-secao-sobre .st-sobre {
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: 2.5rem;
+    border-left: 1px solid var(--s-borda);
+  }
+  .site-basico .st-secao-sobre .st-fotos {
+    grid-column: 1 / -1;
+  }
+}
+.site-basico .st-destaques li {
+  background: var(--s-surface);
+}
+
+/* ---- Catálogo: cartões, preço ou "Valores sob consulta" e botão "Tenho interesse" ---- */
+.site-basico .st-grade-cards {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e4);
+}
+@media (min-width: 768px) {
+  .site-basico .st-grade-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.site-basico .st-card {
+  border-color: var(--s-borda);
+  border-radius: var(--s-raio);
+}
+.site-basico .st-card:hover {
+  box-shadow: var(--s-sombra-forte);
+}
+.site-basico .st-card-imagem {
+  display: contents;
+}
+.site-basico .st-card-imagem img {
+  order: 1;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+/* Sem foto: ícone em quadrado azul-claro no alto do cartão, como no modelo. */
+.site-basico .st-card-sem-imagem {
+  order: 1;
+  width: 56px;
+  height: 56px;
+  margin: var(--e4) var(--e4) 0;
+  border-radius: var(--s-raio-pequeno);
+  background: var(--s-destaque-fundo);
+  color: var(--s-destaque-icone);
+}
+.site-basico .st-card-sem-imagem .st-svg {
+  width: 28px;
+  height: 28px;
+}
+.site-basico .st-card-corpo {
+  order: 2;
+  padding-bottom: var(--e2);
+}
+.site-basico .st-card-corpo h3 {
+  font-size: 1.1875rem;
+}
+.site-basico .st-card-tipo {
+  display: none;
+}
+.site-basico .st-card-preco {
+  order: 3;
+  position: static;
+  padding: 0 var(--e4);
+  background: transparent;
+  box-shadow: none;
+  color: var(--s-text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+.site-basico .st-card-corpo .st-acao-compra {
+  margin-top: var(--e3);
+}
+/* O botão fica no fim do cartão, com a mesma largura do texto (alvo mínimo de 44px). */
+.site-basico .st-card-corpo {
+  padding-bottom: var(--e4);
+}
+.site-basico .st-card .st-acao-compra .botao {
+  min-height: 48px;
+  border: 2px solid var(--s-link);
+  background: var(--s-surface);
+  color: var(--s-link);
+  font-weight: 700;
+}
+.site-basico .st-card .st-acao-compra .botao:hover {
+  background: var(--s-alt);
+}
+
+/* ---- Contato: "Vamos conversar?" e o formulário real ---- */
+.site-basico .st-contato-info h3 {
+  font-size: clamp(1.25rem, 3.5vw, 1.625rem);
+}
+.site-basico .st-contato-form {
+  border-color: var(--s-borda);
+  border-radius: var(--s-raio);
+}
+.site-basico .campo input,
+.site-basico .campo textarea,
+.site-basico .campo select {
+  min-height: 44px;
+  border-radius: var(--s-raio-pequeno);
+}
+
+/* ---- Rodapé claro ---- */
+.site-basico .st-rodape {
+  border-top: 1px solid var(--s-borda);
+  text-align: left;
+}
+@media (max-width: 767px) {
+  .site-basico .st-rodape {
+    text-align: center;
+  }
+}
+.site-basico .st-rodape a {
+  text-decoration: underline;
+}
+.site-basico .st-mapa-quadro {
+  border: 1px solid var(--s-borda-forte);
+  border-radius: var(--s-raio-pequeno);
+  box-shadow: none;
+}

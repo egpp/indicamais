@@ -42,10 +42,11 @@ const IDS_ESPERADOS = [
   "turismo_hospedagem",
   "premium",
   "moto_bike",
+  "basico",
 ];
 
 describe("mapa de estilos (D-016; IM-091)", () => {
-  it("tem exatamente os 21 ids aprovados (IM-091, IM-100), cada um com tema", () => {
+  it("tem exatamente os 22 ids aprovados (IM-091, IM-100), cada um com tema", () => {
     expect([...IDS_ESTILOS]).toEqual(IDS_ESPERADOS);
     expect(Object.keys(TEMAS).sort()).toEqual([...IDS_ESPERADOS].sort());
     for (const t of LISTA_TEMAS) {
@@ -54,12 +55,12 @@ describe("mapa de estilos (D-016; IM-091)", () => {
     }
   });
 
-  it("os 21 estilos têm desenho pronto; a lista cresce sem refatorar (D-021)", () => {
+  it("os 22 estilos têm desenho pronto; a lista cresce sem refatorar (D-021)", () => {
     expect(LISTA_TEMAS.filter((t) => t.liberado).map((t) => t.id)).toEqual(IDS_ESPERADOS);
   });
 
-  it("estilo inválido, desconhecido, vazio ou em lista cai em minimalista", () => {
-    expect(ESTILO_PADRAO).toBe("minimalista");
+  it("estilo inválido, desconhecido, vazio ou em lista cai no padrão (básico, IM-110)", () => {
+    expect(ESTILO_PADRAO).toBe("basico");
     for (const v of [
       undefined,
       "",
@@ -70,11 +71,15 @@ describe("mapa de estilos (D-016; IM-091)", () => {
       null,
       "__proto__",
     ])
-      expect(resolverEstilo(v)).toBe("minimalista");
+      expect(resolverEstilo(v)).toBe("basico");
     expect(resolverEstilo("gastronomia")).toBe("gastronomia");
+    // Sites existentes mantêm o que têm: minimalista continua um estilo válido e liberado.
+    expect(resolverEstilo("minimalista")).toBe("minimalista");
+    expect(resolverEstilo("basico")).toBe("basico");
     expect(estiloLiberadoOuNulo("construcao_reformas")).toBe("construcao_reformas");
     expect(estiloLiberadoOuNulo("pet")).toBe("pet");
     expect(estiloLiberadoOuNulo("moto_bike")).toBe("moto_bike");
+    expect(estiloLiberadoOuNulo("basico")).toBe("basico");
     expect(estiloLiberadoOuNulo("estilo_futuro_x")).toBeNull();
     expect(estiloLiberadoOuNulo("xyz")).toBeNull();
   });

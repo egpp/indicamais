@@ -6,6 +6,7 @@ import { Decoracao } from "./icones";
 import "./site.css";
 import "./site-estilos.css";
 import "./site-estilos-novos.css";
+import "./site-estilos-basico.css";
 
 const NOMES_EXEMPLO: Record<string, string> = {
   minimalista: "Estúdio Exemplo",
@@ -29,6 +30,7 @@ const NOMES_EXEMPLO: Record<string, string> = {
   turismo_hospedagem: "Pousada Exemplo",
   premium: "Ateliê Exemplo",
   moto_bike: "Giro Exemplo",
+  basico: "Ponto Exemplo",
 };
 
 /**
