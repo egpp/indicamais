@@ -46,13 +46,13 @@ export default async function PaginaMinhasRevisoes() {
                     x.alvo === "perfil" ? `/meus-perfis/${x.alvoId}` : `/meus-itens/${x.alvoId}`
                   }
                 >
-                  {x.nome ?? (x.alvo === "perfil" ? "Perfil sem nome" : "Item sem nome")}
+                  {x.nome ?? (x.alvo === "perfil" ? "Site sem nome" : "Item sem nome")}
                 </Link>
               </h2>
               <p>
                 <SeloEstado rotulo={ROTULO_SITUACAO[x.situacao]} />{" "}
                 <span className="ajuda">
-                  {x.alvo === "perfil" ? "Perfil" : rotuloTipoItem(tipos.get(x.alvoId))}
+                  {x.alvo === "perfil" ? "Site" : rotuloTipoItem(tipos.get(x.alvoId))}
                 </span>
               </p>
               <p>{x.mensagem}</p>

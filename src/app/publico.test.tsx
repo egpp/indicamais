@@ -147,7 +147,7 @@ describe("página inicial pública (IM-019, IM-020)", () => {
     expect(screen.queryByText("Patrocinado")).toBeNull();
   });
 
-  it("carrossel: cada patrocinador mostra o rótulo Patrocinado; destino perfil ou texto, sem link externo e sem preço", async () => {
+  it("carrossel: cada patrocinador mostra o rótulo Patrocinado; destino site ou texto, sem link externo e sem preço", async () => {
     const perfil = m.novoPerfil({ nome: "Padaria da Ana", slug: "padaria-da-ana" });
     m.novoPatrocinador({ titulo: "Padaria em destaque", perfil_destino_id: perfil.id, ordem: 1 });
     m.novoPatrocinador({ titulo: "Feira de sábado", texto_destino: "Venha conhecer", ordem: 2 });
@@ -171,7 +171,7 @@ describe("página inicial pública (IM-019, IM-020)", () => {
     conferirSemDadosPrivados(cabecalho());
   });
 
-  it("perfil de destino despublicado some do carrossel", async () => {
+  it("site de destino despublicado some do carrossel", async () => {
     const perfil = m.novoPerfil({ nome: "Fora do ar", slug: "fora-do-ar", publicado: false });
     m.novoPatrocinador({ titulo: "Não deve aparecer", perfil_destino_id: perfil.id });
     render(await Home(args()));
@@ -182,18 +182,18 @@ describe("página inicial pública (IM-019, IM-020)", () => {
   it("não mostra o que não está aprovado e publicado", async () => {
     m.novoPerfil({ nome: "Rascunho", slug: "rascunho", aprovado: false, publicado: false });
     m.novoPerfil({ nome: "Despublicado", slug: "despublicado", publicado: false });
-    const ok = m.novoPerfil({ nome: "Perfil no ar", slug: "no-ar" });
-    m.novoItem({ nome: "Item de perfil fora", tipo: "produto", perfil_id: m.perfis[1]!.id });
+    const ok = m.novoPerfil({ nome: "Site no ar", slug: "no-ar" });
+    m.novoItem({ nome: "Item de site fora", tipo: "produto", perfil_id: m.perfis[1]!.id });
     m.novoItem({ nome: "Item pendente", tipo: "produto", aprovado: false });
     m.novoItem({ nome: "Item despublicado", tipo: "produto", publicado: false });
     m.novoItem({ nome: "Item no ar", tipo: "produto", perfil_id: ok.id });
     render(await Home(args()));
-    expect(screen.getByText("Perfil no ar")).toBeTruthy();
+    expect(screen.getByText("Site no ar")).toBeTruthy();
     expect(screen.getByText("Item no ar")).toBeTruthy();
     for (const nome of [
       "Rascunho",
       "Despublicado",
-      "Item de perfil fora",
+      "Item de site fora",
       "Item pendente",
       "Item despublicado",
     ]) {
@@ -298,7 +298,7 @@ describe("página inicial pública (IM-019, IM-020)", () => {
   });
 });
 
-describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
+describe("site público (IM-011, IM-012, IM-014, IM-079)", () => {
   function perfilCompleto() {
     const p = m.novoPerfil({
       nome: "Padaria da Ana",
@@ -315,7 +315,7 @@ describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
     return p;
   }
 
-  it("mostra nome, descrição, categoria, cidade/UF, dados opcionais, fotos e os itens do perfil", async () => {
+  it("mostra nome, descrição, categoria, cidade/UF, dados opcionais, fotos e os itens do site", async () => {
     perfilCompleto();
     render(await PaginaPerfil(args({ slug: "padaria-da-ana" })));
     expect(screen.getByRole("heading", { level: 1, name: "Padaria da Ana" })).toBeTruthy();
@@ -399,7 +399,7 @@ describe("perfil público (IM-011, IM-012, IM-014, IM-079)", () => {
     }
   });
 
-  it("perfil sem imagem usa o cartão pequeno (sem imagem na prévia) e descrição de reserva", async () => {
+  it("site sem imagem usa o cartão pequeno (sem imagem na prévia) e descrição de reserva", async () => {
     m.novoPerfil({ nome: "Sem foto", slug: "sem-foto", imagem_path: null, descricao_breve: null });
     const meta = await metadadosPerfil(args({ slug: "sem-foto" }));
     expect((meta.openGraph as { images?: unknown }).images).toBeUndefined();
@@ -442,7 +442,7 @@ describe("item e anúncio particular públicos (IM-014, IM-015, IM-079)", () => 
     conferirAcoesDaFase3("Indique este anúncio");
   });
 
-  it("item de perfil: tipo, localização do perfil e link para o perfil; sob consulta e a partir de", async () => {
+  it("item de site: tipo, localização do site e link para o site; sob consulta e a partir de", async () => {
     const p = m.novoPerfil({ nome: "Padaria da Ana", slug: "padaria-da-ana" });
     const a = m.novoItem({
       nome: "Consultoria",
@@ -470,12 +470,12 @@ describe("item e anúncio particular públicos (IM-014, IM-015, IM-079)", () => 
     expect(screen.getByText(/A partir de R\$\s30,00/)).toBeTruthy();
   });
 
-  it("404 genérico: inexistente, id inválido, não aprovado, despublicado e item de perfil indisponível", async () => {
+  it("404 genérico: inexistente, id inválido, não aprovado, despublicado e item de site indisponível", async () => {
     const fora = m.novoPerfil({ nome: "Fora", slug: "fora", publicado: false });
     const casos = [
       m.novoItem({ nome: "Pendente", tipo: "produto", aprovado: false }).id,
       m.novoItem({ nome: "Despublicado", tipo: "produto", publicado: false }).id,
-      m.novoItem({ nome: "Do perfil fora", tipo: "produto", perfil_id: fora.id }).id,
+      m.novoItem({ nome: "Do site fora", tipo: "produto", perfil_id: fora.id }).id,
       randomUUID(),
       "nao-e-uuid",
       "1; drop table",
@@ -487,7 +487,7 @@ describe("item e anúncio particular públicos (IM-014, IM-015, IM-079)", () => 
     }
   });
 
-  it("anúncio particular segue público mesmo sem perfil comercial", async () => {
+  it("anúncio particular segue público mesmo sem site comercial", async () => {
     const i = m.novoItem({ nome: "Sofá", tipo: "produto", cidade: "Canoas", uf: "RS" });
     const meta = await metadadosItem(args({ id: i.id }));
     expect(meta.title).toBe("Sofá | IndicaMais");
@@ -527,7 +527,7 @@ describe("ações da página e ?ind (IM-013, IM-024, IM-025)", () => {
   const campo = (nome: string) =>
     document.querySelector<HTMLInputElement>(`input[type="hidden"][name="${nome}"]`);
 
-  it("perfil: ?ind vai só ao formulário de contato do perfil e nunca a links, cookies ou armazenamento", async () => {
+  it("site: ?ind vai só ao formulário de contato do site e nunca a links, cookies ou armazenamento", async () => {
     m.novoPerfil({ nome: "Padaria da Ana", slug: "padaria-da-ana" });
     render(await PaginaPerfil(args({ slug: "padaria-da-ana" }, { ind: COD })));
     expect(campo("ind")?.value).toBe(COD);

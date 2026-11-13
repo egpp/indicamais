@@ -805,7 +805,7 @@ describe("benefícios do responsável e do administrador (IM-036)", () => {
     expect(b.adminDefinirBeneficioAtivo).toHaveBeenCalledTimes(1);
   });
 
-  it("lista os benefícios do perfil com versões e motivo da rejeição", async () => {
+  it("lista os benefícios do site com versões e motivo da rejeição", async () => {
     const b = fake({
       listarBeneficiosDoPerfil: vi.fn(
         ok({
@@ -968,7 +968,7 @@ describe("proposta do administrador e aceite do responsável (IM-036, IM-079)", 
     expect(JSON.stringify([a, b])).not.toContain("texto interno");
   });
 
-  it("lista as propostas aguardando aceite do perfil (só essa situação), mais recente primeiro", async () => {
+  it("lista as propostas aguardando aceite do site (só essa situação), mais recente primeiro", async () => {
     const b = fake({
       listarBeneficiosDoPerfil: vi.fn(
         ok({
@@ -1023,7 +1023,7 @@ describe("proposta do administrador e aceite do responsável (IM-036, IM-079)", 
     );
   });
 
-  it("editar proposta que não está em análise (P0001) ou do próprio perfil (42501) é erro tipado", async () => {
+  it("editar proposta que não está em análise (P0001) ou do próprio site (42501) é erro tipado", async () => {
     const chamar = (code: string) =>
       servico(fake({ adminEditarProposta: vi.fn(comErro(code)) })).adminEditarProposta({
         versaoId: ID,

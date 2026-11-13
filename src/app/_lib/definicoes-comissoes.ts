@@ -117,7 +117,7 @@ export const DEFINICOES_COMISSOES = {
     campos: [
       uuid(
         "perfilId",
-        "Identificador do negócio (perfil)",
+        "Identificador do negócio (site)",
         `Em Negócios, use o botão "Copiar id" do negócio.`,
       ),
       {
@@ -152,7 +152,7 @@ export const DEFINICOES_COMISSOES = {
   },
   vinculo: {
     campos: [
-      uuid("perfilId", "Identificador do negócio (perfil)"),
+      uuid("perfilId", "Identificador do negócio (site)"),
       uuid(
         "indicadorId",
         "Identificador da conta do indicador",

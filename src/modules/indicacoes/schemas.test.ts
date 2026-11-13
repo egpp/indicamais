@@ -86,7 +86,7 @@ describe("enviarContatoSchema (IM-026, IM-028)", () => {
     expect(r.mensagem).toBeUndefined();
   });
 
-  it("destino: exatamente um (perfil XOR item)", () => {
+  it("destino: exatamente um (site XOR item)", () => {
     expect(enviarContatoSchema.safeParse({ ...base, perfilId: undefined }).success).toBe(false);
     expect(enviarContatoSchema.safeParse({ ...base, itemId: ITEM }).success).toBe(false);
     expect(
@@ -158,7 +158,7 @@ describe("enviarContatoSchema (IM-026, IM-028)", () => {
 });
 
 describe("gerarLinkSchema (IM-024)", () => {
-  it("perfil exige slug; item não", () => {
+  it("site exige slug; item não", () => {
     expect(gerarLinkSchema.safeParse({ tipo: "perfil", id: PERFIL }).success).toBe(false);
     expect(gerarLinkSchema.safeParse({ tipo: "perfil", id: PERFIL, slug: "Loja X!" }).success).toBe(
       false,

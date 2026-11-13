@@ -69,7 +69,7 @@ async function definirLoja(admin: Page, liberar: boolean) {
     .fill(`E2E Fase 10: ${liberar ? "liberar" : "retirar"} a Loja para teste`);
   await cartao.getByRole("button", { name: liberar ? "Liberar a Loja" : "Retirar a Loja" }).click();
   await expect(
-    cartao.getByText(liberar ? "Loja liberada para o perfil." : "Loja retirada do perfil."),
+    cartao.getByText(liberar ? "Loja liberada para o site." : "Loja retirada do site."),
   ).toBeVisible({ timeout: 60_000 });
 }
 
@@ -157,7 +157,7 @@ test.describe("Fase 10 · Loja (DEV)", () => {
   test("2. sem a Loja, o dono não vê o tipo Imóvel nem campos de imóvel", async () => {
     const dono = s.dono!;
     await dono.goto(`/meus-itens/novo?perfil=${estado.perfilId}`);
-    await expect(dono.getByText("Loja não liberada para este perfil.")).toBeVisible({
+    await expect(dono.getByText("Loja não liberada para este site.")).toBeVisible({
       timeout: 60_000,
     });
     await expect(dono.getByRole("option", { name: "Imóvel" })).toHaveCount(0);

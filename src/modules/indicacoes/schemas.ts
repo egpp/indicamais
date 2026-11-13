@@ -131,15 +131,15 @@ export const enviarContatoSchema = z
   })
   .refine((d) => (d.perfilId === undefined) !== (d.itemId === undefined), {
     path: ["destino"],
-    error: "Informe exatamente um destino (perfil ou item).",
+    error: "Informe exatamente um destino (site ou item).",
   });
 export type EnviarContato = z.output<typeof enviarContatoSchema>;
 
 const slugSchema = z
-  .string({ error: "Endereço do perfil inválido." })
-  .min(LIMITES.perfil.slugMin, { error: "Endereço do perfil inválido." })
-  .max(LIMITES.perfil.slugMax, { error: "Endereço do perfil inválido." })
-  .regex(SLUG_FORMATO, { error: "Endereço do perfil inválido." });
+  .string({ error: "Endereço do site inválido." })
+  .min(LIMITES.perfil.slugMin, { error: "Endereço do site inválido." })
+  .max(LIMITES.perfil.slugMax, { error: "Endereço do site inválido." })
+  .regex(SLUG_FORMATO, { error: "Endereço do site inválido." });
 
 export const gerarLinkSchema = z.discriminatedUnion("tipo", [
   z.object({

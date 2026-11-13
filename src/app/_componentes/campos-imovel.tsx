@@ -117,4 +117,4 @@ export function CamposImovel({
 }
 
 /** Texto neutro quando o perfil não tem a Loja. Não promete plano nem preço (IM-099). */
-export const TEXTO_LOJA_NAO_LIBERADA = "Loja não liberada para este perfil.";
+export const TEXTO_LOJA_NAO_LIBERADA = "Loja não liberada para este site.";

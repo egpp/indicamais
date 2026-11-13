@@ -345,13 +345,13 @@ test.describe("responsável pelo perfil (IM-027, IM-028, IM-034)", () => {
     expect(await page.content()).not.toMatch(/service_role|sb_secret/i);
   });
 
-  test("autoindicação: o dono não gera link para o próprio perfil", async ({ page }) => {
+  test("autoindicação: o dono não gera link para o próprio site", async ({ page }) => {
     await entrarSeDono(page);
     await abrirPerfil(page);
     await clicarIndique(page);
     await expect(
       page
-        .getByText("Você não pode gerar link de indicação para o seu próprio perfil ou anúncio.")
+        .getByText("Você não pode gerar link de indicação para o seu próprio site ou anúncio.")
         .or(page.getByText("Cadastre seu WhatsApp na sua conta antes de indicar.")),
     ).toBeVisible({ timeout: 20_000 });
     await expect(page.getByLabel("Seu link de indicação")).toHaveCount(0);

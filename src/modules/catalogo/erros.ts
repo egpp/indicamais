@@ -12,7 +12,7 @@ export const MENSAGENS_CATALOGO = {
   conflito: "Já existe uma edição em andamento neste item. Recarregue a página.",
   nenhumRascunho: "Não há rascunho para enviar. Edite o item e tente de novo.",
   categoriaInvalida: "Confira as categorias escolhidas.",
-  perfilInvalido: "Perfil não encontrado ou não pertence à sua conta.",
+  perfilInvalido: "Site não encontrado ou não pertence à sua conta.",
   precoInvalido: "Confira o preço informado.",
   localizacaoInvalida: "Confira a cidade e a UF informadas.",
   imagemInvalida: "Imagem inválida. Envie novamente.",
@@ -23,11 +23,11 @@ export const MENSAGENS_CATALOGO = {
     "Você já tem pedidos de categoria em análise. Aguarde a resposta antes de pedir outra.",
   solicitacaoDecidida: "Este pedido já foi respondido.",
   motivoObrigatorio: "Informe o motivo.",
-  lojaNaoLiberada: "A Loja não está liberada para este perfil.",
+  lojaNaoLiberada: "A Loja não está liberada para este site.",
   imovelInvalido: "Confira os dados do imóvel.",
   imovelIncompleto:
     "Preencha tipo, finalidade, preço, área, quartos, banheiros, vagas, bairro, cidade e UF antes de enviar.",
-  imovelSemPerfil: "O imóvel pertence a um perfil. Escolha o perfil.",
+  imovelSemPerfil: "O imóvel pertence a um site. Escolha o site.",
   camposImovelForaDeImovel: "Os campos de imóvel só valem para itens do tipo imóvel.",
   fotosExtrasLimite: "Envie no máximo 8 fotos adicionais.",
   fotoRepetida: "Não repita a mesma foto.",
@@ -44,7 +44,7 @@ export function mensagemLimiteCatalogo(chave: ChaveLimiteCatalogo, limite: numbe
   const n = (s: string, p: string) => (limite === null ? p : `${limite} ${limite === 1 ? s : p}`);
   switch (chave) {
     case "tetos_itens_por_perfil":
-      return `Este perfil atingiu o limite de ${n("item", "itens")}. Para cadastrar outro, fale com o suporte.`;
+      return `Este site atingiu o limite de ${n("item", "itens")}. Para cadastrar outro, fale com o suporte.`;
     case "tetos_anuncios_particulares":
       return `Você atingiu o limite de ${n("anúncio particular", "anúncios particulares")} por conta. Para criar outro, fale com o suporte.`;
     case "tetos_rascunhos_abertos":

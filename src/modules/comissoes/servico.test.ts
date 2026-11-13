@@ -391,7 +391,7 @@ describe("ações válidas chamam o banco com os argumentos normalizados", () =>
     }
   });
 
-  it("listarVinculosVencidos sem entrada manda perfil nulo e mapeia linhas completas", async () => {
+  it("listarVinculosVencidos sem entrada manda site nulo e mapeia linhas completas", async () => {
     const b = fake({
       listarVinculosVencidos: vi.fn(
         ok([

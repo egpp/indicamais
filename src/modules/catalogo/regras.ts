@@ -49,7 +49,7 @@ export function validarConteudoItem(
 ): Record<string, string> {
   const erros: Record<string, string> = {};
   if (tipo === "imovel") {
-    if (anuncioParticular) erros.perfilId = "O imóvel pertence a um perfil. Escolha o perfil.";
+    if (anuncioParticular) erros.perfilId = "O imóvel pertence a um site. Escolha o site.";
     if (c.cidade && c.cidade.length < LIMITES.item.cidadeMin) {
       erros.cidade = `Informe a cidade (de ${LIMITES.item.cidadeMin} a ${LIMITES.perfil.cidadeMax} caracteres).`;
     }
@@ -60,8 +60,8 @@ export function validarConteudoItem(
       }
       if (!c.uf) erros.uf = "Escolha a UF.";
     } else {
-      if (c.cidade) erros.cidade = "Item de perfil usa a cidade do perfil.";
-      if (c.uf) erros.uf = "Item de perfil usa a UF do perfil.";
+      if (c.cidade) erros.cidade = "Item de site usa a cidade do site.";
+      if (c.uf) erros.uf = "Item de site usa a UF do site.";
     }
     if (temCampoDeImovel(c)) {
       erros.imovelTipo = "Os campos de imóvel só valem para itens do tipo imóvel.";

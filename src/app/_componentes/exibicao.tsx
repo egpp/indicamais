@@ -68,7 +68,7 @@ export function PerfilVisao({
           />
         </div>
       ) : null}
-      <h2>{perfil.nome ?? "Perfil sem nome"}</h2>
+      <h2>{perfil.nome ?? "Site sem nome"}</h2>
       <CategoriasTexto
         principal={perfil.categoriaPrincipalId}
         secundarias={perfil.categoriasSecundariasIds}

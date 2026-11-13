@@ -17,7 +17,7 @@ const perfil = (n: number, extra: Record<string, unknown> = {}): LinhaPerfilHome
     o_posicao: n,
     o_id: id(n),
     o_slug: `perfil-${n}`,
-    o_nome: `Perfil ${n}`,
+    o_nome: `Site ${n}`,
     o_descricao: "Descrição",
     o_imagem_path: `perfil/${id(n)}/foto.jpg`,
     o_categoria_id: null,
@@ -94,22 +94,22 @@ describe("escolherLocalizacaoHome", () => {
     { publicado: true, conteudoNoAr: null },
     { publicado: true, conteudoNoAr: { cidade: "Santos", uf: "SP" } },
   ];
-  it("a busca vence o perfil", () => {
+  it("a busca vence o site", () => {
     expect(escolherLocalizacaoHome({ cidade: "Campinas", uf: "SP" }, meus)).toEqual({
       cidade: "Campinas",
       uf: "SP",
     });
   });
-  it("sem busca usa o primeiro perfil publicado com cidade", () => {
+  it("sem busca usa o primeiro site publicado com cidade", () => {
     expect(escolherLocalizacaoHome(undefined, meus)).toEqual({ cidade: "Santos", uf: "SP" });
   });
-  it("busca com UF inválida cai para o perfil, sem erro", () => {
+  it("busca com UF inválida cai para o site, sem erro", () => {
     expect(escolherLocalizacaoHome({ cidade: "X", uf: "ZZ" }, meus)).toEqual({
       cidade: "Santos",
       uf: "SP",
     });
   });
-  it("sem busca nem perfil publicado com cidade: null", () => {
+  it("sem busca nem site publicado com cidade: null", () => {
     expect(escolherLocalizacaoHome(null, [meus[0]!, meus[1]!])).toBeNull();
     expect(escolherLocalizacaoHome(null, [])).toBeNull();
     expect(escolherLocalizacaoHome(null, undefined)).toBeNull();
@@ -117,7 +117,7 @@ describe("escolherLocalizacaoHome", () => {
 });
 
 describe("paraCardDaHome", () => {
-  it("monta card de perfil sem métrica nem dado de pessoa", () => {
+  it("monta card de site sem métrica nem dado de pessoa", () => {
     const c = paraCardDaHome(
       perfil(1, { conta_id: "x", responsavel_id: "y", telefone: "+5511999999999" }),
     );
@@ -126,7 +126,7 @@ describe("paraCardDaHome", () => {
       id: id(1),
       slug: "perfil-1",
       link: "/perfil/perfil-1",
-      nome: "Perfil 1",
+      nome: "Site 1",
       imagemPath: `perfil/${id(1)}/foto.jpg`,
       anuncioParticular: false,
     });

@@ -76,7 +76,7 @@ describe("Loja oculta sem liberação, inclusive na demonstração dos estilos (
   });
 });
 
-describe("seção Loja do perfil (IM-097, IM-098, D-020)", () => {
+describe("seção Loja do site (IM-097, IM-098, D-020)", () => {
   it("com a Loja, a seção se chama Loja e o cartão do imóvel mostra preço, chips e bairro/cidade", () => {
     render(pagina({}, [imovel]));
     const secao = document.getElementById("produtos")!;

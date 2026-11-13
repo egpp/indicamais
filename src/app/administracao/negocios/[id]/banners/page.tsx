@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const ROTULO_SITUACAO = {
-  na_versao: "No perfil do responsável",
+  na_versao: "No site do responsável",
   aguardando_aceite: "Aguardando aceite",
   aceito: "Aceito",
   recusado: "Recusado",
@@ -109,7 +109,7 @@ export default async function PaginaBannersEmpresaAdmin({
       </section>
       <p>
         <Link className="botao botao-secundario" href="/administracao/negocios">
-          Voltar para perfis e itens
+          Voltar para sites e itens
         </Link>
       </p>
     </PainelPagina>

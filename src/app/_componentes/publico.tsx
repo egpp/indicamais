@@ -220,7 +220,7 @@ export function CarrosselPatrocinados({
                 <p className="card-linha">
                   {p.destino.tipo === "perfil" ? (
                     <Link className="card-link card-link-acao" href={p.destino.link}>
-                      Ver perfil
+                      Ver site
                     </Link>
                   ) : (
                     " "

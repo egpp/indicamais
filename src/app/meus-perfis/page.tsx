@@ -7,7 +7,7 @@ import { PainelPagina, SeloEstado } from "../_componentes/painel";
 import { obterContexto } from "../_lib/contexto-sessao";
 import { SEM_INDEXACAO } from "../_lib/pagina";
 
-export const metadata: Metadata = { title: "Meus perfis | IndicaMais", ...SEM_INDEXACAO };
+export const metadata: Metadata = { title: "Meus sites | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 export default async function PaginaMeusPerfis() {
@@ -18,21 +18,21 @@ export default async function PaginaMeusPerfis() {
   ]);
   return (
     <PainelPagina
-      titulo="Meus perfis"
+      titulo="Meus sites"
       subtitulo="Páginas comerciais de empresas ou profissionais."
       admin={admin}
       atual="perfis"
     >
       <p>
         <Link className="botao" href="/meus-perfis/novo">
-          Criar perfil
+          Criar site
         </Link>
       </p>
       {!r.ok ? (
         <Aviso tipo="erro">{r.erro.mensagem}</Aviso>
       ) : r.valor.length === 0 ? (
         <Aviso tipo="info">
-          Você ainda não tem perfis. Crie o primeiro para divulgar seu trabalho.
+          Você ainda não tem sites. Crie o primeiro para divulgar seu trabalho.
         </Aviso>
       ) : (
         <ul className="lista-cartoes">
@@ -40,7 +40,7 @@ export default async function PaginaMeusPerfis() {
             <li key={p.id} className="cartao">
               <h2>
                 <Link href={`/meus-perfis/${p.id}`}>
-                  {p.conteudoEdicao.nome ?? "Perfil sem nome"}
+                  {p.conteudoEdicao.nome ?? "Site sem nome"}
                 </Link>
               </h2>
               <p>
@@ -59,7 +59,7 @@ export default async function PaginaMeusPerfis() {
               ) : null}
               <p>
                 <LinkPaginaPublica
-                  nome={p.conteudoEdicao.nome ?? "Perfil sem nome"}
+                  nome={p.conteudoEdicao.nome ?? "Site sem nome"}
                   href={p.estado.noAr ? hrefPerfilPublico(p.slug) : null}
                 />
               </p>

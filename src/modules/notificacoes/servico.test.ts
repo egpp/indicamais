@@ -98,7 +98,7 @@ describe("avisos (IM-047, IM-051, IM-052)", () => {
     const r = await servico.meusAvisos();
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.valor[0]!.texto).toBe("Um banner novo aguarda o seu aceite no perfil Padaria Boa.");
+      expect(r.valor[0]!.texto).toBe("Um banner novo aguarda o seu aceite no site Padaria Boa.");
       expect(JSON.stringify([r.valor[0]!.titulo, r.valor[0]!.texto])).not.toContain("Admin");
     }
   });
@@ -263,7 +263,7 @@ describe("abas (IM-048, IM-049, IM-050, IM-029)", () => {
     ...o,
   });
 
-  it("'Quem me indicou' traz total, destino, perfil e indicador só pelo nome público", async () => {
+  it("'Quem me indicou' traz total, destino, site e indicador só pelo nome público", async () => {
     const { servico } = fake({ listarQuemMeIndicou: ok([quem()]) });
     const r = await servico.quemMeIndicou();
     expect(r.ok && r.valor.total).toBe(1);

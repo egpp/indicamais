@@ -8,7 +8,7 @@ import { formatarDataHora } from "../../_lib/apresentacao";
 import { obterServicoConsultaNegocios } from "../../_lib/contexto-negocios";
 import { SEM_INDEXACAO, um } from "../../_lib/pagina";
 
-export const metadata: Metadata = { title: "Perfis e itens | IndicaMais", ...SEM_INDEXACAO };
+export const metadata: Metadata = { title: "Sites e itens | IndicaMais", ...SEM_INDEXACAO };
 export const dynamic = "force-dynamic";
 
 function hrefPagina(f: { busca?: string; situacao?: string; tipo?: string }, pagina: number) {
@@ -47,7 +47,7 @@ export default async function PaginaNegociosAdmin({
 
   return (
     <PainelPagina
-      titulo="Perfis e itens"
+      titulo="Sites e itens"
       subtitulo="Consulta de tudo o que foi cadastrado, em qualquer situação. Somente leitura."
       admin
       atual="administracao"
@@ -57,7 +57,7 @@ export default async function PaginaNegociosAdmin({
         method="get"
         action="/administracao/negocios"
         role="search"
-        aria-label="Filtrar perfis e itens"
+        aria-label="Filtrar sites e itens"
       >
         <div className="campo campo-largo">
           <label htmlFor="n-busca">Buscar pelo nome</label>
@@ -74,7 +74,7 @@ export default async function PaginaNegociosAdmin({
           <label htmlFor="n-tipo">Tipo</label>
           <select id="n-tipo" name="tipo" defaultValue={filtros.tipo ?? ""}>
             <option value="">Todos</option>
-            <option value="perfil">Perfis</option>
+            <option value="perfil">Sites</option>
             <option value="item">Produtos e serviços</option>
           </select>
         </div>

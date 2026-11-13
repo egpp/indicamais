@@ -50,8 +50,8 @@ function fakeBanco(o: Partial<ClienteBancoLojaAdmin> = {}, admin = true): Client
   };
 }
 
-describe("administração da Loja: listar perfis (IM-097, IM-099)", () => {
-  it("junta o estado da Loja aos perfis; sem linha = desligada", async () => {
+describe("administração da Loja: listar sites (IM-097, IM-099)", () => {
+  it("junta o estado da Loja aos sites; sem linha = desligada", async () => {
     const r = await criarServicoLojaAdmin(fakeBanco()).listarPerfis({});
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -106,7 +106,7 @@ describe("administração da Loja: listar perfis (IM-097, IM-099)", () => {
     expect([c.de, c.ate]).toEqual([20, 40]);
   });
 
-  it("ignora linhas que não são perfil e erro do banco vira mensagem neutra", async () => {
+  it("ignora linhas que não são site e erro do banco vira mensagem neutra", async () => {
     const banco = fakeBanco({
       consultarPerfis: vi.fn(async () => ({
         dados: [perfil(P1, "Sol"), perfil(P2, "Item", { alvo_tipo: "item" })],
@@ -128,7 +128,7 @@ describe("administração da Loja: listar perfis (IM-097, IM-099)", () => {
 });
 
 describe("administração da Loja: liberar e retirar", () => {
-  it("libera com motivo e chama a função do banco com o perfil em minúsculas", async () => {
+  it("libera com motivo e chama a função do banco com o site em minúsculas", async () => {
     const banco = fakeBanco();
     const r = await criarServicoLojaAdmin(banco).definirLiberacao({
       perfilId: P1.toUpperCase(),
@@ -162,7 +162,7 @@ describe("administração da Loja: liberar e retirar", () => {
     expect(banco.definirLiberacao).not.toHaveBeenCalled();
   });
 
-  it("recusa motivo longo, perfil inválido e valor de liberada desconhecido", async () => {
+  it("recusa motivo longo, site inválido e valor de liberada desconhecido", async () => {
     const banco = fakeBanco();
     const svc = criarServicoLojaAdmin(banco);
     const base = { perfilId: P1, liberada: "true", motivo: "ok" };
@@ -195,7 +195,7 @@ describe("administração da Loja: liberar e retirar", () => {
     expect(m("22023").codigo).toBe("MOTIVO_OBRIGATORIO");
     expect(m("P0002")).toMatchObject({
       codigo: "NAO_ENCONTRADO",
-      mensagem: "Perfil não encontrado.",
+      mensagem: "Site não encontrado.",
     });
     expect(m("XX000").codigo).toBe("ERRO_INTERNO");
     for (const c of ["42501", "22023", "P0002", "XX000"]) {

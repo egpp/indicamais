@@ -162,7 +162,7 @@ describe("negócios: habilitar e desabilitar por linha (IM-061)", () => {
     expect(resumos()).toEqual(["Desabilitar o módulo"]);
     expect(container.querySelector<HTMLInputElement>('input[name="ativa"]')?.value).toBe("nao");
     expect(screen.getByRole("heading", { name: "padaria-do-ze" })).toBeTruthy();
-    expect(screen.getByText("Perfil não publicado")).toBeTruthy();
+    expect(screen.getByText("Site não publicado")).toBeTruthy();
   });
 
   it("links levam às outras listas já filtradas pelo negócio", () => {

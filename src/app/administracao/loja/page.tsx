@@ -45,7 +45,7 @@ export default async function PaginaLojaAdmin({ searchParams }: PageProps<"/admi
   return (
     <PainelPagina
       titulo="Loja (administração)"
-      subtitulo="Libere ou retire a Loja de um perfil, com motivo. Uso apenas para testes: sem plano e sem cobrança."
+      subtitulo="Libere ou retire a Loja de um site, com motivo. Uso apenas para testes: sem plano e sem cobrança."
       admin
       atual="administracao"
     >
@@ -54,10 +54,10 @@ export default async function PaginaLojaAdmin({ searchParams }: PageProps<"/admi
         method="get"
         action="/administracao/loja"
         role="search"
-        aria-label="Filtrar perfis"
+        aria-label="Filtrar sites"
       >
         <div className="campo campo-largo">
-          <label htmlFor="l-busca">Buscar pelo nome do perfil</label>
+          <label htmlFor="l-busca">Buscar pelo nome do site</label>
           <input
             id="l-busca"
             name="busca"
@@ -70,7 +70,7 @@ export default async function PaginaLojaAdmin({ searchParams }: PageProps<"/admi
         <div className="campo">
           <label htmlFor="l-loja">Situação da Loja</label>
           <select id="l-loja" name="loja" defaultValue={apenasLiberadas ? "liberadas" : ""}>
-            <option value="">Todos os perfis</option>
+            <option value="">Todos os sites</option>
             <option value="liberadas">Só com a Loja liberada</option>
           </select>
         </div>
@@ -87,7 +87,7 @@ export default async function PaginaLojaAdmin({ searchParams }: PageProps<"/admi
       {!r.ok ? (
         <Aviso tipo="erro">{r.erro.mensagem}</Aviso>
       ) : r.valor.itens.length === 0 ? (
-        <Aviso tipo="info">Nenhum perfil para esses filtros.</Aviso>
+        <Aviso tipo="info">Nenhum site para esses filtros.</Aviso>
       ) : (
         <>
           <p className="ajuda">

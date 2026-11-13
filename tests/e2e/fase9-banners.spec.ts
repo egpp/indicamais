@@ -130,7 +130,7 @@ test.describe("Fase 9 · estilo e banners (DEV)", () => {
       hasText: "Banner aguardando aceite",
     });
     expect(await cartoes.count()).toBeGreaterThanOrEqual(2);
-    await expect(cartoes.first()).toContainText("aguarda o seu aceite no perfil perfil 1");
+    await expect(cartoes.first()).toContainText("aguarda o seu aceite no site perfil 1");
     await dono.screenshot({ path: FOTO("b6-avisos-banner") });
   });
 

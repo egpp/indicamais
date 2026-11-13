@@ -108,7 +108,7 @@ describe("cartão público da Loja (IM-098, IM-029)", () => {
     expect(json).not.toMatch(/conta_id|telefone|5511999990001|dono@exemplo|Rua X|endereco/i);
   });
 
-  it("linhas inutilizáveis somem: id ruim, sem nome, tipo desconhecido, imóvel sem perfil", () => {
+  it("linhas inutilizáveis somem: id ruim, sem nome, tipo desconhecido, imóvel sem site", () => {
     expect(paraCartaoLoja(linhaLoja({ id: "nao-e-uuid" }))).toBeNull();
     expect(paraCartaoLoja(linhaLoja({ nome: "  " }))).toBeNull();
     expect(paraCartaoLoja(linhaLoja({ tipo: "carro" }))).toBeNull();
@@ -261,7 +261,7 @@ describe("serviço da Loja", () => {
     expect(invalido.lerLiberacoes).not.toHaveBeenCalled();
   });
 
-  it("lojasLiberadas: mapa por perfil, ignora linha de perfil não pedido", async () => {
+  it("lojasLiberadas: mapa por site, ignora linha de site não pedido", async () => {
     const outro = "22222222-2222-4222-8222-222222222222";
     const banco = fakeBanco({
       lerLiberacoes: vi.fn(async () => ({

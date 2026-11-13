@@ -97,7 +97,7 @@ describe.skipIf(!pronto)("home · leitura pública (dev, anon)", () => {
     },
   );
 
-  it("todo perfil de ranking é publicado e visível na busca pública (nada despublicado/suspenso)", async () => {
+  it("todo site de ranking é publicado e visível na busca pública (nada despublicado/suspenso)", async () => {
     const c = anon();
     const { data: pub } = await c.rpc("busca_publica", { p_limite: 100 } as never);
     // busca_publica pode ter outra assinatura; sem ela, o teste só confere as respostas das seções.

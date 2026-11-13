@@ -117,7 +117,7 @@ test.describe("Fase 9 · blocos 2 a 5 (DEV)", () => {
       await expect(ind.getByRole("button", { name: "Curtir", exact: true })).toBeVisible();
     }
     await ind.getByRole("button", { name: "Curtir", exact: true }).click();
-    await expect(ind.getByText("Você curtiu este perfil.")).toBeVisible();
+    await expect(ind.getByText("Você curtiu este site.")).toBeVisible();
     await expect(ind.getByRole("button", { name: "Descurtir" })).toBeVisible();
     // Sem promessa de pontos ou ganho na tela de curtir (IM-042).
     await expect(ind.locator(".secao-curtir")).not.toContainText(
@@ -198,14 +198,14 @@ test.describe("Fase 9 · blocos 2 a 5 (DEV)", () => {
     await dono.screenshot({ path: FOTO("b2-base-dono") });
   });
 
-  test("B2.5 dono não pode curtir o próprio perfil (P0403): sem botão e RPC negada", async () => {
+  test("B2.5 dono não pode curtir o próprio site (P0403): sem botão e RPC negada", async () => {
     const dono = S("dono");
     await dono.goto(CAMINHO);
-    // O responsável não vê o botão Curtir do próprio perfil, ou, se vir, a ação é recusada com mensagem neutra.
+    // O responsável não vê o botão Curtir do próprio site, ou, se vir, a ação é recusada com mensagem neutra.
     const curtir = dono.getByRole("button", { name: "Curtir", exact: true });
     if ((await curtir.count()) > 0) {
       await curtir.click();
-      await expect(dono.getByText(/próprio perfil/i)).toBeVisible();
+      await expect(dono.getByText(/próprio site/i)).toBeVisible();
     } else {
       await expect(curtir).toHaveCount(0);
     }
@@ -442,7 +442,7 @@ test.describe("Fase 9 · blocos 2 a 5 (DEV)", () => {
   test("B4 administrador cadastra benefício; dono aceita (já ativa); vitrine anônima sem botão de resgate", async () => {
     const admin = S("admin");
     await admin.goto("/administracao/beneficios");
-    await admin.getByLabel("Identificador do perfil").fill(perfilId);
+    await admin.getByLabel("Identificador do site").fill(perfilId);
     await admin.getByLabel("Nome do benefício").fill(NOME_BENEFICIO);
     await admin.getByLabel("Descrição", { exact: true }).fill("Benefício de teste E2E (Fase 9)");
     await admin.getByLabel("Pontos necessários").fill("50");
@@ -484,7 +484,7 @@ test.describe("Fase 9 · blocos 2 a 5 (DEV)", () => {
     await cartao.getByRole("button", { name: /Sair da base/ }).click();
     await expect(ind.getByText(/Você deixa de aparecer na base de relacionamento/)).toBeVisible();
     await ind.getByRole("button", { name: "Confirmar saída" }).click();
-    await expect(ind.getByText("Você saiu da base deste perfil.")).toBeVisible({ timeout: 30_000 });
+    await expect(ind.getByText("Você saiu da base deste site.")).toBeVisible({ timeout: 30_000 });
     await ind.screenshot({ path: FOTO("b5-saiu-da-base") });
 
     const dono = S("dono");

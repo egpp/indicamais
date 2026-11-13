@@ -83,7 +83,7 @@ export function imagensDoBanner(
   urls: Urls,
   secoes: ReadonlySet<string> = new Set(Object.values(ID_DA_SECAO)),
 ): ImagemBanner[] {
-  const nome = perfil.nome ?? "Perfil";
+  const nome = perfil.nome ?? "Site";
   const dosBanners = banners.flatMap((b) => {
     const src = urls[b.imagemPath];
     if (!src) return [];
@@ -234,7 +234,7 @@ export function SiteNegocio({
   equipe = [],
   exemplo = {},
 }: PropsSiteNegocio) {
-  const nome = perfil.nome ?? "Perfil sem nome";
+  const nome = perfil.nome ?? "Site sem nome";
   const local = localTexto(perfil.cidade, perfil.uf);
   const nomesCategorias = [perfil.categoriaPrincipalId, ...perfil.categoriasSecundariasIds]
     .filter((c): c is string => Boolean(c))

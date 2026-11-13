@@ -119,8 +119,8 @@ export function FormNovoItem({
         <>
           <CampoSelect
             nome="perfilId"
-            rotulo="Perfil"
-            vazio="Escolha o perfil"
+            rotulo="Site"
+            vazio="Escolha o site"
             valor={perfilSel}
             aoMudar={setPerfilSel}
             erro={erros.perfilId}

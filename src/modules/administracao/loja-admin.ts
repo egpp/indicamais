@@ -27,10 +27,10 @@ export type ResultadoLojaAdm<T> = ResultadoBase<T, ErroAdministracao>;
 export const MENSAGENS_LOJA_ADMIN = {
   semPermissao: "Somente o administrador geral pode liberar ou retirar a Loja.",
   motivo: "Informe o motivo.",
-  dados: "Confira o perfil, se a Loja será liberada ou retirada, e o motivo.",
-  perfilNaoEncontrado: "Perfil não encontrado.",
-  liberada: "Loja liberada para o perfil.",
-  retirada: "Loja retirada do perfil.",
+  dados: "Confira o site, se a Loja será liberada ou retirada, e o motivo.",
+  perfilNaoEncontrado: "Site não encontrado.",
+  liberada: "Loja liberada para o site.",
+  retirada: "Loja retirada do site.",
 } as const;
 
 // Entradas -------------------------------------------------------------------------------------------------

@@ -39,7 +39,7 @@ beforeEach(() => {
 });
 
 describe("Server Actions de conteúdo", () => {
-  it("criar perfil: redireciona para a tela do perfil e atualiza as telas", async () => {
+  it("criar site: redireciona para a tela do site e atualiza as telas", async () => {
     const f = formulario({
       nome: "Padaria",
       descricaoBreve: "Pães",
@@ -62,12 +62,12 @@ describe("Server Actions de conteúdo", () => {
     expect("destino" in r).toBe(false);
   });
 
-  it("ação sobre perfil que não é seu responde 'não encontrado'", async () => {
+  it("ação sobre site que não é seu responde 'não encontrado'", async () => {
     const r = await acaoEnviarPerfil(
       {},
       formulario({ id: "3f8a7c1e-5b2d-4e9a-8c6f-000000000000" }),
     );
-    expect(r.erro).toBe("Perfil não encontrado.");
+    expect(r.erro).toBe("Site não encontrado.");
   });
 
   it("ações de administrador respondem permissão negada a quem não é administrador", async () => {

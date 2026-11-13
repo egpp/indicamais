@@ -51,7 +51,7 @@ export function CurtirPerfil({
     return (
       <section className="secao-curtir" aria-labelledby={idTitulo}>
         <h2 id={idTitulo} className="titulo-curtir">
-          Gostou deste perfil?
+          Gostou deste site?
         </h2>
         <p className="ajuda">Entre na sua conta para curtir.</p>
         <p className="acoes-linha">
@@ -68,7 +68,7 @@ export function CurtirPerfil({
   return (
     <section className="secao-curtir" aria-labelledby={idTitulo}>
       <h2 id={idTitulo} className="titulo-curtir">
-        {curtiu ? "Você curtiu este perfil" : "Gostou deste perfil?"}
+        {curtiu ? "Você curtiu este site" : "Gostou deste site?"}
       </h2>
       <form action={action}>
         <Mensagens estado={estado} />

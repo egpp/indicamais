@@ -120,14 +120,14 @@ describe("contato do visitante (IM-026, IM-028)", () => {
   it("destino inexistente ou indisponível: mensagem do módulo, sem tocar no banco de contato", async () => {
     const { ctx, mundo } = cenario(null);
     const r = await enviarContatoVisitante(ctx, formulario(contato({ slug: "nao-existe" })));
-    expect(r.erro).toBe("Este perfil ou anúncio não está disponível no momento.");
+    expect(r.erro).toBe("Este site ou anúncio não está disponível no momento.");
     const s = await enviarContatoVisitante(
       ctx,
       formulario(contato({ tipo: "item", id: randomUUID() })),
     );
-    expect(s.erro).toBe("Este perfil ou anúncio não está disponível no momento.");
+    expect(s.erro).toBe("Este site ou anúncio não está disponível no momento.");
     const t = await enviarContatoVisitante(ctx, formulario(contato({ tipo: "outro" })));
-    expect(t.erro).toBe("Este perfil ou anúncio não está disponível no momento.");
+    expect(t.erro).toBe("Este site ou anúncio não está disponível no momento.");
     expect(mundo.chamadasContato).toHaveLength(0);
   });
 
@@ -183,7 +183,7 @@ describe("Indique (IM-024)", () => {
     expect(r2.passo).toBe("whatsapp");
   });
 
-  it("dono do perfil ou do item: mensagem de autoindicação", async () => {
+  it("dono do site ou do item: mensagem de autoindicação", async () => {
     const { ctx, item } = cenario({ id: randomUUID(), comWhatsapp: true }, true);
     const p = await gerarLinkDeIndicacao(
       ctx,
@@ -193,7 +193,7 @@ describe("Indique (IM-024)", () => {
     for (const r of [p, i]) {
       expect(r.passo).toBe("autoindicacao");
       expect(r.erro).toBe(
-        "Você não pode gerar link de indicação para o seu próprio perfil ou anúncio.",
+        "Você não pode gerar link de indicação para o seu próprio site ou anúncio.",
       );
     }
   });
@@ -219,7 +219,7 @@ describe("Indique (IM-024)", () => {
   it("destino indisponível: aviso do módulo", async () => {
     const { ctx } = cenario({ id: randomUUID(), comWhatsapp: true });
     const r = await gerarLinkDeIndicacao(ctx, formulario({ tipo: "item", id: randomUUID() }));
-    expect(r.erro).toBe("Este perfil ou anúncio não está disponível no momento.");
+    expect(r.erro).toBe("Este site ou anúncio não está disponível no momento.");
   });
 
   it("registra o compartilhamento só para logado e canal válido", async () => {

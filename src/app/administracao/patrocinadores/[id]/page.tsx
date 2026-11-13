@@ -41,7 +41,7 @@ export default async function PaginaPatrocinador({
   // O destino atual sempre aparece como opção, mesmo fora dos 50 primeiros perfis.
   const opcoes =
     p.perfilDestinoId && !perfis.some((x) => x.id === p.perfilDestinoId)
-      ? [...perfis, { id: p.perfilDestinoId, nome: "Perfil atual" }]
+      ? [...perfis, { id: p.perfilDestinoId, nome: "Site atual" }]
       : perfis;
 
   return (

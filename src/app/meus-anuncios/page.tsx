@@ -20,7 +20,7 @@ export default async function PaginaMeusAnuncios() {
   return (
     <PainelPagina
       titulo="Meus anúncios"
-      subtitulo="Venda ou ofereça um produto sem precisar de perfil comercial."
+      subtitulo="Venda ou ofereça um produto sem precisar de site comercial."
       admin={admin}
       atual="anuncios"
     >

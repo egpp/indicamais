@@ -297,10 +297,10 @@ export function FormBeneficio({
       {modo === "admin-cadastrar" ? (
         <Campo
           nome="perfilId"
-          rotulo="Identificador do perfil"
+          rotulo="Identificador do site"
           valorInicial={estado.valores?.perfilId ?? perfilInicial}
           erro={erros.perfilId}
-          ajuda="O perfil precisa estar publicado."
+          ajuda="O site precisa estar publicado."
         />
       ) : null}
       <Campo nome="nome" rotulo="Nome do benefício" valorInicial={v("nome")} erro={erros.nome} />

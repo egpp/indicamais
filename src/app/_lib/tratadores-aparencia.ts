@@ -12,7 +12,7 @@ export const MENSAGENS_TELA_APARENCIA = {
   estiloDesabilitado:
     "Estilo recolhido. Páginas que o usam passam a aparecer no estilo Minimalista até ele voltar.",
   bannersSalvos:
-    "Banners salvos no rascunho. Eles ainda NÃO foram enviados: envie o perfil para aprovação.",
+    "Banners salvos no rascunho. Eles ainda NÃO foram enviados: envie o site para aprovação.",
   aceito: "Banner aceito. Ele já pode aparecer na sua página.",
   recusado: "Banner recusado. O administrador verá o motivo.",
   exibindo: "Banner volta a aparecer na página.",

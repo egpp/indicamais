@@ -191,7 +191,7 @@ describe("D-035 · tetos de criação por conta (migração 20261109110000)", ()
     expect(guarda).not.toMatch(/pg_advisory_lock\(/); // nada de trava de sessão
   });
 
-  it("rascunho aberto = perfil ou item sem nenhuma versão enviada, somados", () => {
+  it("rascunho aberto = site ou item sem nenhuma versão enviada, somados", () => {
     expect(guarda).toMatch(
       /perfis_perfil_versao v where v\.perfil_id = p\.id and v\.situacao <> 'rascunho'/,
     );
@@ -232,7 +232,7 @@ describe("D-035 · tetos de criação por conta (migração 20261109110000)", ()
     ).toHaveLength(2);
   });
 
-  it("só esses dois caminhos criam perfil ou item nas migrações (nenhum insert novo escapa do teto)", () => {
+  it("só esses dois caminhos criam site ou item nas migrações (nenhum insert novo escapa do teto)", () => {
     const inserts: string[] = [];
     for (const n of readdirSync(DIR)
       .filter((x) => x.endsWith(".sql"))

@@ -118,7 +118,7 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
     return (data ?? []).some((l: { o_id: string }) => l.o_id === itemId);
   }
 
-  it("prepara sessões e identifica o perfil do dono", async () => {
+  it("prepara sessões e identifica o site do dono", async () => {
     anon = novo();
     dono = await logado(e.E2E_DONO_EMAIL!, e.E2E_DONO_SENHA!);
     admin = await logado(e.E2E_ADMIN_EMAIL!, e.E2E_ADMIN_SENHA!);
@@ -163,7 +163,7 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
       expect(interna2.error).not.toBeNull();
     });
 
-    it("administrador: motivo vazio/nulo, valor nulo e perfil inexistente são recusados", async () => {
+    it("administrador: motivo vazio/nulo, valor nulo e site inexistente são recusados", async () => {
       const semMotivo = await admin.rpc("loja_definir_liberacao", {
         p_perfil_id: perfilId,
         p_liberada: true,
@@ -595,7 +595,7 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
       expect(await visivelParaAnon()).toBe(false);
     });
 
-    it("perfil despublicado (IM-079) tiraria a Loja do ar: item despublicado segue fora; imóvel de anúncio particular é recusado", async () => {
+    it("site despublicado (IM-079) tiraria a Loja do ar: item despublicado segue fora; imóvel de anúncio particular é recusado", async () => {
       const part = await dono.rpc("catalogo_criar_item", {
         p_tipo: "imovel",
         p_perfil_id: null,
@@ -606,7 +606,7 @@ describe.skipIf(!pronto)("Loja (integração dev, sem service_role)", () => {
     });
   });
 
-  it("restaura a Loja do perfil ao estado inicial (antes apaga as próprias imagens)", async () => {
+  it("restaura a Loja do site ao estado inicial (antes apaga as próprias imagens)", async () => {
     if (itemId) {
       expect((await definir(true, "Teste: limpeza de imagens")).error).toBeNull();
       expect(await limparImagensDoItem(dono, admin, itemId)).toBeNull();

@@ -21,7 +21,7 @@ export default async function PaginaNovoItem({ searchParams }: PageProps<"/meus-
     ctx.perfis.listarMeus(),
   ]);
   const lista = perfis.ok
-    ? perfis.valor.map((p) => ({ id: p.id, nome: p.conteudoEdicao.nome ?? "Perfil sem nome" }))
+    ? perfis.valor.map((p) => ({ id: p.id, nome: p.conteudoEdicao.nome ?? "Site sem nome" }))
     : [];
   // IM-099: só perfis com a Loja liberada oferecem o tipo Imóvel. Falha na consulta = sem Loja (falha fechada).
   const liberadas = lista.length
@@ -33,16 +33,16 @@ export default async function PaginaNovoItem({ searchParams }: PageProps<"/meus-
   return (
     <PainelPagina
       titulo="Novo produto ou serviço"
-      subtitulo="Vinculado a um dos seus perfis. Passa por aprovação antes de aparecer."
+      subtitulo="Vinculado a um dos seus sites. Passa por aprovação antes de aparecer."
       atual="itens"
     >
       {erro ? <Aviso tipo="erro">{erro}</Aviso> : null}
       {!perfis.ok ? <Aviso tipo="erro">{perfis.erro.mensagem}</Aviso> : null}
       {perfis.ok && lista.length === 0 ? (
         <Aviso tipo="info">
-          Para cadastrar produtos ou serviços, crie primeiro um perfil.{" "}
-          <Link href="/meus-perfis/novo">Criar perfil</Link>. Se quer apenas anunciar um produto,
-          use <Link href="/meus-anuncios/novo">Meus anúncios</Link>.
+          Para cadastrar produtos ou serviços, crie primeiro um site.{" "}
+          <Link href="/meus-perfis/novo">Criar site</Link>. Se quer apenas anunciar um produto, use{" "}
+          <Link href="/meus-anuncios/novo">Meus anúncios</Link>.
         </Aviso>
       ) : (
         <FormNovoItem

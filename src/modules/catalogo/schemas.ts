@@ -75,7 +75,7 @@ export const novoItemSchema = camposItemSchema
         ctx.addIssue({
           code: "custom",
           path: ["perfilId"],
-          message: "O imóvel pertence a um perfil. Escolha o perfil.",
+          message: "O imóvel pertence a um site. Escolha o site.",
         });
       }
       return;
@@ -86,14 +86,14 @@ export const novoItemSchema = camposItemSchema
         ctx.addIssue({
           code: "custom",
           path: ["cidade"],
-          message: "Item de perfil usa a cidade do perfil.",
+          message: "Item de site usa a cidade do site.",
         });
       }
       if (v.uf) {
         ctx.addIssue({
           code: "custom",
           path: ["uf"],
-          message: "Item de perfil usa a UF do perfil.",
+          message: "Item de site usa a UF do site.",
         });
       }
       return;

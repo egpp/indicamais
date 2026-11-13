@@ -196,7 +196,7 @@ test.describe("administração dos estilos e dos banners", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Estilos de página" })).toBeVisible();
     await expect(page.locator("ul.lista-cartoes > li")).toHaveCount(20);
     await page.goto("/administracao/negocios");
-    await expect(page.getByRole("heading", { level: 1, name: "Perfis e itens" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Sites e itens" })).toBeVisible();
     const contexto = await browser.newContext({ baseURL: baseURL! });
     const outra = await contexto.newPage();
     const r = await outra.goto("/administracao/estilos");

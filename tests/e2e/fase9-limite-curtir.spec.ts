@@ -33,9 +33,7 @@ test("B2.6 limite de curtir/descurtir: P0429 com mensagem neutra, sem alterar a 
     await expect(curtir.or(descurtir)).toBeVisible();
     const estavaCurtido = await descurtir.isVisible();
     await (estavaCurtido ? descurtir : curtir).click();
-    const sucesso = page.getByText(
-      estavaCurtido ? "Curtida removida." : "Você curtiu este perfil.",
-    );
+    const sucesso = page.getByText(estavaCurtido ? "Curtida removida." : "Você curtiu este site.");
     await expect(bloqueio.or(sucesso).first()).toBeVisible({ timeout: 30_000 });
     if (await bloqueio.isVisible()) {
       bloqueado = true;
@@ -57,7 +55,7 @@ test("B2.6 limite de curtir/descurtir: P0429 com mensagem neutra, sem alterar a 
   if ((await sair.count()) > 0) {
     await sair.click();
     await page.getByRole("button", { name: "Confirmar saída" }).click();
-    await expect(page.getByText("Você saiu da base deste perfil.")).toBeVisible({
+    await expect(page.getByText("Você saiu da base deste site.")).toBeVisible({
       timeout: 30_000,
     });
   }

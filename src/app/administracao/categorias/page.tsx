@@ -28,7 +28,7 @@ export default async function PaginaCategoriasAdmin() {
   return (
     <PainelPagina
       titulo="Categorias"
-      subtitulo="Lista usada nos perfis, produtos e serviços."
+      subtitulo="Lista usada nos sites, produtos e serviços."
       admin
       atual="administracao"
     >

@@ -191,7 +191,7 @@ describe("busca: entrada (IM-019)", () => {
 });
 
 describe("busca: card público (IM-019, IM-029)", () => {
-  it("anúncio particular: link para a página do item, sem perfil, com cidade/UF do anúncio e preço", async () => {
+  it("anúncio particular: link para a página do item, sem site, com cidade/UF do anúncio e preço", async () => {
     const r = await criarServicoBusca(fakeBanco().banco).buscar({});
     if (!r.ok) throw new Error();
     expect(r.valor.cards).toEqual([
@@ -213,7 +213,7 @@ describe("busca: card público (IM-019, IM-029)", () => {
     ]);
   });
 
-  it("perfil: link /perfil/<slug>, sem preço", () => {
+  it("site: link /site/<slug>, sem preço", () => {
     const c = paraCard(
       linha({
         o_tipo: "perfil",
@@ -228,7 +228,7 @@ describe("busca: card público (IM-019, IM-029)", () => {
     expect(c?.anuncioParticular).toBe(false);
   });
 
-  it("item de perfil: link do item, link do perfil dono, não é anúncio particular", () => {
+  it("item de site: link do item, link do site dono, não é anúncio particular", () => {
     const c = paraCard(
       linha({
         o_tipo: "servico",
@@ -290,7 +290,7 @@ describe("busca: card público (IM-019, IM-029)", () => {
     }
   });
 
-  it("linhas inutilizáveis (tipo/id/nome inválidos, perfil sem slug) são descartadas, sem quebrar", async () => {
+  it("linhas inutilizáveis (tipo/id/nome inválidos, site sem slug) são descartadas, sem quebrar", async () => {
     const r = await criarServicoBusca(
       fakeBanco([
         linha({ o_tipo: "conta" }),
@@ -412,7 +412,7 @@ describe("busca: filtros disponíveis e seção da home (IM-016, IM-019)", () =>
     expect((await svc.secaoProdutosEServicos(3)).ok).toBe(false);
   });
 
-  it("a seção mostra anúncio particular (item sem perfil)", async () => {
+  it("a seção mostra anúncio particular (item sem site)", async () => {
     const f = fakeBanco([linha()]);
     const r = await criarServicoBusca(f.banco).secaoProdutosEServicos(2);
     expect(r.ok && r.valor.produtos[0]?.anuncioParticular).toBe(true);

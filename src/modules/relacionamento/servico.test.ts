@@ -31,7 +31,7 @@ function fake(sobrescrever: Partial<ClienteBancoRelacionamento> = {}) {
 }
 
 describe("curtir, descurtir e sair da base (IM-043, IM-045)", () => {
-  it("curtir chama o banco com o perfil validado e informa que alterou", async () => {
+  it("curtir chama o banco com o site validado e informa que alterou", async () => {
     const { banco, servico } = fake();
     const r = await servico.curtir({ perfilId: PERFIL });
     expect(r).toEqual({ ok: true, valor: { alterou: true } });
@@ -74,7 +74,7 @@ describe("curtir, descurtir e sair da base (IM-043, IM-045)", () => {
     });
   });
 
-  it("perfil indisponível (P0002), próprio perfil (P0403) e limite (P0429)", async () => {
+  it("site indisponível (P0002), próprio site (P0403) e limite (P0429)", async () => {
     const casos: [string, string][] = [
       ["P0002", "INDISPONIVEL"],
       ["P0403", "PROPRIO_PERFIL"],
@@ -113,7 +113,7 @@ describe("curtir, descurtir e sair da base (IM-043, IM-045)", () => {
     });
   });
 
-  it("perfil alheio: o banco responde P0002 (neutro) e nada é exposto", async () => {
+  it("site alheio: o banco responde P0002 (neutro) e nada é exposto", async () => {
     const { servico } = fake({ descurtir: comErro("P0002") });
     const r = await servico.descurtir({ perfilId: PERFIL });
     expect(r.ok).toBe(false);
@@ -199,7 +199,7 @@ describe("leitura do responsável (IM-039, IM-041)", () => {
     expect(r.ok && r.valor[0]!.interacoes).toBe(0);
   });
 
-  it("resumo mapeia totais por perfil, inclusive saídas", async () => {
+  it("resumo mapeia totais por site, inclusive saídas", async () => {
     const { servico } = fake({
       lerMeuResumo: ok([
         {
