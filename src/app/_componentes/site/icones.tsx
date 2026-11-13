@@ -6,7 +6,17 @@ import type { EstiloId } from "./estilos";
  * está sempre no texto ao lado. Sem imagens de terceiros e sem fotos de pessoas.
  */
 export type NomeIcone =
-  "sobre" | "produtos" | "beneficios" | "local" | "contato" | "categoria" | "areas" | "check";
+  | "sobre"
+  | "produtos"
+  | "beneficios"
+  | "local"
+  | "contato"
+  | "categoria"
+  | "areas"
+  | "check"
+  | "conversa"
+  | "ferramentas"
+  | "lista";
 
 const CAMINHOS: Record<NomeIcone, ReactNode> = {
   sobre: (
@@ -50,6 +60,26 @@ const CAMINHOS: Record<NomeIcone, ReactNode> = {
     </>
   ),
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  conversa: (
+    <>
+      <path d="M4 5h16v11H9.5L4 20.5V5z" />
+      <circle cx="8.5" cy="10.5" r="0.9" fill="currentColor" />
+      <circle cx="12" cy="10.5" r="0.9" fill="currentColor" />
+      <circle cx="15.5" cy="10.5" r="0.9" fill="currentColor" />
+    </>
+  ),
+  ferramentas: (
+    <>
+      <path d="M14.5 6.5a4 4 0 0 0 4.8 4.8L9 21.5 4.5 17l10-10.5z" />
+      <path d="M4 4l5 5M9 4L4 9" />
+    </>
+  ),
+  lista: (
+    <>
+      <path d="M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17" />
+      <path d="M11 6.5h9M11 12.5h9M11 18.5h9" />
+    </>
+  ),
 };
 
 export function Icone({ nome }: { nome: NomeIcone }) {

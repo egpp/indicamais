@@ -71,23 +71,38 @@ function conteudo(estilo: EstiloId, loja: boolean) {
 
 describe("estilo muda só a aparência (IM-091, IM-094)", () => {
   const ref = conteudo("minimalista", true);
-  it("cada um dos 20 estilos tem data-estilo próprio e conteúdo idêntico ao padrão", () => {
+  it("cada um dos 22 estilos tem data-estilo próprio, mesmas seções, links e cartões; o texto é idêntico (exceto o Básico)", () => {
     for (const id of IDS_ESTILOS) {
       const c = conteudo(id, true);
       expect(c.dataEstilo).toBe(id);
-      expect(c.texto, id).toBe(ref.texto);
+      // O Básico (IM-110) tem chamadas próprias pedidas pelo Emerson; ver o teste dedicado abaixo.
+      if (id !== "basico") expect(c.texto, id).toBe(ref.texto);
       expect(c.secoes, id).toEqual(ref.secoes);
       expect(c.links, id).toEqual(ref.links);
       expect(c.cards, id).toBe(ref.cards);
     }
   });
 
-  it("id desconhecido cai no padrão e renderiza o mesmo conteúdo", () => {
+  it("id desconhecido cai no padrão (básico) e renderiza as mesmas seções, links e cartões", () => {
     for (const v of ["xyz", "", undefined, ["pet"], "constructor", "toString"]) {
       const id = resolverEstilo(v);
-      expect(id).toBe("minimalista");
-      expect(conteudo(id, true).texto).toBe(ref.texto);
+      expect(id).toBe("basico");
+      const c = conteudo(id, true);
+      expect(c.secoes).toEqual(ref.secoes);
+      expect(c.links).toEqual(ref.links);
+      expect(c.cards).toBe(ref.cards);
     }
+  });
+
+  it("Básico: só as chamadas mudam (Fale com a gente, Tenho interesse, Vamos conversar?); sem formulário demonstrativo", () => {
+    const { container, unmount } = render(pagina("basico", true));
+    const t = container.textContent ?? "";
+    expect(t).toContain("Fale com a gente");
+    expect(t).toContain("Um pouco sobre a gente");
+    expect(t).toContain("Vamos conversar?");
+    expect(t).toContain("Tenho interesse");
+    expect(t).not.toMatch(/Formulário demonstrativo/i);
+    unmount();
   });
 
   it("sem liberação da Loja a seção não se chama Loja, em todos os estilos (D-022)", () => {

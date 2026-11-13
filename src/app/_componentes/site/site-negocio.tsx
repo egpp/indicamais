@@ -20,6 +20,7 @@ import { MenuSite, type ItemMenuSite } from "./menu-site";
 import "./site.css";
 import "./site-estilos.css";
 import "./site-estilos-novos.css";
+import "./site-estilos-basico.css";
 
 /**
  * Página do negócio como site de uma página (D-016; IM-091, IM-092, IM-093). Só apresentação: recebe modelos de
@@ -154,6 +155,9 @@ function CartaoItem({
   exemplo,
   variacoes = [],
   acao,
+  semPrecoTexto,
+  icones,
+  posicao = 0,
 }: {
   dados: DadosCard;
   url?: string;
@@ -161,7 +165,14 @@ function CartaoItem({
   variacoes?: DetalhesItem["variacoes"];
   /** Botão da ação de compra (ver `AcaoCompra`); ausente na demonstração. */
   acao?: ReactNode;
+  /** Texto quando o item não tem valor (estilo Básico: "Valores sob consulta"); ausente = não mostra nada. */
+  semPrecoTexto?: string;
+  /** Ícones do cartão sem foto, em rodízio pela posição (estilo Básico: conversa, ferramentas, lista). */
+  icones?: NomeIcone[];
+  posicao?: number;
 }) {
+  const sobConsulta = !dados.precoTexto || /^sob consulta$/i.test(dados.precoTexto.trim());
+  const precoTexto = semPrecoTexto && sobConsulta ? semPrecoTexto : dados.precoTexto;
   return (
     <article className="st-card">
       <div className="st-card-imagem">
@@ -169,10 +180,12 @@ function CartaoItem({
           <img src={url} alt="" loading="lazy" decoding="async" />
         ) : (
           <span className="st-card-sem-imagem" aria-hidden="true">
-            <Icone nome="produtos" />
+            <Icone
+              nome={icones && icones.length > 0 ? icones[posicao % icones.length]! : "produtos"}
+            />
           </span>
         )}
-        {dados.precoTexto ? <p className="st-card-preco">{dados.precoTexto}</p> : null}
+        {!semPrecoTexto && precoTexto ? <p className="st-card-preco">{precoTexto}</p> : null}
       </div>
       <div className="st-card-corpo">
         <p className="st-card-tipo">{dados.rotuloTipo}</p>
@@ -186,6 +199,8 @@ function CartaoItem({
           )}
         </h3>
         {dados.descricao ? <p className="st-card-desc">{dados.descricao}</p> : null}
+        {/* Básico: o preço fica no DOM depois da descrição, na mesma ordem em que aparece (leitura de tela). */}
+        {semPrecoTexto && precoTexto ? <p className="st-card-preco">{precoTexto}</p> : null}
         {dados.chips && dados.chips.length > 0 ? (
           <ul className="st-chips st-chips-imovel" aria-label="Características do imóvel">
             {dados.chips.map((c) => (
@@ -207,6 +222,8 @@ function CartaoItem({
     </article>
   );
 }
+
+const ICONES_BASICO: NomeIcone[] = ["conversa", "ferramentas", "lista"];
 
 const rotuloPlural = (g: DetalhesItem["variacoes"][number]) =>
   g.opcoes.length < 2
@@ -235,6 +252,8 @@ export function SiteNegocio({
   exemplo = {},
 }: PropsSiteNegocio) {
   const nome = perfil.nome ?? "Site sem nome";
+  // Estilo Básico (IM-110, D-040): textos de chamada próprios e "Tenho interesse" levando ao formulário real.
+  const basico = estilo === "basico";
   const local = localTexto(perfil.cidade, perfil.uf);
   const nomesCategorias = [perfil.categoriaPrincipalId, ...perfil.categoriasSecundariasIds]
     .filter((c): c is string => Boolean(c))
@@ -352,11 +371,15 @@ export function SiteNegocio({
               {local ? <p className="st-local">{local}</p> : null}
               <p className="st-acoes-inicio">
                 <a className="botao" href="#contato-site">
-                  Falar com a empresa
+                  {basico ? "Fale com a gente" : "Falar com a empresa"}
                 </a>
                 {temItens ? (
                   <a className="botao botao-secundario" href="#produtos">
-                    {loja ? "Ver a Loja" : "Ver produtos e serviços"}
+                    {loja
+                      ? "Ver a Loja"
+                      : basico
+                        ? "Conhecer o catálogo"
+                        : "Ver produtos e serviços"}
                   </a>
                 ) : null}
               </p>
@@ -369,7 +392,7 @@ export function SiteNegocio({
           <Secao
             id="sobre"
             tituloId="titulo-sobre"
-            titulo="Sobre"
+            titulo={basico ? "Um pouco sobre a gente" : "Sobre"}
             icone="sobre"
             numero={numeroDe("sobre")}
             alt={altDe("sobre")}
@@ -460,7 +483,7 @@ export function SiteNegocio({
               </p>
             ) : null}
             <ul className="st-grade-cards">
-              {itensCatalogo.map((i) => {
+              {itensCatalogo.map((i, posicao) => {
                 const d = detalhes.get(i.id) ?? detalhesDoItem(i.descricao);
                 // A descrição do cartão não repete as linhas de variação nem de periodicidade.
                 const dados = dadosDeItem({ ...i, descricao: d.descricao }, [...categorias], local);
@@ -471,6 +494,9 @@ export function SiteNegocio({
                       url={dados.imagemPath ? urls[dados.imagemPath] : undefined}
                       exemplo={Boolean(exemplo.itens)}
                       variacoes={d.variacoes}
+                      semPrecoTexto={basico ? "Valores sob consulta" : undefined}
+                      icones={basico ? ICONES_BASICO : undefined}
+                      posicao={posicao}
                       acao={
                         exemplo.itens ? undefined : (
                           <AcaoCompra
@@ -478,6 +504,7 @@ export function SiteNegocio({
                             perfilId={perfil.id}
                             item={{ id: i.id, nome: dados.nome }}
                             variacoes={d.variacoes}
+                            interesseNoFormulario={basico}
                           />
                         )
                       }
@@ -616,7 +643,7 @@ export function SiteNegocio({
           <Secao
             id="contato-site"
             tituloId="titulo-contato-site"
-            titulo="Contato"
+            titulo={basico ? "Vamos conversar?" : "Contato"}
             icone="contato"
             numero={numeroDe("contato-site")}
             alt={altDe("contato-site")}
@@ -625,8 +652,9 @@ export function SiteNegocio({
               <div className="st-contato-info">
                 <h3>Fale com {nome}</h3>
                 <p>
-                  Envie um pedido de contato e a empresa responde. Você também pode indicar esta
-                  empresa a quem precisa.
+                  {basico
+                    ? "Deixe seu contato e conte o que precisa."
+                    : "Envie um pedido de contato e a empresa responde. Você também pode indicar esta empresa a quem precisa."}
                 </p>
                 {local ? (
                   <p className="st-contato-linha">

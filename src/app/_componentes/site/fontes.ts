@@ -107,6 +107,7 @@ const FONTES: Partial<Record<EstiloId, string>> = {
   turismo_hospedagem: `${playfair.variable} ${lato.variable}`,
   premium: `${cormorant.variable} ${jost.variable}`,
   moto_bike: `${barlowCondensed.variable} ${barlow.variable}`,
+  basico: `${jakarta.variable} ${inter.variable}`,
 };
 
 export const classeDeFontes = (id: EstiloId): string => FONTES[id] ?? inter.variable;

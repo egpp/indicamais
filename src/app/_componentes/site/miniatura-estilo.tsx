@@ -2,10 +2,13 @@
 import { ilustracaoDemo } from "./demonstracao";
 import type { TemaEstilo } from "./estilos";
 import { classeDeFontes } from "./fontes";
-import { Decoracao } from "./icones";
+import { Decoracao, Icone, type NomeIcone } from "./icones";
 import "./site.css";
 import "./site-estilos.css";
 import "./site-estilos-novos.css";
+import "./site-estilos-basico.css";
+
+const ICONES_BASICO: NomeIcone[] = ["conversa", "ferramentas", "lista"];
 
 const NOMES_EXEMPLO: Record<string, string> = {
   minimalista: "Estúdio Exemplo",
@@ -29,6 +32,7 @@ const NOMES_EXEMPLO: Record<string, string> = {
   turismo_hospedagem: "Pousada Exemplo",
   premium: "Ateliê Exemplo",
   moto_bike: "Giro Exemplo",
+  basico: "Ponto Exemplo",
 };
 
 /**
@@ -63,7 +67,13 @@ export function MiniaturaEstilo({ tema }: { tema: TemaEstilo }) {
       <div className="st-mini-corpo">
         {[0, 1, 2].map((n) => (
           <div key={n} className="st-mini-card">
-            <img src={ilustracaoDemo(tema.id, n)} alt="" />
+            {tema.id === "basico" ? (
+              <span className="st-mini-icone">
+                <Icone nome={ICONES_BASICO[n]!} />
+              </span>
+            ) : (
+              <img src={ilustracaoDemo(tema.id, n)} alt="" />
+            )}
             <b>Item {n + 1}</b>
           </div>
         ))}

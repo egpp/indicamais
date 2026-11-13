@@ -1,5 +1,5 @@
 /**
- * Verificação independente (PR #29): os 21 estilos em 360px, na prévia do responsável (IM-091, IM-100).
+ * Verificação independente (PR #29): os 22 estilos em 360px, na prévia do responsável (IM-091, IM-100).
  * Método próprio: esconde todo o texto, fotografa a página e mede o contraste de cada texto contra os PIXELS reais
  * atrás dele (cobre imagem, gradiente e sobreposição, que medição por CSS não enxerga). Também confere rolagem
  * horizontal, cards de mesmo tamanho e o fallback do id desconhecido. Só DESENVOLVIMENTO; não grava nada.
@@ -29,6 +29,7 @@ const ESTILOS = [
   "turismo_hospedagem",
   "premium",
   "moto_bike",
+  "basico",
 ];
 
 async function idDoPerfil(page: Page): Promise<string> {
@@ -186,7 +187,7 @@ async function medirPixels(arg: { png: string; alvos: Alvo[] }) {
   return out;
 }
 
-test.describe("PR #29: 21 estilos em 360px (método por pixels)", () => {
+test.describe("PR #29: 22 estilos em 360px (método por pixels)", () => {
   test("contraste AA, rolagem e cards", async ({ page }, info) => {
     test.skip(info.project.name !== "desktop", "Mede em 360px num único projeto.");
     test.setTimeout(900_000);

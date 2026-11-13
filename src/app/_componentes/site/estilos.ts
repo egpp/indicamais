@@ -1,12 +1,17 @@
 /**
  * Estilos de página dos negócios (D-016, D-021; IM-091, IM-100). UM arquivo concentra os ids, os rótulos e o que está
  * liberado; para um estilo novo, acrescente o id em IDS_ESTILOS e uma linha em TEMAS (mais CSS, fonte, miniatura e
- * demonstração, que tipam por EstiloId). Os 21 estilos estão com desenho pronto (`site-estilos.css`: 1 a 5; `site-estilos-novos.css`: 6 a 21). Para um estilo
+ * demonstração, que tipam por EstiloId). Os 22 estilos estão com desenho pronto (`site-estilos.css`: 1 a 5; `site-estilos-novos.css`: 6 a 21; `site-estilos-basico.css`: 22, IM-110). Para um estilo
  * futuro sem desenho, passe `liberado = false` em `T(...)`. Quais estilos cada responsável pode escolher é decidido
  * no banco (`perfis_estilo_pagina.habilitado`), pela tela do administrador.
  * A escolha do responsável ainda não é gravada (virá com o banco): hoje o estilo vem da prévia (?estilo=) ou é o padrão.
  */
-export const ESTILO_PADRAO = "minimalista" as const;
+/**
+ * Estilo de quem ainda não escolheu (IM-110, D-040): "basico", o modelo do site gratuito. Os sites que já existem
+ * guardam o estilo que têm no banco (a migração só troca o DEFAULT da coluna, não reescreve linhas); este valor só
+ * vale como queda segura quando não há estilo salvo. "minimalista" segue sendo um estilo comum, sempre habilitado.
+ */
+export const ESTILO_PADRAO = "basico" as const;
 
 export const IDS_ESTILOS = [
   "minimalista",
@@ -30,6 +35,7 @@ export const IDS_ESTILOS = [
   "turismo_hospedagem",
   "premium",
   "moto_bike",
+  "basico",
 ] as const;
 
 export type EstiloId = (typeof IDS_ESTILOS)[number];
@@ -90,6 +96,7 @@ export const TEMAS: Record<EstiloId, TemaEstilo> = {
   turismo_hospedagem: T("turismo_hospedagem", "Turismo e Hospedagem", "Leve e convidativo."),
   premium: T("premium", "Premium", "Escuro e refinado."),
   moto_bike: T("moto_bike", "Moto e Bike", "Duas rodas: energia, caixa alta e vermelho."),
+  basico: T("basico", "Básico", "Simples e direto: azul, branco, catálogo em cartões e contato."),
 };
 
 export const LISTA_TEMAS: readonly TemaEstilo[] = IDS_ESTILOS.map((id) => TEMAS[id]);
@@ -99,7 +106,7 @@ const ehEstiloId = (v: unknown): v is EstiloId =>
 
 /**
  * Valor vindo de fora (URL) -> estilo a aplicar. Desconhecido, vazio, "em breve" ou lista de valores cai no
- * padrão minimalista: a página nunca quebra por causa do parâmetro.
+ * padrão (básico): a página nunca quebra por causa do parâmetro.
  */
 export function resolverEstilo(valor: unknown): EstiloId {
   if (!ehEstiloId(valor)) return ESTILO_PADRAO;

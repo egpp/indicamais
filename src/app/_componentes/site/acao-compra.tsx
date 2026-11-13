@@ -15,26 +15,22 @@ export function AcaoCompra({
   perfilId,
   item,
   variacoes = [],
+  interesseNoFormulario = false,
 }: {
   acao: AcaoCompraResolvida;
   perfilId: string;
   item: { id: string; nome: string };
   variacoes?: readonly GrupoVariacao[];
+  /**
+   * Estilo Básico (IM-110): o botão vira "Tenho interesse"; ao tocar, o item entra na lista de interesse, a lista vai
+   * para o campo Mensagem do formulário de contato REAL (o visitante revisa antes de enviar) e a tela vai até ele.
+   * Não é compra: sem preço, estoque nem pagamento (IM-090).
+   */
+  interesseNoFormulario?: boolean;
 }) {
   const base = useId();
   const [escolhas, setEscolhas] = useState<Record<string, string>>({});
   const [aviso, setAviso] = useState("");
-
-  if (acao.modo === "contato") {
-    return (
-      <p className="st-acao-compra">
-        <a className="botao botao-secundario st-botao-auto" href={acao.href}>
-          {acao.rotulo}
-          <span className="sr-only">: {item.nome}</span>
-        </a>
-      </p>
-    );
-  }
 
   const adicionar = () => {
     sacola.adicionar(perfilId, {
@@ -44,8 +40,30 @@ export function AcaoCompra({
         escolhas[g.rotulo] ? [`${g.rotulo}: ${escolhas[g.rotulo]}`] : [],
       ),
     });
+    if (interesseNoFormulario) {
+      sacola.levarAoContato();
+      setAviso(`Interesse em ${item.nome} anotado. O formulário de contato foi preenchido.`);
+      document.getElementById("contato-site")?.scrollIntoView?.();
+      return;
+    }
     setAviso(`${item.nome} foi para a sua lista de interesse.`);
   };
+  if (acao.modo === "contato") {
+    return (
+      <p className="st-acao-compra">
+        <a
+          className="botao botao-secundario st-botao-auto"
+          href={acao.href}
+          onClick={interesseNoFormulario ? adicionar : undefined}
+        >
+          {acao.rotulo}
+          <span className="sr-only">: {item.nome}</span>
+        </a>
+      </p>
+    );
+  }
+
+  const rotulo = interesseNoFormulario ? "Tenho interesse" : acao.rotulo;
 
   return (
     <div className="st-acao-compra">
@@ -70,7 +88,7 @@ export function AcaoCompra({
         );
       })}
       <button type="button" className="botao botao-secundario st-botao-auto" onClick={adicionar}>
-        {acao.rotulo}
+        {rotulo}
         <span className="sr-only">: {item.nome}</span>
       </button>
       <span className="sr-only" role="status">
