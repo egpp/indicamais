@@ -126,7 +126,11 @@ function paraPerfil(l: LinhaBrutaPerfil): LinhaPerfil {
   };
 }
 
-type LinhaBrutaItem = Database["public"]["Views"]["catalogo_meus_itens"]["Row"];
+// cidade/uf do item existem na visão, mas a leitura atual não as seleciona (o uso é do PR 6; só cidade e UF, IM-029).
+type LinhaBrutaItem = Omit<
+  Database["public"]["Views"]["catalogo_meus_itens"]["Row"],
+  "cidade" | "uf"
+>;
 function paraItem(l: LinhaBrutaItem): LinhaItem {
   return {
     id: l.id as string,

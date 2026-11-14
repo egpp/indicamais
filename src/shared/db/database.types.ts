@@ -556,38 +556,60 @@ export type Database = {
       catalogo_item: {
         Row: {
           atualizado_em: string
+          cidade: string | null
           conta_id: string
           criado_em: string
+          excluido_em: string | null
+          excluido_motivo: string | null
+          excluido_por: string | null
           id: string
           perfil_id: string | null
           publicado: boolean
           tipo: string
+          uf: string | null
           versao_aprovada_id: string | null
         }
         Insert: {
           atualizado_em?: string
+          cidade?: string | null
           conta_id: string
           criado_em?: string
+          excluido_em?: string | null
+          excluido_motivo?: string | null
+          excluido_por?: string | null
           id?: string
           perfil_id?: string | null
           publicado?: boolean
           tipo: string
+          uf?: string | null
           versao_aprovada_id?: string | null
         }
         Update: {
           atualizado_em?: string
+          cidade?: string | null
           conta_id?: string
           criado_em?: string
+          excluido_em?: string | null
+          excluido_motivo?: string | null
+          excluido_por?: string | null
           id?: string
           perfil_id?: string | null
           publicado?: boolean
           tipo?: string
+          uf?: string | null
           versao_aprovada_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "catalogo_item_conta_id_fkey"
             columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_excluido_por_fkey"
+            columns: ["excluido_por"]
             isOneToOne: false
             referencedRelation: "contas_conta"
             referencedColumns: ["id"]
@@ -605,6 +627,82 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "catalogo_item_versao"
             referencedColumns: ["id", "item_id"]
+          },
+        ]
+      }
+      catalogo_item_ciclo: {
+        Row: {
+          acao: string
+          autor_id: string
+          conta_id: string
+          criado_em: string
+          id: string
+          item_id: string
+          motivo: string | null
+          valor_anterior: Json
+        }
+        Insert: {
+          acao: string
+          autor_id: string
+          conta_id: string
+          criado_em?: string
+          id?: string
+          item_id: string
+          motivo?: string | null
+          valor_anterior: Json
+        }
+        Update: {
+          acao?: string
+          autor_id?: string
+          conta_id?: string
+          criado_em?: string
+          id?: string
+          item_id?: string
+          motivo?: string | null
+          valor_anterior?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalogo_item_ciclo_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_ciclo_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_ciclo_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_ciclo_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_item_publico"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_ciclo_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "catalogo_meus_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalogo_item_ciclo_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "loja_item_publico"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -4741,29 +4839,35 @@ export type Database = {
       catalogo_meus_itens: {
         Row: {
           atualizado_em: string | null
+          cidade: string | null
           criado_em: string | null
           id: string | null
           perfil_id: string | null
           publicado: boolean | null
           tipo: string | null
+          uf: string | null
           versao_aprovada_id: string | null
         }
         Insert: {
           atualizado_em?: string | null
+          cidade?: string | null
           criado_em?: string | null
           id?: string | null
           perfil_id?: string | null
           publicado?: boolean | null
           tipo?: string | null
+          uf?: string | null
           versao_aprovada_id?: string | null
         }
         Update: {
           atualizado_em?: string | null
+          cidade?: string | null
           criado_em?: string | null
           id?: string | null
           perfil_id?: string | null
           publicado?: boolean | null
           tipo?: string | null
+          uf?: string | null
           versao_aprovada_id?: string | null
         }
         Relationships: [
@@ -5822,6 +5926,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      catalogo_despublicar_item: {
+        Args: { p_item_id: string; p_motivo?: string }
+        Returns: undefined
+      }
       catalogo_eh_dono: { Args: { p_item_id: string }; Returns: boolean }
       catalogo_eh_dono_da_versao: {
         Args: { p_versao_id: string }
@@ -5831,10 +5939,22 @@ export type Database = {
         Args: { p_versao_id: string }
         Returns: undefined
       }
+      catalogo_excluir_item: {
+        Args: { p_item_id: string; p_motivo?: string }
+        Returns: undefined
+      }
       catalogo_imagem_em_uso: { Args: { p_nome: string }; Returns: boolean }
       catalogo_imagem_publica: { Args: { p_nome: string }; Returns: boolean }
       catalogo_imagens_da_conta: { Args: never; Returns: number }
+      catalogo_item_preencher_localizacao_legada: {
+        Args: never
+        Returns: number
+      }
       catalogo_pasta_do_dono: { Args: { p_nome: string }; Returns: boolean }
+      catalogo_republicar_item: {
+        Args: { p_item_id: string }
+        Returns: undefined
+      }
       comissoes_admin_listar_assinaturas: {
         Args: {
           p_deslocamento?: number
