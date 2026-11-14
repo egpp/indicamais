@@ -57,7 +57,15 @@ describe("D-040 · migração do modelo do item (20261114100000)", () => {
     expect(i).toBeGreaterThan(-1);
     expect(u).toBeGreaterThan(i);
     expect(f).toBeGreaterThan(u);
-    expect(sql).toMatch(/where i\.id = s\.id and s\.cidade is not null and s\.uf is not null/);
+    expect(sql).toMatch(
+      /where i\.id = s\.id and i\.cidade is null and s\.cidade is not null and s\.uf is not null/,
+    );
+    // Imóvel de site: a localização da PRÓPRIA versão vem antes da do site.
+    expect(sql).toMatch(/\(i2\.perfil_id is null or i2\.tipo = 'imovel'\) and v\.item_id = i2\.id/);
+    // Função testável (pgTAP com dado legado), sem acesso da API.
+    expect(sql).toMatch(
+      /revoke all on function public\.catalogo_item_preencher_localizacao_legada\(\) from public, anon, authenticated/,
+    );
     // A conta não é fonte (não guarda localização).
     expect(sql.slice(u, f)).not.toMatch(/contas_conta/);
   });
@@ -104,6 +112,7 @@ describe("D-040 · migração do modelo do item (20261114100000)", () => {
       [
         "catalogo_despublicar_item",
         "catalogo_excluir_item",
+        "catalogo_item_preencher_localizacao_legada",
         "catalogo_item_versao_item_excluido",
         "catalogo_republicar_item",
       ].sort(),
@@ -187,6 +196,32 @@ describe("D-040 · migração do modelo do item (20261114100000)", () => {
       /p_cidade text default null,\s+p_uf text default null\s+\) returns table \(o_item_id uuid, o_versao_id uuid\)/,
     );
     expect(c.indexOf("contas_exigir_teto_criacao")).toBeLessThan(ins);
+  });
+
+  it("item de site sem cidade/UF: rascunho nasce sem; o envio herda do site ou falha com P0001 localizacao_obrigatoria", () => {
+    const c = corpo("catalogo_criar_item");
+    expect(c).toMatch(
+      /\(p_perfil_id is null or p_tipo = 'imovel'\) and \(v_cidade is null or v_uf is null\)/,
+    );
+    const e = corpo("catalogo_enviar_item_versao");
+    expect(e).toMatch(/raise exception 'localizacao_obrigatoria' using errcode = 'P0001'/);
+    expect(e).toMatch(/update public\.catalogo_item set cidade = v_cidade, uf = v_uf/);
+    // Mesma assinatura (create or replace): os grants da 20261103140000 seguem valendo.
+    expect(sql).not.toMatch(/drop function public\.catalogo_enviar_item_versao/);
+  });
+
+  it("excluir rejeita versão pendente antes de marcar a exclusão, com motivo fixo, revisão e auditoria", () => {
+    const c = corpo("catalogo_excluir_item");
+    const laco = c.indexOf("situacao = 'pendente'");
+    const marca = c.indexOf("excluido_em = now()");
+    expect(laco).toBeGreaterThan(-1);
+    expect(marca).toBeGreaterThan(laco);
+    expect(c).toMatch(
+      /insert into public\.catalogo_item_revisao[\s\S]*'rejeitada', 'item excluído'/,
+    );
+    expect(c).toMatch(
+      /insert into public\.administracao_auditoria[\s\S]*cancelar_versao_item_excluido/,
+    );
   });
 
   it("teto: a exclusão libera a vaga em todas as contagens de item; despublicar não libera", () => {

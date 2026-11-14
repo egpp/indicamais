@@ -95,8 +95,119 @@ select set_config('request.jwt.claims', json_build_object('sub', (select adm fro
 select 'ADM lê o histórico do item (esperado >= 3)' as passo, count(*) from public.catalogo_item_ciclo c, r_item r where c.item_id = r.id;
 reset role;
 
--- 8. Libera a vaga (exige conta de teste no teto: rode à parte se o dono não estiver no teto) --------------------------------------------
--- Com o dono no teto de `tetos_anuncios_particulares` (ou itens do perfil), a criação falha com P0430 antes da exclusão e passa
--- depois dela; despublicar não libera. O pgTAP catalogo_item_exclusao.test.sql prova o mesmo com teto 1.
+-- 8. Casos com contas descartáveis criadas DENTRO da transação (somem no ROLLBACK) -------------------------------------------------
+-- F = criador (cidade/UF, herança do site, rascunho de site sem cidade, versão pendente cancelada); G = vaga do teto;
+-- S = conta suspensa. Nada disto depende dos três UUIDs do início. Roda no editor SQL do dev (papel postgres).
+insert into auth.users (id, instance_id, aud, role, email) values
+  ('ffffffff-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'roteiro-f@teste.local'),
+  ('ffffffff-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'roteiro-g@teste.local'),
+  ('ffffffff-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'roteiro-s@teste.local');
+insert into public.contas_ciclo_vida (conta_id, situacao, suspensa_em)
+  values ('ffffffff-0000-0000-0000-0000000000f3', 'suspensa', now());
+-- Sites de F: S1 com cidade/UF (Canoas/RS) e S2 SEM cidade/UF. Itens de G (vaga) e de S (suspensa).
+insert into public.perfis_perfil (id, responsavel_id, slug) values
+  ('f0000000-0000-0000-0000-0000000000a1', 'ffffffff-0000-0000-0000-0000000000f1', 'roteiro-site-com-cidade'),
+  ('f0000000-0000-0000-0000-0000000000a2', 'ffffffff-0000-0000-0000-0000000000f1', 'roteiro-site-sem-cidade');
+insert into public.perfis_perfil_versao (perfil_id, nome, cidade, uf) values
+  ('f0000000-0000-0000-0000-0000000000a1', 'Roteiro com cidade', 'Canoas', 'RS'),
+  ('f0000000-0000-0000-0000-0000000000a2', 'Roteiro sem cidade', null, null);
+insert into public.catalogo_item (id, conta_id, perfil_id, tipo, cidade, uf) values
+  ('f0000000-0000-0000-0000-0000000000b2', 'ffffffff-0000-0000-0000-0000000000f2', null, 'produto', 'Recife', 'PE'),
+  ('f0000000-0000-0000-0000-0000000000b3', 'ffffffff-0000-0000-0000-0000000000f3', null, 'produto', 'Recife', 'PE');
+create temp table r_cat as select id from public.catalogo_categoria where ativa order by ordem, id limit 1;
+grant select on r_cat to authenticated;
+
+-- 8a. Conta suspensa não exclui (esperado: 42501) -----------------------------------------------------------------------------------
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"ffffffff-0000-0000-0000-0000000000f3","role":"authenticated"}', true);
+do $$ begin
+  perform public.catalogo_excluir_item('f0000000-0000-0000-0000-0000000000b3');
+  raise exception 'REPROVADO: conta suspensa excluiu';
+exception when sqlstate '42501' then raise notice 'OK 8a: conta suspensa não exclui (42501)'; end $$;
+reset role;
+select '8a: item da conta suspensa segue sem exclusão (esperado true)' as passo,
+  excluido_em is null from public.catalogo_item where id = 'f0000000-0000-0000-0000-0000000000b3';
+
+-- 8b. Criação com cidade/UF, herança do site e rascunho de site sem cidade ----------------------------------------------------------
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"ffffffff-0000-0000-0000-0000000000f1","role":"authenticated"}', true);
+do $$ begin
+  perform public.catalogo_criar_item('produto', null, p_nome => 'Sem local');
+  raise exception 'REPROVADO: anúncio particular sem cidade/UF foi criado';
+exception when sqlstate '23514' then raise notice 'OK 8b: particular sem cidade/UF = 23514'; end $$;
+select o_item_id from public.catalogo_criar_item('produto', null, p_nome => 'Com local', p_cidade => ' Recife ', p_uf => 'pe');
+select '8b: localização gravada aparada (esperado Recife/PE)' as passo, cidade || '/' || uf
+  from public.catalogo_meus_itens where cidade = 'Recife';
+select o_item_id from public.catalogo_criar_item('servico', 'f0000000-0000-0000-0000-0000000000a1', p_nome => 'Serviço herda');
+select '8b: item de site herda a do site (esperado Canoas/RS)' as passo, cidade || '/' || uf
+  from public.catalogo_meus_itens where perfil_id = 'f0000000-0000-0000-0000-0000000000a1';
+-- Site sem cidade: o rascunho NASCE (antes dava 23514 sem saída); o envio é que falha, com erro próprio.
+select o_item_id from public.catalogo_criar_item('servico', 'f0000000-0000-0000-0000-0000000000a2',
+  p_nome => 'Serviço sem cidade', p_descricao => 'Descrição', p_categoria_principal_id => (select id from r_cat));
+select '8b: rascunho de site sem cidade criado, cidade nula (esperado true)' as passo, cidade is null
+  from public.catalogo_meus_itens where perfil_id = 'f0000000-0000-0000-0000-0000000000a2';
+update public.catalogo_item_versao v set foto_path = 'item/' || v.item_id::text || '/f.jpg' where v.nome = 'Serviço sem cidade';
+do $$ begin
+  perform public.catalogo_enviar_item_versao((select id from public.catalogo_item_versao where nome = 'Serviço sem cidade'));
+  raise exception 'REPROVADO: enviou item de site sem cidade/UF';
+exception when sqlstate 'P0001' then
+  if sqlerrm <> 'localizacao_obrigatoria' then raise exception 'REPROVADO: mensagem inesperada %', sqlerrm; end if;
+  raise notice 'OK 8b: envio sem cidade no site = P0001 localizacao_obrigatoria'; end $$;
+reset role;
+
+-- 8c. Versão pendente é cancelada na exclusão (motivo, revisão e auditoria; some da fila) --------------------------------------------
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"ffffffff-0000-0000-0000-0000000000f1","role":"authenticated"}', true);
+select o_item_id from public.catalogo_criar_item('produto', null, p_nome => 'Pendente vai sumir', p_descricao => 'Descrição',
+  p_categoria_principal_id => (select id from r_cat), p_cidade => 'Recife', p_uf => 'PE');
+update public.catalogo_item_versao v set foto_path = 'item/' || v.item_id::text || '/f.jpg' where v.nome = 'Pendente vai sumir';
+select public.catalogo_enviar_item_versao((select id from public.catalogo_item_versao where nome = 'Pendente vai sumir'));
+select public.catalogo_excluir_item((select item_id from public.catalogo_item_versao where nome = 'Pendente vai sumir'), 'roteiro');
+reset role;
+select '8c: versão virou rejeitada (esperado rejeitada)' as passo, situacao
+  from public.catalogo_item_versao where nome = 'Pendente vai sumir';
+select '8c: revisão (esperado rejeitada | item excluído)' as passo, decisao, motivo
+  from public.catalogo_item_revisao r join public.catalogo_item_versao v on v.id = r.versao_id where v.nome = 'Pendente vai sumir';
+select '8c: auditoria (esperado 1 linha, valor anterior pendente)' as passo, acao, valor_anterior ->> 'situacao'
+  from public.administracao_auditoria a join public.catalogo_item_versao v on v.id::text = a.alvo_id
+  where v.nome = 'Pendente vai sumir' and a.acao = 'cancelar_versao_item_excluido';
+select '8c: nenhuma pendente sobra (esperado 0)' as passo, count(*)
+  from public.catalogo_item_versao v where v.nome = 'Pendente vai sumir' and v.situacao = 'pendente';
+
+-- 8d. EXECUTÁVEL: excluir LIBERA a vaga do teto (teto 1 só nesta transação; ROLLBACK desfaz) ---------------------------------------------
+-- G tem 1 particular e o teto de anúncios particulares passa a ser 1: criar outro falha com P0430; depois de excluir, passa.
+update public.contas_parametro set valor = 1 where chave = 'tetos_anuncios_particulares';
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"ffffffff-0000-0000-0000-0000000000f2","role":"authenticated"}', true);
+do $$ begin
+  perform public.catalogo_criar_item('produto', null, p_nome => 'Segundo', p_cidade => 'Recife', p_uf => 'PE');
+  raise exception 'REPROVADO: G passou do teto';
+exception when sqlstate 'P0430' then raise notice 'OK 8d: G está no teto (P0430)'; end $$;
+select public.catalogo_excluir_item('f0000000-0000-0000-0000-0000000000b2', 'libera vaga');
+select 'OK 8d: depois de excluir, a criação passa (esperado true)' as passo, o_item_id is not null
+  from public.catalogo_criar_item('produto', null, p_nome => 'Segundo', p_cidade => 'Recife', p_uf => 'PE');
+do $$ begin
+  perform public.catalogo_criar_item('produto', null, p_nome => 'Terceiro', p_cidade => 'Recife', p_uf => 'PE');
+  raise exception 'REPROVADO: o teto deixou de valer';
+exception when sqlstate 'P0430' then raise notice 'OK 8d: o teto volta a valer (P0430)'; end $$;
+reset role;
+
+-- 9. Backfill no DEV: contagem ANTES e DEPOIS de aplicar a migração (rodar à parte, FORA deste bloco, com "aprovado") -------------------
+-- ANTES do `db push` (as colunas novas ainda não existem): guarde estes números.
+--   select count(*) as itens, count(*) filter (where perfil_id is null) as particulares,
+--          count(*) filter (where perfil_id is not null and tipo <> 'imovel') as de_site,
+--          count(*) filter (where tipo = 'imovel') as imoveis from public.catalogo_item;
+-- DEPOIS do `db push` (o aviso da migração já imprime "N itens, M sem cidade/UF"):
+--   select count(*) as itens, count(*) filter (where cidade is null) as sem_cidade,
+--          count(*) filter (where cidade is not null) as com_cidade,
+--          count(*) filter (where (cidade is null) <> (uf is null)) as pares_quebrados   -- esperado 0
+--   from public.catalogo_item;
+--   -- imóveis com localização PRÓPRIA preservada (esperado 0 linhas: item diferente da própria versão aprovada):
+--   select i.id, i.cidade, v.cidade as cidade_versao from public.catalogo_item i
+--   join public.catalogo_item_versao v on v.id = i.versao_aprovada_id
+--   where i.tipo = 'imovel' and v.cidade is not null and i.cidade is distinct from btrim(v.cidade);
+--   -- itens sem fonte (ficam NULL e seguem funcionando): liste para decidir à parte.
+--   select id, tipo, perfil_id from public.catalogo_item where cidade is null;
+-- Conferência: `itens` antes = `itens` depois; com_cidade + sem_cidade = itens.
 
 rollback;

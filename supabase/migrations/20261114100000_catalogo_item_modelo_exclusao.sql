@@ -9,20 +9,26 @@
 --      Entra o valor 'procura' (anúncio de compra, IM-109), mas BLOQUEADO por um CHECK próprio
 --      (catalogo_item_procura_indisponivel) que o PR do IM-109 remove. O campo nasce pronto e não utilizável.
 --   2. LOCALIZAÇÃO PRÓPRIA do item (cidade e UF, nunca endereço): colunas catalogo_item.cidade/uf.
---        * Itens EXISTENTES: preenchidos aqui. Particular: da versão aprovada do item (senão a versão mais recente com cidade
---          e UF válidas). Item de perfil: da versão aprovada do perfil (senão a mais recente com cidade e UF válidas).
+--        * Itens EXISTENTES: preenchidos aqui pela função catalogo_item_preencher_localizacao_legada (testável; sem acesso da
+--          API). Particular e IMÓVEL de site: da PRÓPRIA versão aprovada do item (senão a mais recente com cidade e UF
+--          válidas). Item de perfil sem localização própria (e imóvel sem localização própria): da versão aprovada do perfil
+--          (senão a mais recente com cidade e UF válidas).
 --          A conta NÃO tem cidade (contas_conta não guarda localização): não é fonte. Item sem nenhuma fonte fica NULL
 --          (o aviso mostra a contagem) e continua funcionando; o público segue lendo do jeito de hoje (esta migração não
 --          mexe nas visões públicas de localização).
 --        * Itens NOVOS: catalogo_criar_item (único caminho de criação do dono) exige cidade e UF. Item de perfil sem cidade/UF
---          informadas herda a do perfil (padrão da D-040 P8). Só uma das duas = 23514. Sem localização resolvida = 23514.
+--          informadas herda a do perfil (padrão da D-040 P8). Só uma das duas = 23514. Anúncio particular e imóvel sem
+--          localização resolvida = 23514. Item de site (não imóvel) pode ficar sem cidade/UF no RASCUNHO (o Zod proíbe cidade
+--          em item de site; o site pode ainda não ter cidade): ao ENVIAR para aprovação, catalogo_enviar_item_versao herda a
+--          do site ou falha com P0001 'localizacao_obrigatoria' (mensagem própria, o dono corrige a cidade do site).
 --          INSERT direto continua negado ao cliente; fixtures do banco (papel postgres) não são afetadas.
 --        * A versão (catalogo_item_versao.cidade/uf) segue como está: anúncio particular continua gravando a cidade/UF na
 --          versão (aprovação por versão, D-008) e item de perfil continua proibido de gravá-las na versão.
 --        * Sem edição de cidade/UF do item nesta migração (sem GRANT de UPDATE): como o dono edita (com ou sem nova
 --          aprovação) é decisão do PR da interface (dúvida registrada).
 --   3. EXCLUSÃO LÓGICA: excluido_em, excluido_por, excluido_motivo (opcional, até 500). Excluir faz publicado = false e
---      grava excluido_em NA MESMA transação. Invariante por CHECK: excluído nunca está publicado. Por isso TODA leitura
+--      grava excluido_em NA MESMA transação; versão pendente do item é rejeitada junto (motivo 'item excluído', revisão e
+--      auditoria cancelar_versao_item_excluido), para não ficar na fila nem dar P0002 ao administrador. Invariante por CHECK: excluído nunca está publicado. Por isso TODA leitura
 --      pública que já exige `publicado` (catalogo_item_publico, loja_item_publico, busca_publica, contato, link de
 --      indicação, pontos, imagem, mapa, home) já o esconde SEM reescrita. O que muda são só as leituras do DONO e do
 --      administrador: catalogo_meus_itens, administracao_meus_resultados, administracao_fila_pendencias, as políticas
@@ -77,38 +83,48 @@ create index catalogo_item_conta_ativos_idx on public.catalogo_item (conta_id) w
 -- Cidade e UF do item são públicas por natureza (aparecem no card). O resto (excluido_*) não tem SELECT para cliente.
 grant select (cidade, uf) on public.catalogo_item to anon, authenticated;
 
--- Preenchimento dos itens existentes. Gatilhos de usuário desligados só durante o preenchimento (não tocar atualizado_em
--- nem esbarrar na trava de publicação de conta suspensa); religados no fim, na mesma transação.
-alter table public.catalogo_item disable trigger user;
+-- Preenchimento dos itens existentes, em função própria para ser testada com dado legado (pgTAP). Idempotente: só toca item
+-- sem cidade. Gatilhos de usuário desligados só durante o preenchimento (não tocar atualizado_em nem esbarrar na trava de
+-- publicação de conta suspensa); religados no fim, na mesma transação. Sem acesso da API (só o dono do banco executa).
+create function public.catalogo_item_preencher_localizacao_legada() returns integer
+language plpgsql set search_path = '' as $$
+declare
+  v_n integer;
+begin
+  alter table public.catalogo_item disable trigger user;
+  update public.catalogo_item i
+     set cidade = s.cidade, uf = s.uf
+    from (
+      select i2.id,
+             coalesce(a.cidade, b.cidade) as cidade,
+             coalesce(a.uf, b.uf) as uf
+      from public.catalogo_item i2
+      left join lateral (
+        select btrim(v.cidade) as cidade, v.uf
+        from public.catalogo_item_versao v
+        where (i2.perfil_id is null or i2.tipo = 'imovel') and v.item_id = i2.id
+          and v.cidade is not null and v.uf is not null
+          and char_length(btrim(v.cidade)) between 2 and 80
+        order by (v.id = i2.versao_aprovada_id) desc, v.criado_em desc, v.id desc
+        limit 1) a on true
+      left join lateral (
+        select btrim(pv.cidade) as cidade, pv.uf
+        from public.perfis_perfil_versao pv
+        join public.perfis_perfil p on p.id = pv.perfil_id
+        where i2.perfil_id is not null and pv.perfil_id = i2.perfil_id
+          and pv.cidade is not null and pv.uf is not null
+          and char_length(btrim(pv.cidade)) between 2 and 80
+          and pv.uf in ('AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO')
+        order by (pv.id = p.versao_aprovada_id) desc, pv.criado_em desc, pv.id desc
+        limit 1) b on true) s
+   where i.id = s.id and i.cidade is null and s.cidade is not null and s.uf is not null;
+  get diagnostics v_n = row_count;
+  alter table public.catalogo_item enable trigger user;
+  return v_n;
+end $$;
+revoke all on function public.catalogo_item_preencher_localizacao_legada() from public, anon, authenticated;
 
-update public.catalogo_item i
-   set cidade = s.cidade, uf = s.uf
-  from (
-    select i2.id,
-           coalesce(a.cidade, b.cidade) as cidade,
-           coalesce(a.uf, b.uf) as uf
-    from public.catalogo_item i2
-    left join lateral (
-      select btrim(v.cidade) as cidade, v.uf
-      from public.catalogo_item_versao v
-      where i2.perfil_id is null and v.item_id = i2.id
-        and v.cidade is not null and v.uf is not null
-        and char_length(btrim(v.cidade)) between 2 and 80
-      order by (v.id = i2.versao_aprovada_id) desc, v.criado_em desc, v.id desc
-      limit 1) a on true
-    left join lateral (
-      select btrim(pv.cidade) as cidade, pv.uf
-      from public.perfis_perfil_versao pv
-      join public.perfis_perfil p on p.id = pv.perfil_id
-      where i2.perfil_id is not null and pv.perfil_id = i2.perfil_id
-        and pv.cidade is not null and pv.uf is not null
-        and char_length(btrim(pv.cidade)) between 2 and 80
-        and pv.uf in ('AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO')
-      order by (pv.id = p.versao_aprovada_id) desc, pv.criado_em desc, pv.id desc
-      limit 1) b on true) s
- where i.id = s.id and s.cidade is not null and s.uf is not null;
-
-alter table public.catalogo_item enable trigger user;
+select public.catalogo_item_preencher_localizacao_legada();
 
 do $$
 declare
@@ -313,6 +329,7 @@ declare
   v_uid uuid := (select auth.uid());
   v_item public.catalogo_item%rowtype;
   v_motivo text := nullif(btrim(coalesce(p_motivo, '')), '');
+  v_pend record;
 begin
   if v_uid is null then
     raise exception 'não autenticado' using errcode = '42501';
@@ -332,6 +349,20 @@ begin
   if not public.contas_pode_publicar(v_uid) then
     raise exception 'esta conta não pode excluir itens no momento' using errcode = '42501';
   end if;
+  -- Versão pendente de item excluído não fica na fila para sempre: é rejeitada pelo próprio dono, com motivo fixo e auditoria
+  -- (valor anterior = situação pendente). Tem de vir ANTES de marcar a exclusão (o gatilho veda mexer em versão de item excluído).
+  for v_pend in
+    select v.id, v.enviada_em from public.catalogo_item_versao v
+    where v.item_id = v_item.id and v.situacao = 'pendente' for update
+  loop
+    insert into public.catalogo_item_revisao (item_id, versao_id, decisao, motivo, autor_id, versao_aprovada_anterior_id)
+    values (v_item.id, v_pend.id, 'rejeitada', 'item excluído', v_uid, v_item.versao_aprovada_id);
+    update public.catalogo_item_versao set situacao = 'rejeitada' where id = v_pend.id;
+    insert into public.administracao_auditoria (autor_id, acao, alvo_tabela, alvo_id, motivo, valor_anterior, valor_novo)
+    values (v_uid, 'cancelar_versao_item_excluido', 'catalogo_item_versao', v_pend.id::text, 'item excluído',
+            jsonb_build_object('situacao', 'pendente', 'item_id', v_item.id, 'enviada_em', v_pend.enviada_em),
+            jsonb_build_object('situacao', 'rejeitada', 'item_id', v_item.id));
+  end loop;
   update public.catalogo_item
      set publicado = false, excluido_em = now(), excluido_por = v_uid, excluido_motivo = v_motivo
    where id = v_item.id;
@@ -349,7 +380,7 @@ grant execute on function public.catalogo_excluir_item(uuid, text) to authentica
 
 -- 2 (novos itens). catalogo_criar_item: localização própria obrigatória -----------------------------------------------------
 -- Mesma assinatura da 20261109110000 (grants preservados). Mudanças: (a) cidade e UF vão para o item; (b) item de perfil sem
--- cidade/UF herda a do perfil; (c) particular e imóvel continuam gravando também na versão o que foi informado (aprovação por versão, D-008; imóvel tem localização própria desde a Loja); (d) a
+-- cidade/UF herda a do perfil (sem localização no perfil, item de site não imóvel nasce sem e a exige no envio); (c) particular e imóvel continuam gravando também na versão o que foi informado (aprovação por versão, D-008; imóvel tem localização própria desde a Loja); (d) a
 -- checagem de localização vem DEPOIS do INSERT do item, para que perfil alheio continue falhando com 23503 como antes.
 create or replace function public.catalogo_criar_item(
   p_tipo text,
@@ -397,7 +428,9 @@ begin
   values (v_uid, p_perfil_id, p_tipo, v_cidade, v_uf)
   returning id into v_item;
 
-  if v_cidade is null or v_uf is null then
+  -- Anúncio particular e imóvel exigem localização na criação. Item de site (não imóvel) pode ficar sem no rascunho: o
+  -- envio (catalogo_enviar_item_versao) herda a do site ou falha com 'localizacao_obrigatoria'.
+  if (p_perfil_id is null or p_tipo = 'imovel') and (v_cidade is null or v_uf is null) then
     raise exception 'cidade e UF do item são obrigatórias' using errcode = '23514';
   end if;
 
@@ -411,6 +444,66 @@ begin
   o_item_id := v_item;
   o_versao_id := v_versao;
   return next;
+end $$;
+
+-- Envio: item de site sem localização herda a do site ou não segue (P0001 'localizacao_obrigatoria') ---------------------------
+-- Mesma assinatura e grants da 20261103140000; acrescenta a localização própria do item (D-040). Item que já tem cidade/UF não muda.
+create or replace function public.catalogo_enviar_item_versao(p_versao_id uuid) returns void
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_uid uuid := (select auth.uid());
+  v_v public.catalogo_item_versao%rowtype;
+  v_perfil uuid;
+  v_tipo text;
+  v_item_cidade text;
+  v_cidade text;
+  v_uf text;
+begin
+  if v_uid is null then
+    raise exception 'não autenticado' using errcode = '42501';
+  end if;
+  select v.* into v_v
+  from public.catalogo_item_versao v join public.catalogo_item i on i.id = v.item_id
+  where v.id = p_versao_id and i.conta_id = v_uid and i.excluido_em is null
+  for update of v;
+  if not found then
+    raise exception 'versão não encontrada' using errcode = '42501';
+  end if;
+  if v_v.situacao <> 'rascunho' then
+    raise exception 'só rascunho pode ser enviado' using errcode = 'P0001';
+  end if;
+  select i.perfil_id, i.tipo, i.cidade into v_perfil, v_tipo, v_item_cidade
+  from public.catalogo_item i where i.id = v_v.item_id for update;
+  if v_perfil is null and (v_v.cidade is null or v_v.uf is null) then
+    raise exception 'anúncio particular exige cidade e UF' using errcode = '23514';
+  end if;
+  if v_tipo = 'imovel' and (v_v.imovel_tipo is null or v_v.finalidade is null or v_v.preco_modo is null
+      or v_v.area_m2 is null or v_v.quartos is null or v_v.banheiros is null or v_v.vagas is null
+      or v_v.bairro is null or v_v.cidade is null or v_v.uf is null) then
+    raise exception 'imóvel exige tipo, finalidade, preço, área, quartos, banheiros, vagas, bairro, cidade e UF' using errcode = '23514';
+  end if;
+  if v_item_cidade is null then
+    if v_perfil is null or v_tipo = 'imovel' then
+      -- particular e imóvel: a localização está na própria versão (checada acima)
+      v_cidade := btrim(v_v.cidade);
+      v_uf := v_v.uf;
+    else
+      select btrim(pv.cidade), pv.uf into v_cidade, v_uf
+      from public.perfis_perfil_versao pv
+      join public.perfis_perfil p on p.id = pv.perfil_id
+      where p.id = v_perfil
+        and pv.cidade is not null and pv.uf is not null and char_length(btrim(pv.cidade)) between 2 and 80
+      order by (pv.id = p.versao_aprovada_id) desc, pv.criado_em desc, pv.id desc
+      limit 1;
+      if v_cidade is null then
+        raise exception 'localizacao_obrigatoria' using errcode = 'P0001';
+      end if;
+    end if;
+    if v_cidade is not null and char_length(v_cidade) between 2 and 80 then
+      update public.catalogo_item set cidade = v_cidade, uf = v_uf where id = v_v.item_id;
+    end if;
+  end if;
+  update public.catalogo_item_versao set situacao = 'pendente', enviada_em = now() where id = p_versao_id;
 end $$;
 
 -- 6. Teto: a exclusão libera a vaga ------------------------------------------------------------------------------------------

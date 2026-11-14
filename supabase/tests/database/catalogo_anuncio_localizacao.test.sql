@@ -81,7 +81,8 @@ select lives_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-00
 select is((select cidade || '/' || uf from public.catalogo_meus_itens where perfil_id is not null and cidade = 'Canoas'), 'Canoas/RS', 'a localização própria fica no item');
 select is((select cidade from public.catalogo_item_versao where nome = 'Pão Próprio'), null, 'e a versão do item de perfil segue sem cidade (herança só no item)');
 select throws_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão', p_uf => 'RS')$$, '23514', null, 'só UF (sem cidade) é recusada');
-select throws_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Sem local')$$, '23514', null, 'D-040: anúncio particular novo sem cidade e UF é recusado');select lives_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão Francês', p_descricao => 'Fresco',
+select throws_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Sem local')$$, '23514', null, 'D-040: anúncio particular novo sem cidade e UF é recusado');
+select lives_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão Francês', p_descricao => 'Fresco',
   p_categoria_principal_id => '11111111-0000-0000-0000-000000000001')$$, 'item de perfil sem localização própria é criado');
 select is((select cidade || '/' || uf from public.catalogo_meus_itens where id = t.itemid('Pão Francês')), 'Porto Alegre/RS', 'D-040 P8: sem cidade/UF informadas, o item herda a do site como padrão');
 select lives_ok($$update public.catalogo_item_versao v set foto_path = 'item/' || v.item_id::text || '/f.jpg' where nome = 'Pão Francês'$$, 'foto do item de perfil');
