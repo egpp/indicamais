@@ -162,7 +162,7 @@ select throws_ok($$insert into public.catalogo_item (conta_id, tipo) values ('aa
 update public.perfis_perfil set publicado = false where slug = 'loja-ana';
 update public.catalogo_item set publicado = false;
 select lives_ok($$select public.perfis_criar_rascunho('loja-bia', '+5551999990002')$$, 'B cria o próprio perfil');
-select lives_ok($$select public.catalogo_criar_item('servico', null, p_nome => 'Aula')$$, 'B cria o próprio item');
+select lives_ok($$select public.catalogo_criar_item('servico', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Aula')$$, 'B cria o próprio item');
 
 reset role;
 select is((select responsavel_id from public.perfis_perfil where slug = 'loja-bia'), 'bbbbbbbb-0000-0000-0000-00000000000b'::uuid, 'o responsável do perfil criado por B é B (sempre auth.uid())');

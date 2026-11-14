@@ -15,6 +15,8 @@ export const MENSAGENS_CATALOGO = {
   perfilInvalido: "Site não encontrado ou não pertence à sua conta.",
   precoInvalido: "Confira o preço informado.",
   localizacaoInvalida: "Confira a cidade e a UF informadas.",
+  localizacaoSiteObrigatoria:
+    "Informe a cidade e a UF do seu site antes de enviar este item para aprovação.",
   imagemInvalida: "Imagem inválida. Envie novamente.",
   textoInvalido: "Confira os textos informados.",
   categoriaDuplicada: "Já existe uma categoria com este nome.",
@@ -152,6 +154,10 @@ export function mapearErroBancoCatalogo(e: ErroBanco): ErroCatalogo {
   }
   if (classe === "NAO_ENCONTRADO") return erroCatalogo("NAO_ENCONTRADO", M.naoEncontrado);
   if (classe === "ESTADO_INVALIDO") {
+    // Item de site sem cidade/UF no site (D-040): o dono corrige a localização do site e reenvia.
+    if (/localizacao_obrigatoria/i.test(alvo)) {
+      return erroCatalogo("INCOMPLETO", M.localizacaoSiteObrigatoria);
+    }
     if (/limite/i.test(alvo)) return erroCatalogo("LIMITE_SOLICITACOES", M.limiteSolicitacoes);
     if (/pedido j[áa] decidido/i.test(alvo)) {
       return erroCatalogo("ESTADO_INVALIDO", M.solicitacaoDecidida);

@@ -46,13 +46,13 @@ select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-0000000
 
 select throws_ok($$select public.catalogo_criar_item('outro', 'a0000000-0000-0000-0000-000000000001')$$, '23514', null, 'tipo inválido é rejeitado');
 select lives_ok($$select public.catalogo_criar_item('servico', 'a0000000-0000-0000-0000-000000000001')$$, 'A cria serviço no próprio perfil (item + 1ª versão)');
-select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Bicicleta')$$, 'A cria anúncio particular (sem perfil comercial, IM-015)');
+select lives_ok($$select public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Bicicleta')$$, 'A cria anúncio particular (sem perfil comercial, IM-015)');
 select is((select count(*)::int from public.catalogo_meus_itens), 2, 'catalogo_meus_itens lista os 2 itens de A');
 select is((select count(*)::int from public.catalogo_item_versao where situacao = 'rascunho'), 2, 'cada item nasce com a primeira versão (rascunho)');
 select throws_ok($$insert into public.catalogo_item (conta_id, tipo) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'produto')$$, '42501', null, 'item não nasce por INSERT direto');
 select throws_ok($$insert into public.catalogo_item (conta_id, tipo) values ('bbbbbbbb-0000-0000-0000-00000000000b', 'produto')$$, '42501', null, 'A não cria item em nome de B');
 -- Atomicidade: versão inválida derruba o item
-select throws_ok($$select public.catalogo_criar_item('produto', null, p_preco_modo => 'fixo')$$, '23514', null, 'versão inválida derruba a criação do item');
+select throws_ok($$select public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_preco_modo => 'fixo')$$, '23514', null, 'versão inválida derruba a criação do item');
 select is((select count(*)::int from public.catalogo_meus_itens), 2, 'nenhum item órfão (sem versão) após a falha');
 select throws_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-0000000000ff')$$, '23503', null, 'perfil inexistente é recusado');
 select throws_ok($$update public.catalogo_item set tipo = 'produto' where tipo = 'servico'$$, '42501', null, 'tipo do item não é alterável pelo cliente');
@@ -88,7 +88,7 @@ select throws_ok($$update public.catalogo_item set versao_aprovada_id = t.iv(t.s
 -- Anúncio particular: rascunho incompleto não pode ser enviado
 select is((select nome from public.catalogo_item_versao where item_id = t.part() and situacao = 'rascunho'), 'Bicicleta', 'rascunho incompleto é permitido');
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, '23514', null, 'enviar anúncio incompleto é recusado');
-update public.catalogo_item_versao set descricao = 'Bicicleta aro 29 seminova', foto_path = 'item/' || t.part()::text || '/bike.jpg', categoria_principal_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'fixo', preco_centavos = 120000 where situacao = 'rascunho' and nome = 'Bicicleta';
+update public.catalogo_item_versao set descricao = 'Bicicleta aro 29 seminova', foto_path = 'item/' || t.part()::text || '/bike.jpg', categoria_principal_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'fixo', preco_centavos = 120000, cidade = null, uf = null where situacao = 'rascunho' and nome = 'Bicicleta';
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, '23514', null, 'anúncio particular sem cidade e UF não é enviado (D-008)');
 update public.catalogo_item_versao set cidade = '  Porto Alegre ', uf = 'rs' where situacao = 'rascunho' and nome = 'Bicicleta';
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, 'anúncio completo é enviado');

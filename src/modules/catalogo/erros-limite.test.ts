@@ -55,3 +55,13 @@ describe("teto de criação de item e anúncio (D-035, IM-006, IM-015)", () => {
     }
   });
 });
+
+describe("item de site sem cidade/UF no site (D-040, IM-105)", () => {
+  it("P0001 localizacao_obrigatoria vira mensagem própria, não o conflito genérico", () => {
+    const r = mapearErroBancoCatalogo({ code: "P0001", message: "localizacao_obrigatoria" });
+    expect(r.codigo).toBe("INCOMPLETO");
+    expect(r.mensagem).toBe(
+      "Informe a cidade e a UF do seu site antes de enviar este item para aprovação.",
+    );
+  });
+});
