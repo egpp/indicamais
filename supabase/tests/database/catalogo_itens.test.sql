@@ -88,7 +88,7 @@ select throws_ok($$update public.catalogo_item set versao_aprovada_id = t.iv(t.s
 -- Anúncio particular: rascunho incompleto não pode ser enviado
 select is((select nome from public.catalogo_item_versao where item_id = t.part() and situacao = 'rascunho'), 'Bicicleta', 'rascunho incompleto é permitido');
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, '23514', null, 'enviar anúncio incompleto é recusado');
-update public.catalogo_item_versao set descricao = 'Bicicleta aro 29 seminova', foto_path = 'item/' || t.part()::text || '/bike.jpg', categoria_principal_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'fixo', preco_centavos = 120000 where situacao = 'rascunho' and nome = 'Bicicleta';
+update public.catalogo_item_versao set descricao = 'Bicicleta aro 29 seminova', foto_path = 'item/' || t.part()::text || '/bike.jpg', categoria_principal_id = '11111111-0000-0000-0000-000000000001', preco_modo = 'fixo', preco_centavos = 120000, cidade = null, uf = null where situacao = 'rascunho' and nome = 'Bicicleta';
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, '23514', null, 'anúncio particular sem cidade e UF não é enviado (D-008)');
 update public.catalogo_item_versao set cidade = '  Porto Alegre ', uf = 'rs' where situacao = 'rascunho' and nome = 'Bicicleta';
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv(t.part(), 'rascunho'))$$, 'anúncio completo é enviado');
