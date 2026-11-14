@@ -20,6 +20,12 @@ const P = (motivo: Motivo, c: [string, string, string][]): PaletaDemo[] =>
   c.map(([fundo, forma, destaque]) => ({ fundo, forma, destaque, motivo }));
 
 export const PALETAS_NOVAS: Record<string, PaletaDemo[]> = {
+  basico: P("linhas", [
+    ["#e0eaff", "#1d4ed8", "#0f172a"],
+    ["#eef3fc", "#1d4ed8", "#93b4ff"],
+    ["#ffffff", "#1d4ed8", "#0f172a"],
+    ["#c7d8ff", "#0f172a", "#1d4ed8"],
+  ]),
   cafe_padaria: P("prato", [
     ["#fde8a6", "#1d3f94", "#4a2a18"],
     ["#f1cfa0", "#4a2a18", "#fff8e6"],
@@ -143,6 +149,34 @@ const R = (
 });
 
 export const ROTEIROS_NOVOS: Record<string, RoteiroDemo> = {
+  basico: R(
+    "Ponto Serviços",
+    "Serviços",
+    "Soluções práticas para o seu dia. Um site de exemplo para você avaliar um visual simples, claro e direto.",
+    "Rua Exemplo, 50, Centro",
+    ["Centro", "Ponta Verde", "Jatiúca"],
+    [
+      [
+        "Atendimento inicial",
+        "Conte sua necessidade e conheça as possibilidades.",
+        "Sob consulta",
+        "servico",
+      ],
+      [
+        "Serviço personalizado",
+        "Converse sobre uma proposta para o que você procura.",
+        "Sob consulta",
+        "servico",
+      ],
+      [
+        "Acompanhamento",
+        "Consulte as opções para dar continuidade ao atendimento.",
+        "Sob consulta",
+        "servico",
+      ],
+    ],
+    [["Atendimento prioritário", 150]],
+  ),
   cafe_padaria: R(
     "Padaria Exemplo",
     "Café e padaria",

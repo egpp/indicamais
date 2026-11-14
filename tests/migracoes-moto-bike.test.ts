@@ -10,13 +10,14 @@ const ler = (n: string) =>
 const sql = ler("20261104120000_perfis_estilo_moto_bike.sql");
 
 describe("migração perfis_estilo_moto_bike", () => {
-  it("o check de ids lista exatamente os ids do código (21)", () => {
+  it("o check de ids lista os ids do código até o 21º (o 22º, basico, vem na migração própria)", () => {
     const bloco = /add constraint perfis_estilo_pagina_id check \(id in \(([\s\S]*?)\)\);/.exec(
       sql,
     )![1];
     const ids = [...bloco.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
     expect(ids).toHaveLength(21);
-    expect([...ids].sort()).toEqual([...IDS_ESTILOS].sort());
+    expect([...ids].sort()).toEqual([...IDS_ESTILOS].filter((i) => i !== "basico").sort());
+    expect(IDS_ESTILOS).toHaveLength(22);
   });
 
   it("insere moto_bike desabilitado, na ordem 21, sem tocar em políticas, RLS ou gatilho", () => {

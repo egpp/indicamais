@@ -346,7 +346,8 @@ export function demonstracaoDoEstilo(estilo: EstiloId, base?: PerfilExibicao): D
     tipo: i.tipo,
     nome: i.nome,
     descricao: i.descricao,
-    fotoPath: foto(`demo/${estilo}/item-${n}`, n),
+    // Básico: cartões com ícone (conversa, ferramentas, lista), como no modelo, sem ilustração.
+    fotoPath: estilo === "basico" ? null : foto(`demo/${estilo}/item-${n}`, n),
     categoriaPrincipalId: null,
     categoriasSecundariasIds: [],
     preco: null,
