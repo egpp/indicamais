@@ -31,7 +31,7 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"dddddddd-0000-0000-0000-00000000000d","role":"authenticated"}', true);
 select lives_ok($$select count(*)::int from (select (public.perfis_criar_rascunho('d-perfil-' || n, '+55119888803' || lpad(n::text, 2, '0'))).o_perfil_id from generate_series(1, 5) n) s$$,
   'administrador cria 5 perfis (acima do teto de 3 e dos 10 rascunhos somados)');
-select lives_ok($$select count(*)::int from (select (public.catalogo_criar_item('produto', null, p_nome => 'Item D' || n)).o_item_id from generate_series(1, 12) n) s$$,
+select lives_ok($$select count(*)::int from (select (public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Item D' || n)).o_item_id from generate_series(1, 12) n) s$$,
   'administrador cria 12 anúncios particulares (acima do teto de 10)');
 reset role;
 select is((select count(*)::int from public.perfis_perfil where responsavel_id = 'dddddddd-0000-0000-0000-00000000000d'), 5, 'os 5 perfis do administrador existem');
@@ -43,12 +43,12 @@ select lives_ok($$select count(*)::int from (select (public.perfis_criar_rascunh
   'R cria 3 perfis (3 rascunhos)');
 select lives_ok($$select count(*)::int from (select (public.catalogo_criar_item('produto', null, p_nome => 'Item R' || n, p_descricao => 'Descrição', p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_cidade => 'Recife', p_uf => 'PE')).o_item_id from generate_series(1, 7) n) s$$,
   'R cria 7 anúncios (10 rascunhos no total)');
-select throws_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Item R8')$$, 'P0430', 'teto_atingido:tetos_rascunhos_abertos', 'o 11o rascunho (anúncio, abaixo do teto de anúncios) é recusado pelo teto de rascunhos');
+select throws_ok($$select public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Item R8')$$, 'P0430', 'teto_atingido:tetos_rascunhos_abertos', 'o 11o rascunho (anúncio, abaixo do teto de anúncios) é recusado pelo teto de rascunhos');
 select throws_ok($$select * from public.perfis_criar_rascunho('r-perfil-9', '+5511988880499')$$, 'P0430', null, 'perfil novo também é recusado (já são 3 perfis)');
 select lives_ok($$update public.catalogo_item_versao v set foto_path = 'item/' || v.item_id::text || '/f.jpg' where nome = 'Item R1'$$, 'foto do rascunho R1');
 select lives_ok($$select public.catalogo_enviar_item_versao((select id from public.catalogo_item_versao where nome = 'Item R1' and situacao = 'rascunho'))$$, 'R envia o item R1 para revisão');
-select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Item R8')$$, 'enviado deixa de ser rascunho aberto: R cria o próximo');
-select throws_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Item R9')$$, 'P0430', 'teto_atingido:tetos_rascunhos_abertos', 'e volta a ficar no teto de rascunhos (10)');
+select lives_ok($$select public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Item R8')$$, 'enviado deixa de ser rascunho aberto: R cria o próximo');
+select throws_ok($$select public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Item R9')$$, 'P0430', 'teto_atingido:tetos_rascunhos_abertos', 'e volta a ficar no teto de rascunhos (10)');
 reset role;
 select is((select count(*)::int from public.catalogo_item where conta_id = 'cccccccc-0000-0000-0000-00000000000c'), 8, 'a criação recusada não deixou item órfão (8 itens)');
 
@@ -68,8 +68,8 @@ select is((select count(*)::int from public.perfis_perfil_versao v join public.p
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-0000-0000-0000-00000000000b","role":"authenticated"}', true);
 select lives_ok($$select * from public.perfis_criar_rascunho('b-perfil-1', '+5511988880301')$$, 'B cria o primeiro perfil (conta diferente, teto próprio)');
-select lives_ok($$select * from public.catalogo_criar_item('servico', null, p_nome => 'Serviço B')$$, 'B cria um anúncio');
-select throws_ok($$select * from public.catalogo_criar_item('produto', current_setting('t.pa1')::uuid, p_nome => 'Invasão')$$, '23503', null, 'B não cria item no perfil de A (a chave composta barra; o teto de A não vira informação para B)');
+select lives_ok($$select * from public.catalogo_criar_item('servico', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Serviço B')$$, 'B cria um anúncio');
+select throws_ok($$select * from public.catalogo_criar_item('produto', current_setting('t.pa1')::uuid, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Invasão')$$, '23503', null, 'B não cria item no perfil de A (a chave composta barra; o teto de A não vira informação para B)');
 select throws_ok($$select count(*) from public.contas_parametro$$, '42501', null, 'cliente não lê a tabela de parâmetros (só por função)');
 select is((select count(*)::int from public.contas_limites_criacao_atuais()), 4, 'mas lê os 4 limites vigentes por função');
 select is((select o_valor from public.contas_limites_criacao_atuais() where o_chave = 'tetos_perfis_por_conta'), 3, 'valor do teto de perfis');
@@ -97,15 +97,15 @@ select is((select autor_id from public.administracao_auditoria where acao = 'def
 -- ===== Itens por perfil: 30 passam, o 31o não; outro perfil e anúncios seguem =====
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
-select lives_ok($$select count(*)::int from (select (public.catalogo_criar_item('produto', current_setting('t.pa1')::uuid, p_nome => 'Item A' || n)).o_item_id from generate_series(1, 30) n) s$$,
+select lives_ok($$select count(*)::int from (select (public.catalogo_criar_item('produto', current_setting('t.pa1')::uuid, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Item A' || n)).o_item_id from generate_series(1, 30) n) s$$,
   'A cria 30 itens no perfil 1 (no teto exato)');
-select throws_ok($$select * from public.catalogo_criar_item('produto', current_setting('t.pa1')::uuid, p_nome => 'Item A31')$$, 'P0430', 'teto_atingido:tetos_itens_por_perfil', 'o 31o item do perfil 1 é recusado');
-select lives_ok($$select * from public.catalogo_criar_item('produto', current_setting('t.pa2')::uuid, p_nome => 'Item no perfil 2')$$, 'o teto é por perfil: o perfil 2 aceita item');
+select throws_ok($$select * from public.catalogo_criar_item('produto', current_setting('t.pa1')::uuid, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Item A31')$$, 'P0430', 'teto_atingido:tetos_itens_por_perfil', 'o 31o item do perfil 1 é recusado');
+select lives_ok($$select * from public.catalogo_criar_item('produto', current_setting('t.pa2')::uuid, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Item no perfil 2')$$, 'o teto é por perfil: o perfil 2 aceita item');
 -- Anúncios particulares: 10 passam, o 11o não (os itens de perfil não contam como anúncio).
-select lives_ok($$select count(*)::int from (select (public.catalogo_criar_item('servico', null, p_nome => 'Anúncio A' || n)).o_item_id from generate_series(1, 10) n) s$$,
+select lives_ok($$select count(*)::int from (select (public.catalogo_criar_item('servico', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Anúncio A' || n)).o_item_id from generate_series(1, 10) n) s$$,
   'A cria 10 anúncios particulares (no teto exato; os 31 itens de perfil não contam)');
-select throws_ok($$select * from public.catalogo_criar_item('servico', null, p_nome => 'Anúncio A11')$$, 'P0430', 'teto_atingido:tetos_anuncios_particulares', 'o 11o anúncio particular é recusado');
-select throws_ok($$select * from public.catalogo_criar_item('servico', null, p_nome => 'Anúncio A11')$$, 'P0430', null, 'e continua recusado ao repetir');
+select throws_ok($$select * from public.catalogo_criar_item('servico', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Anúncio A11')$$, 'P0430', 'teto_atingido:tetos_anuncios_particulares', 'o 11o anúncio particular é recusado');
+select throws_ok($$select * from public.catalogo_criar_item('servico', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Anúncio A11')$$, 'P0430', null, 'e continua recusado ao repetir');
 reset role;
 select is((select count(*)::int from public.catalogo_item where conta_id = 'aaaaaaaa-0000-0000-0000-00000000000a' and perfil_id = current_setting('t.pa1')::uuid), 30, 'o perfil 1 ficou com exatamente 30 itens');
 select is((select count(*)::int from public.catalogo_item where conta_id = 'aaaaaaaa-0000-0000-0000-00000000000a' and perfil_id is null), 10, 'A ficou com exatamente 10 anúncios');

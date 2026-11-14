@@ -83,7 +83,7 @@ select lives_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('pa
 select lives_ok($$select public.perfis_enviar_versao(t.versao('padaria-ana', 'rascunho'))$$, 'A envia padaria-ana');
 select throws_ok($$select public.perfis_gravar_versao(p_perfil_id => t.perfil('padaria-ana'), p_whatsapp_comercial => '+5551999990004', p_nome => 'Mexe na pendente')$$, 'P0001', null, 'versão pendente não pode ser regravada');
 
-select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Bicicleta', p_descricao => 'Aro 29',
+select lives_ok($$select public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Bicicleta', p_descricao => 'Aro 29',
   p_categoria_principal_id => '11111111-0000-0000-0000-000000000001', p_preco_modo => 'fixo', p_preco_centavos => 120000, p_cidade => 'Porto Alegre', p_uf => 'RS')$$, 'A cria anúncio particular');
 select lives_ok($$update public.catalogo_item_versao set foto_path = 'item/' || (select id from public.catalogo_meus_itens)::text || '/bike.jpg' where situacao = 'rascunho'$$, 'A grava a foto opaca do anúncio');
 select lives_ok($$select public.catalogo_enviar_item_versao((select id from public.catalogo_item_versao where situacao = 'rascunho'))$$, 'A envia o anúncio');
@@ -162,7 +162,7 @@ select throws_ok($$insert into public.catalogo_item (conta_id, tipo) values ('aa
 update public.perfis_perfil set publicado = false where slug = 'loja-ana';
 update public.catalogo_item set publicado = false;
 select lives_ok($$select public.perfis_criar_rascunho('loja-bia', '+5551999990002')$$, 'B cria o próprio perfil');
-select lives_ok($$select public.catalogo_criar_item('servico', null, p_nome => 'Aula')$$, 'B cria o próprio item');
+select lives_ok($$select public.catalogo_criar_item('servico', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Aula')$$, 'B cria o próprio item');
 
 reset role;
 select is((select responsavel_id from public.perfis_perfil where slug = 'loja-bia'), 'bbbbbbbb-0000-0000-0000-00000000000b'::uuid, 'o responsável do perfil criado por B é B (sempre auth.uid())');

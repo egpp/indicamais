@@ -244,6 +244,7 @@ describe("D-035 · tetos de criação por conta (migração 20261109110000)", ()
       "20261024150000_perfis_catalogo_rpcs_resultados.sql",
       "20261029100000_catalogo_anuncio_particular_localizacao.sql",
       "20261109110000_contas_tetos_criacao.sql",
+      "20261114100000_catalogo_item_modelo_exclusao.sql",
     ]);
   });
 });

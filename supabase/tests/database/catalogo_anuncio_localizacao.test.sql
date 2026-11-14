@@ -57,9 +57,11 @@ select is(has_function_privilege('authenticated', 'public.catalogo_criar_item(te
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 -- Sem localização: cria rascunho, mas não envia
-select lives_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Bike sem cidade', p_descricao => 'x',
+select lives_ok($$select public.catalogo_criar_item('produto', null, p_cidade => 'Recife', p_uf => 'PE', p_nome => 'Bike sem cidade', p_descricao => 'x',
   p_categoria_principal_id => '11111111-0000-0000-0000-000000000001')$$, 'rascunho de anúncio sem localização é permitido');
 select lives_ok($$update public.catalogo_item_versao v set foto_path = 'item/' || v.item_id::text || '/f.jpg' where nome = 'Bike sem cidade'$$, 'foto do rascunho');
+-- D-040: o item nasce com localização própria (a criação exige cidade e UF); a versão do rascunho pode ficar sem a dela.
+select lives_ok($$update public.catalogo_item_versao set cidade = null, uf = null where nome = 'Bike sem cidade'$$, 'versão do rascunho sem localização');
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv('Bike sem cidade', 'rascunho'))$$, '23514', null, 'anúncio particular sem cidade/UF não envia');
 select lives_ok($$update public.catalogo_item_versao set cidade = 'Curitiba' where nome = 'Bike sem cidade'$$, 'só cidade grava no rascunho');
 select throws_ok($$select public.catalogo_enviar_item_versao(t.iv('Bike sem cidade', 'rascunho'))$$, '23514', null, 'só cidade (sem UF) não envia');
@@ -75,10 +77,13 @@ select lives_ok($$update public.catalogo_item_versao set cidade = '  Curitiba  '
 select is((select cidade || '/' || uf from public.catalogo_item_versao where nome = 'Bike sem cidade'), 'Curitiba/PR', 'gravado aparado e em maiúsculas');
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv('Bike sem cidade', 'rascunho'))$$, 'com cidade e UF, o anúncio particular envia');
 -- Item de perfil: cidade/UF própria é recusada (herda do perfil)
-select throws_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão', p_cidade => 'Canoas', p_uf => 'RS')$$, '23514', null, 'item de perfil com cidade própria é recusado');
-select throws_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão', p_uf => 'RS')$$, '23514', null, 'item de perfil com UF própria é recusado');
-select lives_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão Francês', p_descricao => 'Fresco',
+select lives_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão Próprio', p_cidade => 'Canoas', p_uf => 'RS')$$, 'D-040 P8: item de perfil aceita cidade e UF próprias (padrão do site, editável)');
+select is((select cidade || '/' || uf from public.catalogo_meus_itens where perfil_id is not null and cidade = 'Canoas'), 'Canoas/RS', 'a localização própria fica no item');
+select is((select cidade from public.catalogo_item_versao where nome = 'Pão Próprio'), null, 'e a versão do item de perfil segue sem cidade (herança só no item)');
+select throws_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão', p_uf => 'RS')$$, '23514', null, 'só UF (sem cidade) é recusada');
+select throws_ok($$select public.catalogo_criar_item('produto', null, p_nome => 'Sem local')$$, '23514', null, 'D-040: anúncio particular novo sem cidade e UF é recusado');select lives_ok($$select public.catalogo_criar_item('produto', 'a0000000-0000-0000-0000-000000000001', p_nome => 'Pão Francês', p_descricao => 'Fresco',
   p_categoria_principal_id => '11111111-0000-0000-0000-000000000001')$$, 'item de perfil sem localização própria é criado');
+select is((select cidade || '/' || uf from public.catalogo_meus_itens where id = t.itemid('Pão Francês')), 'Porto Alegre/RS', 'D-040 P8: sem cidade/UF informadas, o item herda a do site como padrão');
 select lives_ok($$update public.catalogo_item_versao v set foto_path = 'item/' || v.item_id::text || '/f.jpg' where nome = 'Pão Francês'$$, 'foto do item de perfil');
 select throws_ok($$update public.catalogo_item_versao set cidade = 'Canoas' where nome = 'Pão Francês'$$, '23514', null, 'editar o item de perfil com cidade é recusado');
 select lives_ok($$select public.catalogo_enviar_item_versao(t.iv('Pão Francês', 'rascunho'))$$, 'item de perfil envia sem localização própria');
