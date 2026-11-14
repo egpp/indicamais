@@ -1,0 +1,215 @@
+/* Tela "Modelos de sites" (administração). Celular primeiro: 360px sem rolagem horizontal. */
+.modelos {
+  display: grid;
+  gap: var(--e3);
+  min-width: 0;
+}
+.modelos-contadores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e2);
+  margin: 0;
+}
+.modelos-contadores > div {
+  padding: var(--e2) var(--e3);
+  background: var(--superficie);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-1);
+}
+.modelos-contadores dt {
+  font-size: 0.8125rem;
+  color: var(--texto-suave);
+}
+.modelos-contadores dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.modelos-contador-verde dd {
+  color: var(--sucesso-texto);
+}
+.modelos-busca label {
+  display: block;
+  margin-bottom: var(--e1);
+  font-weight: 700;
+}
+.modelos-busca-linha {
+  display: flex;
+  gap: var(--e2);
+}
+.modelos-busca-linha input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 var(--e3);
+  font: inherit;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+.modelos-busca-linha .botao {
+  width: auto;
+}
+.modelos-abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+}
+.modelos-abas a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e3);
+  border: 1px solid var(--borda-suave);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--texto);
+  font-weight: 700;
+  text-decoration: none;
+}
+.modelos-abas a[aria-current="page"] {
+  background: var(--grafite);
+  border-color: var(--grafite);
+  color: #fff;
+}
+.modelos-contagem {
+  margin: 0;
+  color: var(--texto-suave);
+}
+.modelos-corpo {
+  display: grid;
+  gap: var(--e3);
+  min-width: 0;
+}
+.modelos-indice {
+  padding: var(--e2) var(--e3);
+  background: var(--superficie);
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio);
+}
+.modelos-indice summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.modelos-indice ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.modelos-indice a {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  min-height: 44px;
+  color: var(--texto);
+  text-decoration: none;
+}
+.modelos-indice a:hover {
+  text-decoration: underline;
+}
+.modelos-indice-num {
+  font-weight: 800;
+  color: var(--texto-suave);
+  min-width: 1.75rem;
+}
+.modelos-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--e4);
+  min-width: 0;
+}
+.modelo-cartao {
+  padding: var(--e3);
+  background: var(--superficie);
+  border: 1px solid var(--borda-suave);
+  border-radius: 16px;
+  box-shadow: var(--sombra-1);
+  scroll-margin-top: var(--e4);
+}
+.modelo-cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2);
+  margin-bottom: var(--e2);
+}
+.modelo-cabeca h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.modelo-num {
+  font-weight: 800;
+  color: var(--texto-suave);
+}
+.modelo-previa {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 640 / 397;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--borda-suave);
+  border-radius: var(--raio);
+  background: var(--fundo);
+}
+.modelo-acoes {
+  display: grid;
+  gap: var(--e2);
+  margin-top: var(--e3);
+}
+.modelo-motivo > summary {
+  list-style: none;
+}
+.modelo-motivo > summary::-webkit-details-marker {
+  display: none;
+}
+.modelo-motivo > form {
+  margin-top: var(--e3);
+}
+.modelo-ver {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+}
+.modelo-legenda {
+  margin: 0;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+@media (min-width: 768px) {
+  .modelo-acoes {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+  .modelo-motivo {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 1024px) {
+  .modelos-corpo {
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: start;
+  }
+  .modelos-indice {
+    position: sticky;
+    top: var(--e3);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+@media (min-width: 1024px) {
+  /* No computador o índice fica sempre aberto (navegadores sem suporte mantêm o recolhível). */
+  .modelos-indice::details-content {
+    content-visibility: visible;
+    display: block;
+  }
+}

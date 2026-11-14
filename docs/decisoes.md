@@ -462,6 +462,8 @@ Proposta do Emerson e aprovada por ele em 02/11/2026, sobre cinco seções suger
 - **Aviso de vencimento:** 2 dias antes, só no painel, parâmetro do administrador (dúvida 1).
 - **Rascunhos e itens aguardando aprovação contam nos 10 itens** (dúvida 4); só a exclusão libera vaga (P3).
 
+**Atualização de 14/11/2026:** o Emerson **aceitou a exceção do IM-094** para o estilo `basico`: só ele tem textos próprios (Fale com a gente, Um pouco sobre a gente, Vamos conversar?, Tenho interesse, Valores sob consulta); os outros 21 estilos seguem com texto idêntico entre si. O PR #108 (estilo `basico`) está na main.
+
 ---
 
 ---
